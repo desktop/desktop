@@ -1,7 +1,8 @@
-import { describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
 import { existsSync } from 'fs'
+import { pathToFileURL } from 'url'
 
 import { clone } from '../../../src/lib/git/clone'
 import { setupEmptyRepository } from '../../helpers/repositories'
@@ -9,6 +10,7 @@ import { makeCommit } from '../../helpers/repository-scaffolding'
 import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
+import { isGitError } from '../../../src/lib/git/core'
 
 async function createEmptyBareRepository(
   t: import('node:test').TestContext
@@ -20,6 +22,190 @@ async function createEmptyBareRepository(
 }
 
 describe('git/clone', () => {
+  describe('transport policy', () => {
+    const savedEnvironment: NodeJS.ProcessEnv = {}
+
+    beforeEach(() => {
+      for (const key of ['GIT_ALLOW_PROTOCOL', 'GIT_CONFIG_PARAMETERS']) {
+        savedEnvironment[key] = process.env[key]
+        delete process.env[key]
+      }
+    })
+
+    afterEach(() => {
+      for (const [key, value] of Object.entries(savedEnvironment)) {
+        if (value === undefined) {
+          delete process.env[key]
+        } else {
+          process.env[key] = value
+        }
+      }
+    })
+
+    for (const protocol of ['ext', 'ext.exe']) {
+      it(`rejects ${protocol} URLs before creating the destination`, async t => {
+        const destination = path.join(await createTempDirectory(t), 'cloned')
+
+        await assert.rejects(clone(`${protocol}::`, destination, {}), {
+          message: `The "${protocol}" transport is not supported for cloning in ${__APP_NAME__}.`,
+        })
+        assert.strictEqual(existsSync(destination), false)
+      })
+
+      for (const allowProtocol of [
+        undefined,
+        'ext:ext.exe:file',
+        'ext:ext.exe',
+      ]) {
+        it(`rejects rewrites to ${protocol} with GIT_ALLOW_PROTOCOL=${allowProtocol}`, async t => {
+          const destination = path.join(await createTempDirectory(t), 'cloned')
+          process.env.GIT_CONFIG_PARAMETERS =
+            `'protocol.${protocol}.allow=always' ` +
+            `'url.${protocol}::.insteadOf=desktop-clone-test:'`
+          if (allowProtocol !== undefined) {
+            process.env.GIT_ALLOW_PROTOCOL = allowProtocol
+          }
+
+          await assert.rejects(
+            clone('desktop-clone-test:', destination, {}),
+            (error: unknown) => {
+              assert.ok(isGitError(error))
+              assert.ok(
+                error.result.stderr.includes(
+                  `transport '${protocol}' not allowed`
+                ),
+                error.result.stderr.toString()
+              )
+              return true
+            }
+          )
+        })
+      }
+    }
+
+    for (const [url, protocol] of [
+      ['https://example.com/owner/repo.git', 'https'],
+      ['https://[::1]/owner/repo.git', 'https'],
+      ['ssh://git@[::1]/owner/repo.git', 'ssh'],
+      ['git@example.com:owner/repo.git', 'ssh'],
+      ['git://example.com/owner/repo.git', 'git'],
+      ['desktop-test-helper::', 'desktop-test-helper'],
+    ]) {
+      it(`leaves ${url} transport selection to Git`, async t => {
+        const destination = path.join(await createTempDirectory(t), 'cloned')
+        // Stop at Git's transport check without connecting or starting a helper.
+        process.env.GIT_ALLOW_PROTOCOL = ''
+
+        await assert.rejects(clone(url, destination, {}), (error: unknown) => {
+          assert.ok(isGitError(error))
+          assert.ok(
+            error.result.stderr.includes(`transport '${protocol}' not allowed`),
+            error.result.stderr.toString()
+          )
+          return true
+        })
+      })
+    }
+
+    for (const allowProtocol of [undefined, 'ext:file:ext.exe']) {
+      it(`preserves file clones with GIT_ALLOW_PROTOCOL=${allowProtocol}`, async t => {
+        const source = await createEmptyBareRepository(t)
+        const destination = path.join(await createTempDirectory(t), 'cloned')
+        if (allowProtocol !== undefined) {
+          process.env.GIT_ALLOW_PROTOCOL = allowProtocol
+        }
+
+        await clone(pathToFileURL(source).href, destination, {})
+
+        assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+        assert.strictEqual(process.env.GIT_ALLOW_PROTOCOL, allowProtocol)
+      })
+    }
+
+    for (const allowProtocol of ['', 'https', 'ext:ext.exe']) {
+      it(`preserves file restrictions with GIT_ALLOW_PROTOCOL=${allowProtocol}`, async t => {
+        const source = await createEmptyBareRepository(t)
+        const destination = path.join(await createTempDirectory(t), 'cloned')
+        process.env.GIT_ALLOW_PROTOCOL = allowProtocol
+
+        await assert.rejects(
+          clone(pathToFileURL(source).href, destination, {}),
+          (error: unknown) => {
+            assert.ok(isGitError(error))
+            assert.ok(
+              error.result.stderr.includes("transport 'file' not allowed"),
+              error.result.stderr.toString()
+            )
+            return true
+          }
+        )
+        assert.strictEqual(process.env.GIT_ALLOW_PROTOCOL, allowProtocol)
+      })
+    }
+
+    for (const [protocol, allowProtocol] of [
+      ['file', undefined],
+      ['file', 'file:ext:ext.exe'],
+      ['ext', 'file:ext:ext.exe'],
+      ['ext.exe', 'file:ext:ext.exe'],
+    ]) {
+      it(`preserves recursive ${protocol} policy with GIT_ALLOW_PROTOCOL=${allowProtocol}`, async t => {
+        const submodule = await setupEmptyRepository(t)
+        await makeCommit(submodule, {
+          entries: [{ path: 'README.md', contents: 'submodule' }],
+        })
+        const submoduleURL = pathToFileURL(submodule.path).href
+        const source = await setupEmptyRepository(t)
+        await git(
+          [
+            '-c',
+            'protocol.file.allow=always',
+            'submodule',
+            'add',
+            '--',
+            submoduleURL,
+            'module',
+          ],
+          source.path,
+          'addSubmodule'
+        )
+        await makeCommit(source, { entries: [] })
+
+        if (allowProtocol !== undefined) {
+          process.env.GIT_ALLOW_PROTOCOL = allowProtocol
+        }
+        if (protocol !== 'file') {
+          process.env.GIT_CONFIG_PARAMETERS =
+            `'protocol.${protocol}.allow=always' ` +
+            `'url.${protocol}::.insteadOf=${submoduleURL}'`
+        }
+        const destination = path.join(await createTempDirectory(t), 'cloned')
+
+        if (protocol === 'file' && allowProtocol !== undefined) {
+          await clone(source.path, destination, {})
+          assert.strictEqual(
+            existsSync(path.join(destination, 'module', 'README.md')),
+            true
+          )
+        } else {
+          await assert.rejects(
+            clone(source.path, destination, {}),
+            (error: unknown) => {
+              assert.ok(isGitError(error))
+              assert.ok(
+                error.result.stderr.includes(
+                  `transport '${protocol}' not allowed`
+                ),
+                error.result.stderr.toString()
+              )
+              return true
+            }
+          )
+        }
+      })
+    }
+  })
+
   it('clones a local repository', async t => {
     // Create a source repo with a commit
     const source = await setupEmptyRepository(t)
