@@ -9,6 +9,8 @@ import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
 import { getMergeBase, merge, MergeResult } from '../../../src/lib/git/merge'
 import { createBranch, deleteRemoteBranch } from '../../../src/lib/git/branch'
+import { getBranches } from '../../../src/lib/git/for-each-ref'
+import { rebase, RebaseResult } from '../../../src/lib/git/rebase'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
@@ -66,6 +68,45 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      for (const withProgress of [false, true]) {
+        it(`rebases onto a remote ref with progress ${withProgress}`, async t => {
+          const { repository, upstream, remote } = await setupRemote(
+            t,
+            remoteName
+          )
+          await makeCommit(repository, {
+            entries: [{ path: 'local.txt', contents: 'local change' }],
+          })
+          await fetch(repository, remote)
+          const [base] = await getBranches(
+            repository,
+            `refs/remotes/${remoteName}/master`
+          )
+          assert(base !== undefined)
+          const target = await getBranchOrError(repository, 'master')
+          const progress = t.mock.fn()
+
+          assert.strictEqual(
+            await rebase(
+              repository,
+              base,
+              target,
+              withProgress ? progress : undefined
+            ),
+            RebaseResult.CompletedWithoutError
+          )
+
+          const after = await getTipOrError(repository)
+          const expected = await getTipOrError(upstream)
+          assert.deepStrictEqual(after.parentSHAs, [expected.sha])
+          assert.strictEqual(
+            await readFile(Path.join(repository.path, 'local.txt'), 'utf8'),
+            'local change'
+          )
+          assert.strictEqual(progress.mock.callCount() > 0, withProgress)
+        })
+      }
+
       for (const squash of [false, true]) {
         it(`merges a remote ref with squash ${squash}`, async t => {
           const { repository, upstream, remote } = await setupRemote(
