@@ -393,7 +393,13 @@ export async function rebase(
   }
 
   const result = await git(
-    [...gitRebaseArguments(), 'rebase', baseBranch.name, targetBranch.name],
+    [
+      ...gitRebaseArguments(),
+      'rebase',
+      '--',
+      baseBranch.name,
+      targetBranch.name,
+    ],
     repository.path,
     'rebase',
     options
