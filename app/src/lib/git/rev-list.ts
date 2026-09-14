@@ -148,12 +148,13 @@ export async function getCommitsInRange(
 ): Promise<ReadonlyArray<CommitOneLine> | null> {
   const args = [
     'rev-list',
-    range,
     '--reverse',
     // the combination of these two arguments means each line of the stdout
     // will contain the full commit sha and a commit summary
     `--oneline`,
     `--no-abbrev-commit`,
+    '--end-of-options',
+    range,
     '--',
   ]
 
