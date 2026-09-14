@@ -7,7 +7,7 @@ import * as Win32 from './win32'
 export const copilotAppMarketingUrl =
   'https://gh.io/app?utm_source=github_desktop_app'
 
-type CopilotAppErrorKind = 'not-found' | 'unsupported-version' | 'launch-failed'
+type CopilotAppErrorKind = 'not-found' | 'launch-failed'
 
 /** A discoverable installation or CLI handoff failure. */
 export class CopilotAppError extends Error {
@@ -101,48 +101,6 @@ export function createCopilotAppIntegration(deps: ICopilotAppDependencies) {
       throw new CopilotAppError(
         'launch-failed',
         'The repository path must be absolute.'
-      )
-    }
-
-    // Older builds ignore CLI arguments, sometimes exiting successfully after
-    // starting the GUI. Require an explicit capability response, not exit 0 alone.
-    // Do this only on launch, never during passive discovery or path validation.
-    // The probe itself may start the GUI on those older builds.
-    let help: string
-    try {
-      help = (await deps.run(executable, ['--help'], 5000)).stdout
-    } catch (error) {
-      if (isMissingExecutable(error)) {
-        throw new CopilotAppError(
-          'not-found',
-          'GitHub Copilot could not be found.'
-        )
-      }
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        typeof error.code === 'string'
-      ) {
-        throw new CopilotAppError(
-          'launch-failed',
-          `Could not run GitHub Copilot. ${errorDetail(error)}`
-        )
-      }
-      throw new CopilotAppError(
-        'unsupported-version',
-        `GitHub Copilot could not confirm support for opening repositories. Update the app and try again. ${errorDetail(
-          error
-        )}`
-      )
-    }
-    if (
-      !/^Usage:\s+github\b/m.test(help) ||
-      !/^\s+open\s+/m.test(help) ||
-      !help.includes('GitHub Copilot')
-    ) {
-      throw new CopilotAppError(
-        'unsupported-version',
-        'This version of GitHub Copilot does not support opening repositories. Update the app and try again.'
       )
     }
 

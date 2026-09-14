@@ -24,14 +24,6 @@ const windowsBinary = 'C:\\Tools\\GitHub Copilot\\github.exe'
 const appPath = __WIN32__ ? windowsBinary : macApp
 const appBinary = __WIN32__ ? windowsBinary : macBinary
 const repositoryPath = __WIN32__ ? 'C:\\repo' : '/repo'
-const help = `Open GitHub resources in GitHub Copilot
-
-Usage: github [COMMAND]
-
-Commands:
-  open  Open a local directory or GitHub URL
-  help  Print this message or the help of the given subcommand(s)
-`
 
 function setup(overrides: Partial<ICopilotAppDependencies> = {}) {
   const calls: Array<{
@@ -54,7 +46,7 @@ function setup(overrides: Partial<ICopilotAppDependencies> = {}) {
     pathExists: async path => path === appBinary,
     run: async (executable, args, timeout) => {
       calls.push({ executable, args, timeout })
-      return { stdout: args[0] === '--help' ? help : '', stderr: '' }
+      return { stdout: '', stderr: '' }
     },
     ...overrides,
   })
@@ -284,7 +276,6 @@ if (__DARWIN__ || __WIN32__) {
         : '/Users/test/a repo;$(touch nope)&"quotes"'
       await app.openInCopilotApp(appPath, repository)
       assert.deepStrictEqual(app.calls, [
-        { executable: appBinary, args: ['--help'], timeout: 5000 },
         { executable: appBinary, args: ['open', repository], timeout: 30000 },
       ])
     })
@@ -297,54 +288,10 @@ if (__DARWIN__ || __WIN32__) {
         errorWithKind('not-found')
       )
       await assert.rejects(
-        app.openInCopilotApp(appPath, '--help'),
+        app.openInCopilotApp(appPath, 'relative'),
         errorWithKind('launch-failed')
       )
       assert.deepStrictEqual(app.calls, [])
-    })
-
-    it('rejects old binaries that silently ignore arguments and exit successfully', async () => {
-      for (const stdout of [
-        '',
-        'github 1.1.16',
-        'Usage: github\n  open  a path',
-      ]) {
-        let invocations = 0
-        const app = setup({
-          run: async () => {
-            invocations++
-            return { stdout, stderr: '' }
-          },
-        })
-        await assert.rejects(
-          app.openInCopilotApp(appPath, repositoryPath),
-          errorWithKind('unsupported-version')
-        )
-        assert.strictEqual(invocations, 1)
-      }
-    })
-
-    it('rejects failed or timed-out capability probes without attempting open', async () => {
-      for (const error of [
-        Object.assign(new Error('Unknown option'), { code: 1 }),
-        Object.assign(new Error('Timed out'), {
-          killed: true,
-          signal: 'SIGKILL',
-        }),
-      ]) {
-        let invocations = 0
-        const app = setup({
-          run: async () => {
-            invocations++
-            throw error
-          },
-        })
-        await assert.rejects(
-          app.openInCopilotApp(appPath, repositoryPath),
-          errorWithKind('unsupported-version')
-        )
-        assert.strictEqual(invocations, 1)
-      }
     })
 
     it('reports a disappeared binary as not found', async () => {
@@ -360,7 +307,7 @@ if (__DARWIN__ || __WIN32__) {
       )
     })
 
-    it('distinguishes a probe spawn failure from an unsupported version', async () => {
+    it('reports a launch permission failure', async () => {
       const app = setup({
         run: async () => {
           throw Object.assign(new Error('Permission denied'), {
@@ -388,10 +335,7 @@ if (__DARWIN__ || __WIN32__) {
       ]) {
         let opens = 0
         const app = setup({
-          run: async (_, args) => {
-            if (args[0] === '--help') {
-              return { stdout: help, stderr: '' }
-            }
+          run: async () => {
             opens++
             throw error
           },
@@ -428,7 +372,7 @@ if (__DARWIN__ || __WIN32__) {
             requested()
             await accepted
           }
-          return { stdout: help, stderr: '' }
+          return { stdout: '', stderr: '' }
         },
       })
       let complete = false
