@@ -136,4 +136,5 @@ export type RequestResponseChannels = {
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
   'request-notifications-permission': () => Promise<boolean>
+  zoom: (direction: 'in' | 'out') => Promise<void>
 }
