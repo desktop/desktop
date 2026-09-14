@@ -13,6 +13,7 @@ import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { rebase, RebaseResult } from '../../../src/lib/git/rebase'
 import { checkoutBranch } from '../../../src/lib/git/checkout'
 import { addWorktree } from '../../../src/lib/git/worktree'
+import { fetchTagsToPush, getAllTags } from '../../../src/lib/git/tag'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { createTempDirectory } from '../../helpers/temp'
@@ -71,6 +72,32 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      it('discovers unpushed tags without modifying the remote', async t => {
+        const { repository, upstream, remote } = await setupRemote(
+          t,
+          remoteName
+        )
+        await git(
+          ['tag', '-a', '-m', 'Release', 'v1.0'],
+          repository.path,
+          'create annotated tag'
+        )
+        await writeFile(
+          Path.join(repository.path, '.git', 'hooks', 'pre-push'),
+          '#!/bin/sh\nexit 1\n',
+          { mode: 0o755 }
+        )
+        const before = await getTipOrError(upstream)
+
+        assert.deepStrictEqual(
+          await fetchTagsToPush(repository, remote, 'master'),
+          ['v1.0']
+        )
+
+        assert.strictEqual((await getAllTags(upstream)).size, 0)
+        assert.strictEqual((await getTipOrError(upstream)).sha, before.sha)
+      })
+
       for (const branchName of [undefined, 'linked-branch']) {
         it(`adds a worktree from a remote ref ${
           branchName ?? 'detached'
