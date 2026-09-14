@@ -4,6 +4,7 @@ import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 import { getCommits } from '../../../src/lib/git/log'
 import {
+  doMergeCommitsExistAfterCommit,
   getAheadBehind,
   getCommitsInRange,
 } from '../../../src/lib/git/rev-list'
@@ -39,6 +40,37 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('doMergeCommitsExistAfterCommit detects merges after leading-dash refs', async t => {
+    const { repository, base, tip } = await setupHistory(t)
+    assert.strictEqual(
+      await doMergeCommitsExistAfterCommit(repository, '--remote/base'),
+      false
+    )
+    await runGit(repository, ['checkout', '-b', 'side', base])
+    await makeCommit(repository, {
+      entries: [{ path: 'side.txt', contents: 'side\n' }],
+    })
+    await runGit(repository, ['checkout', '--detach', tip])
+    await runGit(repository, ['merge', '--no-ff', '-m', 'merge side', 'side'])
+    assert.strictEqual(
+      await doMergeCommitsExistAfterCommit(repository, '--remote/base'),
+      true
+    )
+    assert.strictEqual(
+      await doMergeCommitsExistAfterCommit(repository, null),
+      true
+    )
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/merged',
+      'HEAD',
+    ])
+    assert.strictEqual(
+      await doMergeCommitsExistAfterCommit(repository, '--remote/merged'),
+      false
+    )
+  })
+
   it('getCommitsInRange preserves order and summaries for leading-dash ranges', async t => {
     const { repository, first, tip } = await setupHistory(t)
     assert.deepStrictEqual(

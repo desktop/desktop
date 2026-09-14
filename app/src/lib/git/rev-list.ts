@@ -200,7 +200,14 @@ export async function doMergeCommitsExistAfterCommit(
   commitRef: string | null
 ): Promise<boolean> {
   const revision = commitRef === null ? 'HEAD' : revRange(commitRef, 'HEAD')
-  const args = ['rev-list', '-1', '--merges', revision, '--']
+  const args = [
+    'rev-list',
+    '-1',
+    '--merges',
+    '--end-of-options',
+    revision,
+    '--',
+  ]
 
   return git(args, repository.path, 'doMergeCommitsExistAfterCommit', {
     // 128 here means there's no HEAD, i.e we're on an unborn branch
