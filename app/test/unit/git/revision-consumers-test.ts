@@ -3,7 +3,11 @@ import { describe, it, TestContext } from 'node:test'
 import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 import { getCommits } from '../../../src/lib/git/log'
-import { getBlobContents } from '../../../src/lib/git/show'
+import {
+  getBlobContents,
+  getPartialBlobContents,
+  getPartialBlobContentsCatchPathNotInRef,
+} from '../../../src/lib/git/show'
 import {
   doMergeCommitsExistAfterCommit,
   getAheadBehind,
@@ -41,6 +45,58 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('partial blob readers read leading-dash refs and preserve missing-path handling', async t => {
+    const { repository, base } = await setupHistory(t)
+    for (const read of [
+      getPartialBlobContents,
+      getPartialBlobContentsCatchPathNotInRef,
+    ]) {
+      assert.deepStrictEqual(
+        await read(repository, '--remote/base', 'file.txt', 1024),
+        Buffer.from('base\n')
+      )
+      assert.strictEqual(await read(repository, base, 'other.txt', 1024), null)
+      for (const revision of [
+        '--remote/base',
+        '--remote/main~2',
+        '--remote/base^{tree}',
+      ]) {
+        assert.deepStrictEqual(
+          await read(repository, revision, 'file.txt', 1024),
+          Buffer.from('base\n')
+        )
+        assert.strictEqual(
+          await read(repository, revision, 'other.txt', 1024),
+          null
+        )
+      }
+      for (const revision of ['--remote/missing', 'missing-ref']) {
+        await assert.rejects(
+          () => read(repository, revision, 'other.txt', 1024),
+          { name: 'GitError' }
+        )
+      }
+    }
+
+    const contents = Buffer.alloc(1024 * 1024, Buffer.from([0, 255, 128, 10]))
+    await makeCommit(repository, {
+      entries: [{ path: 'large.bin', contents }],
+    })
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/large',
+      'HEAD',
+    ])
+    const partial = await getPartialBlobContents(
+      repository,
+      '--remote/large',
+      'large.bin',
+      8
+    )
+    assert.ok(partial !== null && partial.length > 0)
+    assert.deepStrictEqual(partial, contents.subarray(0, partial.length))
+  })
+
   it('getBlobContents reads exact binary contents from leading-dash refs', async t => {
     const { repository } = await setupHistory(t)
     const contents = Buffer.from([0, 255, 13, 10, 128])
