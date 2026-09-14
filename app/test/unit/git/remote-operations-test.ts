@@ -1,13 +1,13 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
-import { writeFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import * as Path from 'path'
 
 import { git } from '../../../src/lib/git/core'
 import { fetch, fetchRefspec } from '../../../src/lib/git/fetch'
 import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
-import { getMergeBase } from '../../../src/lib/git/merge'
+import { getMergeBase, merge, MergeResult } from '../../../src/lib/git/merge'
 import { createBranch, deleteRemoteBranch } from '../../../src/lib/git/branch'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
@@ -66,6 +66,37 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      for (const squash of [false, true]) {
+        it(`merges a remote ref with squash ${squash}`, async t => {
+          const { repository, upstream, remote } = await setupRemote(
+            t,
+            remoteName
+          )
+          await fetch(repository, remote)
+          const before = await getTipOrError(repository)
+
+          assert.strictEqual(
+            await merge(repository, `${remoteName}/master`, {
+              squash,
+              noVerify: true,
+            }),
+            MergeResult.Success
+          )
+
+          const after = await getTipOrError(repository)
+          const expected = await getTipOrError(upstream)
+          if (squash) {
+            assert.deepStrictEqual(after.parentSHAs, [before.sha])
+          } else {
+            assert.strictEqual(after.sha, expected.sha)
+          }
+          assert.strictEqual(
+            await readFile(Path.join(repository.path, 'README.md'), 'utf8'),
+            'updated'
+          )
+        })
+      }
+
       for (const noTrack of [false, true]) {
         it(`creates a branch from a remote ref with noTrack ${noTrack}`, async t => {
           const { repository } = await setupRemote(t, remoteName)
