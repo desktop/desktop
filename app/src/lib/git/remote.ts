@@ -46,7 +46,7 @@ export async function removeRemote(
   }
 
   await git(
-    ['remote', 'remove', name],
+    ['remote', 'remove', '--', name],
     repository.path,
     'removeRemote',
     options
