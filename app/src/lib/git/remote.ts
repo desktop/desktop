@@ -77,7 +77,7 @@ export async function getRemoteURL(
   name: string
 ): Promise<string | null> {
   const result = await git(
-    ['remote', 'get-url', name],
+    ['remote', 'get-url', '--', name],
     repository.path,
     'getRemoteURL',
     { successExitCodes: new Set([0, 2, 128]) }
