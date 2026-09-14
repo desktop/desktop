@@ -117,7 +117,7 @@ export async function deleteRemoteBranch(
   remote: IRemote,
   remoteBranchName: string
 ): Promise<true> {
-  const args = ['push', remote.name, `:${remoteBranchName}`]
+  const args = ['push', '--', remote.name, `:${remoteBranchName}`]
 
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle

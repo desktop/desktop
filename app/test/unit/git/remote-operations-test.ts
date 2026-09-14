@@ -8,6 +8,7 @@ import { fetch, fetchRefspec } from '../../../src/lib/git/fetch'
 import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
 import { getMergeBase } from '../../../src/lib/git/merge'
+import { deleteRemoteBranch } from '../../../src/lib/git/branch'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
@@ -65,6 +66,33 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      it('deletes a remote branch and its tracking ref', async t => {
+        const { repository, upstream, remote } = await setupRemote(
+          t,
+          remoteName
+        )
+        await git(['branch', 'topic'], upstream.path, 'create remote branch')
+        await fetch(repository, remote)
+        assert(
+          await getRefOrError(repository, `refs/remotes/${remoteName}/topic`)
+        )
+
+        await deleteRemoteBranch(repository, remote, 'topic')
+
+        for (const [path, ref] of [
+          [upstream.path, 'refs/heads/topic'],
+          [repository.path, `refs/remotes/${remoteName}/topic`],
+        ]) {
+          const result = await git(
+            ['show-ref', '--verify', '--quiet', ref],
+            path,
+            'verify deleted branch',
+            { successExitCodes: new Set([0, 1]) }
+          )
+          assert.strictEqual(result.exitCode, 1)
+        }
+      })
+
       for (const withProgress of [false, true]) {
         it(`fetches updates with progress ${withProgress}`, async t => {
           const { repository, upstream, remote } = await setupRemote(
