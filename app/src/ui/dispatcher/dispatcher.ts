@@ -1633,6 +1633,8 @@ export class Dispatcher {
 
   /** Open the selected checkout in the GitHub Copilot app. */
   public async openInCopilotApp(repositoryPath: string): Promise<void> {
+    this.statsStore.increment('openInCopilotAppCount')
+
     try {
       await this.appStore._openInCopilotApp(repositoryPath)
     } catch (error) {
