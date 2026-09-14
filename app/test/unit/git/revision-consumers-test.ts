@@ -2,6 +2,9 @@ import assert from 'node:assert'
 import { describe, it, TestContext } from 'node:test'
 import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
+import { AppFileStatusKind, FileChange } from '../../../src/models/status'
+import { DiffType } from '../../../src/models/diff'
+import { getBranchMergeBaseDiff } from '../../../src/lib/git/diff'
 import { getCommits } from '../../../src/lib/git/log'
 import {
   getBlobContents,
@@ -45,6 +48,76 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('getBranchMergeBaseDiff reads leading-dash refs and limits output to the requested file', async t => {
+    const { repository, base, tip } = await setupHistory(t)
+    const file = new FileChange('file.txt', {
+      kind: AppFileStatusKind.Modified,
+    })
+    for (const [from, to] of [
+      ['--remote/base', '--remote/main'],
+      [base, '--remote/main'],
+      ['--remote/base', tip],
+    ]) {
+      const diff = await getBranchMergeBaseDiff(
+        repository,
+        file,
+        from,
+        to,
+        false,
+        tip
+      )
+      assert.ok(diff.kind === DiffType.Text)
+      assert.strictEqual(diff.text, '@@ -1 +1 @@\n-base\n+updated')
+      assert.ok(!diff.text.includes('other.txt'))
+    }
+    await makeCommit(repository, {
+      entries: [{ path: 'file.txt', contents: '  updated \n' }],
+    })
+    const spaced = await runGit(repository, ['rev-parse', 'HEAD'])
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/spaced',
+      spaced,
+    ])
+    const hidden = await getBranchMergeBaseDiff(
+      repository,
+      file,
+      '--remote/main',
+      '--remote/spaced',
+      true,
+      spaced
+    )
+    assert.ok(hidden.kind === DiffType.Text)
+    assert.deepStrictEqual(hidden.hunks, [])
+  })
+
+  it('getBranchMergeBaseDiff preserves old and leading-dash new paths for renames', async t => {
+    const { repository } = await setupHistory(t)
+    await runGit(repository, ['mv', '--', 'file.txt', '-file.txt'])
+    await runGit(repository, ['commit', '-m', 'rename file'])
+    const renamed = await runGit(repository, ['rev-parse', 'HEAD'])
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/renamed',
+      renamed,
+    ])
+    const diff = await getBranchMergeBaseDiff(
+      repository,
+      new FileChange('-file.txt', {
+        kind: AppFileStatusKind.Renamed,
+        oldPath: 'file.txt',
+        renameIncludesModifications: false,
+      }),
+      '--remote/main',
+      '--remote/renamed',
+      false,
+      renamed
+    )
+    assert.ok(diff.kind === DiffType.Text)
+    assert.strictEqual(diff.text, '')
+    assert.deepStrictEqual(diff.hunks, [])
+  })
+
   it('partial blob readers read leading-dash refs and preserve missing-path handling', async t => {
     const { repository, base } = await setupHistory(t)
     for (const read of [
