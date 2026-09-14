@@ -1,4 +1,5 @@
-import { win32 as Path } from 'path'
+import { basename, isAbsolute, join } from 'path'
+import { enumerateKeys, enumerateValues, HKEY } from 'registry-js'
 
 type Hive = 'HKEY_CURRENT_USER' | 'HKEY_LOCAL_MACHINE'
 type RegistryValues = ReadonlyArray<{
@@ -15,6 +16,15 @@ export interface ICopilotAppRegistry {
 const uninstallKey = 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
 const wowUninstallKey =
   'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+
+/** Resolve a configured executable path to the GitHub CLI executable. */
+export function getCopilotAppExecutable(path: string): string | null {
+  return isAbsolute(path) &&
+    !path.includes('\0') &&
+    path.toLowerCase().endsWith('.exe')
+    ? path
+    : null
+}
 
 function unquote(value: string): string {
   return value.trim().replace(/^"(.*)"$/, '$1')
@@ -40,18 +50,18 @@ function getPaths(values: RegistryValues): ReadonlyArray<string> {
       .trim()
       .replace(/,\s*-?\d+\s*$/, '')
   )
-  const paths = []
+  const candidates = []
   if (
-    Path.isAbsolute(location) &&
-    Path.basename(binary) === binary &&
+    isAbsolute(location) &&
+    basename(binary) === binary &&
     binary.toLowerCase().endsWith('.exe')
   ) {
-    paths.push(Path.join(location, binary))
+    candidates.push(join(location, binary))
   }
-  if (Path.isAbsolute(icon) && icon.toLowerCase().endsWith('.exe')) {
-    paths.push(icon)
+  if (isAbsolute(icon) && icon.toLowerCase().endsWith('.exe')) {
+    candidates.push(icon)
   }
-  return paths
+  return candidates
 }
 
 /**
@@ -88,28 +98,26 @@ export function getWindowsCopilotAppCandidates(
     env.ProgramFiles,
     env['ProgramFiles(x86)'],
   ]) {
-    if (root && Path.isAbsolute(root)) {
-      paths.add(Path.join(root, 'GitHub Copilot', 'github.exe'))
+    if (root && isAbsolute(root)) {
+      paths.add(join(root, 'GitHub Copilot', 'github.exe'))
     }
   }
-  if (env.LOCALAPPDATA && Path.isAbsolute(env.LOCALAPPDATA)) {
+  if (env.LOCALAPPDATA && isAbsolute(env.LOCALAPPDATA)) {
     paths.add(
-      Path.join(env.LOCALAPPDATA, 'Programs', 'GitHub Copilot', 'github.exe')
+      join(env.LOCALAPPDATA, 'Programs', 'GitHub Copilot', 'github.exe')
     )
   }
   return [...paths]
 }
 
 /** Discover Windows installation candidates without loading native code elsewhere. */
-export async function findWindowsCopilotAppCandidates(): Promise<
+export async function findCopilotAppCandidates(): Promise<
   ReadonlyArray<string>
 > {
-  const registry = await import('registry-js')
   return getWindowsCopilotAppCandidates(
     {
-      readValues: (hive, key) =>
-        registry.enumerateValues(registry.HKEY[hive], key),
-      readKeys: (hive, key) => registry.enumerateKeys(registry.HKEY[hive], key),
+      readValues: (hive, key) => enumerateValues(HKEY[hive], key),
+      readKeys: (hive, key) => enumerateKeys(HKEY[hive], key),
     },
     process.env
   )

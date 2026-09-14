@@ -1,10 +1,8 @@
-import appPath from 'app-path'
-import { constants } from 'fs'
-import { access, stat } from 'fs/promises'
-import { homedir } from 'os'
-import * as Path from 'path'
+import { isAbsolute } from 'path'
 import { execFile } from '../exec-file'
-import { findWindowsCopilotAppCandidates } from './win32'
+import { pathExists } from '../path-exists'
+import * as Darwin from './darwin'
+import * as Win32 from './win32'
 
 export const copilotAppMarketingUrl =
   'https://gh.io/app?utm_source=github_desktop_app'
@@ -24,11 +22,10 @@ export class CopilotAppError extends Error {
 
 /** Platform dependencies for installation discovery and CLI invocation. */
 export interface ICopilotAppDependencies {
-  readonly platform: NodeJS.Platform
-  readonly homeDirectory: string
-  readonly findMacApp: () => Promise<string>
-  readonly findWindowsApps: () => Promise<ReadonlyArray<string>>
-  readonly isExecutable: (path: string) => Promise<boolean>
+  readonly findAppCandidates: () => Promise<ReadonlyArray<string>>
+  readonly getExecutable: (path: string) => string | null
+  readonly isAbsolutePath: (path: string) => boolean
+  readonly pathExists: (path: string) => Promise<boolean>
   readonly run: (
     executable: string,
     args: ReadonlyArray<string>,
@@ -75,55 +72,13 @@ function isMissingExecutable(error: unknown): boolean {
 
 /** Create platform discovery and launch operations using the supplied OS services. */
 export function createCopilotAppIntegration(deps: ICopilotAppDependencies) {
-  const paths = deps.platform === 'win32' ? Path.win32 : Path.posix
-  const supported = deps.platform === 'darwin' || deps.platform === 'win32'
-
-  function getExecutable(path: string): string | null {
-    if (!supported || !paths.isAbsolute(path) || path.includes('\0')) {
-      return null
-    }
-    if (deps.platform === 'win32') {
-      return path.toLowerCase().endsWith('.exe') ? path : null
-    }
-    const normalized = paths.normalize(path).replace(/\/$/, '')
-    if (normalized.endsWith('.app')) {
-      return paths.join(normalized, 'Contents', 'MacOS', 'github')
-    }
-    return normalized.endsWith('.app/Contents/MacOS/github') ? normalized : null
-  }
-
   async function validateCopilotAppPath(path: string): Promise<boolean> {
-    const executable = getExecutable(path)
-    return (
-      executable !== null &&
-      (await deps.isExecutable(executable).catch(error => {
-        log.warn('Could not validate the GitHub Copilot executable', error)
-        return false
-      }))
-    )
+    const executable = deps.getExecutable(path)
+    return executable !== null && (await deps.pathExists(executable))
   }
 
   async function findCopilotApp(): Promise<string | null> {
-    const candidates = []
-    if (deps.platform === 'darwin') {
-      const found = await deps.findMacApp().catch(error => {
-        log.debug(
-          'Could not locate GitHub Copilot using Launch Services',
-          error
-        )
-        return null
-      })
-      if (found) {
-        candidates.push(found)
-      }
-      candidates.push(
-        '/Applications/GitHub Copilot.app',
-        paths.join(deps.homeDirectory, 'Applications', 'GitHub Copilot.app')
-      )
-    } else if (deps.platform === 'win32') {
-      candidates.push(...(await deps.findWindowsApps()))
-    }
-    for (const candidate of candidates) {
+    for (const candidate of await deps.findAppCandidates()) {
       if (await validateCopilotAppPath(candidate)) {
         return candidate
       }
@@ -135,14 +90,14 @@ export function createCopilotAppIntegration(deps: ICopilotAppDependencies) {
     appPath: string,
     repositoryPath: string
   ): Promise<void> {
-    const executable = getExecutable(appPath)
-    if (executable === null || !(await validateCopilotAppPath(appPath))) {
+    const executable = deps.getExecutable(appPath)
+    if (executable === null || !(await deps.pathExists(executable))) {
       throw new CopilotAppError(
         'not-found',
         'GitHub Copilot could not be found.'
       )
     }
-    if (!paths.isAbsolute(repositoryPath) || repositoryPath.includes('\0')) {
+    if (!deps.isAbsolutePath(repositoryPath) || repositoryPath.includes('\0')) {
       throw new CopilotAppError(
         'launch-failed',
         'The repository path must be absolute.'
@@ -204,32 +159,31 @@ export function createCopilotAppIntegration(deps: ICopilotAppDependencies) {
   return { findCopilotApp, validateCopilotAppPath, openInCopilotApp }
 }
 
+async function findCopilotAppCandidates(): Promise<ReadonlyArray<string>> {
+  if (__DARWIN__) {
+    return Darwin.findCopilotAppCandidates()
+  }
+  if (__WIN32__) {
+    return Win32.findCopilotAppCandidates()
+  }
+  return []
+}
+
+function getCopilotAppExecutable(path: string): string | null {
+  if (__DARWIN__) {
+    return Darwin.getCopilotAppExecutable(path)
+  }
+  if (__WIN32__) {
+    return Win32.getCopilotAppExecutable(path)
+  }
+  return null
+}
+
 const integration = createCopilotAppIntegration({
-  platform: process.platform,
-  homeDirectory: homedir(),
-  findMacApp: () => appPath('com.github.githubapp'),
-  findWindowsApps: findWindowsCopilotAppCandidates,
-  isExecutable: async path => {
-    try {
-      if (!(await stat(path)).isFile()) {
-        return false
-      }
-      await access(
-        path,
-        process.platform === 'win32' ? constants.F_OK : constants.X_OK
-      )
-      return true
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        (error.code === 'ENOENT' || error.code === 'ENOTDIR')
-      ) {
-        return false
-      }
-      throw error
-    }
-  },
+  findAppCandidates: findCopilotAppCandidates,
+  getExecutable: getCopilotAppExecutable,
+  isAbsolutePath: isAbsolute,
+  pathExists,
   run: runCopilotAppCommand,
 })
 
