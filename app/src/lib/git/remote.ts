@@ -108,7 +108,7 @@ export async function updateRemoteHEAD(
   }
 
   await git(
-    ['remote', 'set-head', '-a', remote.name],
+    ['remote', 'set-head', '-a', '--', remote.name],
     repository.path,
     'updateRemoteHEAD',
     options

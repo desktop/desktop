@@ -6,10 +6,78 @@ import {
   getRemoteURL,
   removeRemote,
   setRemoteURL,
+  updateRemoteHEAD,
 } from '../../../src/lib/git/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 
 describe('git/remote management', () => {
+  describe('updateRemoteHEAD', () => {
+    for (const name of ['origin', '--remote']) {
+      for (const isBackgroundTask of [false, true]) {
+        it(`updates ${name} HEAD with background=${isBackgroundTask}`, async t => {
+          const repository = await setupEmptyRepository(t)
+          const upstream = await setupEmptyRepository(t, 'main')
+          await git(
+            ['commit', '--allow-empty', '-m', 'Initial commit'],
+            upstream.path,
+            'create upstream commit'
+          )
+          await git(
+            ['branch', 'next'],
+            upstream.path,
+            'create next default branch'
+          )
+          await git(
+            ['remote', 'add', '--', name, upstream.path],
+            repository.path,
+            'set up local upstream'
+          )
+          await git(
+            [
+              'fetch',
+              '--',
+              upstream.path,
+              `+refs/heads/*:refs/remotes/${name}/*`,
+            ],
+            repository.path,
+            'fetch local upstream branches'
+          )
+          const remote = { name, url: upstream.path }
+
+          await updateRemoteHEAD(repository, remote, isBackgroundTask)
+
+          const initial = await git(
+            ['symbolic-ref', `refs/remotes/${name}/HEAD`],
+            repository.path,
+            'read initial remote HEAD'
+          )
+          assert.strictEqual(initial.stdout, `refs/remotes/${name}/main\n`)
+
+          await git(
+            ['symbolic-ref', 'HEAD', 'refs/heads/next'],
+            upstream.path,
+            'change upstream default branch'
+          )
+          await updateRemoteHEAD(repository, remote, isBackgroundTask)
+
+          const updated = await git(
+            ['symbolic-ref', `refs/remotes/${name}/HEAD`],
+            repository.path,
+            'read updated remote HEAD'
+          )
+          assert.strictEqual(updated.stdout, `refs/remotes/${name}/next\n`)
+        })
+      }
+
+      it(`tolerates missing remote ${name}`, async t => {
+        const repository = await setupEmptyRepository(t)
+        await assert.doesNotReject(
+          updateRemoteHEAD(repository, { name, url: repository.path }, false)
+        )
+      })
+    }
+  })
+
   describe('getRemoteURL', () => {
     for (const name of ['origin', '--remote']) {
       it(`reads the fetch URL for ${name}`, async t => {
