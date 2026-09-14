@@ -3,6 +3,7 @@ import { describe, it, TestContext } from 'node:test'
 import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 import { getCommits } from '../../../src/lib/git/log'
+import { getBlobContents } from '../../../src/lib/git/show'
 import {
   doMergeCommitsExistAfterCommit,
   getAheadBehind,
@@ -40,6 +41,47 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('getBlobContents reads exact binary contents from leading-dash refs', async t => {
+    const { repository } = await setupHistory(t)
+    const contents = Buffer.from([0, 255, 13, 10, 128])
+    await makeCommit(repository, {
+      entries: [{ path: 'binary file.bin', contents }],
+    })
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/blob',
+      'HEAD',
+    ])
+    assert.deepStrictEqual(
+      await getBlobContents(repository, '--remote/blob', 'binary file.bin'),
+      contents
+    )
+    assert.deepStrictEqual(
+      await getBlobContents(repository, '--remote/base', 'file.txt'),
+      Buffer.from('base\n')
+    )
+    for (const revision of [
+      '--remote/base',
+      '--remote/main~2',
+      '--remote/base^{tree}',
+    ]) {
+      assert.deepStrictEqual(
+        await getBlobContents(repository, revision, 'file.txt'),
+        Buffer.from('base\n')
+      )
+      await assert.rejects(
+        () => getBlobContents(repository, revision, 'other.txt'),
+        /path 'other.txt' exists on disk, but not in/
+      )
+    }
+    for (const revision of ['--remote/missing', 'missing-ref']) {
+      await assert.rejects(
+        () => getBlobContents(repository, revision, 'other.txt'),
+        { name: 'GitError' }
+      )
+    }
+  })
+
   it('doMergeCommitsExistAfterCommit detects merges after leading-dash refs', async t => {
     const { repository, base, tip } = await setupHistory(t)
     assert.strictEqual(
