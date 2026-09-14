@@ -11,6 +11,7 @@ import { getMergeBase, merge, MergeResult } from '../../../src/lib/git/merge'
 import { createBranch, deleteRemoteBranch } from '../../../src/lib/git/branch'
 import { getBranches } from '../../../src/lib/git/for-each-ref'
 import { rebase, RebaseResult } from '../../../src/lib/git/rebase'
+import { checkoutBranch } from '../../../src/lib/git/checkout'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
@@ -68,6 +69,41 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      it('checks out a remote branch and configures upstream tracking', async t => {
+        const { repository, upstream, remote } = await setupRemote(
+          t,
+          remoteName
+        )
+        await git(['branch', 'topic'], upstream.path, 'create remote branch')
+        await git(
+          ['config', 'branch.autoSetupMerge', 'true'],
+          repository.path,
+          'enable automatic upstream tracking'
+        )
+        await fetch(repository, remote)
+        const [branch] = await getBranches(
+          repository,
+          `refs/remotes/${remoteName}/topic`
+        )
+        assert(branch !== undefined)
+
+        await checkoutBranch(repository, branch, remote)
+
+        const current = await git(
+          ['symbolic-ref', '--short', 'HEAD'],
+          repository.path,
+          'get checked out branch'
+        )
+        assert.strictEqual(current.stdout.trim(), 'topic')
+        const local = await getBranchOrError(repository, 'topic')
+        assert.strictEqual(local.upstream, `${remoteName}/topic`)
+        assert.strictEqual(local.tip.sha, branch.tip.sha)
+        assert.strictEqual(
+          await readFile(Path.join(repository.path, 'README.md'), 'utf8'),
+          'updated'
+        )
+      })
+
       for (const withProgress of [false, true]) {
         it(`rebases onto a remote ref with progress ${withProgress}`, async t => {
           const { repository, upstream, remote } = await setupRemote(
