@@ -3,6 +3,7 @@ import { describe, it, TestContext } from 'node:test'
 import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 import { getCommits } from '../../../src/lib/git/log'
+import { getAheadBehind } from '../../../src/lib/git/rev-list'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 
@@ -35,6 +36,22 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('getAheadBehind counts both sides of leading-dash ranges', async t => {
+    const { repository, base } = await setupHistory(t)
+    await runGit(repository, ['checkout', '-b', 'other', base])
+    await makeCommit(repository, {
+      entries: [{ path: 'side.txt', contents: 'side\n' }],
+    })
+    assert.deepStrictEqual(
+      await getAheadBehind(repository, '--remote/main...HEAD'),
+      { ahead: 2, behind: 1 }
+    )
+    assert.strictEqual(
+      await getAheadBehind(repository, '--remote/missing...HEAD'),
+      null
+    )
+  })
+
   it('getCommits reads refs and ranges while preserving filters and pagination', async t => {
     const { repository, base, first, tip } = await setupHistory(t)
     const commits = await getCommits(repository, '--remote/main')

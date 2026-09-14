@@ -58,7 +58,14 @@ export async function getAheadBehind(
   // `--left-right` annotates the list of commits in the range with which side
   // they're coming from. When used with `--count`, it tells us how many
   // commits we have from the two different sides of the range.
-  const args = ['rev-list', '--left-right', '--count', range, '--']
+  const args = [
+    'rev-list',
+    '--left-right',
+    '--count',
+    '--end-of-options',
+    range,
+    '--',
+  ]
   const result = await git(args, repository.path, 'getAheadBehind', {
     expectedErrors: new Set([GitError.BadRevision]),
   })
