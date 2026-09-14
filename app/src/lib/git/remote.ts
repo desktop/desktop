@@ -31,7 +31,7 @@ export async function addRemote(
   name: string,
   url: string
 ): Promise<IRemote> {
-  await git(['remote', 'add', name, url], repository.path, 'addRemote')
+  await git(['remote', 'add', '--', name, url], repository.path, 'addRemote')
 
   return { url, name }
 }
