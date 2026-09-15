@@ -82,12 +82,19 @@ public enum RefsParser {
 
     /// Parse `git worktree list --porcelain -z` output.
     public static func parseWorktrees(_ output: String) -> [WorktreeEntry] {
-        // Records are NUL-separated; blank line separates worktrees.
+        // Records are NUL-separated; blank line (double NUL) separates worktrees.
         // Fields: `worktree <path>`, `HEAD <sha>`, `branch <ref>`|detached,
-        // `bare`, `locked [reason]`, `prunable <reason>`, `main` (first only).
+        // `bare`, `locked [reason]`, `prunable <reason>`.
+        // Real git emits `\0\0` between blocks; older fixtures used `\n\0` —
+        // normalize both. Type is positional (first block is main), mirroring
+        // `parseWorktreePorcelainOutput` in the reference app.
         var entries: [WorktreeEntry] = []
-        let chunks = output.components(separatedBy: "\n\0")
-        for (position, chunk) in chunks.enumerated() {
+        let normalized = output
+            .replacingOccurrences(of: "\n\0", with: "\0\0")
+            .replacingOccurrences(of: "\n", with: "")
+        let chunks = normalized.components(separatedBy: "\0\0")
+        var position = 0
+        for chunk in chunks {
             let lines = chunk.components(separatedBy: "\0").map {
                 $0.trimmingCharacters(in: .whitespacesAndNewlines)
             }.filter { !$0.isEmpty }
@@ -114,6 +121,7 @@ public enum RefsParser {
                 type: position == 0 ? .main : .linked,
                 isLocked: isLocked,
                 isPrunable: isPrunable))
+            position += 1
         }
         return entries
     }
