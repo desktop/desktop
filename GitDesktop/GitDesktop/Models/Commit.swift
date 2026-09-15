@@ -100,22 +100,43 @@ public struct Trailer: Sendable, Equatable, Hashable {
 /// Grouping of information required to create a commit. Port of `ICommitContext`.
 /// (`messageGeneratedByCopilot` deleted per scope; Task 10 adds
 /// `generatedByAppleIntelligence` instead.)
+/// Task 3 adds `filePaths` (full-file inclusions to stage, mirroring
+/// `unstageAll` + `stageFiles`) and the one-shot commit options
+/// (`noVerify`/`signOff`/`allowEmpty`); all defaulted so Task-1 call sites
+/// keep compiling.
 public struct CommitContext: Sendable, Equatable {
     public var summary: String
     public var description: String?
     public var amend: Bool
     public var trailers: [Trailer]
+    /// Repo-relative paths to stage before committing. Empty commits
+    /// whatever is already staged (plus `--allow-empty` when `allowEmpty`).
+    public var filePaths: [String]
+    /// Pass `--no-verify` (skip commit hooks).
+    public var noVerify: Bool
+    /// Pass `--signoff` (append `Signed-off-by:` trailer).
+    public var signOff: Bool
+    /// Pass `--allow-empty`.
+    public var allowEmpty: Bool
 
     public init(
         summary: String,
         description: String? = nil,
         amend: Bool = false,
-        trailers: [Trailer] = []
+        trailers: [Trailer] = [],
+        filePaths: [String] = [],
+        noVerify: Bool = false,
+        signOff: Bool = false,
+        allowEmpty: Bool = false
     ) {
         self.summary = summary
         self.description = description
         self.amend = amend
         self.trailers = trailers
+        self.filePaths = filePaths
+        self.noVerify = noVerify
+        self.signOff = signOff
+        self.allowEmpty = allowEmpty
     }
 }
 

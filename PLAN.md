@@ -109,3 +109,31 @@ Implement: native `commands` menus (File/Edit/View/Repository/Branch/Window/Help
 Files: `App/Commands.swift`, `Services/UpdateService.swift`, `Services/CrashReporter.swift`, `Services/AppleIntelligenceService.swift`, a11y/empty-state passes across `Views/`.
 Accept: menu/shortcut checklist + a11y audit pass; AI hidden on <26 and on-device note shown; `xcodebuild` release build green.
 Depends: Tasks 1–9.
+
+---
+
+## Appendix — Task 2 handoff notes (read before Tasks 3–10)
+
+Branch `task/2-shell` owns `Views/Shell/*` + `ContentView`. Extend additively.
+
+- `AppStore` additions (in `App/AppState.swift`, additive): `addRepositories(_:selectFirst:)`,
+  `removeRepository(_:)` (falls back to first repo; selection only nils when list empties),
+  `setAlias(_:for:)` (re-keys the state cache since `Repository.hash` includes alias).
+- Pure helpers to reuse, not duplicate: `derivePushPullState` (Task 7: pass
+  `progressTitle`/`lastFetched`/`pullWithRebase`/`forcePushRecommended`/`numTagsToPush`, and
+  implement `ToolbarView.pushPullPrimaryAction`), `deriveBranchButtonState` (Tasks 5/7:
+  `inProgressDescription` covers Rebasing/Checkout %), `groupRepositoriesForList`,
+  `repositoryRowTooltip`, `describeBanner` (Tasks 5–6: real undo/reopen in
+  `BannerRow.performAction`), `describePopup` (replace `GenericPopupDialog` cases with
+  bespoke dialogs; `.thankYou` is never presented).
+- `DialogHost` sheets only `currentPopup` (top of the ≤50 stack) via `.sheet(item:)`;
+  `Popup.id` is stable per type. `BannerHost` auto-dismisses success/info after 5s;
+  UpdateAvailable renders from a separate `Binding` (Task 10 wires Sparkle state).
+- Previews/smoke data: `makePreviewStore()` / `populatePreviewData(_:)`; DEBUG launch with
+  `GITDESKTOP_SEED_PREVIEW=1` seeds mock repos (release always starts empty; Task 9 owns
+  persistence and removes this seam).
+- Gotchas: SwiftUI has no `.accessibilityLiveRegion` — use
+  `Accessibility.accessibilityAnnouncement(_:)` (full a11y audit is Task 10);
+  `NavigationSplitView` sidebar width is not observable, so `widths.sidebar` applies
+  min/ideal/max but is not persisted (toolbar button widths are, via `Defaults` +
+  `ToolbarWidthHandle`, which pins the drag-base width against mid-drag re-renders).
