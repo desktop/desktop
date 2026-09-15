@@ -145,7 +145,9 @@ public struct LiveGitService: GitService, Sendable {
     public func unstage(files: [String]) async throws { fatalError("Task 3") }
     public func commit(context: CommitContext) async throws -> String { fatalError("Task 3") }
     public func branches() async throws -> [Branch] { fatalError("Task 5") }
-    public func remotes() async throws -> [Remote] { fatalError("Task 7") }
+    public func remotes() async throws -> [Remote] {
+        try await listRemotes(repositoryPath: repositoryPath)
+    }
 }
 
 // MARK: - MockGitService
