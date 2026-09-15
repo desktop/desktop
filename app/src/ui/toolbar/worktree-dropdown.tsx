@@ -42,6 +42,14 @@ export class WorktreeDropdown extends React.Component<
     const { dispatcher, repository } = this.props
 
     dispatcher.closeFoldout(FoldoutType.Worktree)
+
+    // There's nothing to switch to when the folder is gone, so offer to remove
+    // the worktree instead of failing to open it.
+    if (worktree.isPrunable) {
+      dispatcher.requestDeleteWorktree(repository, worktree.path, true)
+      return
+    }
+
     await dispatcher.switchWorktree(repository, worktree)
   }
 
@@ -72,8 +80,14 @@ export class WorktreeDropdown extends React.Component<
   }
 
   private onRemoveWorktree = (path: string) => {
+    const worktree = this.props.worktrees.find(w => w.path === path)
+
     this.props.dispatcher.closeFoldout(FoldoutType.Worktree)
-    this.props.dispatcher.requestDeleteWorktree(this.props.repository, path)
+    this.props.dispatcher.requestDeleteWorktree(
+      this.props.repository,
+      path,
+      worktree?.isPrunable ?? false
+    )
   }
 
   private onCreateNewWorktree = () => {
