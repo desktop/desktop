@@ -6513,6 +6513,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     readonly skippedFiles: ReadonlyArray<ICopilotSkippedFile>
   } | null> {
     if (!enableCopilotConflictResolution()) {
+      this.statsStore.increment('copilotConflictResolutionUnavailableCount')
       return null
     }
 
@@ -6522,6 +6523,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     if (!account) {
+      this.statsStore.increment('copilotConflictResolutionUnavailableCount')
       return null
     }
 
@@ -6534,6 +6536,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (conflictState === null) {
         log.warn(
           'AppStore: resolveConflictsWithCopilot called with no active conflict state'
+        )
+        this.statsStore.increment(
+          'copilotConflictResolutionNoConflictStateCount'
         )
         return null
       }
@@ -6554,6 +6559,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (conflictedFiles.length === 0) {
         log.warn(
           'AppStore: resolveConflictsWithCopilot called with no conflicted files'
+        )
+        this.statsStore.increment(
+          'copilotConflictResolutionNoConflictedFilesCount'
         )
         return null
       }
@@ -6603,6 +6611,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
             ? [{ path: f.path, reason: f.skippedReason }]
             : []
         )
+
+        if (
+          result.resolutions.length === 0 &&
+          skippedFiles.length === context.files.length
+        ) {
+          this.statsStore.increment(
+            'copilotConflictResolutionAllFilesSkippedCount'
+          )
+        }
 
         return {
           resolutions: result.resolutions,
@@ -7043,7 +7060,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       if (result === null) {
-        throw new Error('Copilot conflict resolution returned no results')
+        this.repositoryStateCache.updateMultiCommitOperationState(
+          repository,
+          () => ({
+            step: {
+              kind: MultiCommitOperationStepKind.ShowConflicts,
+              conflictState,
+            },
+            useCopilotConflictResolution: false,
+            copilotResolutionProgress: null,
+            copilotResolutionAbortController: null,
+          })
+        )
+        this.emitUpdate()
+        return
       }
 
       if (isConfirmAbortFromLoading) {
