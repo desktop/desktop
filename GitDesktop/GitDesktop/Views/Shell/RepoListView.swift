@@ -168,19 +168,55 @@ struct RepoListView: View {
         .frame(height: 32)
     }
 
-    // MARK: Drop (stubbed — Task 9)
+    // MARK: Drop (Task 9: match-existing + multi-drop + toplevel)
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
-        // TODO(Task 9): matchExistingRepository, multi-drop add, toplevel
-        // resolution. For now surface the Add dialog with the first path.
-        guard let provider = providers.first else { return false }
-        _ = provider.loadObject(ofClass: URL.self) { url, _ in
-            guard let url, url.isFileURL else { return }
+        guard !providers.isEmpty else { return false }
+        var loaded: [URL] = []
+        let group = DispatchGroup()
+        for provider in providers {
+            group.enter()
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                if let url, url.isFileURL { loaded.append(url) }
+                group.leave()
+            }
+        }
+        group.notify(queue: .main) {
             Task { @MainActor in
-                store.showPopup(.addRepository(path: url.path))
+                await addDroppedURLs(loaded)
             }
         }
         return true
+    }
+
+    @MainActor
+    private func addDroppedURLs(_ urls: [URL]) async {
+        // Folders only (ignore files) — port of `application openFile`.
+        let folders = urls.filter { url in
+            var isDir: ObjCBool = false
+            return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
+        }
+        guard !folders.isEmpty else { return }
+        if folders.count > 1 {
+            for url in folders {
+                try? await store.addLocalRepository(at: url.path)
+            }
+            return
+        }
+        let url = folders[0]
+        do {
+            if let toplevel = try await toplevelForPath(url.path),
+               let existing = RepositoryPersistence.matchExisting(
+                   repositories: store.repositories, toplevel: toplevel) {
+                store.selectRepository(existing)
+            } else if (try? await toplevelForPath(url.path)) != nil {
+                try? await store.addLocalRepository(at: url.path)
+            } else {
+                store.showPopup(.addRepository(path: url.path))
+            }
+        } catch {
+            store.showPopup(.addRepository(path: url.path))
+        }
     }
 }
 

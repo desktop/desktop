@@ -126,6 +126,19 @@ public final class AppStore: ObservableObject {
         }
     }
 
+    /// Select a missing repository (Task 9 startup scan). The reference shows
+    /// the Missing view instead of a detail when the path vanished.
+    public func selectMissingRepository(_ repository: Repository) {
+        var missing = repository
+        missing.missing = true
+        if let index = repositories.firstIndex(where: { $0.id == repository.id }) {
+            var merged = repositories
+            merged[index] = missing
+            repositories = merged
+        }
+        selection = .missing(missing)
+    }
+
     private func pushRecent(_ id: Int) {
         var recent = recentRepositoryIDs.filter { $0 != id }
         recent.insert(id, at: 0)

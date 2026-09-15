@@ -48,7 +48,35 @@ struct PopupSheet: View {
             case .error(let message):
                 ErrorDialog(store: store, popup: popup, message: message)
             case .acknowledgements:
-                AcknowledgementsDialog(store: store, popup: popup)
+                AcknowledgementsFullDialog(store: store, popup: popup)
+            case .preferences(let initialTab):
+                SettingsView(store: store, popup: popup, initialTab: settingsTab(for: initialTab))
+            case .repositorySettings(let repositoryID, let initialTab):
+                RepositorySettingsView(
+                    store: store, popup: popup, repositoryID: repositoryID,
+                    initialTab: repositorySettingsTab(for: initialTab))
+            case .addRepository(let path):
+                AddExistingRepositoryDialog(store: store, popup: popup, initialPath: path)
+            case .createRepository(let path):
+                CreateRepositoryDialog(store: store, popup: popup, initialPath: path)
+            case .cloneRepository(let initialURL):
+                CloneRepositoryDialog(store: store, popup: popup, initialURL: initialURL)
+            case .createTutorialRepository:
+                CreateTutorialRepositoryDialog(store: store, popup: popup)
+            case .confirmExitTutorial:
+                ConfirmExitTutorialDialog(store: store, popup: popup)
+            case .moveToApplicationsFolder:
+                MoveToApplicationsDialog(store: store, popup: popup)
+            case .cliInstalled:
+                CLIInstalledDialog(store: store, popup: popup)
+            case .installingUpdate:
+                InstallingUpdateDialog(store: store, popup: popup)
+            case .installGit(let path):
+                InstallGitDialog(store: store, popup: popup, path: path)
+            case .releaseNotes:
+                ReleaseNotesDialog(store: store, popup: popup)
+            case .termsAndConditions:
+                TermsDialog(store: store, popup: popup)
             case .thankYou:
                 // Deleted surface per scope; never presented in practice.
                 EmptyView()
@@ -56,6 +84,16 @@ struct PopupSheet: View {
                 GenericPopupDialog(store: store, popup: popup)
             }
         }
+    }
+
+    private func settingsTab(for initialTab: String?) -> SettingsTab {
+        guard let initialTab else { return .git }
+        return SettingsTab(rawValue: initialTab) ?? .git
+    }
+
+    private func repositorySettingsTab(for initialTab: String?) -> RepositorySettingsTab {
+        guard let initialTab else { return .remote }
+        return RepositorySettingsTab(rawValue: initialTab) ?? .remote
     }
 }
 
@@ -139,6 +177,7 @@ struct RemoveRepositoryDialog: View {
         }
         if let repository {
             store.removeRepository(repository)
+            store.persistRepositories()
         }
         store.closePopup(popup)
     }
@@ -203,6 +242,18 @@ struct AboutDialog: View {
                 Text("GitDesktop \(appVersion)")
                 Text("A native macOS Git client.")
                     .foregroundStyle(.secondary)
+                HStack(spacing: 12) {
+                    Button("Acknowledgements") {
+                        store.closePopup(popup)
+                        store.showPopup(.acknowledgements)
+                    }
+                    .buttonStyle(.link)
+                    Button("Release Notes") {
+                        store.closePopup(popup)
+                        store.showPopup(.releaseNotes)
+                    }
+                    .buttonStyle(.link)
+                }
             }
         }
     }
