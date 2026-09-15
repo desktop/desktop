@@ -141,6 +141,7 @@ public struct LiveGitService: GitService, Sendable {
 
     // MARK: Stubs for later tasks
 
+
     // MARK: Staging + commit (Task 3)
 
     /// Stage full-file paths via `git add`. Noop for an empty list.
@@ -220,7 +221,9 @@ public struct LiveGitService: GitService, Sendable {
         }
         return RefsParser.branches(from: rows)
     }
-    public func remotes() async throws -> [Remote] { fatalError("Task 7") }
+    public func remotes() async throws -> [Remote] {
+        try await listRemotes(repositoryPath: repositoryPath)
+    }
 }
 
 // MARK: - MockGitService
