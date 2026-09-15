@@ -13,12 +13,36 @@ struct ContentView: View {
     @State private var repoFilter = ""
     /// Task 10 (Sparkle) owns update state; non-nil renders the row.
     @State private var updateAvailableVersion: String?
+    @State private var didRestore = false
+    @State private var welcomeCompleted = RepositoryPersistence.hasShownWelcomeFlow
 
     init(store: AppStore) {
         self.store = store
     }
 
     var body: some View {
+        Group {
+            if shouldShowWelcome {
+                WelcomeView(store: store, onComplete: { welcomeCompleted = true })
+            } else {
+                mainShell
+            }
+        }
+        .onAppear(perform: restoreOnce)
+        .onChange(of: store.repositories) { _, _ in
+            // Task 9 owns persistence (replaces the preview seam in release).
+            if didRestore { store.persistRepositories() }
+        }
+    }
+
+    private var shouldShowWelcome: Bool {
+        // Cold start → welcome → create/clone/add → changes.
+        // Release always starts empty until the user adds a repo; the welcome
+        // flow is shown once (gated by `has-shown-welcome-flow`).
+        didRestore && !welcomeCompleted && store.repositories.isEmpty && !RepositoryPersistence.hasShownWelcomeFlow
+    }
+
+    private var mainShell: some View {
         VStack(spacing: 0) {
             ToolbarView(store: store)
             BannerHost(store: store, updateAvailableVersion: $updateAvailableVersion)
@@ -35,16 +59,20 @@ struct ContentView: View {
         }
         .frame(minWidth: 800, minHeight: 500)
         .background(DialogHost(store: store))
-        .onAppear {
-            #if DEBUG
-            // Smoke-test seam: launch with GITDESKTOP_SEED_PREVIEW=1 to see
-            // the shell against mock repos. Task 9 replaces this with real
-            // persistence; release builds always start empty.
-            if ProcessInfo.processInfo.environment["GITDESKTOP_SEED_PREVIEW"] != nil {
-                populatePreviewData(store)
-            }
-            #endif
+    }
+
+    private func restoreOnce() {
+        guard !didRestore else { return }
+        didRestore = true
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["GITDESKTOP_SEED_PREVIEW"] != nil {
+            populatePreviewData(store)
+            return
         }
+        #endif
+        // Task 9: restore persisted repositories (release always starts empty
+        // on first launch, which routes to Welcome via `shouldShowWelcome`).
+        store.restorePersistedRepositories()
     }
 
     @ViewBuilder

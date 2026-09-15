@@ -44,6 +44,24 @@ public enum Defaults {
     public static let lastSelectedRepositoryID = "last-selected-repository-id"
     public static let recentlySelectedRepositories = "recently-selected-repositories"
 
+    // MARK: Task 9 — onboarding / settings / help
+    public static let hasShownWelcomeFlow = "has-shown-welcome-flow"
+    public static let optOutOfUsageTracking = "opt-out-of-usage-tracking"
+    public static let useExternalCredentialHelper = "use-external-credential-helper"
+    public static let repositoryIndicatorsEnabled = "repository-indicators-enabled"
+    public static let showCommitLengthWarning = "show-commit-length-warning"
+    public static let confirmCommitMessageOverride = "confirm-commit-message-override"
+    public static let enableGitHookEnv = "enable-git-hook-env"
+    public static let cacheGitHookEnv = "cache-git-hook-env"
+    public static let gitHookEnvShell = "git-hook-env-shell"
+    public static let defaultBranchName = "default-branch-name"
+    public static let globalGitAuthorName = "global-git-author-name"
+    public static let globalGitAuthorEmail = "global-git-author-email"
+    public static let appleIntelligenceEnabled = "apple-intelligence-enabled"
+    public static let appleIntelligenceDisclaimerAcknowledged = "apple-intelligence-disclaimer-acknowledged"
+    public static let persistedRepositories = "persisted-repositories"
+    public static let tutorialRepositoryPath = "tutorial-repository-path"
+
     // MARK: - Typed accessors
 
     public static func bool(_ key: String, default defaultValue: Bool, in store: UserDefaults = .standard) -> Bool {

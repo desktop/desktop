@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -49,10 +50,56 @@ struct NoRepositoriesView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
-        .onDrop(of: [.fileURL], isTargeted: nil) { _ in
-            // TODO(Task 9): real drop-to-add (see RepoListView.handleDrop).
+        .onDrop(of: [.fileURL], isTargeted: nil, perform: handleDrop)
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        // Task 9: multi-drop add with toplevel resolution (folders only).
+        var urls: [URL] = []
+        let group = DispatchGroup()
+        var loaded: [URL] = []
+        for provider in providers {
+            group.enter()
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                if let url, url.isFileURL { loaded.append(url) }
+                group.leave()
+            }
+        }
+        group.notify(queue: .main) {
+            urls = loaded
+            Task { @MainActor in
+                await addDroppedURLs(urls)
+            }
+        }
+        return true
+    }
+
+    @MainActor
+    private func addDroppedURLs(_ urls: [URL]) async {
+        if urls.count > 1 {
+            // >1 paths → addRepositories + select first (port of ondrop).
+            for url in urls {
+                try? await store.addLocalRepository(at: url.path)
+            }
+            return
+        }
+        guard let url = urls.first else {
             store.showPopup(.addRepository(path: nil))
-            return true
+            return
+        }
+        // Single path → toplevel resolve → match existing else Add dialog.
+        do {
+            if let toplevel = try await toplevelForPath(url.path),
+               let existing = RepositoryPersistence.matchExisting(
+                   repositories: store.repositories, toplevel: toplevel) {
+                store.selectRepository(existing)
+            } else if (try? await toplevelForPath(url.path)) != nil {
+                try? await store.addLocalRepository(at: url.path)
+            } else {
+                store.showPopup(.addRepository(path: url.path))
+            }
+        } catch {
+            store.showPopup(.addRepository(path: url.path))
         }
     }
 
@@ -107,6 +154,7 @@ struct CloningRepositoryView: View {
 struct MissingRepositoryView: View {
     @ObservedObject var store: AppStore
     var repository: Repository
+    @State private var locateError: String?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -121,11 +169,11 @@ struct MissingRepositoryView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
+            if let locateError {
+                Text(locateError).font(.caption).foregroundStyle(.red)
+            }
             HStack(spacing: 12) {
-                Button("Locate…") {
-                    // TODO(Task 9): NSOpenPanel locate + re-resolve path.
-                    store.showPopup(.addRepository(path: nil))
-                }
+                Button("Locate…") { locate() }
                 .keyboardShortcut(.defaultAction)
                 Button("Remove") {
                     store.showPopup(.removeRepository(repositoryID: repository.id))
@@ -135,6 +183,25 @@ struct MissingRepositoryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
+    }
+
+    private func locate() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = false
+        panel.message = "Locate “\(repository.name)”"
+        if panel.runModal() == .OK, let url = panel.url {
+            Task { @MainActor in
+                do {
+                    _ = try await store.relocateRepository(repository, to: url.path)
+                } catch let error as GitError {
+                    locateError = error.displayMessage
+                } catch {
+                    locateError = error.localizedDescription
+                }
+            }
+        }
     }
 }
 
