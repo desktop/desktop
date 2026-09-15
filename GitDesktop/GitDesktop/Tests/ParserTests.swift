@@ -542,7 +542,7 @@ public enum ParserTests {
             check(false, "rebase line parses", test: test, failures: &failures)
         }
         check(rebase.parse(line: "Auto-merging foo.ts") == nil, "rebase noise → nil", test: test, failures: &failures)
-        var cherry = CherryPickProgressParser(commits: Array(commits.prefix(2)))
+        var cherry = CherryPickAppProgressParser(commits: Array(commits.prefix(2)))
         check(cherry.parse(line: " Date: today") == nil, "cherry noise → nil", test: test, failures: &failures)
         if case .multiCommitOperation(_, let position, _, _) = cherry.parse(line: "[main abc1234] First") {
             check(position == 1, "cherry 1", test: test, failures: &failures)

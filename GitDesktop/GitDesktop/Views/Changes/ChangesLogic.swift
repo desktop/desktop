@@ -372,13 +372,12 @@ public func filterCoAuthors(_ authors: [Author], query: String) -> [Author] {
     }.prefix(25).map { $0 }
 }
 
-/// Filter branch names by a case-insensitive substring query.
-public func filterBranches(_ branches: [Branch], query: String) -> [Branch] {
-    guard !query.isEmpty else { return Array(branches.prefix(25)) }
-    return branches.filter {
-        $0.name.localizedCaseInsensitiveContains(query)
-    }.prefix(25).map { $0 }
-}
+// NOTE (Tasks 3+5 merge): Task 3 stopped here with a branch-name provider
+// (`filterBranches(_:query:)`, 25-result cap) awaiting Task 5's branch UI.
+// Task 5 landed the real one — `filterBranches(_:filterText:)` in
+// `Views/Branches/BranchModels.swift`, used by `BranchesContainer`/`BranchList`
+// and covered by `HistoryTests` — so the Task 3 placeholder was removed to fix
+// the duplicate declaration.
 
 /// Small built-in emoji map for `:emoji:` completion (the reference app
 /// loads the full gemoji set; a curated subset keeps the port dependency-free).

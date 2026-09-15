@@ -4,9 +4,17 @@ import Foundation
 // Pure derivation of the toolbar push/pull button state machine
 // (Docs/04-shell-toolbar.md §2, port of `push-pull-button.tsx renderButton`).
 // Task 7 wires real progress/network state; Task 6 wires force-push.
+//
+// NOTE (Tasks 2+7 merge): Task 7 added its own `PushPullAction` /
+// `PushPullState` / `resolvePushPullState` in `Git/Operations/Sync.swift`
+// (rendered by `Views/Shell/PushPullButton.swift`). The shell-side twins here
+// keep the `Toolbar…` prefix to avoid redeclaration: `ToolbarPushPullAction`
+// carries the remote name in each case (for tooltips/foldouts), while Task 7's
+// `PushPullAction` is the simple tap-dispatch enum. Unify them in Task 9 when
+// the toolbar is wired to live data.
 
-/// The action the push/pull button currently represents.
-public enum PushPullAction: Sendable, Equatable {
+/// The action the toolbar push/pull button currently represents.
+public enum ToolbarPushPullAction: Sendable, Equatable {
     case publishRepository
     case publishBranch
     case fetch(remote: String)
@@ -19,7 +27,7 @@ public enum PushPullAction: Sendable, Equatable {
 
 /// View-ready push/pull button state (no git calls, no formatters).
 public struct PushPullViewState: Sendable, Equatable {
-    public var action: PushPullAction
+    public var action: ToolbarPushPullAction
     public var aheadBehind: AheadBehind?
     public var numTagsToPush: Int
     public var lastFetched: Date?
@@ -29,7 +37,7 @@ public struct PushPullViewState: Sendable, Equatable {
     public var isEnabled: Bool
 
     public init(
-        action: PushPullAction,
+        action: ToolbarPushPullAction,
         aheadBehind: AheadBehind? = nil,
         numTagsToPush: Int = 0,
         lastFetched: Date? = nil,
@@ -104,7 +112,10 @@ public func derivePushPullState(
 
 /// Compact ahead/behind badge text (`↑N ↓M`), nil when there is nothing to show.
 /// Port of `renderAheadBehind` (compact numbers via system formatting).
-public func aheadBehindBadge(ahead: Int, behind: Int, tagsToPush: Int = 0) -> String? {
+/// Named `…Text` to distinguish it from Task 7's `aheadBehindBadge` in
+/// `Git/Operations/Sync.swift`, which returns the `AheadBehindBadge` view
+/// model instead of a plain string.
+public func aheadBehindBadgeText(ahead: Int, behind: Int, tagsToPush: Int = 0) -> String? {
     if ahead == 0 && behind == 0 && tagsToPush == 0 { return nil }
     var parts: [String] = []
     let up = ahead + tagsToPush

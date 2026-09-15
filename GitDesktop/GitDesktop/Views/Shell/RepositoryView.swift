@@ -118,21 +118,12 @@ struct RepositoryView: View {
     }
 }
 
-// MARK: - FilesChangedBadge
-
-struct FilesChangedBadge: View {
-    var count: Int
-
-    var body: some View {
-        Text("\(count)")
-            .font(.system(size: 10, weight: .semibold))
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(Capsule())
-            .accessibilityLabel("\(count) changed files")
-    }
-}
+// NOTE (Tasks 2+3 merge): the Task-2 shell declared a placeholder
+// `FilesChangedBadge` here. Task 3 owns the real spec port of
+// `files-changed-badge.tsx` (count pill capped at `300+`, system number
+// formatting) as `public struct FilesChangedBadge` in
+// `Views/Changes/ChangesSidebarView.swift`; the shell twin was removed to fix
+// the duplicate declaration, and `tabBar` above uses the Task 3 type.
 
 // MARK: - Placeholders
 

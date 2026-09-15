@@ -134,10 +134,10 @@ public enum ShellTests {
 
     static func testAheadBehindBadge(_ failures: inout [Failure]) {
         let test = "badge"
-        check(aheadBehindBadge(ahead: 0, behind: 0) == nil, "clean → nil", test: test, failures: &failures)
-        check(aheadBehindBadge(ahead: 2, behind: 1) == "↑2 ↓1", "both", test: test, failures: &failures)
-        check(aheadBehindBadge(ahead: 0, behind: 4) == "↓4", "behind only", test: test, failures: &failures)
-        check(aheadBehindBadge(ahead: 1, behind: 0, tagsToPush: 2) == "↑3", "tags fold into up", test: test, failures: &failures)
+        check(aheadBehindBadgeText(ahead: 0, behind: 0) == nil, "clean → nil", test: test, failures: &failures)
+        check(aheadBehindBadgeText(ahead: 2, behind: 1) == "↑2 ↓1", "both", test: test, failures: &failures)
+        check(aheadBehindBadgeText(ahead: 0, behind: 4) == "↓4", "behind only", test: test, failures: &failures)
+        check(aheadBehindBadgeText(ahead: 1, behind: 0, tagsToPush: 2) == "↑3", "tags fold into up", test: test, failures: &failures)
     }
 
     // MARK: - Grouping

@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - MultiCommitProgress
+// MARK: - MultiCommitAppProgress
 // Ports the rebase/cherry-pick progress regexes owned by Task 7's spec:
 // - `GitRebaseParser` in `electron/app/src/lib/git/rebase.ts`:
 //   `/^Rebasing \((\d+)\/(\d+)\)$/` over git stderr.
@@ -8,14 +8,17 @@ import Foundation
 //   `/^\[(.*\s.*)\]/` over git stdout (first line per picked commit:
 //   `[branch sha] summary`).
 // Both emit `AppProgress.multiCommitOperation` values. Task 6 owns the
-// rebase/cherry-pick operations themselves; these parsers are shared
-// progress infrastructure, so they live here and are tested with scripted
-// output (see `ParserTests`).
-
-/// Clamp to 0...1 at two decimal places (port of `formatRebaseValue`).
-public func formatRebaseValue(_ value: Double) -> Double {
-    roundToDecimals(clampProgress(value), 2)
-}
+// rebase/cherry-pick operations themselves (plus the `MultiCommitProgress`
+// value type and `formatRebaseValue` in `Views/Merge/`); these parsers are
+// shared progress infrastructure, so they live here and are tested with
+// scripted output (see `ParserTests`).
+//
+// NOTE (Tasks 6+7 merge): `Views/Merge/MultiCommitProgress.swift` holds the
+// operation-side parsers (`parseRebaseProgressLine`, result classifiers,
+// sequencer snapshots) returning `MultiCommitProgress`. The similarly named
+// `CherryPickAppProgressParser` below is the AppProgress-emitting twin kept
+// for toolbar progress binding — do not merge the two without unifying the
+// return types and both test suites (`MultiCommitTests`, `ParserTests`).
 
 /// Stateful rebase progress parser (port of `GitRebaseParser`).
 public struct RebaseProgressParser: Sendable {
@@ -57,7 +60,10 @@ public struct RebaseProgressParser: Sendable {
 }
 
 /// Stateful cherry-pick progress parser (port of `GitCherryPickParser`).
-public struct CherryPickProgressParser: Sendable {
+/// Named `…AppProgress…` to distinguish it from the operation-side
+/// `CherryPickProgressParser` in `Views/Merge/MultiCommitProgress.swift`,
+/// which returns `MultiCommitProgress` instead of `AppProgress`.
+public struct CherryPickAppProgressParser: Sendable {
     private static let pattern: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^\[(.*\s.*)\]"#)
 

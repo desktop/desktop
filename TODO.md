@@ -243,6 +243,25 @@ Running notes for later PLAN.md tasks. Append, don't rewrite history.
 - **Harness flag:** `swiftc` test harnesses must now pass
   `-module-name GitDesktop` (`Sync.swift` uses module-qualified calls to
   disambiguate same-named protocol methods and free functions).
+- **Post-merge dedup (Tasks 2–8 on `native`):** several tasks independently
+  declared the same top-level names, so the merge renamed the *shell/shell-side*
+  twin in each pair. Use the new names — the old ones now belong to the other
+  task:
+  - `ToolbarPushPullAction` (shell, `Views/Shell/PushPullState.swift`) vs
+    Task 7's `PushPullAction` (`Git/Operations/Sync.swift`).
+  - `aheadBehindBadgeText(…)` (shell, returns `String?`) vs Task 7's
+    `aheadBehindBadge(ahead:behind:tagsToPush:)` (returns `AheadBehindBadge?`).
+  - `CherryPickAppProgressParser` (`Git/Progress/MultiCommitAppProgress.swift`,
+    emits `AppProgress`) vs Task 6's `CherryPickProgressParser`
+    (`Views/Merge/MultiCommitProgress.swift`, returns `MultiCommitProgress`).
+  - The Task-2 shell placeholder `FilesChangedBadge` was deleted; the badge is
+    Task 3's `FilesChangedBadge` in `Views/Changes/ChangesSidebarView.swift`.
+  - The Task-3 placeholder `filterBranches(_:query:)` was deleted; branch
+    filtering is Task 5's `filterBranches(_:filterText:)` in
+    `Views/Branches/BranchModels.swift`.
+  `formatRebaseValue` and the `MultiCommitProgress` value type live only in
+  `Views/Merge/`; `Git/Progress/MultiCommitProgress.swift` was renamed to
+  `MultiCommitAppProgress.swift`.
 
 ## Task 8 → Task 2 (shell: DialogHost / BannerHost / toolbar)
 - Task 8 views take explicit props + callbacks and do NOT depend on `AppStore`,

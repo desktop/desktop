@@ -196,7 +196,7 @@ struct RepoRowView: View {
     @State private var isHovering = false
 
     private var badge: String? {
-        aheadBehindBadge(
+        aheadBehindBadgeText(
             ahead: aheadBehind?.ahead ?? 0,
             behind: aheadBehind?.behind ?? 0)
     }

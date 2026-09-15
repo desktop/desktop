@@ -196,7 +196,7 @@ struct ToolbarView: View {
 
     private var pushPullBadge: AnyView {
         if let aheadBehind = pushPull.aheadBehind,
-           let badge = aheadBehindBadge(
+           let badge = aheadBehindBadgeText(
                ahead: aheadBehind.ahead,
                behind: aheadBehind.behind,
                tagsToPush: pushPull.numTagsToPush) {
