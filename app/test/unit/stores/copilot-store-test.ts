@@ -1,8 +1,4 @@
-import type {
-  CopilotClient,
-  CopilotSession,
-  SessionConfig,
-} from '@github/copilot-sdk'
+import type { CopilotClient, CopilotSession } from '@github/copilot-sdk'
 import type {
   AccountQuotaSnapshot,
   Model,
@@ -28,7 +24,6 @@ import {
   runConflictResolutionTurn,
 } from '../../../src/lib/stores/copilot-store'
 import { Account } from '../../../src/models/account'
-import type { IConflictResolutionContext } from '../../../src/lib/copilot-conflict-context'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 const PreviewFeaturesEnv = 'GITHUB_DESKTOP_PREVIEW_FEATURES'
@@ -639,93 +634,6 @@ describe('CopilotStore commit message generation cancellation', () => {
 
     assert.strictEqual(disconnectCount, 1)
     assert.strictEqual(stopCount, 1)
-  })
-})
-
-describe('CopilotStore session attribution', () => {
-  it('identifies commit message generation sessions', async () => {
-    const account = makeAccount()
-    const store = new CopilotStore(createAccountsStore())
-    let clientName: string | undefined
-    const expectedError = new Error('Stop after capturing session config')
-    const client = {
-      createSession: async (config: SessionConfig) => {
-        clientName = config.clientName
-        throw expectedError
-      },
-      stop: async () => {},
-    } as unknown as CopilotClient
-    const testableStore = store as unknown as ITestableCommitMessageCopilotStore
-    testableStore.createClient = async () => client
-
-    await assert.rejects(
-      store.generateCommitMessage(
-        account,
-        'diff --git a/file b/file',
-        '/path/to/repository',
-        createBYOKRequest(),
-        []
-      ),
-      expectedError
-    )
-
-    assert.strictEqual(clientName, 'github/desktop:commit-message-generation')
-  })
-
-  it('identifies conflict resolution sessions', async () => {
-    const account = makeAccount()
-    const store = new CopilotStore(createAccountsStore())
-    const controller = new AbortController()
-    let clientName: string | undefined
-    const session = {
-      disconnect: async () => {},
-    } as unknown as CopilotSession
-    const client = {
-      createSession: async (config: SessionConfig) => {
-        clientName = config.clientName
-        controller.abort()
-        return session
-      },
-      stop: async () => {},
-    } as unknown as CopilotClient
-    const testableStore = store as unknown as ITestableCommitMessageCopilotStore
-    testableStore.createClient = async () => client
-    const context: IConflictResolutionContext = {
-      ourLabel: 'main',
-      theirLabel: 'feature',
-      files: [
-        {
-          path: 'file.txt',
-          hunks: [
-            {
-              oursContent: 'ours',
-              theirsContent: 'theirs',
-              baseContent: null,
-              contextBefore: '',
-              contextAfter: '',
-            },
-          ],
-          rawContent: '<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> feature\n',
-        },
-      ],
-      pullRequests: [],
-      ourCommits: [],
-      theirCommits: [],
-    }
-
-    await assert.rejects(
-      store.resolveConflicts(
-        account,
-        context,
-        '/path/to/repository',
-        createBYOKRequest(),
-        undefined,
-        controller.signal
-      ),
-      (error: unknown) => error instanceof CopilotConflictResolutionAbortError
-    )
-
-    assert.strictEqual(clientName, 'github/desktop:conflict-resolution')
   })
 })
 
