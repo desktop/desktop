@@ -1237,7 +1237,7 @@ export class CopilotStore extends BaseStore {
     const filesTotal = resolvableFiles.length
 
     if (filesTotal === 0) {
-      throw new Error('No resolvable conflicted files')
+      return { resolutions: [], summary: null, references: [] }
     }
 
     onProgress?.({ filesResolved: 0, filesTotal })
