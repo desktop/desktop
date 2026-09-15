@@ -19,7 +19,7 @@ describe('createCopilotConflictResolutionError', () => {
     assert.ok(failure instanceof CopilotConflictResolutionError)
     assert.strictEqual(
       failure.message,
-      'Copilot conflict resolution failed during stream-response'
+      'Copilot Conflict Resolution Error: stage=stream-response, retryState=not-retried'
     )
     assert.strictEqual(failure.stage, 'stream-response')
     assert.strictEqual(failure.retryState, 'not-retried')
@@ -36,6 +36,10 @@ describe('createCopilotConflictResolutionError', () => {
 
     assert.strictEqual(failure.stage, 'validate-response')
     assert.strictEqual(failure.retryState, 'failed-after-validation-retry')
+    assert.strictEqual(
+      failure.message,
+      'Copilot Conflict Resolution Error: stage=validate-response, retryState=failed-after-validation-retry'
+    )
   })
 
   it('preserves existing structured failures', () => {
