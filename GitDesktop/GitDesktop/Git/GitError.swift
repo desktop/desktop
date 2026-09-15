@@ -243,10 +243,15 @@ public func configLockFilePath(from stderr: String) -> String? {
 }
 
 /// Parse the new commit SHA from `git commit` output (`[branch sha] subject`).
-/// Port of `parseCommitSHA` in `core.ts`.
+/// Port of `parseCommitSHA` in `core.ts`. Root commits print
+/// `[branch (root-commit) sha]`, so the SHA is the first hex token rather
+/// than unconditionally the second whitespace-separated part.
 public func parseCommitSHA(_ stdout: String) -> String? {
     let bracket = stdout.split(separator: "]", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? stdout
     let parts = bracket.split(separator: " ")
     guard parts.count >= 2 else { return nil }
+    if let sha = parts.first(where: { $0.count >= 7 && $0.allSatisfy(\.isHexDigit) }) {
+        return String(sha)
+    }
     return String(parts[1])
 }
