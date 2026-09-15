@@ -199,7 +199,27 @@ public struct LiveGitService: GitService, Sendable {
         }
         return parseCommitSHA(result.stdoutString) ?? ""
     }
-    public func branches() async throws -> [Branch] { fatalError("Task 5") }
+    /// List local + remote branches via `git for-each-ref`.
+    public func branches() async throws -> [Branch] {
+        let formatArgs = ["--format=%00%(refname)%00%(refname:short)%00%(upstream:short)%00%(objectname)%00%(symref)%00"]
+        let args = ["for-each-ref"] + formatArgs + ["refs/heads", "refs/remotes"]
+        let result = try await GitProcess.run(args, workingDirectory: repositoryPath)
+        if result.exitCode != 0 {
+            let kind = parseGitError(result.stderrString) ?? parseGitError(result.stdoutString)
+            if kind == .notAGitRepository { return [] }
+            if let error = classifyGitResult(result, args: args, successExitCodes: [0]) {
+                throw error
+            }
+            return []
+        }
+        let rows = RefsParser.parseForEachRef(result.stdoutString, fieldCount: 5).compactMap { fields -> RefRow? in
+            guard fields.count == 5 else { return nil }
+            return RefRow(
+                fullName: fields[0], shortName: fields[1],
+                upstreamShortName: fields[2], sha: fields[3], symRef: fields[4])
+        }
+        return RefsParser.branches(from: rows)
+    }
     public func remotes() async throws -> [Remote] { fatalError("Task 7") }
 }
 
