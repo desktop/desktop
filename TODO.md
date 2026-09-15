@@ -382,3 +382,46 @@ Running notes for later PLAN.md tasks. Append, don't rewrite history.
   `try? await … ?? try? await …` is illegal (`??` RHS is a sync autoclosure) —
   split into separate `let`s first.
 - No GH / editor / Copilot / theme / notification code anywhere (scope bans).
+
+## Task 10 — polish follow-ups (no later PLAN tasks; pick up as needed)
+
+- **Sparkle drop-in:** `Services/UpdateService.swift` implements the full
+  state machine (check → available → downloading → installing →
+  installedPendingRestart) against a Sparkle-format appcast (`feedURL` is nil
+  in dev, so checks stay local; `simulatedRemoteVersion` drives UI testing).
+  Adding the real Sparkle SPM package needs a `project.pbxproj` edit (banned
+  while the group is filesystem-synced) — when that happens, forward
+  `SPUUpdater` states into `UpdateService.state`; the banner (`BannerHost` +
+  `UpdateBannerHost`), showcase (Release Notes popup), `InstallingUpdate`
+  quit-guard, and Check-for-Updates menu stay as-is.
+- **FoundationModels streaming:** `AppleIntelligenceService` gates correctly
+  (`#available(macOS 26, *)` + `canImport(FoundationModels)` + Settings
+  toggle) and the UI flow (disclaimer → overwrite warning → stream →
+  cancel/regenerate) works end to end, but `streamFoundationModel` /
+  `runFoundationModel` are deterministic placeholders — replace their bodies
+  with `LanguageModelSession.streamResponse` / `respond` when the SDK is
+  linked. Keep the Explain-only contract (no file writes, no auto-apply).
+- **`AIAvailability` is intentionally NOT `Equatable`:** with the target's
+  `-default-isolation=MainActor` + `InferIsolatedConformances`, a synthesized
+  `==` infers as MainActor-isolated and breaks nonisolated use (Swift 6
+  error). Test via `isAvailable` + `case` matching. Same trap applies to any
+  new associated-value enum compared off the main actor.
+- **`Popup.shortcuts` is new** (Task 10): `ShortcutsDialog` content already
+  existed in `HelpViews.swift`; the menu Help > Keyboard Shortcuts now shows
+  it instead of Release Notes. Keep `shortcutRows` in sync with
+  `requiredMenuAccelerators` in `App/Commands.swift` (covered by
+  `Task10Tests.testMenuInventory`).
+- **Menu → view wiring** is via `GitDesktopMenuAction` notifications:
+  `RepositoryView` observes tab switches, `TextDiffView` observes Find /
+  Select All. Push/pull/fetch menu items post notifications — whoever owns
+  sync next should subscribe (same for stash-all/update-from-default/merge/
+  rebase/compare/create-tag, which currently have no subscriber).
+- **Tests:** `Tests/Task10Tests.swift` (10 groups). Run via the harness file
+  list in this session (needs `-module-name GitDesktop`; entry file must be
+  named `main.swift`): Models + Persistence + GitService + Operations +
+  Progress (minus `MultiCommitAppProgress.swift`, which needs
+  `formatRebaseValue` from `Views/Merge`) + ChangesLogic + Accessibility +
+  AppState + AppStore+Onboarding + Commands + CLIService + UpdateService +
+  AppleIntelligenceService + CrashReporter + HelpViews + Task10Tests.
+- No GH / editor / Copilot / theme / notification code anywhere (scope bans).
+- No GH / editor / Copilot / theme / notification code anywhere (scope bans).
