@@ -141,9 +141,64 @@ public struct LiveGitService: GitService, Sendable {
 
     // MARK: Stubs for later tasks
 
-    public func stage(files: [String]) async throws { fatalError("Task 3") }
-    public func unstage(files: [String]) async throws { fatalError("Task 3") }
-    public func commit(context: CommitContext) async throws -> String { fatalError("Task 3") }
+    // MARK: Staging + commit (Task 3)
+
+    /// Stage full-file paths via `git add`. Noop for an empty list.
+    /// (Partial line-level staging lands with the Task-4 diff viewer, which
+    /// applies patches via `git apply --cached`; until then partial
+    /// `DiffSelection`s commit as full files.)
+    public func stage(files: [String]) async throws {
+        guard !files.isEmpty else { return }
+        let result = try await GitProcess.run(
+            ["--no-optional-locks", "add", "--"] + files,
+            workingDirectory: repositoryPath)
+        if let error = classifyGitResult(result, args: ["add"], successExitCodes: [0]) {
+            throw error
+        }
+    }
+
+    /// Unstage paths via `git reset HEAD`. Noop for an empty list.
+    public func unstage(files: [String]) async throws {
+        guard !files.isEmpty else { return }
+        let result = try await GitProcess.run(
+            ["reset", "HEAD", "--"] + files,
+            workingDirectory: repositoryPath)
+        if let error = classifyGitResult(result, args: ["reset"], successExitCodes: [0]) {
+            throw error
+        }
+    }
+
+    /// Create a commit from `context`. Mirrors `createCommit` in
+    /// `electron/app/src/lib/git/commit.ts`: reset the index, stage the
+    /// context's full-file paths, then `git commit -F -` with the formatted
+    /// message. Returns the new commit SHA.
+    public func commit(context: CommitContext) async throws -> String {
+        let resetResult = try await GitProcess.run(
+            ["reset"], workingDirectory: repositoryPath)
+        if let error = classifyGitResult(
+            resetResult, args: ["reset"], successExitCodes: [0]) {
+            throw error
+        }
+        if !context.filePaths.isEmpty {
+            try await stage(files: context.filePaths)
+        }
+        let message = formatCommitMessage(
+            summary: context.summary,
+            description: context.description,
+            trailers: context.trailers)
+        var args = ["commit", "-F", "-"]
+        if context.amend { args.append("--amend") }
+        if context.noVerify { args.append("--no-verify") }
+        if context.signOff { args.append("--signoff") }
+        if context.allowEmpty { args.append("--allow-empty") }
+        let result = try await GitProcess.run(
+            args, workingDirectory: repositoryPath,
+            stdin: Data(message.utf8))
+        if let error = classifyGitResult(result, args: args, successExitCodes: [0]) {
+            throw error
+        }
+        return parseCommitSHA(result.stdoutString) ?? ""
+    }
     public func branches() async throws -> [Branch] { fatalError("Task 5") }
     public func remotes() async throws -> [Remote] { fatalError("Task 7") }
 }
