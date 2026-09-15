@@ -128,6 +128,103 @@ describe('SignInStore', () => {
   })
 
   describe('setEndpoint', () => {
+    it('marks a new Enterprise server requested by Git for confirmation', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.endpoint, 'https://github.example.com/api/v3')
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
+    })
+
+    it('retains server confirmation guidance while opening the browser', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      await signInStore.authenticateWithBrowser()
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
+      assert.notStrictEqual(state.oauthState, undefined)
+      signInStore.reset()
+    })
+
+    it('does not resolve OAuth callbacks before browser authentication', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+      const state = signInStore.getState()
+
+      await signInStore.resolveOAuthRequest({
+        name: 'oauth',
+        code: 'test-code',
+        state: 'test-state',
+      })
+
+      assert.strictEqual(signInStore.getState(), state)
+    })
+
+    it('cancels a Git-requested sign-in before opening the browser', async () => {
+      const results: string[] = []
+      signInStore.beginEnterpriseSignIn(result => results.push(result.kind))
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      signInStore.reset()
+
+      assert.strictEqual(signInStore.getState(), null)
+      assert.deepStrictEqual(results, ['cancelled'])
+    })
+
+    it('shows guidance again after cancelling and starting a new sign-in', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+      signInStore.reset()
+
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
+    })
+
+    it('validates Git-requested endpoints before showing confirmation guidance', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('http://github.example.com', true)
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.EndpointEntry)
+      assert.ok(state.error)
+      assert.strictEqual(state.loading, false)
+    })
+
+    for (const url of [
+      'https://github.com',
+      'https://api.github.com',
+      'https://example.ghe.com',
+    ]) {
+      it(`does not show server confirmation guidance for ${url}`, async () => {
+        signInStore.beginEnterpriseSignIn()
+        await signInStore.setEndpoint(url, true)
+
+        const state = signInStore.getState()
+        assert.ok(state?.kind === SignInStep.Authentication)
+        assert.notStrictEqual(state.isUnrecognizedEnterpriseServer, true)
+      })
+    }
+
+    it('keeps the existing-account warning for a known Enterprise endpoint', async () => {
+      await accountsStore.addAccount(createEnterpriseAccount())
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      assert.strictEqual(
+        signInStore.getState()?.kind,
+        SignInStep.ExistingAccountWarning
+      )
+    })
+
     it('transitions to Authentication step for valid enterprise URL', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com')

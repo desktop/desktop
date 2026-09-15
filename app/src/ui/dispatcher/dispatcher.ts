@@ -1695,20 +1695,16 @@ export class Dispatcher {
   }
 
   /**
-   * Attempt to advance from the EndpointEntry step with the given endpoint
-   * url. This method must only be called when the store is in the authentication
-   * step or an error will be thrown.
+   * Select an endpoint from the entry or existing-account step.
    *
-   * The provided endpoint url will be validated for syntactic correctness as
-   * well as connectivity before the promise resolves. If the endpoint url is
-   * invalid or the host can't be reached the promise will be rejected and the
-   * sign in state updated with an error to be presented to the user.
-   *
-   * If validation is successful the store will advance to the authentication
-   * step.
+   * Set isEndpointFromGit for endpoints supplied by Git so that browser
+   * authentication explains how to verify unfamiliar servers.
    */
-  public setSignInEndpoint(url: string): Promise<void> {
-    return this.appStore._setSignInEndpoint(url)
+  public setSignInEndpoint(
+    url: string,
+    isEndpointFromGit = false
+  ): Promise<void> {
+    return this.appStore._setSignInEndpoint(url, isEndpointFromGit)
   }
 
   public beginDotComSignIn(resultCallback: (result: SignInResult) => void) {
