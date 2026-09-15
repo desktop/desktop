@@ -1,0 +1,54 @@
+export type CopilotConflictResolutionFailureStage =
+  | 'gather-context'
+  | 'resolve-model'
+  | 'create-client'
+  | 'create-session'
+  | 'stream-response'
+  | 'parse-response'
+  | 'validate-response'
+  | 'reassemble-response'
+  | 'process-result'
+  | 'unknown'
+
+export type CopilotConflictResolutionRetryState =
+  | 'not-retried'
+  | 'failed-after-validation-retry'
+
+/**
+ * A conflict-resolution failure carrying only stable, privacy-safe metadata.
+ *
+ * The underlying error remains available for local logging and user-facing
+ * error handling, but is never sent through non-fatal exception reporting.
+ */
+export class CopilotConflictResolutionError extends Error {
+  public readonly stage: CopilotConflictResolutionFailureStage
+  public readonly retryState: CopilotConflictResolutionRetryState
+  public readonly underlyingError: Error
+
+  public constructor(
+    underlyingError: Error,
+    stage: CopilotConflictResolutionFailureStage,
+    retryState: CopilotConflictResolutionRetryState
+  ) {
+    super(`Copilot conflict resolution failed during ${stage}`)
+    this.name = 'CopilotConflictResolutionError'
+    this.stage = stage
+    this.retryState = retryState
+    this.underlyingError = underlyingError
+  }
+}
+
+export function createCopilotConflictResolutionError(
+  error: unknown,
+  stage: CopilotConflictResolutionFailureStage,
+  retryState: CopilotConflictResolutionRetryState = 'not-retried'
+): CopilotConflictResolutionError {
+  if (error instanceof CopilotConflictResolutionError) {
+    return error
+  }
+
+  const underlyingError =
+    error instanceof Error ? error : new Error('Unknown error')
+
+  return new CopilotConflictResolutionError(underlyingError, stage, retryState)
+}
