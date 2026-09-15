@@ -50,6 +50,10 @@ import type {
   ModelBillingTokenPrices,
 } from '@github/copilot-sdk/dist/generated/rpc'
 import { isGHE } from '../endpoint-capabilities'
+import {
+  CopilotConflictResolutionFailureStage,
+  createCopilotConflictResolutionError,
+} from '../copilot-conflict-resolution-error'
 
 /** The default model ID used for Copilot commit message generation. */
 export const DefaultCopilotModel = 'auto'
@@ -1242,10 +1246,20 @@ export class CopilotStore extends BaseStore {
 
     onProgress?.({ filesResolved: 0, filesTotal })
 
-    const modelConfig = this.resolveConflictModelConfig(account, request)
+    let modelConfig: IResolvedConflictModelConfig
+    try {
+      modelConfig = this.resolveConflictModelConfig(account, request)
+    } catch (error) {
+      throw createCopilotConflictResolutionError(error, 'resolve-model')
+    }
 
     const clientTimer = startTimer('createClient')
-    const client = await this.createClient(account, repositoryPath)
+    let client: CopilotClient
+    try {
+      client = await this.createClient(account, repositoryPath)
+    } catch (error) {
+      throw createCopilotConflictResolutionError(error, 'create-client')
+    }
     clientTimer.done()
 
     try {
@@ -1387,6 +1401,8 @@ export class CopilotStore extends BaseStore {
     readonly references: ReadonlyArray<ICopilotConflictReference>
   }> {
     let lastError: Error | undefined
+    let lastStage: CopilotConflictResolutionFailureStage = 'unknown'
+    let retriedValidation = false
 
     for (let attempt = 0; attempt < 2; attempt++) {
       // Don't start (or retry) a turn that's already been cancelled.
@@ -1394,34 +1410,38 @@ export class CopilotStore extends BaseStore {
         throw new CopilotConflictResolutionAbortError()
       }
 
-      const sessionTimer = startTimer(`createSession (attempt ${attempt + 1})`)
-      const session = await client.createSession({
-        clientName: CopilotClientNames['conflict-resolution'],
-        model: modelConfig.modelId,
-        reasoningEffort: modelConfig.reasoningEffort,
-        provider: modelConfig.provider,
-        streaming: true,
-        availableTools: [],
-        enableSessionStore: false,
-        createSessionFsProvider: createCopilotInMemorySessionFsProvider,
-        systemMessage: {
-          mode: 'append',
-          content: ConflictResolutionSystemPrompt,
-        },
-        onPermissionRequest: async () => ({
-          kind: 'reject',
-        }),
-      })
-      sessionTimer.done()
-
-      // The user may have cancelled while the session was being created. Tear
-      // it down immediately rather than starting a turn we're about to abandon.
-      if (signal?.aborted) {
-        await session.disconnect().catch(() => {})
-        throw new CopilotConflictResolutionAbortError()
-      }
-
+      let stage: CopilotConflictResolutionFailureStage = 'create-session'
       try {
+        const sessionTimer = startTimer(
+          `createSession (attempt ${attempt + 1})`
+        )
+        const session = await client.createSession({
+          clientName: CopilotClientNames['conflict-resolution'],
+          model: modelConfig.modelId,
+          reasoningEffort: modelConfig.reasoningEffort,
+          provider: modelConfig.provider,
+          streaming: true,
+          availableTools: [],
+          enableSessionStore: false,
+          createSessionFsProvider: createCopilotInMemorySessionFsProvider,
+          systemMessage: {
+            mode: 'append',
+            content: ConflictResolutionSystemPrompt,
+          },
+          onPermissionRequest: async () => ({
+            kind: 'reject',
+          }),
+        })
+        sessionTimer.done()
+
+        // The user may have cancelled while the session was being created. Tear
+        // it down immediately rather than starting a turn we're about to abandon.
+        if (signal?.aborted) {
+          await session.disconnect().catch(() => {})
+          throw new CopilotConflictResolutionAbortError()
+        }
+
+        stage = 'stream-response'
         const streamTimer = startTimer(
           `streaming response (attempt ${attempt + 1})`
         )
@@ -1441,8 +1461,11 @@ export class CopilotStore extends BaseStore {
         streamTimer.done()
 
         const parseTimer = startTimer('parse+validate+reassemble')
+        stage = 'parse-response'
         const parsed = parseCopilotConflictResolution(responseContent)
+        stage = 'validate-response'
         validateResolutionPaths(parsed.resolutions, expectedFiles)
+        stage = 'reassemble-response'
         const resolutions = reassembleResolutions(
           parsed.resolutions,
           expectedFiles
@@ -1456,6 +1479,7 @@ export class CopilotStore extends BaseStore {
         }
       } catch (e) {
         lastError = e instanceof Error ? e : new Error(String(e))
+        lastStage = stage
 
         // Never retry a user-initiated abort.
         if (isCopilotConflictResolutionAbortError(lastError)) {
@@ -1470,6 +1494,7 @@ export class CopilotStore extends BaseStore {
           break
         }
 
+        retriedValidation = true
         log.warn(
           'CopilotStore: Conflict resolution parse/validation failed, retrying',
           e
@@ -1478,7 +1503,11 @@ export class CopilotStore extends BaseStore {
     }
 
     log.warn('CopilotStore: Failed to resolve conflicts after retry', lastError)
-    throw lastError ?? new Error('Conflict resolution failed')
+    throw createCopilotConflictResolutionError(
+      lastError ?? new Error('Conflict resolution failed'),
+      lastStage,
+      retriedValidation ? 'failed-after-validation-retry' : 'not-retried'
+    )
   }
 
   /**
