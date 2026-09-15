@@ -691,9 +691,6 @@ export interface IDailyMeasures {
   /** The number of times the user stopped Copilot conflict resolution while loading */
   readonly copilotConflictResolutionStoppedCount: number
 
-  /** The number of times Copilot conflict resolution became unavailable after initiation */
-  readonly copilotConflictResolutionUnavailableCount: number
-
   /** The number of times the conflict state disappeared after Copilot resolution was initiated */
   readonly copilotConflictResolutionNoConflictStateCount: number
 

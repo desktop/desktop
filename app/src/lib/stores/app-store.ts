@@ -6513,7 +6513,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     readonly skippedFiles: ReadonlyArray<ICopilotSkippedFile>
   } | null> {
     if (!enableCopilotConflictResolution()) {
-      this.statsStore.increment('copilotConflictResolutionUnavailableCount')
       return null
     }
 
@@ -6521,9 +6520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.accounts,
       repository
     )
-
     if (!account) {
-      this.statsStore.increment('copilotConflictResolutionUnavailableCount')
       return null
     }
 

@@ -276,7 +276,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   copilotConflictResolutionWithOverridesCount: 0,
   copilotConflictResolutionSwitchToManualCount: 0,
   copilotConflictResolutionStoppedCount: 0,
-  copilotConflictResolutionUnavailableCount: 0,
   copilotConflictResolutionNoConflictStateCount: 0,
   copilotConflictResolutionNoConflictedFilesCount: 0,
   copilotConflictResolutionAllFilesSkippedCount: 0,
