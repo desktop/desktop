@@ -1171,7 +1171,13 @@ describe('CopilotStore conflict resolution', () => {
         createBYOKRequest()
       ),
       error => {
-        assertConflictResolutionFailure(error, 'create-session', 'not-retried')
+        assert.ok(
+          assertConflictResolutionFailure(
+            error,
+            'create-session',
+            'not-retried'
+          )
+        )
         assert.strictEqual(error.underlyingError, sessionError)
         return true
       }
