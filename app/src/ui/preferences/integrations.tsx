@@ -7,7 +7,15 @@ import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import { enableCustomIntegration } from '../../lib/feature-flag'
+import {
+  enableCopilotAppHandoff,
+  enableCustomIntegration,
+} from '../../lib/feature-flag'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { InputError } from '../lib/input-description/input-error'
+import { showOpenDialog } from '../main-process-proxy'
+import { copilotAppMarketingUrl } from '../../lib/copilot-app'
 
 const CustomIntegrationValue = 'other'
 
@@ -20,12 +28,15 @@ interface IIntegrationsPreferencesProps {
   readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration
+  readonly copilotAppPath: string
+  readonly copilotAppPathError?: string
   readonly onSelectedEditorChanged: (editor: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
   readonly onUseCustomEditorChanged: (useCustomEditor: boolean) => void
   readonly onCustomEditorChanged: (customEditor: ICustomIntegration) => void
   readonly onUseCustomShellChanged: (useCustomShell: boolean) => void
   readonly onCustomShellChanged: (customShell: ICustomIntegration) => void
+  readonly onCopilotAppPathChanged: (path: string) => void
 }
 
 interface IIntegrationsPreferencesState {
@@ -35,6 +46,7 @@ interface IIntegrationsPreferencesState {
   readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration
+  readonly copilotAppPath: string
 }
 
 export class Integrations extends React.Component<
@@ -54,6 +66,7 @@ export class Integrations extends React.Component<
       customEditor: this.props.customEditor,
       useCustomShell: this.props.useCustomShell,
       customShell: this.props.customShell,
+      copilotAppPath: this.props.copilotAppPath,
     }
   }
 
@@ -88,6 +101,7 @@ export class Integrations extends React.Component<
       useCustomShell: nextProps.useCustomShell,
       customShell: nextProps.customShell,
       customEditor: nextProps.customEditor,
+      copilotAppPath: nextProps.copilotAppPath,
     })
   }
 
@@ -351,6 +365,79 @@ export class Integrations extends React.Component<
     this.props.onCustomShellChanged(customShell)
   }
 
+  private onCopilotAppPathChanged = (path: string) => {
+    this.setState({ copilotAppPath: path })
+    this.props.onCopilotAppPathChanged(path)
+  }
+
+  private onChooseCopilotAppPath = async () => {
+    const path = await showOpenDialog({
+      title: 'Choose GitHub Copilot',
+      properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
+      filters: [
+        { name: 'GitHub Copilot', extensions: [__DARWIN__ ? 'app' : 'exe'] },
+      ],
+    })
+
+    if (path !== null) {
+      this.onCopilotAppPathChanged(path)
+    }
+  }
+
+  private renderCopilotApp() {
+    if (!enableCopilotAppHandoff()) {
+      return null
+    }
+
+    return (
+      <fieldset>
+        <legend>
+          <h2>GitHub Copilot</h2>
+        </legend>
+        <p>
+          Experience agent-driven development built natively on GitHub.{' '}
+          <LinkButton uri={copilotAppMarketingUrl}>
+            Learn more about GitHub Copilot
+          </LinkButton>
+          .
+        </p>
+        <Row>
+          <div className="custom-integration-form-container">
+            <div className="custom-integration-form-path-container">
+              <TextBox
+                label="App location"
+                value={this.state.copilotAppPath}
+                placeholder={
+                  __DARWIN__
+                    ? 'path to GitHub Copilot.app'
+                    : 'path to github.exe'
+                }
+                onValueChanged={this.onCopilotAppPathChanged}
+                ariaDescribedBy={
+                  this.props.copilotAppPathError === undefined
+                    ? undefined
+                    : 'copilot-app-path-error'
+                }
+              />
+              <Button onClick={this.onChooseCopilotAppPath}>Choose…</Button>
+            </div>
+            {this.props.copilotAppPathError !== undefined && (
+              <div className="custom-integration-form-error">
+                <InputError
+                  id="copilot-app-path-error"
+                  trackedUserInput={this.state.copilotAppPath}
+                  ariaLiveMessage={this.props.copilotAppPathError}
+                >
+                  {this.props.copilotAppPathError}
+                </InputError>
+              </div>
+            )}
+          </div>
+        </Row>
+      </fieldset>
+    )
+  }
+
   public render() {
     if (!enableCustomIntegration()) {
       return (
@@ -358,6 +445,7 @@ export class Integrations extends React.Component<
           <h2>Applications</h2>
           <Row>{this.renderExternalEditor()}</Row>
           <Row>{this.renderSelectedShell()}</Row>
+          {this.renderCopilotApp()}
         </DialogContent>
       )
     }
@@ -379,6 +467,7 @@ export class Integrations extends React.Component<
           <Row>{this.renderSelectedShell()}</Row>
           {this.state.useCustomShell && this.renderCustomShell()}
         </fieldset>
+        {this.renderCopilotApp()}
       </DialogContent>
     )
   }
