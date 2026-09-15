@@ -62,6 +62,9 @@ export interface IDailyMeasures {
   /** The number of times the `Branch -> Merge Into Current Branch` menu item is used */
   readonly mergeIntoCurrentBranchMenuCount: number
 
+  /** The number of times a merge is initiated from the branches panel UI */
+  readonly mergesInitiatedFromBranchesPanel: number
+
   /** The number of times the user checks out a branch using the PR menu */
   readonly prBranchCheckouts: number
 
@@ -383,6 +386,12 @@ export interface IDailyMeasures {
 
   /** The number of times a drag operation was started and canceled */
   readonly dragStartedAndCanceledCount: number
+
+  /** The number of times conflicts encountered during a merge  */
+  readonly mergeConflictsEncounteredCount: number
+
+  /** The number of times conflicts encountered during a rebase  */
+  readonly rebaseConflictsEncounteredCount: number
 
   /** The number of times conflicts encountered during a cherry pick  */
   readonly cherryPickConflictsEncounteredCount: number
