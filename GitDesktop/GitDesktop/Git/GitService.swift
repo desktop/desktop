@@ -48,6 +48,29 @@ public protocol GitService: Sendable {
     // --- Task 5 (branches / history) ---
     func branches() async throws -> [Branch]
     func remotes() async throws -> [Remote]
+
+    // --- Task 8 (stash / tags / worktrees / submodules / LFS / gitignore / undo-reset) ---
+    func stashes() async throws -> (entries: [StashEntry], totalCount: Int)
+    func createStash(branchName: String) async throws -> Bool
+    func popStash(stashSha: String) async throws -> StashLiveOperations.PopResult
+    func dropStash(stashSha: String) async throws -> Bool
+    func stashedFiles(stashSha: String) async throws -> [CommittedFileChange]
+    func createTag(name: String, targetCommitSha: String) async throws
+    func deleteTag(name: String) async throws
+    func allTags() async throws -> [String: String]
+    func worktrees() async throws -> [WorktreeEntry]
+    func addWorktree(path: String, createBranch: String?, commitish: String?) async throws
+    func removeWorktree(path: String, force: Bool) async throws
+    func moveWorktree(oldPath: String, newPath: String) async throws
+    func submodules() async throws -> [SubmoduleEntry]
+    func installLFSHooks(force: Bool) async throws
+    func isUsingLFS() async throws -> Bool
+    func readGitIgnore() throws -> String?
+    func saveGitIgnore(text: String) async throws
+    func undoCommit(_ commit: Commit) async throws
+    func reset(mode: GitResetMode, ref: String) async throws
+    func revertCommit(sha: String, parentCount: Int) async throws
+    func checkoutCommit(sha: String) async throws
 }
 
 // MARK: - LiveGitService
@@ -146,6 +169,101 @@ public struct LiveGitService: GitService, Sendable {
     public func commit(context: CommitContext) async throws -> String { fatalError("Task 3") }
     public func branches() async throws -> [Branch] { fatalError("Task 5") }
     public func remotes() async throws -> [Remote] { fatalError("Task 7") }
+
+    // MARK: Task 8 — stash / tags / worktrees / submodules / LFS / gitignore / undo-reset
+
+    public func stashes() async throws -> (entries: [StashEntry], totalCount: Int) {
+        let result = try await StashLiveOperations.getStashes(repositoryPath: repositoryPath)
+        return (result.desktopEntries, result.totalCount)
+    }
+
+    public func createStash(branchName: String) async throws -> Bool {
+        try await StashLiveOperations.createStash(repositoryPath: repositoryPath, branchName: branchName)
+    }
+
+    public func popStash(stashSha: String) async throws -> StashLiveOperations.PopResult {
+        let (entries, _) = try await StashLiveOperations.getStashes(repositoryPath: repositoryPath)
+        return try await StashLiveOperations.popStash(
+            repositoryPath: repositoryPath, entries: entries, stashSha: stashSha)
+    }
+
+    public func dropStash(stashSha: String) async throws -> Bool {
+        let (entries, _) = try await StashLiveOperations.getStashes(repositoryPath: repositoryPath)
+        return try await StashLiveOperations.dropStash(
+            repositoryPath: repositoryPath, entries: entries, stashSha: stashSha)
+    }
+
+    public func stashedFiles(stashSha: String) async throws -> [CommittedFileChange] {
+        try await StashLiveOperations.stashedFiles(repositoryPath: repositoryPath, stashSha: stashSha)
+    }
+
+    public func createTag(name: String, targetCommitSha: String) async throws {
+        try await TagLiveOperations.createTag(
+            repositoryPath: repositoryPath, name: name, targetCommitSha: targetCommitSha)
+    }
+
+    public func deleteTag(name: String) async throws {
+        try await TagLiveOperations.deleteTag(repositoryPath: repositoryPath, name: name)
+    }
+
+    public func allTags() async throws -> [String: String] {
+        try await TagLiveOperations.allTags(repositoryPath: repositoryPath)
+    }
+
+    public func worktrees() async throws -> [WorktreeEntry] {
+        try await WorktreeLiveOperations.listWorktrees(repositoryPath: repositoryPath)
+    }
+
+    public func addWorktree(path: String, createBranch: String?, commitish: String?) async throws {
+        try await WorktreeLiveOperations.addWorktree(
+            repositoryPath: repositoryPath, path: path, createBranch: createBranch, commitish: commitish)
+    }
+
+    public func removeWorktree(path: String, force: Bool) async throws {
+        try await WorktreeLiveOperations.removeWorktree(
+            repositoryPath: repositoryPath, worktreePath: path, force: force)
+    }
+
+    public func moveWorktree(oldPath: String, newPath: String) async throws {
+        try await WorktreeLiveOperations.moveWorktree(
+            repositoryPath: repositoryPath, oldPath: oldPath, newPath: newPath)
+    }
+
+    public func submodules() async throws -> [SubmoduleEntry] {
+        try await SubmoduleLFSLiveOperations.listSubmodules(repositoryPath: repositoryPath)
+    }
+
+    public func installLFSHooks(force: Bool) async throws {
+        try await SubmoduleLFSLiveOperations.installLFSHooks(repositoryPath: repositoryPath, force: force)
+    }
+
+    public func isUsingLFS() async throws -> Bool {
+        try await SubmoduleLFSLiveOperations.isUsingLFS(repositoryPath: repositoryPath)
+    }
+
+    public func readGitIgnore() throws -> String? {
+        try GitIgnoreLiveOperations.readGitIgnore(repositoryPath: repositoryPath)
+    }
+
+    public func saveGitIgnore(text: String) async throws {
+        try await GitIgnoreLiveOperations.saveGitIgnore(repositoryPath: repositoryPath, text: text)
+    }
+
+    public func undoCommit(_ commit: Commit) async throws {
+        try await UndoResetLiveOperations.undoCommit(repositoryPath: repositoryPath, commit: commit)
+    }
+
+    public func reset(mode: GitResetMode, ref: String) async throws {
+        try await UndoResetLiveOperations.reset(repositoryPath: repositoryPath, mode: mode, ref: ref)
+    }
+
+    public func revertCommit(sha: String, parentCount: Int) async throws {
+        try await UndoResetLiveOperations.revert(repositoryPath: repositoryPath, sha: sha, parentCount: parentCount)
+    }
+
+    public func checkoutCommit(sha: String) async throws {
+        try await UndoResetLiveOperations.checkoutCommit(repositoryPath: repositoryPath, sha: sha)
+    }
 }
 
 // MARK: - MockGitService
@@ -159,6 +277,22 @@ public final class MockGitService: GitService, Sendable {
     public var stubRemotes: [Remote]
     public private(set) var stagedPaths: [String] = []
     public private(set) var committedContexts: [CommitContext] = []
+    public var stubStashes: [StashEntry] = []
+    public var stubStashTotalCount: Int = 0
+    public var stubStashedFiles: [String: [CommittedFileChange]] = [:]
+    public var stubTags: [String: String] = [:]
+    public var stubWorktrees: [WorktreeEntry] = []
+    public var stubSubmodules: [SubmoduleEntry] = []
+    public var stubGitIgnore: String? = nil
+    public var stubUsingLFS: Bool = false
+    public private(set) var droppedStashSHAs: [String] = []
+    public private(set) var poppedStashSHAs: [String] = []
+    public private(set) var createdTags: [(name: String, sha: String)] = []
+    public private(set) var deletedTags: [String] = []
+    public private(set) var undoneCommits: [String] = []
+    public private(set) var resets: [(mode: GitResetMode, ref: String)] = []
+    public private(set) var reverts: [(sha: String, parentCount: Int)] = []
+    public private(set) var checkouts: [String] = []
 
     public init(
         repositoryPath: String = "/tmp/mock-repo",
@@ -197,6 +331,104 @@ public final class MockGitService: GitService, Sendable {
 
     public func branches() async throws -> [Branch] { stubBranches }
     public func remotes() async throws -> [Remote] { stubRemotes }
+
+    // MARK: Task 8 (in-memory)
+
+    public func stashes() async throws -> (entries: [StashEntry], totalCount: Int) {
+        (stubStashes, stubStashTotalCount)
+    }
+
+    public func createStash(branchName: String) async throws -> Bool {
+        let entry = StashEntry(
+            name: "refs/stash@{\(stubStashes.count)}", branchName: branchName,
+            stashSha: "mock-stash-\(stubStashes.count)",
+            files: .notLoaded, tree: "mock-tree", parents: [])
+        stubStashes.insert(entry, at: 0)
+        stubStashTotalCount += 1
+        return true
+    }
+
+    public func popStash(stashSha: String) async throws -> StashLiveOperations.PopResult {
+        poppedStashSHAs.append(stashSha)
+        if let index = stubStashes.firstIndex(where: { $0.stashSha == stashSha }) {
+            stubStashes.remove(at: index)
+        }
+        return .poppedCleanly(dropped: true)
+    }
+
+    public func dropStash(stashSha: String) async throws -> Bool {
+        droppedStashSHAs.append(stashSha)
+        stubStashes.removeAll { $0.stashSha == stashSha }
+        return true
+    }
+
+    public func stashedFiles(stashSha: String) async throws -> [CommittedFileChange] {
+        stubStashedFiles[stashSha] ?? []
+    }
+
+    public func createTag(name: String, targetCommitSha: String) async throws {
+        createdTags.append((name, targetCommitSha))
+        stubTags[name] = targetCommitSha
+    }
+
+    public func deleteTag(name: String) async throws {
+        deletedTags.append(name)
+        stubTags.removeValue(forKey: name)
+    }
+
+    public func allTags() async throws -> [String: String] { stubTags }
+
+    public func worktrees() async throws -> [WorktreeEntry] { stubWorktrees }
+
+    public func addWorktree(path: String, createBranch: String?, commitish: String?) async throws {
+        stubWorktrees.append(WorktreeEntry(
+            path: path, head: commitish ?? "abc1234", branch: createBranch.map { "refs/heads/\($0)" },
+            type: stubWorktrees.isEmpty ? .main : .linked, isLocked: false, isPrunable: false))
+    }
+
+    public func removeWorktree(path: String, force: Bool) async throws {
+        stubWorktrees.removeAll { $0.path == path }
+    }
+
+    public func moveWorktree(oldPath: String, newPath: String) async throws {
+        if let index = stubWorktrees.firstIndex(where: { $0.path == oldPath }) {
+            let entry = stubWorktrees[index]
+            stubWorktrees[index] = WorktreeEntry(
+                path: newPath, head: entry.head, branch: entry.branch,
+                type: entry.type, isLocked: entry.isLocked, isPrunable: entry.isPrunable)
+        }
+    }
+
+    public func submodules() async throws -> [SubmoduleEntry] { stubSubmodules }
+
+    public func installLFSHooks(force: Bool) async throws {
+        stubUsingLFS = true
+    }
+
+    public func isUsingLFS() async throws -> Bool { stubUsingLFS }
+
+    public func readGitIgnore() throws -> String? { stubGitIgnore }
+
+    public func saveGitIgnore(text: String) async throws {
+        stubGitIgnore = text.isEmpty ? nil : text
+    }
+
+    public func undoCommit(_ commit: Commit) async throws {
+        undoneCommits.append(commit.sha)
+        stubCommits.removeAll { $0.sha == commit.sha }
+    }
+
+    public func reset(mode: GitResetMode, ref: String) async throws {
+        resets.append((mode, ref))
+    }
+
+    public func revertCommit(sha: String, parentCount: Int) async throws {
+        reverts.append((sha, parentCount))
+    }
+
+    public func checkoutCommit(sha: String) async throws {
+        checkouts.append(sha)
+    }
 }
 
 extension MockGitService {
