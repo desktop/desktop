@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="Autoconf-exception-3.0" name="Autoconf exception 3.0">
+      <crossRefs>
+         <crossRef>http://www.gnu.org/licenses/autoconf-exception-3.0.html</crossRef>
+      </crossRefs>
+      <notes>Typically used with GPL-3.0</notes>
+    <text>
+      <titleText>
+         <p>AUTOCONF CONFIGURE SCRIPT EXCEPTION
+        <br/>Version 3.0, 18 August 2009</p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright © 2009 Free Software Foundation, Inc.
+             &lt;http://fsf.org/&gt;
+      </p>
+      </copyrightText>
+      <p>Everyone is permitted to copy and distribute verbatim copies of
+         this license document, but changing it is not allowed.</p>
+      <p>This Exception is an additional permission under section 7 of the
+         GNU General Public License, version 3 ("GPLv3"). It applies to
+         a given file that bears a notice placed by the copyright
+         holder of the file stating that the file is governed by GPLv3
+         along with this Exception.</p>
+      <p>The purpose of this Exception is to allow distribution of
+         Autoconf's typical output under terms of the recipient's
+         choice (including proprietary).</p>
+      <list>
+        <item>
+            <bullet>0.</bullet>
+          Definitions.
+          <p>"Covered Code" is the source or object code of a version
+             of Autoconf that is a covered work under this
+             License.</p>
+            <p>"Normally Copied Code" for a version of Autoconf means
+             all parts of its Covered Code which that version can
+             copy from its code (i.e., not from its input file)
+             into its minimally verbose, non-debugging and
+             non-tracing output.</p>
+            <p>"Ineligible Code" is Covered Code that is not Normally
+             Copied Code.</p>
+        </item>
+        <item>
+            <bullet>1.</bullet>
+          Grant of Additional Permission.
+          <p>You have permission to propagate output of Autoconf, even
+             if such propagation would otherwise violate the terms
+             of GPLv3. However, if by modifying Autoconf you cause
+             any Ineligible Code of the version you received to
+             become Normally Copied Code of your modified version,
+             then you void this Exception for the resulting covered
+             work. If you convey that resulting covered work, you
+             must remove this Exception in accordance with the
+             second paragraph of Section 7 of GPLv3.</p>
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          No Weakening of Autoconf Copyleft.
+          <p>The availability of this Exception does not imply any general
+            presumption that third-party software is unaffected by the
+            copyleft requirements of the license of Autoconf.</p>
+         </item>
+      </list>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

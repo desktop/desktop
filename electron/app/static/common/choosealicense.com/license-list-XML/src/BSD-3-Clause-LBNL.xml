@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="BSD-3-Clause-LBNL"
+            name="Lawrence Berkeley National Labs BSD variant license">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/LBNLBSD</crossRef>
+      </crossRefs>
+      <notes>This license is the same as BSD-3-Clause, but with an additional default contribution licensing clause</notes>
+
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 2003, The Regents of the University of California, through Lawrence Berkeley National
+         Laboratory (subject to receipt of any required approvals from the U.S. Dept. of Energy). All rights
+         reserved.</p>
+      </copyrightText>
+      
+      <p>Redistribution and use in source and binary forms, with or without modification, are
+         permitted provided that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>(1)</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of conditions
+             and the following disclaimer.
+        </item>
+        <item>
+            <bullet>(2)</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>(3)</bullet>
+            <alt match="(The name of.+may not)|(Neither the name of.+nor the names of its contributors may)" name="organizationClause3">
+            Neither the name of the University of California, Lawrence Berkeley National Laboratory, U.S.
+             Dept. of Energy nor the names of its contributors may</alt> be used to endorse or promote products
+             derived from this software without specific prior written permission.
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+         WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+         PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER<optional>, THE UNITED STATES GOVERNMENT,</optional> OR CONTRIBUTORS BE LIABLE FOR
+         ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+         LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+         INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+         LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+      </p>
+      <p>You are under no obligation whatsoever to provide any bug fixes, patches, or upgrades to the features,
+         functionality or performance of the source code ("Enhancements") to anyone; however, if you choose to
+         make your Enhancements available either publicly, or directly to 
+         <alt match=".+" name="copyrightHolderEnhancements">Lawrence Berkeley National
+         Laboratory</alt>,
+         without imposing a separate written license agreement for such Enhancements, then you
+         hereby grant the following license: a non-exclusive, royalty-free perpetual license to install, use,
+         modify, prepare derivative works, incorporate into other computer software, distribute, and sublicense
+         such Enhancements or derivative works thereof, in binary and source code form.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

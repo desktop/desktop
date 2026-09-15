@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <exception licenseId="LGPL-3.0-linking-exception" name="LGPL-3.0 Linking Exception" listVersionAdded="3.9">
+    <crossRefs>
+      <crossRef>https://raw.githubusercontent.com/go-xmlpath/xmlpath/v2/LICENSE</crossRef>
+      <crossRef>https://github.com/goamz/goamz/blob/master/LICENSE</crossRef>
+      <crossRef>https://github.com/juju/errors/blob/master/LICENSE</crossRef>
+    </crossRefs>
+    <notes>
+      Unlike GPL-3.0-linking-exception, this exception it is not based on a suggested template from
+      the Free Software Foundation's FAQ about the GPL. It is being added as it has been used
+      in several projects as a linking exception to LGPL-3.0.
+    </notes>
+    <text>
+        <p>As a special exception to the GNU Lesser General Public License version 3
+        ("LGPL3"), the copyright holders of this Library give you permission to
+        convey to a third party a Combined Work that links statically or dynamically
+        to this Library without providing any Minimal Corresponding Source or
+        Minimal Application Code as set out in 4d or providing the installation
+        information set out in section 4e, provided that you comply with the other
+        provisions of LGPL3 and provided that you meet, for the Application the
+        terms and conditions of the license(s) which apply to the Application.</p>
+
+        <p>Except as stated in this special exception, the provisions of LGPL3 will
+        continue to comply in full to this Library. If you modify this Library, you
+        may apply this exception to your version of this Library, but you are not
+        obliged to do so. If you do not wish to do so, delete this exception
+        statement from your version. This exception does not (and cannot) modify any
+        license terms which apply to the Application, with which you must still
+        comply.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

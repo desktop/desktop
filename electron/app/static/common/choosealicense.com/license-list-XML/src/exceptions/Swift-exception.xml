@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="Swift-exception" name="Swift Exception" listVersionAdded="3.6">
+      <crossRefs>
+         <crossRef>https://swift.org/LICENSE.txt</crossRef>
+         <crossRef>https://github.com/apple/swift-package-manager/blob/7ab2275f447a5eb37497ed63a9340f8a6d1e488b/LICENSE.txt#L205</crossRef>
+      </crossRefs>
+      <notes>This exception was created specifically to be used with Apache-2.0</notes>
+	  <text>
+	  <titleText>
+		<p>
+            <alt match="#*" name="titleDash1"/>
+		    Runtime Library Exception to the Apache 2.0 License:
+		    <alt match="#*" name="titleDash2"/>
+		</p>
+	  </titleText>
+      <p> As an exception, if you use this Software to compile your source code and
+        portions of this Software are embedded into the binary product as a result,
+        you may redistribute such product without providing attribution as would
+        otherwise be required by Sections 4(a), 4(b) and 4(d) of the License.</p>
+	  </text>
+  </exception>
+</SPDXLicenseCollection>

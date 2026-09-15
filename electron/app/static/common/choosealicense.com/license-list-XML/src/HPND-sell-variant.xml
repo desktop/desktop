@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="HPND-sell-variant"
+            name="Historical Permission Notice and Disclaimer - sell variant" listVersionAdded="3.5">
+      <crossRefs>
+         <crossRef>https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/net/sunrpc/auth_gss/gss_generic_token.c?h=v4.19</crossRef>
+      </crossRefs>
+      <notes>
+    This license is a variant of HPND (https://spdx.org/licenses/HPND.html). This variant explicitly includes the permission to "sell" the software, which is not explicitly referenced in the HPND template, and makes a few other minor changes. It otherwise retains the optional templated formatting from HPND.
+  </notes>
+    <text>
+      <copyrightText>
+         <p>&lt;copyright notice&gt;</p>
+      </copyrightText>
+
+      <p>Permission to use, copy, modify, distribute, and sell this software and its documentation for any purpose
+         is hereby granted without fee, provided that the above copyright notice appears in all copies<optional spacing="after">,</optional>
+         <optional>and</optional> that both <optional>that</optional>
+         <optional>the</optional> copyright notice
+         and this permission notice appear in supporting documentation<optional spacing="after">, and that the name <optional>of</optional>
+            <alt match=".*" name="copyrightHolder0">&lt;copyright holder&gt;</alt>
+            <alt match=".*" name="orRelated">&lt;or related entities&gt;</alt>
+         not be used in advertising or publicity pertaining to distribution of the software without specific, written
+         prior permission</optional>. <optional>
+            <alt match=".*" name="copyrightHolder1">&lt;copyright holder&gt;</alt> makes no representations
+         about the suitability of this software for any purpose. It is provided "as is" without express or implied warranty.</optional>
+      </p>
+      <optional>
+        <p>
+            <alt match=".*" name="copyrightHolder2">&lt;copyright holder&gt;</alt> DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+           ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS<alt match="[.,]?" name="period">.</alt> IN NO EVENT SHALL
+           <alt match=".*" name="copyrightHolder3">&lt;copyright holder&gt;</alt> BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES
+           OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+           NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+      </optional>
+    </text>
+  </license>
+</SPDXLicenseCollection>

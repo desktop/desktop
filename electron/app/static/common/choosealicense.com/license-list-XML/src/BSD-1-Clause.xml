@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license isOsiApproved="true" licenseId="BSD-1-Clause" name="BSD 1-Clause License">
+    <crossRefs>
+      <crossRef>https://svnweb.freebsd.org/base/head/include/ifaddrs.h?revision=326823</crossRef>
+    </crossRefs>
+    <text>
+    <copyrightText>
+      <p>
+        Copyright (c) &lt;year&gt; &lt;owner&gt; All rights reserved.
+      </p>
+    </copyrightText>
+    <p>
+      Redistribution and use in source and binary
+      forms, with or without modification, are permitted
+      provided that the following conditions are met:
+    </p>
+    <list>
+      <item>
+        <bullet>1.</bullet>
+        Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      </item>
+    </list>
+    <p>
+      THIS SOFTWARE IS PROVIDED BY <alt name="copyrightHolderAsIs"
+      match=".+">Berkeley Software Design, Inc.</alt>
+      "AS IS" AND ANY<alt name="express" match="EXPRESS(ED)?">EXPRESS</alt>
+      OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+      ARE DISCLAIMED. IN NO EVENT SHALL<alt name="copyrightHolderLiability"
+      match=".+">Berkeley Software Design, Inc.</alt>
+      BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+      OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+      OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+      OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+      LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+      NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+      THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

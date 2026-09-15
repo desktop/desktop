@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="zlib-acknowledgement"
+            name="zlib/libpng License with Acknowledgement">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/ZlibWithAcknowledgement</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 2002-2007 Charlie Poole</p>
+         <p>Copyright (c) 2002-2004 James W. Newkirk, Michael C. Two, Alexei A. Vorontsov</p>
+         <p>Copyright (c) 2000-2002 Philip A. Craig</p>
+      </copyrightText>
+      <p>This software is provided 'as-is', without any express or implied warranty. In no event will the authors
+         be held liable for any damages arising from the use of this software.</p>
+      <p>Permission is granted to anyone to use this software for any purpose, including commercial applications,
+         and to alter it and redistribute it freely, subject to the following restrictions:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          The origin of this software must not be misrepresented; you must not claim that you wrote the
+             original software. If you use this software in a product, an acknowledgment (see the
+             following) in the product documentation is required.
+          <p>Portions Copyright (c) 2002-2007 Charlie Poole or Copyright (c) 2002-2004 James W. Newkirk,
+             Michael C. Two, Alexei A. Vorontsov or Copyright (c) 2000-2002 Philip A. Craig</p>
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Altered source versions must be plainly marked as such, and must not be misrepresented as being
+             the original software.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          This notice may not be removed or altered from any source distribution.
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

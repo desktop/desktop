@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="HaskellReport"
+            name="Haskell Language Report License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Haskell_Language_Report_License</crossRef>
+      </crossRefs>
+
+    <text>
+      <p>Code derived from the document "Report on the Programming Language
+        <br/>Haskell 2010", is distributed under the following license:
+      </p>
+      <p>
+        <copyrightText>Copyright (c) 2010 Simon Marlow</copyrightText>
+      </p>
+      <p>The authors intend this Report to belong to the entire Haskell community, and so we grant permission to
+         copy and distribute it for any purpose, provided that it is reproduced in its entirety, including this
+         Notice. Modified versions of this Report may also be copied and distributed for any purpose, provided
+         that the modified version is clearly presented as such, and that it does not claim to be a definition
+         of the Haskell 2010 Language.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

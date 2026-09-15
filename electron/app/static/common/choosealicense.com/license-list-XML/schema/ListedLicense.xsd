@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:tns="http://www.spdx.org/license" targetNamespace="http://www.spdx.org/license" elementFormDefault="qualified">
+	<annotation>
+		<documentation xml:lang="en">
+			<xhtml:h1>SPDX License List XML Schema</xhtml:h1>
+			<xhtml:p>
+				This format is internal to the SPDX legal team and is subject to change.  For stable output formats, see <xhtml:a href="https://github.com/spdx/license-list-data">license-list-data</xhtml:a>.
+			</xhtml:p>
+			<xhtml:p>
+				SPDX-License-Identifier: CC0-1.0
+			</xhtml:p>
+		</documentation>
+	</annotation>
+	<element name="SPDXLicenseCollection" type="tns:SPDXLicenseCollectionType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>SPDXLicenseCollection</xhtml:code> is the root element of SPDX license lists.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+	</element>
+	<complexType name="SPDXLicenseCollectionType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>SPDXLicenseCollectionType</xhtml:code> collects a set of licenses and/or exceptions.  The order in which child elements are listed is not significant.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<choice minOccurs="1" maxOccurs="unbounded">
+			<element name="license" type="tns:LicenseType"/>
+			<element name="exception" type="tns:ExceptionType"/>
+		</choice>
+	</complexType>
+	<complexType name="ExceptionType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>ExceptionType</xhtml:code> is an exception to a license condition or additional permissions beyond those granted in a license.  Exceptions are not standalone licenses, although the schem for <xhtml:code>LicenseType</xhtml:code> is very similar.  See the <xhtml:code>LicenseType</xhtml:code> documentation for details on the attribute semantics.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<all>
+			<element name="obsoletedBys" type="tns:obsoletedBysType" minOccurs="0" maxOccurs="1" />
+			<element name="crossRefs" type="tns:crossRefsType" minOccurs="0" maxOccurs="1"/>
+			<element name="notes" type="tns:formattedFixedTextType" minOccurs="0" maxOccurs="1"/>
+			<element name="text" type="tns:formattedAltTextType" minOccurs="0" maxOccurs="1"/>
+		</all>
+		<attribute name="licenseId" type="string" use="required" />
+		<attribute name="isDeprecated" type="boolean"/>
+		<attribute name="name" type="string" use="required" />
+		<attribute name="listVersionAdded" type="string"/>
+		<attribute name="deprecatedVersion" type="string"/>
+	</complexType>
+	<complexType name="LicenseType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>LicenseType</xhtml:code> is a license.  It does not represent exceptions, although the schema for <xhtml:code>ExceptionType</xhtml:code> is very similar.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<all>
+			<element name="obsoletedBys" type="tns:obsoletedBysType" minOccurs="0" maxOccurs="1" />
+			<element name="crossRefs" type="tns:crossRefsType" minOccurs="0" maxOccurs="1"/>
+			<element name="notes" type="tns:formattedFixedTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>notes</xhtml:code> contains unstructured notes about the license.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="standardLicenseHeader" type="tns:formattedAltTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>standardLicenseHeader</xhtml:code> is the license steward's recommended text for per-file license grants.  Place this element within <xhtml:code>text</xhtml:code> when the license contains the recommended grant text (for example, in an appendix).  Make <xhtml:code>standardLicenseHeader</xhtml:code> a sibling of <xhtml:code>text</xhtml:code> when the license does not contain the recommended grant text.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="text" type="tns:formattedAltStandardLicenseHeaderTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>text</xhtml:code> is the license text as a standalone document.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+		</all>
+		<attribute name="licenseId" type="string" use="required">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>licenseId</xhtml:code> is the short identifier used in <xhtml:a href="https://spdx.org/spdx-specification-21-web-version#h.jxpfx0ykyb60">SPDX License Expressions</xhtml:a>.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="isOsiApproved" type="boolean">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>isOsiApproved</xhtml:code> is true if and only if the license is approved by Open Source Initiative as listed <xhtml:a href="https://opensource.org/licenses">here</xhtml:a>.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="isDeprecated" type="boolean">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>isDeprecated</xhtml:code> is true if and only if the short identifier has been superseded by another.  See the <xhtml:code>deprecatedVersion</xhtml:code> documentation for more details.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="name" type="string" use="required">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>name</xhtml:code> is the name of the license, as provided by the license steward.  In the absence of an external license steward, the name is chosen by the SPDX legal team.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="listVersionAdded" type="string">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>listVersionAdded</xhtml:code> is the version of the license list which first included the license.  This impacts the portability of a license identifier, because identifiers introduced in a later version may not be supported by tooling which targets an earlier version.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="deprecatedVersion" type="string">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>deprecatedVersion</xhtml:code> is the version of the license list which first deprecated the license.  SPDX authors are encouraged to upgrade to the most recent equivalent identifier supported by their tooling.  Future major releases of the license list may remove deprecated entries completely, after which new tools may no longer be able to understand them.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+	</complexType>
+	<complexType name="crossRefsType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>crossRefsType</xhtml:code> is a set of URIs for the license or exception.  When the license steward has a URI devoted to the license, it must be the first entry in <xhtml:code>crossRefsType</xhtml:code>.  The order in which the other child elements are listed is not significant.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<sequence>
+			<element name="crossRef" type="anyURI" minOccurs="1" maxOccurs="unbounded">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>crossRef</xhtml:code> is a URI related to the license or exception.  Two main types are supported: resources devoted to the license itself (either by the license steward or third parties) and examples of use in prominent projects.  Dead links may be supplemented by archived replacements (e.g. through the <xhtml:a href="https://archive.org/">Internet Archive</xhtml:a>).
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+		</sequence>
+	</complexType>
+	<complexType name="obsoletedBysType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>obsoletedBysType</xhtml:code> is a wrapper for a set of <xhtml:code>obsoletedBy</xhtml:code> entries.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<sequence>
+			<element name="obsoletedBy" type="tns:obsoletedByType" minOccurs="1" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+	<complexType name="obsoletedByType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>obsoletedByType</xhtml:code> represents a recommended replacement for license expressions containing a given license or exception.  The algorithm for determining the recommended replacement in the context of a given license expression is:
+				</xhtml:p>
+				<xhtml:ol>
+					<xhtml:li>Parse the license expression to extract the short identifiers.</xhtml:li>
+					<xhtml:li>Look up <xhtml:code>obsoletedBy</xhtml:code> entries for the short identifiers.</xhtml:li>
+					<xhtml:li>If any <xhtml:code>obsoletedBy</xhtml:code> has an <xhtml:code>expression</xhtml:code> attribute that matches the source, the value of that <xhtml:code>obsoletedBy</xhtml:code> is the recommended replacement for that expression.  Otherwise, the value of the <xhtml:code>obsoletedBy</xhtml:code> without an expression attribute is the recommended replacement for the short identifier.</xhtml:li>
+				</xhtml:ol>
+				<xhtml:p>
+					For example, the expression <xhtml:code>GPL-2.0+ WITH GCC-exception-2.0</xhtml:code> could be parsed to either of the following short license identifiers:
+				</xhtml:p>
+				<xhtml:ul>
+					<xhtml:li>
+						<xhtml:p>
+							<xhtml:code>GPL-2.0+</xhtml:code>, in which case there would be a single <xhtml:code>obsoletedBy</xhtml:code> with no <xhtml:code>expression</xhtml:code> attribute:
+						</xhtml:p>
+						<xhtml:p>
+							<xhtml:code>&lt;obsoletedBy&gt;GPL-2.0-or-later&lt;/obsoletedBy&gt;</xhtml:code>
+						</xhtml:p>
+						<xhtml:p>
+							So the recommended replacement for <xhtml:code>GPL-2.0+</xhtml:code> would be <xhtml:code>GPL-2.0-or-later</xhtml:code>.
+						</xhtml:p>
+					</xhtml:li>
+					<xhtml:li>
+						<xhtml:p>
+							<xhtml:code>GPL-2.0</xhtml:code>, in which case there would be two <xhtml:code>obsoletedBy</xhtml:code> elements:
+						</xhtml:p>
+						<xhtml:p>
+							<xhtml:code>&lt;obsoletedBy&gt;GPL-2.0-only&lt;/obsoletedBy&gt;</xhtml:code><xhtml:br/>
+							<xhtml:code>&lt;obsoletedBy expression="GPL-2.0+"&gt;GPL-2.0-or-later&lt;/obsoletedBy&gt;</xhtml:code>
+						</xhtml:p>
+						<xhtml:p>
+							The element with <xhtml:code>expression="GPL-2.0+"</xhtml:code> matches the initial license expression, so the recommended replacement for <xhtml:code>GPL-2.0+</xhtml:code> is <xhtml:code>GPL-2.0-or-later</xhtml:code>.
+						</xhtml:p>
+					</xhtml:li>
+				</xhtml:ul>
+			</documentation>
+		</annotation>
+		<attribute name="expression" type="string">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>expression</xhtml:code> is the license expression which is obsoleted by the expression contained by the element.  Defaults to the bare identifier.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+	</complexType>
+	<complexType name="altType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>altType</xhtml:code> represents alternative content, where the SPDX considers several alternatives legally equivalent.  The <xhtml:code>match</xhtml:code> will support the legally equivalent alternatives.  While the SPDX will aim to exclude legally-signicant differences in <xhtml:code>match</xhtml:code>, this is not always possible.  Consumers are encouraged to review matched text manually and make their own conclusions about legal significance.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<group ref="tns:formattedFixedTextGroup" minOccurs="0" maxOccurs="unbounded">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						This formatted content (potentially empty) is the canonical text recommended by the SPDX.  It should match at least one version of the canonical text currently recommended by the license steward, if any.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</group>
+		<attribute name="name" type="string" use="required">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>name</xhtml:code> is a unique (within the license/exception) name for this <xhtml:code>altType</xhtml:code> element.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="match" type="string" use="required">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>match</xhtml:code> is the <xhtml:a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04">POSIX extended regular expression (ERE)</xhtml:a> defining allowed matches.  Where possible, alternates are listed in order of decreasing numbers of matched characters, which allows for regular expression engines using both POSIX's <xhtml:a href="http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_01_02">longest-match</xhtml:a> semantics and those which prefer the leftmost branch (e.g. <xhtml:a href="https://golang.org/pkg/regexp/#Compile">Go</xhtml:a>, <xhtml:a href="https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf#sec-alternative.cE">JavaScript</xhtml:a>, <xhtml:a href="http://perldoc.perl.org/perlre.html#Combining-RE-Pieces">Perl</xhtml:a>, <xhtml:a href="https://docs.python.org/3.5/library/re.html#regular-expression-syntax">Python</xhtml:a>, etc.)
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="spacing" type="string" default="before">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>spacing</xhtml:code> defines how spacing is handled around the alt text.  Since XML does not preserve white space, to render the text from the license XML we need to provide hints to the tools that translate the XML to text (or other formats).  Valid values are <xhtml:code>none</xhtml:code> for no spaces before or after the alt text; <xhtml:code>before</xhtml:code> (default) for a space before, but not after the alt text; <xhtml:code>after</xhtml:code> for a space after, but not before the alt text; <xhtml:code>both</xhtml:code>a space before and after the alt text.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+	</complexType>
+	<complexType name="optionalType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>optionalType</xhtml:code> is formatted text that is not legally significant.  The legal meaning of the license/exception is the same regardless of whether the optional text is included or not.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<group ref="tns:formattedAltTextGroup" minOccurs="0" maxOccurs="unbounded"/>
+		<attribute name="spacing" type="string" default="before">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>spacing</xhtml:code> defines how spacing is handled around the optional text.  Since XML does not preserve white space, to render the text from the license XML we need to provide hints to the tools that translate the XML to text (or other formats).  Valid values are <xhtml:code>none</xhtml:code> for no spaces before or after the optional text; <xhtml:code>before</xhtml:code> (default) for a space before, but not after the optional text; <xhtml:code>after</xhtml:code> for a space after, but not before the optional text; <xhtml:code>both</xhtml:code>a space before and after the optional text.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>		
+	</complexType>
+	<complexType name="optionalStandardLicenseHeaderType" mixed="true">
+		<group ref="tns:formattedAltStandardLicenseHeaderTextGroup" minOccurs="0" maxOccurs="unbounded"/>
+				<attribute name="spacing" type="string" default="before">
+			<annotation>
+				<documentation xml:lang="en">
+					<xhtml:p>
+						<xhtml:code>spacing</xhtml:code> defines how spacing is handled around the optional text.  Since XML does not preserve white space, to render the text from the license XML we need to provide hints to the tools that translate the XML to text (or other formats).  Valid values are <xhtml:code>none</xhtml:code> for no spaces before or after the optional text; <xhtml:code>before</xhtml:code> (default) for a space before, but not after the optional text; <xhtml:code>after</xhtml:code> for a space after, but not before the optional text; <xhtml:code>both</xhtml:code>a space before and after the optional text.
+					</xhtml:p>
+				</documentation>
+			</annotation>
+		</attribute>
+	</complexType>
+	<complexType name="listType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>listType</xhtml:code> formats a list of entries.  We do not distinguish between ordered and unordered lists, because bullets must be declared explicitly in the formatted content.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<choice minOccurs="1" maxOccurs="unbounded">
+			<element name="item" type="tns:formattedAltTextType"/>
+			<element name="list" type="tns:listType"/>
+		</choice>
+	</complexType>
+	<complexType name="listStandardLicenseHeaderType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>listStandardLicenseHeaderType</xhtml:code> is a <xhtml:code>listType</xhtml:code> that also allows <xhtml:code>&lt;standardLicenseHeader&gt;</xhtml:code> within its ancestor elements.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<choice minOccurs="1" maxOccurs="unbounded">
+			<element name="item" type="tns:formattedAltStandardLicenseHeaderTextType"/>
+			<element name="list" type="tns:listStandardLicenseHeaderType"/>
+		</choice>
+	</complexType>
+	<complexType name="emptyType">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>emptyType</xhtml:code> is empty, for elements like <xhtml:code>&lt;br/&gt;</xhtml:code> that must contain no content.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+	</complexType>
+	<complexType name="formattedFixedTextType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>formattedFixedTextType</xhtml:code> is formatted text without optional or variable portions.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<group ref="tns:formattedFixedTextGroup" minOccurs="0" maxOccurs="unbounded"/>
+	</complexType>
+	<complexType name="formattedAltTextType" mixed="true">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>formattedAltTextType</xhtml:code> is formatted text that allows optional and variable portions.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<group ref="tns:formattedAltTextGroup" minOccurs="0" maxOccurs="unbounded"/>
+	</complexType>
+	<complexType name="formattedAltStandardLicenseHeaderTextType" mixed="true">
+		<group ref="tns:formattedAltStandardLicenseHeaderTextGroup" minOccurs="0" maxOccurs="unbounded"/>
+	</complexType>
+	<group name="formattedFixedTextGroup">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>formatttedFixedTextGroup</xhtml:code> is formatted text without optional or variable portions.  The children for <xhtml:code>formattedAltStandardLicenseHeaderTextGroup</xhtml:code> have the same semantics, except for the fixed/alt and standard license header distinctions.  See the <xhtml:code>formattedAltStandardLicenseHeaderTextGroup</xhtml:code> documentation for details on the attribute semantics.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<choice>
+			<element name="p" type="tns:formattedFixedTextType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="bullet" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="list" type="tns:listType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="br" type="tns:emptyType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="titleText" type="tns:formattedFixedTextType" minOccurs="0" maxOccurs="1"/>
+			<element name="copyrightText" type="tns:formattedFixedTextType" minOccurs="0" maxOccurs="1"/>
+		</choice>
+	</group>
+	<group name="formattedAltTextGroup">
+		<annotation>
+			<documentation xml:lang="en">
+				<xhtml:p>
+					<xhtml:code>formatttedAltTextGroup</xhtml:code> is formatted text with optional and variable portions.  The children for <xhtml:code>formattedAltStandardLicenseHeaderTextGroup</xhtml:code> have the same semantics, except for the standard license header distinction.  See the <xhtml:code>formattedAltStandardLicenseHeaderTextGroup</xhtml:code> documentation for details on the attribute semantics.
+				</xhtml:p>
+			</documentation>
+		</annotation>
+		<choice>
+			<element name="p" type="tns:formattedAltTextType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="bullet" type="string" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="list" type="tns:listType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="optional" type="tns:optionalType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="alt" type="tns:altType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="br" type="tns:emptyType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="titleText" type="tns:formattedAltTextType" minOccurs="0" maxOccurs="1"/>
+			<element name="copyrightText" type="tns:formattedAltTextType" minOccurs="0" maxOccurs="1"/>
+		</choice>
+	</group>
+	<group name="formattedAltStandardLicenseHeaderTextGroup">
+		<choice>
+			<element name="p" type="tns:formattedAltStandardLicenseHeaderTextType" minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>p</xhtml:code> is a paragraph with the same semantics as in <xhtml:a href="https://www.w3.org/TR/html52/grouping-content.html#elementdef-p">HTML</xhtml:a>.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="bullet" type="string" minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>bullet</xhtml:code> is a list-item bullet.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="list" type="tns:listStandardLicenseHeaderType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="optional" type="tns:optionalStandardLicenseHeaderType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="alt" type="tns:altType" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="br" type="tns:emptyType" minOccurs="0" maxOccurs="unbounded">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>br</xhtml:code> is a line break with the same semantics as in <xhtml:a href="https://www.w3.org/TR/html52/textlevel-semantics.html#the-br-element">HTML</xhtml:a>.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="titleText" type="tns:formattedAltStandardLicenseHeaderTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>titleText</xhtml:code> is the title of the license/exception.  This that the content should be formatted as a header and that it optional (as described in <xhtml:content>optionalType</xhtml:content>).
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="copyrightText" type="tns:formattedAltStandardLicenseHeaderTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>copyrightText</xhtml:code> is the <xhtml:em>content</xhtml:em> copyright statement.  Some licenses/exceptions (e.g. the GPL family) include a copright line for the license/exception itself; <xhtml:code>copyrightText</xhtml:code> should not be used for those cases.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+			<element name="standardLicenseHeader" type="tns:formattedAltStandardLicenseHeaderTextType" minOccurs="0" maxOccurs="1">
+				<annotation>
+					<documentation xml:lang="en">
+						<xhtml:p>
+							<xhtml:code>standardLicenseHeader</xhtml:code> is the license steward's recommended text for per-file license grants.  Place this element within <xhtml:code>text</xhtml:code> when the license contains the recommended grant text (for example, in an appendix).  Make <xhtml:code>standardLicenseHeader</xhtml:code> a sibling of <xhtml:code>text</xhtml:code> when the license does not contain the recommended grant text.
+						</xhtml:p>
+					</documentation>
+				</annotation>
+			</element>
+		</choice>
+	</group>
+</schema>

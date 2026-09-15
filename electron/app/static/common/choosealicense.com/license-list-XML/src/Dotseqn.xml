@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Dotseqn" name="Dotseqn License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Dotseqn</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (C) 1995 by Donald Arseneau</p>
+      </copyrightText>
+
+      <p>This file may be freely transmitted and reproduced, but it may not be changed unless the name is changed
+         also (except that you may freely change the paper-size option for \documentclass).</p>
+      <p>This notice must be left intact.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

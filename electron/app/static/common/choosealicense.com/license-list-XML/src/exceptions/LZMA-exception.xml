@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="LZMA-exception" name="LZMA exception">
+      <crossRefs>
+         <crossRef>http://nsis.sourceforge.net/Docs/AppendixI.html#I.6</crossRef>
+      </crossRefs>
+      <notes>Used by the LZMA compression module for NSIS to apply an exception to
+         CPL-1.0</notes>
+    <text>
+	  <optional>I.6 Special exception for LZMA compression module</optional>
+      <titleText>
+         <optional><p>LZMA exception</p></optional>
+      </titleText>
+      <p>Igor Pavlov and Amir Szekely, the authors of the LZMA compression
+       module for NSIS, expressly permit you to statically or
+       dynamically link your code (or bind by name) to the files from
+       the LZMA compression module for NSIS without subjecting your
+       linked code to the terms of the Common Public license version
+       1.0. Any modifications or additions to files from the LZMA
+       compression module for NSIS, however, are subject to the terms
+       of the Common Public License version 1.0.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="BSD-3-Clause-Attribution"
+            name="BSD with attribution">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/BSD_with_Attribution</crossRef>
+      </crossRefs>
+
+    <text>
+      <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided
+         that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of
+             conditions and the following disclaimer.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of
+             conditions and the following disclaimer in the documentation and/or other materials
+             provided with the distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          Neither the name of the copyright holder nor the names of its contributors may be used to
+             endorse or promote products derived from this software without specific prior written
+             permission.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Redistributions of any form whatsoever must retain the following acknowledgment: 'This
+             product includes software developed by the
+            <alt match=".+" name="organization">"Universidad de Palermo, Argentina"
+            (http://www.palermo.edu/).'</alt>
+
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+         IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+         FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+         CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+         DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+         DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+         USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

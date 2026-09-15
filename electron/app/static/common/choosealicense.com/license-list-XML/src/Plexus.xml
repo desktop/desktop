@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Plexus" name="Plexus Classworlds License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Plexus_Classworlds_License</crossRef>
+      </crossRefs>
+      <notes>dom4j uses this same license.</notes>
+    <text>
+      <copyrightText>
+         <p>Copyright 2002 (C) The Codehaus. All Rights Reserved. 
+      </p>
+      </copyrightText>
+
+      <p>Redistribution and use of this software and associated documentation ("Software"), with or without
+         modification, are permitted provided that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain copyright statements and notices. Redistributions must
+             also contain a copy of this document.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          The name
+            <alt match=".+" name="nameClause3">"classworlds”</alt> must not be used to endorse or promote
+            products derived from this Software without prior written permission of
+            <alt match=".+" name="organizationClause3">The Codehaus</alt>. For written permission, please contact
+            <alt match=".+" name="contactClause4">bob@codehaus.org</alt>.
+
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Products derived from this Software may not be called
+            <alt match=".+" name="nameClause4">"classworlds”</alt> nor may
+            <alt match=".+" name="name2Clause4">"classworlds”</alt> appear in their names without prior
+            written permission of
+            <alt match=".+" name="name3Clause4">The Codehaus</alt>.
+            <alt match=".+" name="trademark">"classworlds”</alt> is a registered trademark of
+            <alt match=".+" name="name4Clause4">The Codehaus</alt>.
+
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          Due credit should be given to
+            <alt match=".+" name="nameURL">The Codehaus. (http://classworlds.codehaus.org/)</alt>.
+
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY
+        <alt match=".+" name="nameDisclaimer">THE CODEHAUS</alt> AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESSED OR
+        IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+        FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+        <alt match=".+" name="name2Disclaimer">THE CODEHAUS</alt> OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+        INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+        PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+        HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+        NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

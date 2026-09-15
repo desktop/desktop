@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="PHP-3.0" name="PHP License v3.0">
+      <crossRefs>
+         <crossRef>http://www.php.net/license/3_0.txt</crossRef>
+         <crossRef>https://opensource.org/licenses/PHP-3.0</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>The PHP License, version 3.0</p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright (c) 1999 - 2006 The PHP Group. All rights reserved.</p>
+      </copyrightText>
+
+      <p>Redistribution and use in source and binary forms, with or without modification, is permitted provided
+         that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of conditions
+             and the following disclaimer.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          The name "PHP" must not be used to endorse or promote products derived from this software without
+             prior written permission. For written permission, please contact group@php.net.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Products derived from this software may not be called "PHP", nor may "PHP" appear in their name,
+             without prior written permission from group@php.net. You may indicate that your software works
+             in conjunction with PHP by saying "Foo for PHP" instead of calling it "PHP Foo" or
+             "phpfoo"
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          The PHP Group may publish revised and/or new versions of the license from time to time. Each
+             version will be given a distinguishing version number. Once covered code has been published
+             under a particular version of the license, you may always continue to use it under the terms
+             of that version. You may also choose to use such covered code under the terms of any
+             subsequent version of the license published by the PHP Group. No one other than the PHP Group
+             has the right to modify the terms applicable to covered code created under this License.
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          Redistributions of any form whatsoever must retain the following acknowledgment: "This product
+             includes PHP, freely available from &lt;http://www.php.net/&gt;".
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY THE PHP DEVELOPMENT TEAM ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+         INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+         PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE PHP DEVELOPMENT TEAM OR ITS CONTRIBUTORS BE LIABLE FOR
+         ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+         LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+         INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+         TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+         ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+      <p>This software consists of voluntary contributions made by many individuals on behalf of the PHP Group.</p>
+      <p>The PHP Group can be contacted via Email at group@php.net.</p>
+      <p>For more information on the PHP Group and the PHP project, please see &lt;http://www.php.net&gt;.</p>
+      <p>This product includes the Zend Engine, freely available at &lt;http://www.zend.com&gt;.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

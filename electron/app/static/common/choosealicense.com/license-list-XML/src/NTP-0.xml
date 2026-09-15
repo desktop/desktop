@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="NTP-0" name="NTP No Attribution" listVersionAdded="3.8">
+      <crossRefs>
+         <crossRef>https://github.com/tytso/e2fsprogs/blob/master/lib/et/et_name.c</crossRef>
+      </crossRefs>
+      <notes>
+         This license is similar to NTP, but it omits the language regarding reproduction of copyright and permission notices. It also omits the phrase "with or without fee".
+      </notes>
+    <text>
+      <titleText>
+         <p>NTP No Attribution (NTP-0)</p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright (4-digit-year) by (CopyrightHoldersName)
+         </p>
+      </copyrightText>
+
+      <p>Permission to use, copy, modify, and distribute this software and its documentation for any purpose
+         is hereby granted, provided that the name<optional spacing="none">s</optional> of
+        <alt match=".+" name="TMname">(TrademarkedName)</alt> not be used in advertising or publicity pertaining
+        to distribution of the software without specific, written prior permission.
+        <alt match=".+" name="TMname">(TrademarkedName)</alt> make<optional spacing="none">s</optional> no representations about the suitability
+        of this software for any purpose. It is provided "as is" without express or implied warranty.
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="OLDAP-1.2"
+            name="Open LDAP Public License v1.2">
+      <crossRefs>
+         <crossRef>http://www.openldap.org/devel/gitweb.cgi?p=openldap.git;a=blob;f=LICENSE;hb=42b0383c50c299977b5893ee695cf4e486fb0dc7</crossRef>
+      </crossRefs>
+      <notes>This license was released 1 September 1998. This license was issued four time, but only with formatting
+         differences.</notes>
+    <text>
+      <titleText>
+         <p>The OpenLDAP Public License
+        <br/>Version 1.2, 1 September 1998
+      </p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright 1998, The OpenLDAP Foundation. All Rights Reserved.</p>
+      </copyrightText>
+      <optional>
+         <p>Note: This license is derived from the "Artistic License" as distributed with the Perl
+         Programming Language. As differences may exist, the complete license should be read.</p>
+         <p>PREAMBLE</p>
+         <p>The intent of this document is to state the conditions under which a Package may be copied, such that the
+         Copyright Holder maintains some semblance of artistic control over the development of the package,
+         while giving the users of the package the right to use and distribute the Package in a more-or-less
+         customary fashion, plus the right to make reasonable modifications.</p>
+      </optional>
+
+      <p>Definitions:</p>
+      <p>"Package" refers to the collection of files distributed by the Copyright Holder, and
+         derivatives of that collection of files created through textual modification.</p>
+      <p>"Standard Version" refers to such a Package if it has not been modified, or has been modified
+         in accordance with the wishes of the Copyright Holder.</p>
+      <p>"Copyright Holder" is whoever is named in the copyright or copyrights for the package.</p>
+      <p>"You" is you, if you're thinking about copying or distributing this Package.</p>
+      <p>"Reasonable copying fee" is whatever you can justify on the basis of media cost, duplication
+         charges, time of people involved, and so on. (You will not be required to justify it to the Copyright
+         Holder, but only to the computing community at large as a market that must bear the fee.)</p>
+      <p>"Freely Available" means that no fee is charged for the item itself, though there may be fees
+         involved in handling the item. It also means that recipients of the item may redistribute it under the
+         same conditions they received it.</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          You may make and give away verbatim copies of the source form of the Standard Version of this
+             Package without restriction, provided that you duplicate all of the original copyright notices
+             and associated disclaimers.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          You may apply bug fixes, portability fixes and other modifications derived from the Public Domain
+             or from the Copyright Holder. A Package modified in such a way shall still be considered the
+             Standard Version.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          You may otherwise modify your copy of this Package in any way, provided that you insert a
+             prominent notice in each changed file stating how and when you changed that file, and provided
+             that you do at least ONE of the following:
+        </item>
+        <list>
+            <item>
+               <bullet>a)</bullet>
+            place your modifications in the Public Domain or otherwise make them Freely Available, such
+               as by posting said modifications to Usenet or an equivalent medium, or placing the
+               modifications on a major archive site such as uunet.uu.net, or by allowing the Copyright
+               Holder to include your modifications in the Standard Version of the Package.
+          </item>
+            <item>
+               <bullet>b)</bullet>
+            use the modified Package only within your corporation or organization.
+          </item>
+            <item>
+               <bullet>c)</bullet>
+            rename any non-standard executables so the names do not conflict with standard executables,
+               which must also be provided, and provide a separate manual page for each non-standard
+               executable that clearly documents how it differs from the Standard Version.
+          </item>
+            <item>
+               <bullet>d)</bullet>
+            make other distribution arrangements with the Copyright Holder.
+          </item>
+        </list>
+        <item>
+            <bullet>4.</bullet>
+          You may distribute the programs of this Package in object code or executable form, provided that
+             you do at least ONE of the following:
+        </item>
+        <list>
+            <item>
+               <bullet>a)</bullet>
+            distribute a Standard Version of the executables and library files, together with
+               instructions (in the manual page or equivalent) on where to get the Standard Version.
+          </item>
+            <item>
+               <bullet>b)</bullet>
+            accompany the distribution with the machine-readable source of the Package with your modifications.
+          </item>
+            <item>
+               <bullet>c)</bullet>
+            accompany any non-standard executables with their corresponding Standard Version executables,
+               giving the non-standard executables non-standard names, and clearly documenting the
+               differences in manual pages (or equivalent), together with instructions on where to get
+               the Standard Version.
+          </item>
+            <item>
+               <bullet>d)</bullet>
+            make other distribution arrangements with the Copyright Holder.
+          </item>
+        </list>
+        <item>
+            <bullet>5.</bullet>
+          You may charge a reasonable copying fee for any distribution of this Package. You may charge any
+             fee you choose for support of this Package. You may not charge a fee for this Package itself.
+             However, you may distribute this Package in aggregate with other (possibly commercial)
+             programs as part of a larger (possibly commercial) software distribution provided that you do
+             not advertise this Package as a product of your own.
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          The scripts and library files supplied as input to or produced as output from the programs of
+             this Package do not automatically fall under the copyright of this Package, but belong to
+             whomever generated them, and may be sold commercially, and may be aggregated with this
+             Package.
+        </item>
+        <item>
+            <bullet>7.</bullet>
+          C subroutines supplied by you and linked into this Package in order to emulate subroutines and
+             variables of the language defined by this Package shall not be considered part of this
+             Package, but are the equivalent of input as in Paragraph 6, provided these subroutines do not
+             change the language in any way that would cause it to fail the regression tests for the
+             language.
+        </item>
+        <item>
+            <bullet>8.</bullet>
+          The name of the Copyright Holder may not be used to endorse or promote products derived from this
+             software without specific prior written permission.
+        </item>
+        <item>
+            <bullet>9.</bullet>
+          THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+             INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A
+             PARTICULAR PURPOSE.
+        </item>
+      </list>
+
+      <optional>
+         <p>The End</p>
+      </optional>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="diffmark" name="diffmark license">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/diffmark</crossRef>
+      </crossRefs>
+    <text>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          you can do what you want with it
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          I refuse any responsibility for the consequences
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Xerox" name="Xerox License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Xerox</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 1995, 1996 Xerox Corporation. All Rights Reserved.</p>
+      </copyrightText>
+
+      <p>Use and copying of this software and preparation of derivative works based upon this software are
+         permitted. Any copy of this software or of any derivative work must include the above copyright notice
+         of Xerox Corporation, this paragraph and the one after it. Any distribution of this software or
+         derivative works must comply with all applicable United States export control laws.</p>
+      <p>This software is made available AS IS, and XEROX CORPORATION DISCLAIMS ALL WARRANTIES, EXPRESS OR
+         IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+         PARTICULAR PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY LIABILITY FOR
+         DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT,
+         TORT (INCLUDING NEGLIGENCE) OR STRICT LIABILITY, EVEN IF XEROX CORPORATION IS ADVISED OF THE
+         POSSIBILITY OF SUCH DAMAGES.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

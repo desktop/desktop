@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="psfrag" name="psfrag License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/psfrag</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>psfrag.dtx</p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright (C) 1996 Craig Barratt, Michael C. Grant, and David Carlisle.</p>
+         <p>All rights are reserved.</p>
+      </copyrightText>
+
+      <p>This system is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+         implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Don't come complaining to us if
+         you modify this file and it doesn't work! If this file is modified by anyone but the authors, those
+         changes and their authors must be explicitly stated HERE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

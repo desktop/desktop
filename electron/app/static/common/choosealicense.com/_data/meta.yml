@@ -1,0 +1,56 @@
+# Each license has YAML front matter describing the license's properties.
+# The available fields are:
+
+- name: title
+  description: The license full name specified by https://spdx.org/licenses/
+  required: true
+
+- name: spdx-id
+  description: Short identifier specified by https://spdx.org/licenses/
+  required: true
+
+- name: description
+  description: A human-readable description of the license
+  required: true
+
+- name: how
+  description: Instructions on how to implement the license
+  required: true
+
+- name: conditions
+  description: Bulleted list of required rules
+  required: true
+
+- name: permissions
+  description: Bulleted list of permitted rules
+  required: true
+
+- name: limitations
+  description: Bulleted list of limited rules
+  required: true
+
+- name: using
+  description: 'A list of 3 notable projects using the license with straightforward LICENSE files which serve as examples newcomers can follow and that can be detected by [licensee](https://github.com/licensee/licensee) in the form of `project_name: license_file_url`'
+  required: true
+
+# Optional fields
+
+- name: featured
+  description: Whether the license should be featured on the main page (defaults to false)
+  required: false
+
+- name: hidden
+  description: Whether the license is neither [popular](https://opensource.org/licenses) nor fills out the [spectrum of licenses](https://choosealicense.com/licenses/) from strongly conditional to unconditional (defaults to true)
+  required: false
+
+- name: nickname
+  description: Customary short name if applicable (e.g, GPLv3)
+  required: false
+
+- name: note
+  description: Additional information about the licenses
+  required: false
+
+- name: redirect_from
+  description: Relative path(s) to redirect to the license from, to prevent breaking old URLs
+  required: false

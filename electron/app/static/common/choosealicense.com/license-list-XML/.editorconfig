@@ -1,0 +1,10 @@
+# EditorConfig definitions: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Definitions for all files:
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8

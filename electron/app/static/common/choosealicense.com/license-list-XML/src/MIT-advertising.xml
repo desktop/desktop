@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="MIT-advertising"
+            name="Enlightenment License (e16)">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/MIT_With_Advertising</crossRef>
+      </crossRefs>
+      <notes>This license is a modified version of the common MIT license, with an additional advertising clause</notes>
+    <text>
+      <copyrightText>
+         <p>Copyright (C) 2000-2008 Carsten Haitzler, Geoff Harrison and various contributors Copyright (C) 2004-2008
+         Kim Woelders</p>
+      </copyrightText>
+
+      <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+         associated documentation files (the "Software"), to deal in the Software without restriction,
+         including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+         and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+         subject to the following conditions:</p>
+      <p>The above copyright notice and this permission notice shall be included in all copies of the Software,
+         its documentation and marketing &amp; publicity materials, and acknowledgment shall be given in the
+         documentation, materials and software packages that this Software was used.</p>
+      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+         LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+         NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+         OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+         OTHER DEALINGS IN THE SOFTWARE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

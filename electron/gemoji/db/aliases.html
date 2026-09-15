@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<title>Emoji alias detection</title>
+<style>
+  textarea {
+    font-family: monospace;
+  }
+</style>
+
+<p>Save the following as <tt>emoji.json</tt>:</p>
+
+<textarea id="output" rows="50" cols="80"></textarea>
+
+<script>
+  const VARIATION_SELECTOR_15 = String.fromCharCode(0xfe0e);
+  const VARIATION_SELECTOR_16 = String.fromCharCode(0xfe0f);
+  const EMOJI_SIZE = 32
+
+  function detectAliases(db) {
+    for (var i = 0; i < db.length; ++i) {
+      var emoji = db[i];
+      var raw = emoji.emoji;
+      if (!raw) {
+        continue;
+      }
+
+      if (raw.indexOf(VARIATION_SELECTOR_16) > -1) {
+        var candidates = [raw.replace(VARIATION_SELECTOR_16, ""), raw];
+      } else {
+        var candidates = [raw, raw + VARIATION_SELECTOR_16];
+      }
+
+      var aliases = candidates.filter(isColorEmoji);
+      emoji.emoji = aliases[0];
+    }
+
+    dump(db);
+  }
+
+  function isColorEmoji(candidate) {
+    // Draw the emoji twice using a different color each time. If the emoji
+    // draws as the same color regardless of what color we set, it's a color
+    // emoji.
+    return color(candidate, "#f00") === color(candidate, "#0f0");
+  }
+
+  var canvas = document.createElement("canvas");
+  canvas.width = canvas.height = EMOJI_SIZE;
+
+  function color(emoji, rgb) {
+    var context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = rgb;
+    context.textBaseline = "top";
+    context.font = EMOJI_SIZE+"px Arial";
+    context.fillText(emoji, 0, 0);
+    var data = context.getImageData(0, 0, EMOJI_SIZE, EMOJI_SIZE).data;
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) {
+        continue;
+      }
+      return data[i].toString(16)
+        + data[i + 1].toString(16)
+        + data[i + 2].toString(16);
+    }
+    return "no colored pixel found";
+  }
+
+  function dump(db) {
+    var json = JSON.stringify(db, null, "  ")
+      .replace(/^( +)(.+)\[\](,?)$/mg, "$1$2[\n$1]$3")
+      .replace(/,\n( *)  /g, "\n$1, ");
+    document.getElementById("output").value = json + "\n";
+  }
+
+  var xhr = new XMLHttpRequest;
+  xhr.onload = function() {
+    detectAliases(JSON.parse(this.responseText));
+  };
+  xhr.open("GET", "emoji.json", false);
+  xhr.send(null);
+</script>
