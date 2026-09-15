@@ -210,4 +210,64 @@ public final class AppStore: ObservableObject {
     public func clearBanner() {
         currentBanner = nil
     }
+
+    // MARK: - Task 2 shell actions (additive)
+
+    /// Add repositories, optionally selecting the first. Task 9 owns
+    /// persistence/dedup; this is the in-memory shell seam for the repo list.
+    public func addRepositories(_ repos: [Repository], selectFirst: Bool = true) {
+        var merged = repositories
+        for repo in repos where !merged.contains(where: { $0.id == repo.id }) {
+            merged.append(repo)
+        }
+        repositories = merged
+        if selectFirst, let first = repos.first,
+           let match = merged.first(where: { $0.id == first.id }) {
+            selectRepository(match)
+        }
+    }
+
+    /// Remove a repository from the list and drop its cached state.
+    /// Clears the selection when the selected repository is removed.
+    public func removeRepository(_ repository: Repository) {
+        repositories.removeAll { $0.id == repository.id }
+        repositoryStates.removeValue(forKey: repository.hash)
+        if case .repository(let state) = selection,
+           state.repository.id == repository.id {
+            if let next = repositories.first {
+                selectRepository(next)
+            } else {
+                selection = nil
+            }
+        }
+        if case .missing(let missing) = selection,
+           missing.id == repository.id {
+            selection = repositories.first.map { selectAndReturn($0) } ?? nil
+        }
+    }
+
+    /// Set (or clear) a repository alias. Re-keys the state cache since
+    /// `Repository.hash` includes the alias.
+    public func setAlias(_ alias: String?, for repository: Repository) {
+        guard let index = repositories.firstIndex(where: { $0.id == repository.id }) else { return }
+        var updated = repositories[index]
+        let trimmed = alias?.trimmingCharacters(in: .whitespacesAndNewlines)
+        updated.alias = (trimmed?.isEmpty == false) ? trimmed : nil
+        repositories[index] = updated
+        if let state = repositoryStates.removeValue(forKey: repository.hash) {
+            var migrated = state
+            migrated.repository = updated
+            repositoryStates[updated.hash] = migrated
+            if case .repository(let current) = selection,
+               current.repository.id == repository.id {
+                selection = .repository(migrated)
+            }
+        }
+    }
+
+    private func selectAndReturn(_ repository: Repository) -> AppSelection {
+        selectRepository(repository)
+        // selectRepository always sets `.repository` for a plain Repository.
+        return selection ?? .missing(repository)
+    }
 }
