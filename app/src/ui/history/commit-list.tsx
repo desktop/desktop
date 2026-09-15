@@ -370,6 +370,16 @@ export class CommitList extends React.Component<
     return this.lookupCommits(this.props.selectedSHAs)
   }
 
+  /**
+   * The selected SHAs from oldest to newest, the order in which Git wants a
+   * sequence of commits handed to it, rather than the order in which they
+   * happened to be selected.
+   */
+  private get orderedSelectedSHAs() {
+    const selected = new Set(this.props.selectedSHAs)
+    return this.props.commitSHAs.filter(sha => selected.has(sha)).toReversed()
+  }
+
   private getUnpushedTags(commit: Commit) {
     const tagsToPushSet = new Set(this.props.tagsToPush ?? [])
     return commit.tags.filter(tagName => tagsToPushSet.has(tagName))
@@ -947,6 +957,13 @@ export class CommitList extends React.Component<
           : `Reorder ${count} commits…`,
         action: () => this.props.onKeyboardReorder?.(this.selectedCommits),
         enabled: this.canReorder(),
+      },
+      { type: 'separator' },
+      {
+        label: __DARWIN__
+          ? `Copy SHAs of ${count} Commits`
+          : `Copy SHAs of ${count} commits`,
+        action: () => writeClipboardText(this.orderedSelectedSHAs.join('\n')),
       },
     ]
   }
