@@ -329,3 +329,56 @@ Running notes for later PLAN.md tasks. Append, don't rewrite history.
 - Tests live in-app (`Tests/Task8Tests.swift`, same `swiftc` harness style as
   `Tests/ParserTests.swift` — no test target; pbxproj is hands-off).
 - No GH / editor / Copilot / theme / notification code anywhere (scope bans).
+
+## Task 9 → Task 10 (polish: menus, a11y, Sparkle, Apple Intelligence)
+
+- **New surfaces (all in `Views/Onboarding/`, `Views/Settings/`,
+  `Views/Help/`, `Services/`):** `WelcomeView` (Start + ConfigureGit, gated by
+  `has-shown-welcome-flow`), `TutorialPanel` + `TutorialWelcome/DoneView` +
+  `CreateTutorialRepositoryDialog` + `ConfirmExitTutorialDialog`,
+  `SettingsView` (Git / Appearance=Tab Size / Prompts / Advanced /
+  Accessibility / Apple Intelligence toggle), `RepositorySettingsView`
+  (Remote / Ignored Files / Git Config — Fork tab deleted), `HelpViews`
+  (ReleaseNotes, Acknowledgements, Shortcuts, Terms, Logs, MoveToApplications,
+  CLIInstalled, InstallingUpdate, InstallGit). `DialogHost` already routes all
+  of these from their `Popup` cases — Task 10 only needs to call
+  `store.showPopup(...)` from menus.
+- **No new `Popup` cases were added** (all Task 9 dialogs reuse Task 1 cases).
+  `ShortcutsDialog` takes a `popup` today but has no popup case — rework it to
+  a standalone sheet when wiring the Help menu.
+- **`MyApp.swift` minimal commands exist** (New/Add/Clone repo, Install CLI,
+  Help). Task 10 replaces them with the full native menu per
+  `Docs/10-interactions.md` §1 — keep the Task 9 actions, do not drop them.
+- **Deeplink is parsed but not registered:** `DeepLinkService` handles
+  `x-gitdesktop-client://openrepo/...` (OAuth variant dropped) and `MyApp`
+  has `.onOpenURL`, but there is no `CFBundleURLTypes` entry (no Info.plist in
+  the synced group; needs a pbxproj-adjacent change). Register the scheme in
+  Task 10.
+- **Settings scene caveat:** the native `Settings` scene hosts `SettingsView`
+  with a synthetic `.preferences` popup, so Save closes the popup stack but
+  does NOT close the Settings window. Fix in Task 10 (dismiss via
+  `@Environment(\.dismiss)` instead of `store.closePopup` in that host).
+- **Persistence is UserDefaults JSON** (`Persistence/RepositoryPersistence.swift`,
+  path/id/alias/tutorial flag only). Task 10 decides GRDB vs SwiftData — migrate
+  this file then; callers only use `save`/`load`/`nextID`/`matchExisting`.
+- **`GitIgnoreEditor` (Task 8) was NOT reused:** `RepositorySettingsView` has its
+  own `TextEditor` + `LiveGitService.readGitIgnore`/`saveGitIgnore` (CRLF-aware
+  formatting lives in `GitIgnoreOperations`). Unify if desired.
+- **Clone UX:** `CloneRepositoryDialog` clones inline with its own progress bar;
+  the `CloningRepository` selection / `CloningRepositoryView` cancel path is
+  unwired (Cancel there only clears the banner). Wire cancellation through a
+  clone dispatcher if Task 10 wants it.
+- **`AboutDialog` (Task 2) now links to Acknowledgements + Release Notes.**
+  The old `AcknowledgementsDialog` stub in `DialogHost.swift` is dead code
+  (`.acknowledgements` routes to `AcknowledgementsFullDialog`) — delete it.
+- **Tests:** `Tests/Task9Tests.swift` (12 groups, same harness style). Run via:
+  `xcrun swiftc -module-name GitDesktop $(find GitDesktop/GitDesktop -name
+  "*.swift" ! -name "MyApp.swift" | sort | tr '\n' ' ') <harness-main.swift>
+  -o /tmp/task9tests && /tmp/task9tests` (needs `-module-name GitDesktop`;
+  `ShellTests` + `Task9Tests` are non-isolated, the rest need a MainActor
+  context). Two compiler-crash gotchas fixed here, do not reintroduce:
+  `if let x` shadowing an `@State var x` while assigning `x = …` inside the
+  closure crashes swift-frontend — bind to a different name (`lockPath`).
+  `try? await … ?? try? await …` is illegal (`??` RHS is a sync autoclosure) —
+  split into separate `let`s first.
+- No GH / editor / Copilot / theme / notification code anywhere (scope bans).
