@@ -133,13 +133,48 @@ export async function addWorktree(
     args.push('-b', options.createBranch)
   }
 
-  args.push(path)
+  args.push('--', path)
 
   if (options.commitish) {
-    args.push(options.commitish)
+    // Worktree forwards the starting point to git branch without a separator
+    // when creating a branch. Keep symbolic refs to preserve upstream tracking.
+    const commitish =
+      options.createBranch && options.commitish.startsWith('-')
+        ? await resolveWorktreeStartPoint(repository, options.commitish)
+        : options.commitish
+    args.push(commitish)
   }
 
   await git(args, repository.path, 'addWorktree')
+}
+
+async function resolveWorktreeStartPoint(
+  repository: Repository,
+  commitish: string
+): Promise<string> {
+  const { stdout } = await git(
+    [
+      'rev-parse',
+      '--symbolic-full-name',
+      '--verify',
+      '--end-of-options',
+      commitish,
+    ],
+    repository.path,
+    'resolveWorktreeStartPoint'
+  )
+
+  if (stdout.trim().length > 0) {
+    return stdout.trim()
+  }
+
+  // Revision expressions have no symbolic name, so resolve them to a commit.
+  const result = await git(
+    ['rev-parse', '--verify', '--end-of-options', `${commitish}^{commit}`],
+    repository.path,
+    'resolveWorktreeStartPoint'
+  )
+  return result.stdout.trim()
 }
 
 export async function removeWorktree(

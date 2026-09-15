@@ -139,13 +139,7 @@ export async function getCommits(
     refs: '%D',
   })
 
-  const args = ['log']
-
-  if (revisionRange !== undefined) {
-    args.push(revisionRange)
-  }
-
-  args.push('--date=raw')
+  const args = ['log', '--date=raw']
 
   if (limit !== undefined) {
     args.push(`--max-count=${limit}`)
@@ -159,9 +153,25 @@ export async function getCommits(
     ...formatArgs,
     '--no-show-signature',
     '--no-color',
-    ...additionalArgs,
-    '--'
+    ...additionalArgs
   )
+
+  // The explicit revision originally preceded additionalArgs, so it must not
+  // inherit an exclusion toggle left active by options such as --not --remotes.
+  if (
+    revisionRange !== undefined &&
+    additionalArgs.filter(arg => arg === '--not').length % 2 !== 0
+  ) {
+    args.push('--not')
+  }
+
+  args.push('--end-of-options')
+
+  if (revisionRange !== undefined) {
+    args.push(revisionRange)
+  }
+
+  args.push('--')
   const result = await git(args, repository.path, 'getCommits', {
     successExitCodes: new Set([0, 128]),
     encoding: 'buffer',
