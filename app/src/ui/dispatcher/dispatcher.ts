@@ -1574,6 +1574,11 @@ export class Dispatcher {
     return this.appStore._reportStats()
   }
 
+  /** Send the current stats without affecting the daily reporting schedule. */
+  public sendStats(): Promise<boolean> {
+    return this.appStore._sendStats()
+  }
+
   /** Changes the URL for the remote that matches the given name  */
   public setRemoteURL(
     repository: Repository,

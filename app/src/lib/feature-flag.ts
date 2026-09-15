@@ -125,3 +125,8 @@ export const enableFormattingPreferences = () => true
 
 /** Should the app enable worktree support? */
 export const enableWorktreeSupport = () => true
+
+/** Should stats be sent to the new telemetry endpoint? */
+export function enableNewStatsEndpoint(): boolean {
+  return enableBetaFeatures()
+}
