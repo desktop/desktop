@@ -51,8 +51,8 @@ import type {
 } from '@github/copilot-sdk/dist/generated/rpc'
 import { isGHE } from '../endpoint-capabilities'
 import {
+  CopilotConflictResolutionError,
   CopilotConflictResolutionFailureStage,
-  createCopilotConflictResolutionError,
 } from '../copilot-conflict-resolution-error'
 
 /** The default model ID used for Copilot commit message generation. */
@@ -1237,7 +1237,7 @@ export class CopilotStore extends BaseStore {
     try {
       modelConfig = this.resolveConflictModelConfig(account, request)
     } catch (error) {
-      throw createCopilotConflictResolutionError(error, 'resolve-model')
+      throw new CopilotConflictResolutionError(error, 'resolve-model')
     }
 
     const clientTimer = startTimer('createClient')
@@ -1245,7 +1245,7 @@ export class CopilotStore extends BaseStore {
     try {
       client = await this.createClient(account, repositoryPath)
     } catch (error) {
-      throw createCopilotConflictResolutionError(error, 'create-client')
+      throw new CopilotConflictResolutionError(error, 'create-client')
     }
     clientTimer.done()
 
@@ -1489,7 +1489,7 @@ export class CopilotStore extends BaseStore {
     }
 
     log.warn('CopilotStore: Failed to resolve conflicts after retry', lastError)
-    throw createCopilotConflictResolutionError(
+    throw new CopilotConflictResolutionError(
       lastError ?? new Error('Conflict resolution failed'),
       lastStage,
       retriedValidation ? 'failed-after-validation-retry' : 'not-retried'

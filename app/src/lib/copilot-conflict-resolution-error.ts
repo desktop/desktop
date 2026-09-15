@@ -26,9 +26,9 @@ export class CopilotConflictResolutionError extends Error {
   public readonly underlyingError: Error
 
   public constructor(
-    underlyingError: Error,
+    error: unknown,
     stage: CopilotConflictResolutionFailureStage,
-    retryState: CopilotConflictResolutionRetryState
+    retryState: CopilotConflictResolutionRetryState = 'not-retried'
   ) {
     super(
       `Copilot Conflict Resolution Error: stage=${stage}, retryState=${retryState}`
@@ -36,21 +36,7 @@ export class CopilotConflictResolutionError extends Error {
     this.name = 'CopilotConflictResolutionError'
     this.stage = stage
     this.retryState = retryState
-    this.underlyingError = underlyingError
+    this.underlyingError =
+      error instanceof Error ? error : new Error('Unknown error')
   }
-}
-
-export function createCopilotConflictResolutionError(
-  error: unknown,
-  stage: CopilotConflictResolutionFailureStage,
-  retryState: CopilotConflictResolutionRetryState = 'not-retried'
-): CopilotConflictResolutionError {
-  if (error instanceof CopilotConflictResolutionError) {
-    return error
-  }
-
-  const underlyingError =
-    error instanceof Error ? error : new Error('Unknown error')
-
-  return new CopilotConflictResolutionError(underlyingError, stage, retryState)
 }
