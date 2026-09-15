@@ -4,6 +4,7 @@ import * as Os from 'os'
 import { mkdir, writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
 import { pathExists } from '../lib/path-exists'
+import { grantWindowsSandboxPermissions } from './windows-sandbox-permissions'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')
@@ -19,6 +20,20 @@ const exeName = Path.basename(process.execPath)
  * Returns a promise which will resolve when the work is done.
  */
 export function handleSquirrelEvent(eventName: string): Promise<void> | null {
+  if (
+    eventName === '--squirrel-install' ||
+    eventName === '--squirrel-updated'
+  ) {
+    try {
+      grantWindowsSandboxPermissions(appFolder)
+    } catch (error) {
+      log.error(
+        'Failed granting access to sandboxed application processes',
+        error
+      )
+    }
+  }
+
   switch (eventName) {
     case '--squirrel-install':
       return handleInstalled()
