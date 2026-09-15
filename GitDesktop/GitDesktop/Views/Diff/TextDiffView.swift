@@ -164,6 +164,19 @@ public struct TextDiffView: View {
         .onExitCommand {
             if search.isOpen { search.close() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .gitDesktopMenuAction)) { note in
+            guard let action = GitDesktopMenuAction.from(note) else { return }
+            switch action {
+            case .findInDiff:
+                search.isOpen = true
+            case .selectAll:
+                if isInteractive, let selection {
+                    onIncludeChanged?(selection.withSelectAll())
+                }
+            default:
+                break
+            }
+        }
         .popover(isPresented: $showWhitespaceHint) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Show whitespace changes?")

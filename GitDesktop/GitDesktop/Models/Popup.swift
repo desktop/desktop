@@ -23,6 +23,7 @@ public enum PopupType: String, Codable, Sendable {
     case about
     case installGit
     case acknowledgements
+    case shortcuts
     case untrustedCertificate
     case removeRepository
     case termsAndConditions
@@ -86,6 +87,7 @@ public enum Popup: Sendable, Equatable, Identifiable {
     case about
     case installGit(path: String)
     case acknowledgements
+    case shortcuts
     case untrustedCertificate(host: String, certificateData: String)
     case removeRepository(repositoryID: Int)
     case termsAndConditions
@@ -149,6 +151,7 @@ public enum Popup: Sendable, Equatable, Identifiable {
         case .about: return .about
         case .installGit: return .installGit
         case .acknowledgements: return .acknowledgements
+        case .shortcuts: return .shortcuts
         case .untrustedCertificate: return .untrustedCertificate
         case .removeRepository: return .removeRepository
         case .termsAndConditions: return .termsAndConditions

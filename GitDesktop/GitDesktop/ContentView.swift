@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var store: AppStore
+    @ObservedObject var updater: UpdateService
 
     @State private var repoFilter = ""
     /// Task 10 (Sparkle) owns update state; non-nil renders the row.
@@ -16,8 +17,9 @@ struct ContentView: View {
     @State private var didRestore = false
     @State private var welcomeCompleted = RepositoryPersistence.hasShownWelcomeFlow
 
-    init(store: AppStore) {
+    init(store: AppStore, updater: UpdateService) {
         self.store = store
+        self.updater = updater
     }
 
     var body: some View {
@@ -46,6 +48,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             ToolbarView(store: store)
             BannerHost(store: store, updateAvailableVersion: $updateAvailableVersion)
+            UpdateBannerHost(updater: updater, store: store)
             NavigationSplitView {
                 RepoListView(store: store, filterText: $repoFilter)
                     .navigationSplitViewColumnWidth(
@@ -64,6 +67,9 @@ struct ContentView: View {
     private func restoreOnce() {
         guard !didRestore else { return }
         didRestore = true
+        // Drive the legacy Task-2 update row from the Task-10 updater state
+        // (kept for compat; `UpdateBannerHost` renders progress states).
+        updateAvailableVersion = updater.bannerVersion
         #if DEBUG
         if ProcessInfo.processInfo.environment["GITDESKTOP_SEED_PREVIEW"] != nil {
             populatePreviewData(store)
@@ -99,11 +105,11 @@ struct ContentView: View {
 }
 
 #Preview("With repositories") {
-    ContentView(store: makePreviewStore())
+    ContentView(store: makePreviewStore(), updater: UpdateService())
         .frame(width: 1100, height: 700)
 }
 
 #Preview("Empty") {
-    ContentView(store: AppStore())
+    ContentView(store: AppStore(), updater: UpdateService())
         .frame(width: 1100, height: 700)
 }

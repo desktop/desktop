@@ -8,10 +8,11 @@ import AppKit
 
     var body: some Scene {
         WindowGroup {
-            ContentView(store: store)
+            ContentView(store: store, updater: updater)
                 .onAppear {
                     delegate.store = store
                     delegate.updater = updater
+                    CrashReporter.shared.configure()
                     updater.evaluateMoveToApplications()
                     if updater.moveStatus == .needed {
                         store.showPopup(.moveToApplicationsFolder)
@@ -23,46 +24,7 @@ import AppKit
                 }
         }
         .commands {
-            // Task 9 minimal commands (Task 10 owns the full native menu).
-            CommandGroup(replacing: .newItem) {
-                Button("New Repository…") {
-                    store.showPopup(.createRepository(path: nil))
-                }
-                .keyboardShortcut("n", modifiers: .command)
-                Button("Add Local Repository…") {
-                    store.showPopup(.addRepository(path: nil))
-                }
-                .keyboardShortcut("o", modifiers: .command)
-                Button("Clone Repository…") {
-                    store.showPopup(.cloneRepository(initialURL: nil))
-                }
-                .keyboardShortcut("O", modifiers: [.command, .shift])
-            }
-            CommandGroup(after: .appSettings) {
-                Button("Install Command Line Tool…") {
-                    installCLI()
-                }
-            }
-            CommandGroup(replacing: .help) {
-                Button("GitDesktop Help") {
-                    store.showPopup(.about)
-                }
-                Button("Keyboard Shortcuts") {
-                    // No dedicated popup type; surface via Release Notes host
-                    // until Task 10 adds a native sheet (content exists in HelpViews).
-                    store.showPopup(.releaseNotes)
-                }
-                Button("Show Logs in Finder") {
-                    LogService.revealLogs()
-                }
-                Divider()
-                Button("Release Notes") {
-                    store.showPopup(.releaseNotes)
-                }
-                Button("Acknowledgements") {
-                    store.showPopup(.acknowledgements)
-                }
-            }
+            GitDesktopCommands(store: store, updater: updater)
         }
         Settings {
             // Native Settings scene hosts the same 5-tab form (also reachable
@@ -109,15 +71,6 @@ import AppKit
             return
         }
         store.showPopup(.cloneRepository(initialURL: request.url))
-    }
-
-    private func installCLI() {
-        do {
-            try CLIService.installShim()
-            store.showPopup(.cliInstalled)
-        } catch {
-            store.showPopup(.error(message: "Could not install the command line tool: \(error.localizedDescription)"))
-        }
     }
 }
 

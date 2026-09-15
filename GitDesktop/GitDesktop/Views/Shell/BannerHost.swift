@@ -132,12 +132,101 @@ struct BannerRow: View {
     }
 }
 
-// MARK: - UpdateAvailableRow (stub — Task 10 owns Sparkle state)
+// MARK: - UpdateBannerHost (Task 10: Sparkle states)
+
+/// Drives update UI from `UpdateService` state: available → banner with
+/// Download/What's New; downloading → progress + Cancel; installing →
+/// progress (quit blocked); installedPendingRestart → relaunch note.
+/// The legacy `BannerHost(updateAvailableVersion:)` row stays for compat and
+/// renders only when the updater has no banner of its own.
+struct UpdateBannerHost: View {
+    @ObservedObject var updater: UpdateService
+    @ObservedObject var store: AppStore
+
+    var body: some View {
+        Group {
+            switch updater.state {
+            case .upToDate, .checking:
+                EmptyView()
+            case .available(let version):
+                UpdateAvailableRow(
+                    version: version,
+                    onDismiss: { updater.setStateForTesting(.upToDate) },
+                    whatsNew: { store.showPopup(.releaseNotes) },
+                    download: { updater.downloadAvailableUpdate() })
+            case .downloading(let version, let progress):
+                UpdateProgressRow(
+                    title: "Downloading GitDesktop \(version)…",
+                    progress: progress,
+                    cancelTitle: "Cancel",
+                    onCancel: { updater.cancelDownload() })
+            case .installing(let version):
+                UpdateProgressRow(
+                    title: "Installing GitDesktop \(version)…",
+                    progress: nil,
+                    cancelTitle: nil,
+                    onCancel: {})
+            case .installedPendingRestart(let version):
+                UpdateAvailableRow(
+                    version: version,
+                    onDismiss: { updater.setStateForTesting(.upToDate) },
+                    whatsNew: { store.showPopup(.releaseNotes) },
+                    download: nil)
+            }
+        }
+    }
+}
+
+/// Progress row for downloading/installing (quit blocked while visible).
+struct UpdateProgressRow: View {
+    var title: String
+    var progress: Double?
+    var cancelTitle: String?
+    var onCancel: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundStyle(.blue)
+                .font(.system(size: 13, weight: .semibold))
+            Text(title)
+                .font(.system(size: 12))
+            if let progress {
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                    .frame(width: 160)
+                Text("\(Int((progress * 100).rounded()))%")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            } else {
+                ProgressView()
+                    .controlSize(.small)
+            }
+            Spacer(minLength: 8)
+            if let cancelTitle {
+                Button(cancelTitle, action: onCancel)
+                    .buttonStyle(.link)
+                    .font(.system(size: 12, weight: .semibold))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background(Color.blue.opacity(0.12))
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color.blue.opacity(0.35)).frame(height: 1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityAnnouncement(title)
+    }
+}
 
 struct UpdateAvailableRow: View {
     var version: String
     var onDismiss: () -> Void
     var whatsNew: () -> Void
+    var download: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 8) {
@@ -150,6 +239,11 @@ struct UpdateAvailableRow: View {
                 .font(.system(size: 12))
                 .foregroundColor(.blue)
             Spacer(minLength: 8)
+            if let download {
+                Button("Download", action: download)
+                    .buttonStyle(.link)
+                    .font(.system(size: 12, weight: .semibold))
+            }
             Button("What's New", action: whatsNew)
                 .buttonStyle(.link)
                 .font(.system(size: 12, weight: .semibold))

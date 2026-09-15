@@ -205,6 +205,15 @@ public struct StashDiffHeader: View {
             }
         }
         .padding(12)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Stash on \(stashEntry.branchName), \(fileCount) files")
+        .contextMenu {
+            // Task 10 context-menu parity (Docs/10 §3: Stash header).
+            Button("Restore") { onRestore() }
+                .disabled(isRestoring || isDiscarding)
+            Button("Discard…") { onDiscard() }
+                .disabled(isRestoring || isDiscarding)
+        }
     }
 }
 

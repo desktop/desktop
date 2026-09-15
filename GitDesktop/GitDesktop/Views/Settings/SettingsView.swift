@@ -391,6 +391,7 @@ struct PromptsSettingsTab: View {
 
 struct AdvancedSettingsTab: View {
     @Binding var draft: SettingsDraft
+    @State private var crashOptIn = isCrashReportingOptedIn()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -398,6 +399,11 @@ struct AdvancedSettingsTab: View {
             Toggle("Opt out of usage tracking", isOn: $draft.optOutOfUsageTracking)
             Toggle("Use external credential helper", isOn: $draft.useExternalCredentialHelper)
             Toggle("Show repository indicators", isOn: $draft.repositoryIndicatorsEnabled)
+            Divider()
+            CrashConsentView(isOptedIn: $crashOptIn, pendingCount: 0)
+                .onChange(of: crashOptIn) { _, new in
+                    setCrashReportingOptedIn(new)
+                }
             Text("Windows OpenSSH options are not shown on macOS.")
                 .font(.caption).foregroundStyle(.secondary)
         }
@@ -424,14 +430,24 @@ struct AppleIntelligenceSettingsTab: View {
             Text("Apple Intelligence").font(.headline)
             Text(availabilityText).font(.callout).foregroundStyle(.secondary)
             Toggle("Enable Apple Intelligence features", isOn: $draft.appleIntelligenceEnabled)
-            Text("Runs on-device with Apple Intelligence. Diff content never leaves this Mac. Commit-message generation lands in Task 10; this toggle is honored there.")
+            Text("Runs on-device with Apple Intelligence. Diff content never leaves this Mac.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
 
     private var availabilityText: String {
-        // Task 10 gates on FoundationModels (macOS 26); Task 9 reports status.
-        "Status: \(draft.appleIntelligenceEnabled ? "Enabled" : "Disabled") — on-device model availability is checked at generation time (Task 10)."
+        let gate = appleIntelligenceAvailability(
+            enabledInSettings: draft.appleIntelligenceEnabled,
+            osSupportsModel: true,
+            modelStatus: nil)
+        // `osSupportsModel` is re-checked at generation time via
+        // `AppleIntelligenceService` (#available macOS 26 + model gate);
+        // Settings reports the toggle state here so the copy stays truthful
+        // on all macOS versions.
+        if !draft.appleIntelligenceEnabled {
+            return "Status: Disabled — \(AIAvailability.disabledInSettings.statusText)"
+        }
+        return "Status: \(gate.isAvailable ? "Enabled" : "Enabled (\(AIAvailability.unsupportedOS.statusText))") — on-device model availability is checked at generation time."
     }
 }
 

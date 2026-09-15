@@ -110,6 +110,10 @@ public struct UnmergedFileRowView: View {
                 Text(detailText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                // Task 10: Explain-only (read-only, no auto-apply per scope).
+                if !file.isResolved {
+                    ExplainConflictButton(path: file.path)
+                }
             }
             Spacer(minLength: 0)
             actionMenu

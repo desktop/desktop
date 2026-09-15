@@ -49,6 +49,8 @@ struct PopupSheet: View {
                 ErrorDialog(store: store, popup: popup, message: message)
             case .acknowledgements:
                 AcknowledgementsFullDialog(store: store, popup: popup)
+            case .shortcuts:
+                ShortcutsDialog(store: store, popup: popup)
             case .preferences(let initialTab):
                 SettingsView(store: store, popup: popup, initialTab: settingsTab(for: initialTab))
             case .repositorySettings(let repositoryID, let initialTab):

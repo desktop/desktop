@@ -67,6 +67,8 @@ public func describePopup(_ popup: Popup) -> PopupDescriptor {
             primaryTitle: "Install", owningTask: 9)
     case .acknowledgements:
         return PopupDescriptor(title: "Acknowledgements", primaryTitle: "Close", showsCancel: false)
+    case .shortcuts:
+        return PopupDescriptor(title: "Keyboard Shortcuts", primaryTitle: "Close", showsCancel: false)
     case .untrustedCertificate(let host, _):
         return PopupDescriptor(
             title: "Untrusted Certificate",

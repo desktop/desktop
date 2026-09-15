@@ -93,6 +93,7 @@ public struct CommitBoxView: View {
             TextField(changes.placeholder, text: $changes.summary)
                 .textFieldStyle(.plain)
                 .focused($focusedField, equals: .summary)
+                .autocorrectionDisabled(!changes.spellcheckEnabled)
                 .padding(6)
                 .onChange(of: changes.summary) { _, new in
                     updateAutocomplete(for: new, field: .summary)
@@ -100,6 +101,7 @@ public struct CommitBoxView: View {
             Divider()
             TextEditor(text: $changes.commitDescription)
                 .focused($focusedField, equals: .description)
+                .autocorrectionDisabled(!changes.spellcheckEnabled)
                 .frame(minHeight: 60, maxHeight: 160)
                 .scrollContentBackground(.hidden)
                 .font(.body)
@@ -194,6 +196,9 @@ public struct CommitBoxView: View {
             .buttonStyle(.plain)
             .help(changes.showCoAuthors ? "Remove co-authors" : "Add co-authors")
             .accessibilityLabel(changes.showCoAuthors ? "Remove co-authors" : "Add co-authors")
+
+            // Task 10: Apple Intelligence generate (hidden when unavailable).
+            CommitAIGenerationButton(changes: changes)
 
             Menu {
                 Toggle("Skip commit hooks (--no-verify)",

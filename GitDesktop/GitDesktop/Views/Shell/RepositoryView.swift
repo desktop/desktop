@@ -31,6 +31,15 @@ struct RepositoryView: View {
                 .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
         }
         .ignoresSafeArea(.all, edges: .bottom)
+        .onReceive(NotificationCenter.default.publisher(for: .gitDesktopMenuAction)) { note in
+            guard let action = GitDesktopMenuAction.from(note) else { return }
+            switch action {
+            case .showChanges: tab = .changes
+            case .showHistory: tab = .history
+            case .goToCommitMessage: tab = .changes
+            default: break
+            }
+        }
     }
 
     // MARK: Sidebar with TabBar
