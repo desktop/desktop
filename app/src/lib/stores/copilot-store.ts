@@ -106,6 +106,18 @@ export type CopilotModelRequest =
 /** Copilot features that support per-model selection. */
 export type CopilotFeature = 'commit-message-generation' | 'conflict-resolution'
 
+/**
+ * Stable identifiers for attributing Copilot CLI telemetry to Desktop features.
+ *
+ * This attribution exposes resolved models and CLI success or failure behavior,
+ * but it does not connect those events to Desktop outcomes such as acceptance,
+ * overrides, or abandonment.
+ */
+const CopilotClientNames: Readonly<Record<CopilotFeature, string>> = {
+  'commit-message-generation': 'github/desktop:commit-message-generation',
+  'conflict-resolution': 'github/desktop:conflict-resolution',
+}
+
 /** Concrete session config produced by resolving a {@link CopilotModelRequest}. */
 interface IResolvedConflictModelConfig {
   readonly modelId: string
@@ -1079,6 +1091,7 @@ export class CopilotStore extends BaseStore {
       session = await this.createCancellableSession(
         client,
         {
+          clientName: CopilotClientNames['commit-message-generation'],
           model: modelId,
           reasoningEffort,
           provider,
@@ -1383,6 +1396,7 @@ export class CopilotStore extends BaseStore {
 
       const sessionTimer = startTimer(`createSession (attempt ${attempt + 1})`)
       const session = await client.createSession({
+        clientName: CopilotClientNames['conflict-resolution'],
         model: modelConfig.modelId,
         reasoningEffort: modelConfig.reasoningEffort,
         provider: modelConfig.provider,
