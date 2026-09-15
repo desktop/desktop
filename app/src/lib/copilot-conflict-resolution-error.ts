@@ -18,7 +18,7 @@ export type CopilotConflictResolutionRetryState =
  * A conflict-resolution failure carrying only stable, privacy-safe metadata.
  *
  * The underlying error remains available for local logging and user-facing
- * error handling, but is never sent through non-fatal exception reporting.
+ * error handling, while the error message contains only reportable metadata.
  */
 export class CopilotConflictResolutionError extends Error {
   public readonly stage: CopilotConflictResolutionFailureStage
@@ -30,7 +30,9 @@ export class CopilotConflictResolutionError extends Error {
     stage: CopilotConflictResolutionFailureStage,
     retryState: CopilotConflictResolutionRetryState
   ) {
-    super(`Copilot conflict resolution failed during ${stage}`)
+    super(
+      `Copilot Conflict Resolution Error: stage=${stage}, retryState=${retryState}`
+    )
     this.name = 'CopilotConflictResolutionError'
     this.stage = stage
     this.retryState = retryState

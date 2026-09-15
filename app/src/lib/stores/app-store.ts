@@ -7149,12 +7149,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.increment('copilotConflictResolutionErrorCount')
 
       const failure = createCopilotConflictResolutionError(e, 'unknown')
-      sendNonFatalException(
-        'copilotConflictResolution',
-        new Error(
-          `Copilot Conflict Resolution Error: stage=${failure.stage}, retryState=${failure.retryState}`
-        )
-      )
+      sendNonFatalException('copilotConflictResolution', failure)
 
       // Surface the error to the user so they understand why they were
       // routed back to manual conflict resolution. Mirrors the pattern
