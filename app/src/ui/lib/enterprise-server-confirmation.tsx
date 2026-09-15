@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { getHTMLURL } from '../../lib/api'
 import { Ref } from './ref'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IEnterpriseServerConfirmationProps {
   readonly endpoint: string
@@ -17,26 +19,20 @@ export class EnterpriseServerConfirmation extends React.Component<IEnterpriseSer
         id={enterpriseServerConfirmationDescriptionId}
         className="enterprise-server-confirmation"
       >
-        <p>Git is requesting that you sign in to this server:</p>
+        <p>Git is requesting permission to sign in to this server:</p>
         <p>
           <Ref>{getHTMLURL(this.props.endpoint)}</Ref>
         </p>
-        <ul>
-          <li>
-            <strong>Recognize this server?</strong> Only continue if you trust
-            it.
-          </li>
-          <li>
-            <strong>Check your browser's address bar.</strong> Before
-            authorizing GitHub Desktop, make sure the page is on this server's
-            domain.
-          </li>
-        </ul>
-        <p className="enterprise-sign-in-note">
-          Your organization may use a separate sign-in provider. That's normal;
-          check the domain when you return to authorize GitHub Desktop.
-        </p>
-        <p>Not sure? Cancel and check with your repository administrator.</p>
+        <div className="enterprise-server-warning">
+          <Octicon symbol={octicons.alert} />
+          <p>
+            <strong>
+              Only continue if you recognize and trust this server.
+            </strong>{' '}
+            Confirm this address appears in your browser. Otherwise, cancel and
+            contact your repository administrator.
+          </p>
+        </div>
       </div>
     )
   }

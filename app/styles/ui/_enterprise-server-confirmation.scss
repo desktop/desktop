@@ -1,15 +1,23 @@
 .enterprise-server-confirmation {
-  ul {
-    margin: 0 0 var(--spacing-double);
-    padding-left: var(--spacing-double);
+  margin-bottom: var(--spacing-double);
 
-    li {
-      margin-bottom: var(--spacing);
-      padding-left: var(--spacing-half);
+  .enterprise-server-warning {
+    display: flex;
+    gap: var(--spacing);
+    margin-top: var(--spacing-double);
+    padding: var(--spacing);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    background: var(--box-alt-background-color);
+
+    .octicon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--warning-badge-icon-color);
     }
-  }
 
-  .enterprise-sign-in-note {
-    color: var(--text-secondary-color);
+    p {
+      margin: 0;
+    }
   }
 }

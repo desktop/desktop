@@ -146,17 +146,26 @@ describe('welcome and sign-in wrappers', () => {
     )
 
     assert.ok(screen.getByText('https://enterprise.example.com'))
-    const checks = screen.getAllByRole('listitem')
-    assert.strictEqual(checks.length, 2)
-    assert.match(checks[0].textContent ?? '', /Only continue if you trust it/)
-    assert.match(
-      checks[1].textContent ?? '',
-      /Before authorizing GitHub Desktop, make sure the page is on this server's domain/
+    assert.ok(
+      screen.getByText(
+        'Git is requesting permission to sign in to this server:'
+      )
     )
     assert.ok(
-      screen.getByText(/Your organization may use a separate sign-in provider/)
+      screen.getByText('Only continue if you recognize and trust this server.')
     )
-    assert.ok(screen.getByText(/Not sure\? Cancel and check/))
+    assert.ok(
+      screen.getByText(
+        /Confirm this address appears in your browser\. Otherwise, cancel and contact your repository administrator\./
+      )
+    )
+    assert.strictEqual(screen.queryByRole('list'), null)
+    const warning = document.querySelector('.enterprise-server-warning')
+    assert.ok(warning)
+    assert.strictEqual(
+      warning.querySelector('svg')?.getAttribute('aria-hidden'),
+      'true'
+    )
     fireEvent.click(
       screen.getByRole('link', { name: /sign in using your browser/i })
     )
@@ -203,7 +212,9 @@ describe('welcome and sign-in wrappers', () => {
       null
     )
     assert.ok(screen.getByText('https://enterprise.example.com'))
-    assert.ok(screen.getByText(/Only continue if you trust it/))
+    assert.ok(
+      screen.getByText('Only continue if you recognize and trust this server.')
+    )
     assert.strictEqual(
       screen.queryByRole('button', {
         name: /trust server/i,
