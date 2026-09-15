@@ -346,8 +346,8 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import {
+  CopilotConflictResolutionError,
   CopilotConflictResolutionFailureStage,
-  createCopilotConflictResolutionError,
 } from '../copilot-conflict-resolution-error'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
@@ -6647,7 +6647,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // Propagate real failures so the caller can surface the underlying error
       // instead of a generic "no results" message.
       log.warn('AppStore: Copilot conflict resolution failed', e)
-      throw createCopilotConflictResolutionError(e, failureStage)
+      throw e instanceof CopilotConflictResolutionError
+        ? e
+        : new CopilotConflictResolutionError(e, failureStage)
     } finally {
       totalTimer.done()
     }
@@ -7148,7 +7150,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.statsStore.increment('copilotConflictResolutionErrorCount')
 
-      const failure = createCopilotConflictResolutionError(e, 'unknown')
+      const failure =
+        e instanceof CopilotConflictResolutionError
+          ? e
+          : new CopilotConflictResolutionError(e, 'unknown')
       sendNonFatalException('copilotConflictResolution', failure)
 
       // Surface the error to the user so they understand why they were

@@ -1,17 +1,14 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 
-import {
-  CopilotConflictResolutionError,
-  createCopilotConflictResolutionError,
-} from '../../src/lib/copilot-conflict-resolution-error'
+import { CopilotConflictResolutionError } from '../../src/lib/copilot-conflict-resolution-error'
 
-describe('createCopilotConflictResolutionError', () => {
+describe('CopilotConflictResolutionError', () => {
   it('creates a sanitized failure with stable metadata', () => {
     const original = new Error(
       'Provider rejected secret for repository /private/repository'
     )
-    const failure = createCopilotConflictResolutionError(
+    const failure = new CopilotConflictResolutionError(
       original,
       'stream-response'
     )
@@ -28,7 +25,7 @@ describe('createCopilotConflictResolutionError', () => {
   })
 
   it('records a failed validation retry', () => {
-    const failure = createCopilotConflictResolutionError(
+    const failure = new CopilotConflictResolutionError(
       new Error('Invalid response'),
       'validate-response',
       'failed-after-validation-retry'
@@ -42,15 +39,16 @@ describe('createCopilotConflictResolutionError', () => {
     )
   })
 
-  it('preserves existing structured failures', () => {
-    const failure = createCopilotConflictResolutionError(
+  it('preserves existing structured failures at propagation boundaries', () => {
+    const failure = new CopilotConflictResolutionError(
       new Error('Client failed'),
       'create-client'
     )
+    const propagated =
+      failure instanceof CopilotConflictResolutionError
+        ? failure
+        : new CopilotConflictResolutionError(failure, 'unknown')
 
-    assert.strictEqual(
-      createCopilotConflictResolutionError(failure, 'unknown'),
-      failure
-    )
+    assert.strictEqual(propagated, failure)
   })
 })
