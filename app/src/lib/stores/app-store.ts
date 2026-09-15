@@ -434,7 +434,7 @@ import {
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
 import { WorktreeEntry } from '../../models/worktree'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../copilot/sdk-types'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 

@@ -22,7 +22,7 @@ import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
 import { CopilotModelSelectionInfo } from './copilot-model-selection-info'
 import { SnapshotCard } from './snapshot-card'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../../lib/copilot/sdk-types'
 
 interface ICopilotUserSettingsProps {
   readonly account: Account

@@ -1,4 +1,4 @@
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from './sdk-types'
 import {
   DefaultConflictResolutionReasoningEffort,
   getPreferredDefaultModel,

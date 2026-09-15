@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2022",
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -13,7 +13,10 @@
     "noUnusedLocals": true,
     "sourceMap": true,
     "strict": true,
+    "rootDir": ".",
     "outDir": "./build",
+    "types": ["node"],
+    "noEmitOnError": true,
     "useUnknownInCatchVariables": false
   },
   "include": ["*.ts"],

@@ -13,7 +13,7 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { getCurrentWindowState } from '../ui/main-process-proxy'
 
 // This is a weird one, let's leave it as a placeholder
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ICrashAppProps {}
 
 interface ICrashAppState {

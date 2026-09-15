@@ -68,9 +68,10 @@ export async function readPartialFile(
     let total = 0
 
     createReadStream(path, { start, end })
-      .on('data', (chunk: Buffer) => {
-        chunks.push(chunk)
-        total += chunk.length
+      .on('data', chunk => {
+        const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk
+        chunks.push(buffer)
+        total += buffer.length
       })
       .on('error', reject)
       .on('end', () => resolve(Buffer.concat(chunks, total)))

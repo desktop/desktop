@@ -1,18 +1,25 @@
-const { describe, it } = require('node:test')
 // @ts-check
 
-const RuleTester = require('eslint').RuleTester
+const { describe, it } = require('node:test')
+const { TSESLint } = require('@typescript-eslint/utils')
+const RuleTester = TSESLint.RuleTester
+RuleTester.describe = describe
+RuleTester.it = it
 const rule = require('../insecure-random')
 
+/** @type {import('@typescript-eslint/utils').TSESLint.ParserOptions} */
 const parserOptions = {
   ecmaVersion: 2015,
   sourceType: 'module',
 }
 
 describe('insecure-random', () => {
-  it('should complain about Math.random()', () => {
-    const ruleTester = new RuleTester({ parserOptions })
-    ruleTester.run('react-no-unbound-dispatcher-props', rule, {
+  describe('should complain about Math.random()', () => {
+    const ruleTester = new RuleTester({
+      parser: require.resolve('espree'),
+      parserOptions,
+    })
+    ruleTester.run('insecure-random', rule, {
       valid: [
         'const b = crypto.randomBytes();',
         'const b = window.crypto.getRandomValues();',
