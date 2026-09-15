@@ -48,7 +48,7 @@ public enum ParserTests {
                 print("  FAIL [\(failure.test)] \(failure.message)")
             }
         }
-        return failures.count
+        return failures.count + DiffTests.runAll()
     }
 
     // MARK: - Status: changed entries
