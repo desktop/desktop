@@ -1,0 +1,13 @@
+.DS_Store
+/_site
+/node_modules
+/.bundle
+assets/vendor/clipboard/src
+assets/vendor/clipboard/test
+assets/vendor/hint.css/src
+/vendor
+/.sass-cache
+.ruby-version
+/tmp
+Gemfile.lock
+.jekyll-metadata

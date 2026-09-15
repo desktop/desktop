@@ -1,0 +1,20 @@
+PATH
+  remote: .
+  specs:
+    gemoji (2.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    minitest (5.3.5)
+    rake (10.3.2)
+    ttfunk (1.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  gemoji!
+  minitest
+  rake
+  ttfunk (~> 1.4.0)

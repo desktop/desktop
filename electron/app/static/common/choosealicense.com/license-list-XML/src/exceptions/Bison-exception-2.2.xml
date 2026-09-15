@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="Bison-exception-2.2" name="Bison exception 2.2">
+      <crossRefs>
+         <crossRef>http://git.savannah.gnu.org/cgit/bison.git/tree/data/yacc.c?id=193d7c7054ba7197b0789e14965b739162319b5e#n141</crossRef>
+      </crossRefs>
+      <notes>Typically used with GPL-2.0 or GPL-3.0
+  </notes>
+    <text>
+      <titleText>
+         <p>Bison Exception</p>
+      </titleText>
+      <p>As a special exception, you may create a larger work that
+         contains part or all of the Bison parser skeleton and
+         distribute that work under terms of your choice, so long as
+         that work isn't itself a parser generator using the skeleton
+         or a modified version thereof as a parser skeleton.
+         Alternatively, if you modify or redistribute the parser
+         skeleton itself, you may (at your option) remove this special
+         exception, which will cause the skeleton and the resulting
+         Bison output files to be licensed under the GNU General Public
+         License without this special exception.</p>
+      <p>This special exception was added by the Free Software Foundation
+         in version 2.2 of Bison.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

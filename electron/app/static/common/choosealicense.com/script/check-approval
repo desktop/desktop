@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Checks if a given license meets the approval criteria to be added to choosealicense.com
+# See https://github.com/github/choosealicense.com/blob/gh-pages/CONTRIBUTING.md#adding-a-license
+# Usage: script/check-approval [SPDX LICENSE ID]
+
+require_relative '../spec/spec_helper'
+require 'terminal-table'
+require 'colored'
+require 'fuzzy_match'
+
+# Display usage instructions
+puts File.read(__FILE__).scan(/^# .*/)[0...3].join("\n").gsub(/^# /, '') if ARGV.count != 1
+
+class TrueClass
+  def to_s
+    'Yes'.green
+  end
+end
+
+class FalseClass
+  def to_s
+    'No'.red
+  end
+end
+
+license = ARGV[0].downcase.strip
+approvals = {
+  'OSI' => osi_approved_licenses,
+  'FSF' => fsf_approved_licenses,
+  'OD' => od_approved_licenses
+}
+
+id, spdx = find_spdx(license)
+rows = []
+
+if spdx.nil?
+  id = 'Invalid'.red
+  name = 'None'.red
+else
+  id = id.green
+  name = spdx['name'].green
+end
+
+rows << ['SPDX ID', id]
+rows << ['SPDX Name', name]
+
+approvals.each do |approver, licenses|
+  rows << ["#{approver} approved", licenses.include?(license)]
+end
+
+license_ids = licenses.map { |l| l['id'] }
+current = license_ids.include?(license)
+rows << ['Current license', current]
+
+rows << :separator
+eligible = !current && spdx && approved_licenses.include?(license)
+rows << ['Eligible', eligible]
+
+puts Terminal::Table.new title: "License: #{license}", rows: rows
+puts
+puts "Code search: https://github.com/search?q=#{license}+filename%3ALICENSE&type=Code"
+
+if spdx.nil?
+  puts
+  puts 'SPDX ID not found. Some possible matches:'
+  puts
+
+  fm = FuzzyMatch.new(spdx_ids)
+  matches = fm.find_all_with_score(license)
+  matches = matches[0...5].map { |record, _dice, _levin| record }
+  matches.each { |l| puts "* #{l}" }
+end

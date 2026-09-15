@@ -1,0 +1,56 @@
+{% include header.html %}
+
+      <div class="clearfix">
+
+        <div class="license-body">
+
+            {% if page.nickname %}
+            <p class="license-nickname">
+                {{ page.nickname }}
+            </p>
+            {% endif %}
+
+            <p>
+                {{ page.description }}
+            </p>
+
+            <div class="license-page-details">
+
+              <table class="license-rules">
+                <tr>
+                {% assign types = "permissions|conditions|limitations" | split: "|" %}
+                {% for type in types %}
+                  <th class="label">{{ type | capitalize }}</th>
+                {% endfor %}
+                </tr>
+                <tr>
+                  {% for type in types %}
+                    <td>
+                      <ul class="license-{{ type }}">
+                        {% assign rules = site.data.rules[type] | sort: "label" %}
+                        {% for rule_obj in rules %}
+                          {% assign req = rule_obj.tag %}
+                          {% if page[type] contains req %}
+                            <li class="{{ req }}">
+                              <span class="license-sprite"></span>
+                              {{ rule_obj.label }}
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                    </td>
+                  {% endfor %}
+                </tr>
+              </table>
+
+            </div>
+
+            <pre id="license-text">{{ content | replace:"<", "&lt;" | replace:">", "&gt;" }}</pre>
+
+        </div> <!-- /license-body -->
+
+{% include sidebar.html %}
+
+      </div> <!-- /clearfix -->
+
+{% include footer.html %}

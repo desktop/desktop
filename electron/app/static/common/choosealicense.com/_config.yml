@@ -1,0 +1,50 @@
+---
+title: Choose a License
+description: Non-judgmental guidance on choosing a license for your open source project
+relative_permalinks: false
+markdown: kramdown
+url: "https://choosealicense.com"
+
+collections:
+  licenses:
+    output: true
+    permalink: /licenses/:path/
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "licenses"
+    values:
+      hidden: true
+      layout: license
+
+exclude:
+  - app.coffee
+  - CNAME
+  - CONTRIBUTING.md
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE.md
+  - Rakefile
+  - README.md
+  - script
+  - vendor/bundle
+  - spec
+  - assets/vendor/selectivizr/tests
+  - assets/vendor/clipboard/test
+  - assets/vendor/*/README.*
+  - license-list-XML
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-redirect-from
+  - jekyll-seo-tag
+  - jekyll-coffeescript
+  - jekyll-github-metadata # For 'Improve this page' links
+
+sass:
+    style: :compressed
+
+twitter:
+  username: "@github"

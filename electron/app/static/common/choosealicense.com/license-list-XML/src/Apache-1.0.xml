@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Apache-1.0" name="Apache License 1.0">
+      <crossRefs>
+         <crossRef>http://www.apache.org/licenses/LICENSE-1.0</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 1995-1999 The Apache Group. All rights reserved.</p>
+      </copyrightText>
+      <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided
+         that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of conditions
+             and the following disclaimer.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          All advertising materials mentioning features or use of this software must display the following
+             acknowledgment: "This product includes software developed by the
+            <alt match=".+" name="organizationClause3">Apache Group for use in the Apache HTTP server project
+            (http://www.apache.org/)</alt>."
+
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          The
+            <alt match="name\(s\)|name|name" name="nameClause4">name</alt>
+            <alt match=".+" name="organizationClause4">"Apache Server" and "Apache Group"</alt> must
+            not be used to endorse or promote products derived from this software without prior written
+            permission. For written permission, please contact
+            <alt match=".+" name="contactClause4">apache@apache.org</alt>.
+
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          Products derived from this software may not be called
+            <alt match=".+" name="nameClause5">"Apache"</alt> nor may
+            <alt match=".+" name="name2clause5">"Apache"</alt> appear in their name, without prior written
+            permission of
+            <alt match=".+" name="name3clause5">the Apache Group</alt>.
+
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          Redistributions of any form whatsoever must retain the following acknowledgment:
+          <p>"This product includes software developed by <alt match=".+" name="nameClause6">the
+          Apache Group for use in the Apache HTTP server project (http://www.apache.org/)</alt>."</p>
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY
+        <alt match=".+" name="copyrightHolderAsIs">THE APACHE GROUP</alt> ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+        WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+        PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+        <alt match=".+" name="copyrightHolderLiability">THE APACHE GROUP OR ITS CONTRIBUTORS</alt> BE LIABLE FOR
+        ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+        LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+        TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+        ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+      </p>
+      <p>
+         <optional>This software consists of voluntary contributions made by many individuals on behalf of the Apache Group
+         and was originally based on public domain software written at the National Center for Supercomputing
+         Applications, University of Illinois, Urbana-Champaign. For more information on the Apache Group and
+         the Apache HTTP server project, please see &lt;http://www.apache.org/&gt;.</optional>
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

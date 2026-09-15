@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="blessing" name="SQLite Blessing" listVersionAdded="3.6">
+    <crossRefs>
+        <crossRef>https://www.sqlite.org/src/artifact/e33a4df7e32d742a?ln=4-9</crossRef>
+        <crossRef>https://sqlite.org/src/artifact/df5091916dbb40e6</crossRef>
+    </crossRefs>
+    <text>
+        <p>The author disclaims copyright to this source code. In place of a legal notice, here is a blessing:</p>
+        <list>
+            <item><p>May you do good and not evil.</p></item>
+            <item><p>May you find forgiveness for yourself and forgive others.</p></item>
+            <item><p>May you share freely, never taking more than you give.</p></item>
+        </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

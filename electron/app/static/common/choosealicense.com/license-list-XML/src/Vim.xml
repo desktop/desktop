@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Vim" name="Vim License">
+      <crossRefs>
+         <crossRef>http://vimdoc.sourceforge.net/htmldoc/uganda.html</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>VIM LICENSE</p>
+      </titleText>
+
+      <list>
+        <item>
+            <bullet>I)</bullet>
+          There are no restrictions on distributing unmodified copies of <alt match=".+" name="softwareName">Vim</alt> except that they must include
+             this license text. You can also distribute unmodified parts of <alt match=".+" name="softwareName">Vim</alt>, likewise unrestricted
+             except that they must include this license text. You are also allowed to include executables
+             that you made from the unmodified <alt match=".+" name="softwareName">Vim</alt> sources, plus your own usage examples and Vim
+             scripts.
+        </item>
+        <item>
+            <bullet>II)</bullet>
+          It is allowed to distribute a modified (or extended) version of <alt match=".+" name="softwareName">Vim</alt>, including executables and/or
+             source code, when the following four conditions are met:
+          <list>
+               <item>
+                  <bullet>1)</bullet>
+              This license text must be included unmodified.
+            </item>
+               <item>
+                  <bullet>2)</bullet>
+              The modified <alt match=".+" name="softwareName">Vim</alt> must be distributed in one of the following five ways:
+              <list>
+                     <item>
+                        <bullet>a)</bullet>
+                  If you make changes to <alt match=".+" name="softwareName">Vim</alt> yourself, you must clearly describe in the distribution how to contact
+                    you. When the maintainer asks you (in any way) for a copy of the modified <alt match=".+" name="softwareName">Vim</alt> you distributed,
+                    you must make your changes, including source code, available to the maintainer without fee.
+                    The maintainer reserves the right to include your changes in the official version of <alt match=".+" name="softwareName">Vim</alt>. What
+                    the maintainer will do with your changes and under what license they will be distributed is
+                    negotiable. If there has been no negotiation then this license, or a later version, also
+                    applies to your changes. The current maintainer is Bram Moolenaar &lt;Bram@vim.org&gt;. If
+                    this changes it will be announced in appropriate places (most likely vim.sf.net, www.vim.org
+                    and/or comp.editors). When it is completely impossible to contact the maintainer, the
+                    obligation to send him your changes ceases. Once the maintainer has confirmed that he has
+                    received your changes they will not have to be sent again.
+                </item>
+                     <item>
+                        <bullet>b)</bullet>
+                  If you have received a modified <alt match=".+" name="softwareName">Vim</alt> that was distributed as mentioned under a) you are allowed to
+                    further distribute it unmodified, as mentioned at I). If you make additional changes the text
+                    under a) applies to those changes.
+                </item>
+                     <item>
+                        <bullet>c)</bullet>
+                  Provide all the changes, including source code, with every copy of the modified <alt match=".+" name="softwareName">Vim</alt> you
+                    distribute. This may be done in the form of a context diff. You can choose what license to use
+                    for new code you add. The changes and their license must not restrict others from making their
+                    own changes to the official version of <alt match=".+" name="softwareName">Vim</alt>.
+                </item>
+                     <item>
+                        <bullet>d)</bullet>
+                  When you have a modified <alt match=".+" name="softwareName">Vim</alt> which includes changes as mentioned under c), you can distribute it
+                    without the source code for the changes if the following three conditions are met:
+                  <list>
+                           <item>
+                              <bullet>-</bullet>
+                      The license that applies to the changes permits you to distribute the changes to the Vim
+                        maintainer without fee or restriction, and permits the Vim maintainer to include the changes
+                        in the official version of <alt match=".+" name="softwareName">Vim</alt> without fee or restriction.
+                    </item>
+                           <item>
+                              <bullet>-</bullet>
+                      You keep the changes for at least three years after last distributing the corresponding modified
+                        <alt match=".+" name="softwareName">Vim</alt>. When the maintainer or someone who you distributed the modified <alt match=".+" name="softwareName">Vim</alt> to asks you (in any
+                        way) for the changes within this period, you must make them available to him.
+                    </item>
+                           <item>
+                              <bullet>-</bullet>
+                      You clearly describe in the distribution how to contact you. This contact information must remain
+                        valid for at least three years after last distributing the corresponding modified <alt match=".+" name="softwareName">Vim</alt>, or as
+                        long as possible.
+                    </item>
+                        </list>
+                     </item>
+                     <item>
+                        <bullet>e)</bullet>
+                  When the GNU General Public License (GPL) applies to the changes, you can distribute the modified
+                    <alt match=".+" name="softwareName">Vim</alt> under the GNU GPL version 2 or any later version.
+                </item>
+                  </list>
+               </item>
+               <item>
+                  <bullet>3)</bullet>
+              A message must be added, at least in the output of the ":version" command and in the intro
+                screen, such that the user of the modified <alt match=".+" name="softwareName">Vim</alt> is able to see that it was modified. When
+                distributing as mentioned under 2)e) adding the message is only required for as far as this
+                does not conflict with the license used for the changes.
+            </item>
+               <item>
+                  <bullet>4)</bullet>
+              The contact information as required under 2)a) and 2)d) must not be removed or changed, except
+                that the person himself can make corrections.
+            </item>
+            </list>
+        </item>
+        <item>
+            <bullet>III)</bullet>
+          If you distribute a modified version of <alt match=".+" name="softwareName">Vim</alt>, you are encouraged to use the Vim license for your
+             changes and make them available to the maintainer, including the source code. The preferred
+             way to do this is by e-mail or by uploading the files to a server and e-mailing the URL. If
+             the number of changes is small (e.g., a modified Makefile) e-mailing a context diff will do.
+             The e-mail address to be used is &lt;maintainer@vim.org&gt;
+        </item>
+        <item>
+            <bullet>IV)</bullet>
+          It is not allowed to remove this license from the distribution of the <alt match=".+" name="softwareName">Vim</alt> sources, parts of it or
+             from a modified version. You may use this license for previous <alt match=".+" name="softwareName">Vim</alt> releases instead of the
+             license that they came with, at your option.
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

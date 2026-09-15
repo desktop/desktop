@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="Qwt-exception-1.0" name="Qwt exception 1.0">
+      <crossRefs>
+         <crossRef>http://qwt.sourceforge.net/qwtlicense.html</crossRef>
+      </crossRefs>
+      <notes>Specified to be associated with LGPL-2.1.  On Fedora List as "Qwt License 1.0".</notes>
+    <text>
+      <titleText>
+         <p>Qwt License Version 1.0,
+        <br/>January 1, 2003
+      </p>
+      </titleText>
+      <p>The Qwt library and included programs are provided under the
+         terms of the GNU LESSER GENERAL PUBLIC LICENSE (LGPL) with the
+         following exceptions:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Widgets that are subclassed from Qwt widgets do not
+             constitute a derivative work.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Static linking of applications and widgets to the Qwt
+             library does not constitute a derivative work and does
+             not require the author to provide source code for the
+             application or widget, use the shared Qwt libraries,
+             or link their applications or widgets against a
+             user-supplied version of Qwt. If you link the
+             application or widget to a modified version of Qwt,
+             then the changes to Qwt must be provided under the
+             terms of the LGPL in sections 1, 2, and 4.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          You do not have to provide a copy of the Qwt license with
+             programs that are linked to the Qwt library, nor do
+             you have to identify the Qwt license in your program
+             or documentation as required by section 6 of the
+             LGPL.
+        </item>
+      </list>
+      <p>However, programs must still identify their use of Qwt. The
+         following example statement can be included in user
+         documentation to satisfy this requirement: [program/widget] is
+         based in part on the work of the Qwt project
+         (http://qwt.sf.net)."</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+    <exception licenseId="OCaml-LGPL-linking-exception" name="OCaml LGPL Linking Exception" listVersionAdded="3.3">
+        <crossRefs>
+            <crossRef>https://caml.inria.fr/ocaml/license.en.html</crossRef>
+        </crossRefs>
+        <notes>
+        Adopted by OCaml core in 2001 here: https://github.com/ocaml/ocaml/commit/02ef950033b81fe371759f024faa55f361ba83a6#diff-9879d6db96fd29134fc802214163b95a (git-svn-id: http://caml.inria.fr/svn/ocaml/trunk@4146 f963ae5c-01c2-4b8c-9fe0-0dff7051ff02)
+        LGPL clause typo (was: 3; intended:2; fixed-to:2) fixed in 2007 here: https://github.com/ocaml/ocaml/commit/2d26308ad4d34ea0c00e44db62c4c24c7031c78c#diff-9879d6db96fd29134fc802214163b95a
+        </notes>
+        <text>
+            <titleText>
+              <p>OCaml LGPL Linking Exception</p>
+            </titleText>
+            <p>
+              As a special exception to the GNU <alt name="libraryTypo"
+              match="Library|Lesser">Lesser</alt> General Public License, you
+              may link, statically or dynamically, a "work that uses <alt
+              name="linkedSoftwareName1"
+              match="the OCaml Core System|opam|the Library">the OCaml Core
+              System</alt>" with a publicly distributed version of <alt
+              name="linkedSoftwareName2"
+              match="the OCaml Core System|opam|the Library">the OCaml Core
+              System</alt> to produce an executable file containing portions of
+              <alt name="linkedSoftwareName3"
+              match="the OCaml Core System|opam|the Library">the OCaml Core
+              System</alt>, and distribute that executable file under terms of
+              your choice, without any of the additional requirements listed in
+              clause 6 of the GNU Lesser General Public License. By "a publicly
+              distributed version of <alt name="linkedSoftwareName4"
+              match="the OCaml Core System|opam|the Library">the OCaml Core
+              System</alt>", we mean either the unmodified <alt
+              name="linkedSoftwareName5" match="OCaml Core System|opam|Library">
+              OCaml Core System</alt> as distributed by <alt name="distributor"
+              match="INRIA|OCamlPro">INRIA</alt>, or a modified version of <alt
+              name="linkedSoftwareName6"
+              match="the OCaml Core System|opam|the opam|the Library">
+              the OCaml Core System</alt> that is distributed under the
+              conditions defined in clause 2 of the GNU Lesser General Public
+              License. This exception does not however invalidate any other
+              reasons why the executable file might be covered by the GNU Lesser
+              General Public License.
+            </p>
+        </text>
+    </exception>
+</SPDXLicenseCollection>

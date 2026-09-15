@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="HTMLTIDY" name="HTML Tidy License" listVersionAdded="3.11">
+      <crossRefs>
+         <crossRef>https://github.com/htacg/tidy-html5/blob/next/README/LICENSE.md</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>HTML Tidy License</p>
+      </titleText>
+      <p>This software and documentation is provided "as is," and the copyright holders and
+      contributing author(s) make no representations or warranties, express or implied, including
+      but not limited to, warranties of merchantability or fitness for any particular purpose or that
+      the use of the software or documentation will not infringe any third party patents, copyrights,
+      trademarks or other rights.</p>
+      <p>The copyright holders and contributing author(s) will not be held liable for any direct,
+      indirect, special or consequential damages arising out of any use of the software or
+      documentation, even if advised of the possibility of such damage.</p>
+      <p>Permission is hereby granted to use, copy, modify, and distribute this source code, or
+      portions hereof, documentation and executables, for any purpose, without fee, subject to the
+      following restrictions:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+            The origin of this source code must not be misrepresented.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+            Altered versions must be plainly marked as such and must not be misrepresented as
+            being the original source.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+            This Copyright notice may not be removed or altered from any source or altered source
+            distribution.
+        </item>
+      </list>
+      <p>The copyright holders and contributing author(s) specifically permit, without fee, and
+      encourage the use of this source code as a component for supporting the Hypertext Markup
+      Language in commercial products. If you use this source code in a product, acknowledgement
+      is not required but would be appreciated.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

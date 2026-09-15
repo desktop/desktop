@@ -1,0 +1,49 @@
+{% assign id = "/licenses/" | append: include.license-id %}
+{% assign licenses = site.licenses | where:"id", id %}
+{% for license in licenses %}
+<div class="license-overview clearfix" id="{{ include.license-id | slugify }}">
+  <div class="license-overview-heading">
+    <h3 class="license-overview-name">
+      <a href="{{ license.url }}">
+          {% if license.nickname %}
+            {{ license.nickname }}
+          {% else %}
+            {{ license.title }}
+          {% endif %}
+      </a>
+    </h3>
+
+    <p class="license-overview-description">{{ license.description }}</p>
+  </div>
+
+  <div class="license-details">
+      <table class="license-rules">
+        <tr>
+        {% assign types = "permissions|conditions|limitations" | split: "|" %}
+        {% for type in types %}
+          <th class="label">{{ type | capitalize }}</th>
+        {% endfor %}
+        </tr>
+        <tr>
+          {% for type in types %}
+            <td>
+              <ul class="license-{{ type }}">
+                {% assign rules = site.data.rules[type] | sort: "label" %}
+                {% for rule_obj in rules %}
+                  {% assign req = rule_obj.tag %}
+                  {% if license[type] contains req %}
+                    <li class="{{ req }}">
+                      <span class="license-sprite"></span>
+                      {{ rule_obj.label }}
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </td>
+          {% endfor %}
+        </tr>
+      </table>
+      <p class="small"><a href="{{ license.url }}">View full {{ license.title }} »</a></p>
+  </div>
+</div>
+{% endfor %}

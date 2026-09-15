@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="u-boot-exception-2.0" name="U-Boot exception 2.0">
+      <crossRefs>
+         <crossRef>http://git.denx.de/?p=u-boot.git;a=blob;f=Licenses/Exceptions</crossRef>
+      </crossRefs>
+      <notes>Typically used with GPL-2.0+</notes>
+      <text>
+      <titleText>
+         <p><alt name="title" match="The U-Boot|GPL">GPL</alt> License Exception:</p>
+      </titleText>
+      <p>Even though U-Boot in general is covered by the GPL-2.0/GPL-2.0+,
+         this does *not* cover the so-called "standalone" applications
+         that use U-Boot services by means of the jump table provided
+         by U-Boot exactly for this purpose - this is merely considered
+         normal use of U-Boot, and does *not* fall under the heading of
+         "derived work".</p>
+      <p>The header files "include/image.h" and
+         "arch/*/include/asm/u-boot.h" define interfaces to U-Boot.
+         Including these (unmodified) header files in another file is
+         considered normal use of U-Boot, and does *not* fall under the
+         heading of "derived work".
+        <br/>-- Wolfgang Denk
+      </p>
+      </text>
+  </exception>
+</SPDXLicenseCollection>

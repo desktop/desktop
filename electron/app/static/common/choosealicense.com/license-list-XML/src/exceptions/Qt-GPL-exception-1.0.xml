@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <exception licenseId="Qt-GPL-exception-1.0" name="Qt GPL exception 1.0" listVersionAdded="3.1">
+    <crossRefs>
+      <crossRef>http://code.qt.io/cgit/qt/qtbase.git/tree/LICENSE.GPL3-EXCEPT</crossRef>
+    </crossRefs>
+    <notes>Typically used with the GPL-3.0.</notes>
+    <text>
+      <titleText>
+        <p><alt name="qt" match="(The )?Qt( Company)?">The Qt Company</alt> GPL Exception 1.0</p>
+      </titleText>
+      <p>Exception 1:</p>
+      <p>
+        As a special exception<optional spacing="after">,</optional> you may create a larger work which contains the
+        output of this application and distribute that work under terms of your
+        choice, so long as the work is not otherwise derived from or based on
+        this application and so long as the work does not in itself generate
+        output that contains the output from this application in its original
+        or modified form.
+      </p>
+      <p>Exception 2:</p>
+      <p>
+        As a special exception, you have permission to combine this application
+        with Plugins licensed under the terms of your choice, to produce an
+        executable, and to copy and distribute the resulting executable under
+        the terms of your choice. However, the executable must be accompanied
+        by a prominent notice offering all users of the executable the entire
+        source code to this application, excluding the source code of the
+        independent modules, but including any changes you have made to this
+        application, under the terms of this license.
+      </p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

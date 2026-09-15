@@ -1,0 +1,15 @@
+{% assign id = "/licenses/" | append: include.license-id %}
+{% assign licenses = site.licenses | where:"id", id %}
+{% for license in licenses %}
+  {% assign using = license.using %}
+  {% if using.size > 0 %}
+    {% for used in using limit: 3 %}
+      {% assign last = forloop.last %}
+      {% if last and using.size > 1 %}
+        and
+      {% endif %}
+      <a href="{{ used[1] }}">{{ used[0] }}</a>{% if last == false %},{% endif %}
+    {% endfor %}
+    use{% if using.size == 1 %}s{% endif %} the {% if license.nickname %}{{ license.nickname }}{% else %}{{ license.title }}{% endif %}.
+  {% endif %}
+{% endfor %}

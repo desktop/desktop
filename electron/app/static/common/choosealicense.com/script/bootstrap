@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+echo "bundling installin'"
+gem install bundler
+bundle install
+
+echo
+echo "You're all set. Just run script/server and you can play license roulette!"

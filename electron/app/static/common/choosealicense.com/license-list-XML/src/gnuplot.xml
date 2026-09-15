@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="gnuplot" name="gnuplot License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Gnuplot</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright 1986 - 1993, 1998, 2004 Thomas Williams, Colin Kelley</p>
+      </copyrightText>
+
+      <p>Permission to use, copy, and distribute this software and its documentation for any purpose with or
+         without fee is hereby granted, provided that the above copyright notice appear in all copies and that
+         both that copyright notice and this permission notice appear in supporting documentation.</p>
+      <p>Permission to modify the software is granted, but not the right to distribute the complete modified
+         source code. Modifications are to be distributed as patches to the released version. Permission to
+         distribute binaries produced by compiling modified sources is granted, provided you</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          distribute the corresponding source modifications from the released version in the form of a
+             patch file along with the binaries,
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          add special version identification to distinguish your version in addition to the base
+             release version number,
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          provide your name and address as the primary contact for the support of your modified version, and
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          retain our contact information in regard to use of the base software.
+        </item>
+      </list>
+      <p>Permission to distribute the released version of the source code along with corresponding source
+         modifications in the form of a patch file is granted with same provisions 2 through 4 for binary
+         distributions.</p>
+      <p>This software is provided "as is" without express or implied warranty to the extent permitted
+         by applicable law.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

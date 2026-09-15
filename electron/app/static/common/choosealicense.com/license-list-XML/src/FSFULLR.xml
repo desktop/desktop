@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="FSFULLR"
+            name="FSF Unlimited License (with License Retention)">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/FSF_Unlimited_License#License_Retention_Variant</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright 1996-2006 Free Software Foundation, Inc.</p>
+      </copyrightText>
+
+      <p>This file is free software; the Free Software Foundation gives unlimited permission to copy and/or
+         distribute it, with or without modifications, as long as this notice is preserved.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

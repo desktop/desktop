@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="XSkat" name="XSkat License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/XSkat_License</crossRef>
+      </crossRefs>
+    <text>
+      <p>This program is free software; you can redistribute it freely.
+        <br/>Use it at your own risk; there is NO WARRANTY.
+      </p>
+      <p>Redistribution of modified versions is permitted provided that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          All copyright &amp; permission notices are preserved.
+        </item>
+        <item>
+            <bullet>2.a)</bullet>
+          Only changes required for packaging or porting are made.<br/>or
+        </item>
+        <item>
+            <bullet>2.b)</bullet>
+          It is clearly stated who last changed the program. The program is renamed or the version
+             number is of the form x.y.z, where x.y is the version of the original program and z is an
+             arbitrary suffix.
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

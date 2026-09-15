@@ -1,0 +1,38 @@
+{
+	"name": "hint",
+	"title": "Hint.css",
+	"description": "A tooltip library in CSS for your lovely websites.",
+	"version": "2.7.0",
+	"style": "hint.css",
+	"main": "hint.css",
+	"homepage": "https://kushagra.dev/lab/hint/",
+	"author": {
+		"name": "Kushagra Gour",
+		"email": "chinchang457@gmail.com",
+		"url": "https://kushagra.dev"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/chinchang/hint.css.git"
+	},
+	"bugs": {
+		"url": "https://github.com/chinchang/hint.css/issues"
+	},
+	"license": "MIT",
+	"keywords": [
+		"css",
+		"tooltip",
+		"ui",
+		"sass",
+		"help",
+		"hint"
+	],
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"grunt-contrib-concat": "~0.3.0",
+		"grunt-contrib-cssmin": "~0.12.3",
+		"grunt-contrib-watch": "~0.5.3",
+		"grunt-sass": "^3.0.2",
+		"node-sass": "^4.13.1"
+	}
+}

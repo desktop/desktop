@@ -1,0 +1,26 @@
+# The licenses on choosealicense.com are regularly imported to GitHub.com to
+# be used as the list of licenses available when creating a repository. When
+# we create a repository, we will replace certain strings in the license with
+# variables from the repository. These can be used to create accurate copyright
+# notices. The available variables are:
+
+- name: fullname
+  description: The full name or username of the repository owner
+
+- name: login
+  description: The repository owner's username
+
+- name: email
+  description: The repository owner's primary email address
+
+- name: project
+  description: The repository name
+
+- name: description
+  description: The description of the repository
+
+- name: year
+  description: The current year
+
+- name: projecturl
+  description: The repository URL or other project website
