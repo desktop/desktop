@@ -1,22 +1,24 @@
 import * as React from 'react'
 
 import { HistoryTabMode } from '../../lib/app-state'
-import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
-import { Dispatcher } from '../dispatcher'
+import type { Repository } from '../../models/repository'
+import type { Branch } from '../../models/branch'
+import type { Dispatcher } from '../dispatcher'
 import { ActionStatusIcon } from '../lib/action-status-icon'
-import { MergeTreeResult } from '../../models/merge'
+import type { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
-import {
-  DropdownSelectButton,
-  IDropdownSelectButtonOption,
-} from '../dropdown-select-button'
+import { DropdownSelectButton } from '../dropdown-select-button'
+import type { IDropdownSelectButtonOption } from '../dropdown-select-button'
 import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
 import {
   MultiCommitOperationKind,
   isIdMultiCommitOperation,
 } from '../../models/multi-commit-operation'
-import { RebasePreview } from '../../models/rebase'
+import type { RebasePreview } from '../../models/rebase'
+
+const ConflictsWarningId = 'compare-update-branch-conflicts-warning'
+const ConflictsWarningMessage =
+  'Resolve the conflicts or abort the current operation before updating this branch.'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -25,6 +27,8 @@ interface IMergeCallToActionWithConflictsProps {
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
+  readonly hasConflicts: boolean
+  readonly isMultiCommitOperationInProgress: boolean
 }
 
 interface IMergeCallToActionWithConflictsState {
@@ -41,6 +45,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
    * on which option is selected in the dropdown.
    */
   private get computedAction(): ComputedAction | null {
+    if (this.props.hasConflicts) {
+      return ComputedAction.Conflicts
+    }
+
     if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
       return this.state.rebasePreview !== null
         ? this.state.rebasePreview.kind
@@ -75,6 +83,13 @@ export class MergeCallToActionWithConflicts extends React.Component<
   }
 
   private isUpdateBranchDisabled(): boolean {
+    if (
+      this.props.hasConflicts ||
+      this.props.isMultiCommitOperationInProgress
+    ) {
+      return true
+    }
+
     if (this.commitCount <= 0) {
       return true
     }
@@ -118,6 +133,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
       return
     }
     event.preventDefault()
+
+    if (this.isUpdateBranchDisabled()) {
+      return
+    }
 
     const { dispatcher, repository } = this.props
 
@@ -182,7 +201,10 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
   public render() {
     const disabled = this.isUpdateBranchDisabled()
-    const mergeDetails = this.commitCount > 0 ? this.renderMergeStatus() : null
+    const mergeDetails =
+      this.props.hasConflicts || this.commitCount > 0
+        ? this.renderMergeStatus()
+        : null
 
     return (
       <div className="merge-cta">
@@ -193,6 +215,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
           options={getMergeOptions()}
           dropdownAriaLabel="Merge options"
           disabled={disabled}
+          ariaDescribedBy={
+            this.props.hasConflicts ? ConflictsWarningId : undefined
+          }
+          tooltip={
+            this.props.hasConflicts ? ConflictsWarningMessage : undefined
+          }
           onCheckedOptionChange={this.onOperationChange}
           onSubmit={this.onOperationInvoked}
         />
@@ -220,6 +248,15 @@ export class MergeCallToActionWithConflicts extends React.Component<
   private renderStatusDetails() {
     const { currentBranch, comparisonBranch, mergeStatus } = this.props
     const { selectedOperation } = this.state
+
+    if (this.props.hasConflicts) {
+      return (
+        <div id={ConflictsWarningId} className="merge-message" role="status">
+          {ConflictsWarningMessage}
+        </div>
+      )
+    }
+
     if (this.computedAction === null) {
       return null
     }
