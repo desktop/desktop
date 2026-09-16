@@ -70,6 +70,7 @@ GitHub Desktop has been developed for many years through many iterations of tech
 - **No `eval`**: Never use `eval()`
 - **No `var`**: Use `const` or `let`
 - **Async operations**: Use async/await, avoid synchronous Node.js APIs in application code (use `Sync` suffix when necessary)
+- **Git arguments**: Follow the [Git command argument conventions](../docs/contributing/styleguide.md#git-command-arguments) for option boundaries, revision and path separators, canonical refs, and caller-shaped tests.
 
 ### Documentation
 
