@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.6.6": [
+      "[Improved] Ask for confirmation before revealing certain folders in Finder - #22872",
+      "[Improved] Improve how .gitignore files are handled - #22872"
+    ],
     "3.6.6-beta2": [
       "[Fixed] Fix opening files whose path contains non-ASCII characters with the default program on Windows - #11879. Thanks @doomslayer2k!",
       "[Fixed] Fix rebasing branches with leading-hyphen names - #22836",
