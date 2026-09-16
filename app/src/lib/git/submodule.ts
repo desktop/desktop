@@ -182,15 +182,29 @@ export async function listSubmodules(
   //
   // then the path to the submodule
   //
-  // then the output of `git describe` for the submodule in braces
+  // then, for initialized, non-conflicted submodules, the optional output of
+  // `git describe` for the submodule in parentheses
   // we're not leveraging this in the app, so go and read the docs
   // about it if you want to learn more:
   //
   // https://git-scm.com/docs/git-describe
-  const statusRe = /^.([^ ]+) (.+) \((.+?)\)$/gm
+  const statusRe = /^([-+ U])([^ ]+) (.+)$/gm
 
-  for (const [, sha, path, describe] of stdout.matchAll(statusRe)) {
-    submodules.push(new SubmoduleEntry(sha, path, describe))
+  for (const [, status, sha, pathAndDescribe] of stdout.matchAll(statusRe)) {
+    // Uninitialized and conflicted entries have no description, even when their
+    // paths end in parentheses.
+    const description =
+      status === ' ' || status === '+'
+        ? /^(.+) \((.+)\)$/.exec(pathAndDescribe)
+        : null
+
+    submodules.push(
+      new SubmoduleEntry(
+        sha,
+        description?.[1] ?? pathAndDescribe,
+        description?.[2] ?? null
+      )
+    )
   }
 
   return submodules
