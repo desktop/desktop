@@ -115,6 +115,8 @@ export class GitLFSProgressParser {
 
   private directionToHumanFacingVerb(direction: string): string {
     switch (direction) {
+      case 'clean':
+        return 'Cleaning'
       case 'download':
         return 'Downloading'
       case 'upload':

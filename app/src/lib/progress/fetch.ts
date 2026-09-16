@@ -5,7 +5,11 @@ import { GitProgressParser } from './git'
  * of the individual progress reporting steps in a fetch operation
  */
 const steps = [
-  { title: 'remote: Compressing objects', weight: 0.1 },
+  {
+    title: 'remote: Compressing objects',
+    aliases: ['remote: Compressing objects by path'],
+    weight: 0.1,
+  },
   { title: 'Receiving objects', weight: 0.7 },
   { title: 'Resolving deltas', weight: 0.2 },
 ]

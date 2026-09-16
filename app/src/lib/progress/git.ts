@@ -20,6 +20,9 @@ export interface IProgressStep {
    */
   readonly title: string
 
+  /** Other titles which share this step's progress weight. */
+  readonly aliases?: ReadonlyArray<string>
+
   /**
    * The weight of this step in relation to others for a particular
    * Git operation. This value can be any number as long as it's
@@ -200,7 +203,7 @@ export class GitProgressParser implements IGitProgressParser {
     const totalStepWeight = steps.reduce((sum, step) => sum + step.weight, 0)
 
     this.steps = steps.map(step => ({
-      title: step.title,
+      ...step,
       weight: step.weight / totalStepWeight,
     }))
   }
@@ -228,15 +231,25 @@ export class GitProgressParser implements IGitProgressParser {
     for (let i = 0; i < this.steps.length; i++) {
       const step = this.steps[i]
 
-      if (i >= this.stepIndex && progress.title === step.title) {
+      if (
+        i >= this.stepIndex &&
+        (progress.title === step.title ||
+          step.aliases?.includes(progress.title))
+      ) {
         if (progress.total) {
           percent += step.weight * (progress.value / progress.total)
         }
 
         this.stepIndex = i
-        this.lastPercent = percent
+        // Path-based compression can be followed by ordinary compression,
+        // restarting the counters without starting another weighted step.
+        this.lastPercent = Math.max(this.lastPercent, percent)
 
-        return { kind: 'progress', percent, details: progress }
+        return {
+          kind: 'progress',
+          percent: this.lastPercent,
+          details: progress,
+        }
       } else {
         percent += step.weight
       }

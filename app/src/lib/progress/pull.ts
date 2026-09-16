@@ -9,10 +9,18 @@ import { GitProgressParser } from './git'
  * delta updates are fairly quick though.
  */
 const steps = [
-  { title: 'remote: Compressing objects', weight: 0.1 },
+  {
+    title: 'remote: Compressing objects',
+    aliases: ['remote: Compressing objects by path'],
+    weight: 0.1,
+  },
   { title: 'Receiving objects', weight: 0.7 },
   { title: 'Resolving deltas', weight: 0.15 },
-  { title: 'Checking out files', weight: 0.15 },
+  {
+    title: 'Updating files',
+    aliases: ['Checking out files'],
+    weight: 0.15,
+  },
 ]
 
 /**
