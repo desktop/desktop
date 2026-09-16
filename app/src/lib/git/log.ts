@@ -158,17 +158,14 @@ export async function getCommits(
 
   // The explicit revision originally preceded additionalArgs, so it must not
   // inherit an exclusion toggle left active by options such as --not --remotes.
-  if (
-    revisionRange !== undefined &&
-    additionalArgs.filter(arg => arg === '--not').length % 2 !== 0
-  ) {
-    args.push('--not')
-  }
-
-  args.push('--end-of-options')
-
   if (revisionRange !== undefined) {
-    args.push(revisionRange)
+    const isExcludingRevisions =
+      additionalArgs.filter(arg => arg === '--not').length % 2 === 1
+    if (isExcludingRevisions) {
+      args.push('--not')
+    }
+
+    args.push('--end-of-options', revisionRange)
   }
 
   args.push('--')
