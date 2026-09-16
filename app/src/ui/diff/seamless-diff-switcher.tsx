@@ -128,6 +128,9 @@ interface ISeamlessDiffSwitcherProps {
   // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
   // eslint-disable-next-line react/no-unused-prop-types
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when the user wants to fetch and display the real LFS diff. */
+  readonly onLoadLFSDiff?: () => Promise<IDiff | null>
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -415,6 +418,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             onHideWhitespaceInDiffChanged={
               isLoadingDiff ? noop : onHideWhitespaceInDiffChanged
             }
+            onLoadLFSDiff={this.props.onLoadLFSDiff}
           />
         ) : null}
         {loadingIndicator}
