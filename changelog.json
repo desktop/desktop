@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.7-test1": [
+      "[Fixed] Fix SSH host key confirmation prompts with newer OpenSSH versions"
+    ],
     "3.6.6-beta2": [
       "[Fixed] Fix opening files whose path contains non-ASCII characters with the default program on Windows - #11879. Thanks @doomslayer2k!",
       "[Fixed] Fix rebasing branches with leading-hyphen names - #22836",
