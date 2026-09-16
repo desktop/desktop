@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import { mkdir, realpath, writeFile } from 'fs/promises'
+import { cp, mkdir, realpath, symlink } from 'fs/promises'
 
 import { Repository } from '../../../src/models/repository'
 import { getRepositoryType } from '../../../src/lib/git/rev-parse'
@@ -12,6 +12,8 @@ import {
 } from '../../helpers/repositories'
 import { exec } from 'dugite'
 import { createTempDirectory } from '../../helpers/temp'
+import { setupOwnershipCheck } from '../../helpers/ownership-check'
+import { addSafeDirectory } from '../../../src/lib/git/config'
 
 describe('git/rev-parse', () => {
   describe('getRepositoryType', () => {
@@ -130,31 +132,98 @@ describe('git/rev-parse', () => {
 
     it('returns unsafe for unsafe repository', async t => {
       const testRepoPath = await setupFixtureRepository(t, 'test-repo')
-      const repository = new Repository(testRepoPath, -1, null, false)
+      await setupOwnershipCheck(t)
+      const canonicalPath = await realpath(testRepoPath)
 
-      const previousHomeValue = process.env['HOME']
+      assert.deepEqual(await getRepositoryType(testRepoPath), {
+        kind: 'unsafe',
+        path: __WIN32__ ? canonicalPath.replaceAll('\\', '/') : canonicalPath,
+      })
+    })
 
-      // Creating a stub global config so we can unset safe.directory config
-      // which will supersede any system config that might set * to ignore
-      // warnings about a different owner
-      //
-      // This is because safe.directory setting is ignored if found in local
-      // config, environment variables or command line arguments.
-      const testHomeDirectory = await createTempDirectory(t)
-      const gitConfigPath = path.join(testHomeDirectory, '.gitconfig')
-      await writeFile(
-        gitConfigPath,
-        `[safe]
-directory=`
+    for (const name of [
+      'repository with spaces',
+      "repository's directory",
+      'repository [1]',
+      ...(__WIN32__ ? [] : ['repository\nwith newlines']),
+    ]) {
+      it(`keeps the exact directory for ${JSON.stringify(name)}`, async t => {
+        const repository = await setupEmptyRepository(t)
+        const unrelated = await setupEmptyRepository(t)
+        const parent = await createTempDirectory(t)
+        const repositoryPath = path.join(parent, name)
+        await cp(repository.path, repositoryPath, { recursive: true })
+        await setupOwnershipCheck(t)
+
+        const result = await getRepositoryType(repositoryPath)
+        assert(result.kind === 'unsafe')
+        const canonicalPath = await realpath(repositoryPath)
+        assert.strictEqual(
+          result.path,
+          __WIN32__ ? canonicalPath.replaceAll('\\', '/') : canonicalPath
+        )
+
+        await addSafeDirectory(result.path)
+        await addSafeDirectory(result.path)
+        const config = await git(
+          ['config', '--global', '-z', '--get-all', 'safe.directory'],
+          parent,
+          ''
+        )
+        assert.deepEqual(config.stdout.split('\0'), ['', result.path, ''])
+        assert.strictEqual(
+          (await getRepositoryType(repositoryPath)).kind,
+          'regular'
+        )
+        assert.strictEqual(
+          (await getRepositoryType(unrelated.path)).kind,
+          'unsafe'
+        )
+      })
+    }
+
+    it('finds the repository from a nested directory through a symlink', async t => {
+      const repository = await setupEmptyRepository(t)
+      const nested = path.join(repository.path, 'one', 'two')
+      await mkdir(nested, { recursive: true })
+      const parent = await createTempDirectory(t)
+      const link = path.join(parent, 'link')
+      await symlink(repository.path, link, 'junction')
+      await setupOwnershipCheck(t)
+
+      const result = await getRepositoryType(path.join(link, 'one', 'two'))
+      assert(result.kind === 'unsafe')
+      const canonicalPath = await realpath(repository.path)
+      assert.strictEqual(
+        result.path,
+        __WIN32__ ? canonicalPath.replaceAll('\\', '/') : canonicalPath
       )
+      await addSafeDirectory(result.path)
+      assert.strictEqual((await getRepositoryType(nested)).kind, 'regular')
+    })
 
-      process.env['HOME'] = testHomeDirectory
-      process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = '1'
+    it('uses the working directory for a linked worktree', async t => {
+      const repositoryPath = await setupFixtureRepository(t, 'test-repo')
+      const parent = await createTempDirectory(t)
+      const worktree = path.join(parent, 'worktree')
+      await git(['worktree', 'add', '--detach', worktree], repositoryPath, '')
+      const nested = path.join(worktree, 'nested')
+      await mkdir(nested)
+      await setupOwnershipCheck(t)
 
-      assert((await getRepositoryType(repository.path)).kind === 'unsafe')
-
-      process.env['GIT_TEST_ASSUME_DIFFERENT_OWNER'] = undefined
-      process.env['HOME'] = previousHomeValue
+      const result = await getRepositoryType(nested)
+      assert(result.kind === 'unsafe')
+      const canonicalPath = await realpath(worktree)
+      assert.strictEqual(
+        result.path,
+        __WIN32__ ? canonicalPath.replaceAll('\\', '/') : canonicalPath
+      )
+      await addSafeDirectory(result.path)
+      assert.strictEqual((await getRepositoryType(nested)).kind, 'regular')
+      assert.strictEqual(
+        (await getRepositoryType(repositoryPath)).kind,
+        'unsafe'
+      )
     })
   })
 })

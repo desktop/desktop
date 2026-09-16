@@ -69,11 +69,16 @@ export class AddExistingRepository extends React.Component<
   private onTrustDirectory = async () => {
     this.setState({ isTrustingRepository: true })
     const { repositoryUnsafePath, path } = this.state
-    if (repositoryUnsafePath) {
-      await addSafeDirectory(repositoryUnsafePath)
+    try {
+      if (repositoryUnsafePath) {
+        await addSafeDirectory(repositoryUnsafePath)
+      }
+      await this.validatePath(path)
+    } catch (error) {
+      this.props.dispatcher.postError(error)
+    } finally {
+      this.setState({ isTrustingRepository: false })
     }
-    await this.validatePath(path)
-    this.setState({ isTrustingRepository: false })
   }
 
   private async updatePath(path: string) {

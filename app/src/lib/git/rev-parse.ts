@@ -1,6 +1,7 @@
 import { git } from './core'
 import { directoryExists } from '../directory-exists'
-import { resolve } from 'path'
+import { dirname, resolve } from 'path'
+import { realpath } from 'fs/promises'
 
 export type RepositoryType =
   | { kind: 'bare' }
@@ -12,8 +13,9 @@ export type RepositoryType =
  * Attempts to fulfill the work of isGitRepository and isBareRepository while
  * requiring only one Git process to be spawned.
  *
- * Returns 'bare', 'regular', or 'missing' if the repository couldn't be
- * found.
+ * Returns 'bare', 'regular', 'unsafe', or 'missing' if the repository couldn't
+ * be found. An unsafe path is a canonical directory containing the requested
+ * path, verified against Git's ownership diagnostic.
  */
 export async function getRepositoryType(path: string): Promise<RepositoryType> {
   if (!(await directoryExists(path))) {
@@ -54,12 +56,26 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
       }
     }
 
-    const unsafeMatch =
-      /fatal: detected dubious ownership in repository at '(.+)'/.exec(
-        result.stderr
-      )
-    if (unsafeMatch) {
-      return { kind: 'unsafe', path: unsafeMatch[1] }
+    const ownershipDiagnostic =
+      'fatal: detected dubious ownership in repository at '
+    if (result.stderr.startsWith(ownershipDiagnostic)) {
+      // Derive candidates from the filesystem, not diagnostic text, since
+      // directory names can themselves contain quotes and newlines.
+      let candidate = await realpath(path)
+      for (;;) {
+        const gitPath = __WIN32__ ? candidate.replaceAll('\\', '/') : candidate
+        if (result.stderr.startsWith(`${ownershipDiagnostic}'${gitPath}'\n`)) {
+          return { kind: 'unsafe', path: gitPath }
+        }
+
+        const parent = dirname(candidate)
+        if (parent === candidate) {
+          throw new Error(
+            'Unable to determine the repository directory for the ownership exception.'
+          )
+        }
+        candidate = parent
+      }
     }
 
     return { kind: 'missing' }
