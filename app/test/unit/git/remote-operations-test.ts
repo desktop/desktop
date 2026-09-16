@@ -99,7 +99,7 @@ describe('git/remote operations', () => {
       })
 
       for (const branchName of [undefined, 'linked-branch']) {
-        it(`adds a worktree from a remote ref ${
+        it(`adds a worktree from a canonical remote ref ${
           branchName ?? 'detached'
         }`, async t => {
           const { repository, upstream, remote } = await setupRemote(
@@ -111,7 +111,7 @@ describe('git/remote operations', () => {
 
           await addWorktree(repository, worktreePath, {
             createBranch: branchName,
-            commitish: `${remoteName}/master`,
+            commitish: `refs/remotes/${remoteName}/master`,
           })
 
           const head = await git(
@@ -146,34 +146,56 @@ describe('git/remote operations', () => {
         })
       }
 
-      it('adds a branched worktree from a remote revision expression', async t => {
-        const { repository, upstream, remote } = await setupRemote(
-          t,
-          remoteName
-        )
-        await fetch(repository, remote)
-        const worktreePath = await createTempDirectory(t)
+      for (const createNewBranch of [false, true]) {
+        it(`adds a worktree for ${
+          createNewBranch ? 'a new' : 'an existing local'
+        } branch`, async t => {
+          const { repository } = await setupRemote(t, remoteName)
+          const worktreePath = await createTempDirectory(t)
+          const branchName = 'local-worktree'
+          const expected = await getTipOrError(repository)
 
-        await addWorktree(repository, worktreePath, {
-          createBranch: 'from-expression',
-          commitish: `${remoteName}/master~1`,
+          if (!createNewBranch) {
+            await git(
+              ['branch', branchName],
+              repository.path,
+              'create local worktree branch'
+            )
+          }
+
+          await addWorktree(
+            repository,
+            worktreePath,
+            createNewBranch
+              ? { createBranch: branchName }
+              : { commitish: branchName }
+          )
+
+          const head = await git(
+            ['rev-parse', 'HEAD'],
+            worktreePath,
+            'get worktree commit'
+          )
+          assert.strictEqual(head.stdout.trim(), expected.sha)
+          const branch = await git(
+            ['symbolic-ref', '--short', 'HEAD'],
+            worktreePath,
+            'get worktree branch'
+          )
+          assert.strictEqual(branch.stdout.trim(), branchName)
+          assert.strictEqual(
+            await readFile(Path.join(worktreePath, 'README.md'), 'utf8'),
+            'initial'
+          )
+          const tracking = await git(
+            ['config', '--get', `branch.${branchName}.remote`],
+            worktreePath,
+            'check worktree has no upstream',
+            { successExitCodes: new Set([0, 1]) }
+          )
+          assert.strictEqual(tracking.exitCode, 1)
         })
-
-        const head = await git(
-          ['rev-parse', 'HEAD'],
-          worktreePath,
-          'get worktree commit'
-        )
-        const expected = await getRefOrError(upstream, 'HEAD~1')
-        assert.strictEqual(head.stdout.trim(), expected.sha)
-        const tracking = await git(
-          ['config', '--get', 'branch.from-expression.remote'],
-          worktreePath,
-          'check worktree has no upstream',
-          { successExitCodes: new Set([0, 1]) }
-        )
-        assert.strictEqual(tracking.exitCode, 1)
-      })
+      }
 
       it('checks out a remote branch and configures upstream tracking', async t => {
         const { repository, upstream, remote } = await setupRemote(
