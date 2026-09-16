@@ -7922,6 +7922,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.statsStore.reportStats(this.accounts, this.repositories)
   }
 
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _sendStats() {
+    return this.statsStore.sendStats(this.accounts, this.repositories)
+  }
+
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
     return this.statsStore.recordLaunchStats(stats)
   }
@@ -7961,8 +7966,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.beginEnterpriseSignIn(resultCallback)
   }
 
-  public _setSignInEndpoint(url: string): Promise<void> {
-    return this.signInStore.setEndpoint(url)
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _setSignInEndpoint(
+    url: string,
+    isEndpointFromGit = false
+  ): Promise<void> {
+    return this.signInStore.setEndpoint(url, isEndpointFromGit)
   }
 
   public _requestBrowserAuthentication() {

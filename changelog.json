@@ -4,6 +4,21 @@
       "[Improved] Ask for confirmation before revealing certain folders in Finder - #22872",
       "[Improved] Improve how .gitignore files are handled - #22872"
     ],
+    "3.6.6-beta2": [
+      "[Fixed] Fix opening files whose path contains non-ASCII characters with the default program on Windows - #11879. Thanks @doomslayer2k!",
+      "[Fixed] Fix rebasing branches with leading-hyphen names - #22836",
+      "[Fixed] Fix unresponsive titlebar on Windows after Electron 44 update - #22818. Thanks @desktop-plus!",
+      "[Improved] Ask for confirmation before revealing certain folders in Finder - #22872",
+      "[Improved] Improve how .gitignore files are handled - #22872",
+      "[Improved] Improve Enterprise server sign-in when requested by git - #22844",
+      "[Improved] Prevent use of unsupported clone protocols - #22847"
+    ],
+    "3.6.6-beta1": [
+      "[Fixed] Fix Copilot error when models fail to load and the app falls back to the 'Auto' model - #22796",
+      "[Improved] Update Electron to v44.1.1 and Node.js to v24.19.0 - #22799",
+      "[Improved] Update Copilot SDK to v1.0.13 - #22828",
+      "[Removed] Remove support for macOS 12 - #22799"
+    ],
     "3.6.5": [
       "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
       "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",

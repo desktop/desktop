@@ -123,6 +123,10 @@ export function buildTestMenu() {
       click: emit('test-cli-action'),
     },
     {
+      label: 'Send stats',
+      click: emit('test-send-stats'),
+    },
+    {
       label: 'Show popup',
       submenu: [
         {
