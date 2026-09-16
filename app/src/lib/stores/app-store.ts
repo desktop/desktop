@@ -345,6 +345,10 @@ import {
 import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import {
+  CopilotConflictResolutionError,
+  CopilotConflictResolutionFailureStage,
+} from '../copilot-conflict-resolution-error'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
@@ -6525,6 +6529,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const totalTimer = startTimer('resolve conflicts with Copilot', repository)
+    let failureStage: CopilotConflictResolutionFailureStage = 'gather-context'
 
     try {
       const state = this.repositoryStateCache.get(repository)
@@ -6578,6 +6583,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         'copilotStore.resolveConflicts',
         repository
       )
+      failureStage = 'resolve-model'
       const modelRequest = await this.resolveCopilotModelRequest(
         this.getSelectedCopilotModels(account)['conflict-resolution'] ?? null
       )
@@ -6590,6 +6596,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           onProgress,
           signal
         )
+        failureStage = 'process-result'
 
         // The model can only cite data we placed in the prompt, so resolving
         // its references is a simple lookup against the gathered context —
@@ -6640,7 +6647,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // Propagate real failures so the caller can surface the underlying error
       // instead of a generic "no results" message.
       log.warn('AppStore: Copilot conflict resolution failed', e)
-      throw e
+      throw e instanceof CopilotConflictResolutionError
+        ? e
+        : new CopilotConflictResolutionError(e, failureStage)
     } finally {
       totalTimer.done()
     }
@@ -7141,10 +7150,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.statsStore.increment('copilotConflictResolutionErrorCount')
 
+      const failure =
+        e instanceof CopilotConflictResolutionError
+          ? e
+          : new CopilotConflictResolutionError(e, 'unknown')
+      sendNonFatalException('copilotConflictResolution', failure)
+
       // Surface the error to the user so they understand why they were
       // routed back to manual conflict resolution. Mirrors the pattern
       // used by `_generateCommitMessage`.
-      this.emitError(new ErrorWithMetadata(e, { repository }))
+      this.emitError(
+        new ErrorWithMetadata(failure.underlyingError, { repository })
+      )
 
       // Transition back to manual conflict resolution
       this.repositoryStateCache.updateMultiCommitOperationState(
