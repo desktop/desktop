@@ -40,15 +40,15 @@ describe('Cygwin launch', () => {
       assert.deepStrictEqual(args, [
         '/bin/sh',
         '-lc',
-        'cd -- "$(cygpath -- "$GITHUB_DESKTOP_CYGWIN_PATH")" && exec bash',
+        'cd -- "$(cygpath -- "$GITHUB_DESKTOP_CYGWIN_OPEN_PATH")" && exec bash',
       ])
       assert.strictEqual(options?.shell, undefined)
       assert.strictEqual(options?.cwd, path)
-      assert.strictEqual(options?.env?.GITHUB_DESKTOP_CYGWIN_PATH, path)
+      assert.strictEqual(options?.env?.GITHUB_DESKTOP_CYGWIN_OPEN_PATH, path)
       assert.ok(
         Object.entries(process.env).every(
           ([key, value]) =>
-            key === 'GITHUB_DESKTOP_CYGWIN_PATH' ||
+            key === 'GITHUB_DESKTOP_CYGWIN_OPEN_PATH' ||
             options?.env?.[key] === value
         ),
         'The terminal should inherit the existing environment'
