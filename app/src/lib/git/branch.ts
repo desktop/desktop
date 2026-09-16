@@ -24,14 +24,18 @@ export async function createBranch(
   startPoint: string | null,
   noTrack?: boolean
 ): Promise<void> {
-  const args =
-    startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
+  const args = ['branch']
 
   // if we're branching directly from a remote branch, we don't want to track it
   // tracking it will make the rest of desktop think we want to push to that
   // remote branch's upstream (which would likely be the upstream of the fork)
   if (noTrack) {
     args.push('--no-track')
+  }
+
+  args.push('--', name)
+  if (startPoint !== null) {
+    args.push(startPoint)
   }
 
   await git(args, repository.path, 'createBranch')
@@ -117,7 +121,7 @@ export async function deleteRemoteBranch(
   remote: IRemote,
   remoteBranchName: string
 ): Promise<true> {
-  const args = ['push', remote.name, `:${remoteBranchName}`]
+  const args = ['push', '--', remote.name, `:${remoteBranchName}`]
 
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
