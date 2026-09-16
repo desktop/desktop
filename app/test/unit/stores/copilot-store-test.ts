@@ -1046,3 +1046,33 @@ describe('runConflictResolutionTurn', () => {
     ])
   })
 })
+
+describe('CopilotStore conflict resolution', () => {
+  it('returns an empty result when every conflicted file was skipped', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const result = await store.resolveConflicts(
+      makeAccount(),
+      {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'large-file.txt',
+            hunks: [],
+            skippedReason: 'File too large to resolve automatically',
+          },
+        ],
+        pullRequests: [],
+        ourCommits: [],
+        theirCommits: [],
+      },
+      '/repository'
+    )
+
+    assert.deepStrictEqual(result, {
+      resolutions: [],
+      summary: null,
+      references: [],
+    })
+  })
+})
