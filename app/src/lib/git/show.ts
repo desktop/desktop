@@ -44,7 +44,7 @@ export const getBlobContents = async (
 ) => {
   const revision = await resolveBlobRevision(repository, commitish)
   return git(
-    ['show', '--end-of-options', `${revision}:${path}`],
+    ['show', `${revision}:${path}`],
     repository.path,
     'getBlobContents',
     {
@@ -97,7 +97,7 @@ export async function getPartialBlobContentsCatchPathNotInRef(
   length: number
 ): Promise<Buffer | null> {
   const revision = await resolveBlobRevision(repository, commitish)
-  const args = ['show', '--end-of-options', `${revision}:${path}`]
+  const args = ['show', `${revision}:${path}`]
 
   return git(args, repository.path, 'getPartialBlobContentsCatchPathNotInRef', {
     maxBuffer: length,
