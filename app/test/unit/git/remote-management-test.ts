@@ -94,7 +94,7 @@ describe('git/remote management', () => {
           'set up distinct push URL'
         )
 
-        assert.strictEqual(await getRemoteURL(repository, name), `${url}\n`)
+        assert.strictEqual(await getRemoteURL(repository, name), url)
       })
 
       it(`returns null for missing remote ${name}`, async t => {

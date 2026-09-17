@@ -8,21 +8,62 @@ import { getSymbolicRef } from './refs'
 
 /**
  * List the remotes, sorted alphabetically by `name`, for a repository.
+ *
+ * Returns the first fetch URL for each remote, with Git's URL rewrites applied.
+ * Remotes without a fetch URL are omitted.
  */
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
-    expectedErrors: new Set([GitError.NotAGitRepository]),
-  })
+  // Config queries also work outside repositories. Check the repository first.
+  const result = await git(
+    ['rev-parse', '--git-dir'],
+    repository.path,
+    'getRemotes',
+    { expectedErrors: new Set([GitError.NotAGitRepository]) }
+  )
 
   if (result.gitError === GitError.NotAGitRepository) {
     return []
   }
 
-  return [...result.stdout.matchAll(/^(.+)\t(.+)\s\(fetch\)/gm)].map(
-    ([, name, url]) => ({ name, url })
+  const config = await git(
+    ['config', '--null', '--get-regexp', '^remote\\..+\\.url$'],
+    repository.path,
+    'getRemotes',
+    { successExitCodes: new Set([0, 1]) }
   )
+
+  const names = new Set<string>()
+  for (const entry of config.stdout.split('\0').slice(0, -1)) {
+    // Git separates the key from its value with LF, and records with NUL.
+    const separator = entry.indexOf('\n')
+    if (separator === -1) {
+      throw new Error('Remote URL configuration is missing a value')
+    }
+
+    const name = entry.slice('remote.'.length, separator - '.url'.length)
+    if (entry.slice(separator + 1).length === 0) {
+      // An empty URL entry clears any URLs previously configured for this remote.
+      names.delete(name)
+    } else {
+      names.add(name)
+    }
+  }
+
+  const remotes: IRemote[] = []
+  for (const name of [...names].sort()) {
+    // Unlike remote get-url, this also resolves globally configured remotes.
+    // --get-url does not contact the remote.
+    const { stdout } = await git(
+      ['ls-remote', '--get-url', '--', name],
+      repository.path,
+      'getRemotes'
+    )
+    remotes.push({ name, url: stdout.slice(0, -1) })
+  }
+
+  return remotes
 }
 
 /** Add a new remote with the given URL. */
@@ -68,9 +109,10 @@ export async function setRemoteURL(
 }
 
 /**
- * Get the URL for the remote that matches the given name.
+ * Get the first fetch URL for the remote, with Git's URL rewrites applied.
  *
- * Returns null if the remote could not be found
+ * Returns null if the remote could not be found. The returned URL excludes
+ * Git's output terminator but preserves whitespace belonging to the URL.
  */
 export async function getRemoteURL(
   repository: Repository,
@@ -80,14 +122,17 @@ export async function getRemoteURL(
     ['remote', 'get-url', '--', name],
     repository.path,
     'getRemoteURL',
-    { successExitCodes: new Set([0, 2, 128]) }
+    {
+      successExitCodes: new Set([0, 2]),
+      expectedErrors: new Set([GitError.NotAGitRepository]),
+    }
   )
 
   if (result.exitCode !== 0) {
     return null
   }
 
-  return result.stdout
+  return result.stdout.slice(0, -1)
 }
 
 /**
