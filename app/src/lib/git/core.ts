@@ -132,10 +132,10 @@ export interface IGitBufferExecutionOptions extends IGitExecutionOptions {
 /** The result of shelling out to git using a buffer encoding */
 export interface IGitBufferResult extends IGitResult {
   /** The standard output from git. */
-  readonly stdout: Buffer
+  readonly stdout: Buffer<ArrayBuffer>
 
   /** The standard error output from git. */
-  readonly stderr: Buffer
+  readonly stderr: Buffer<ArrayBuffer>
 }
 
 export class GitError extends Error {

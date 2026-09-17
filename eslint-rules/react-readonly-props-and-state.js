@@ -13,12 +13,13 @@
  */
 
 /**
- * @typedef {import('@typescript-eslint/experimental-utils').TSESLint.RuleModule} RuleModule
- * @typedef {import("@typescript-eslint/typescript-estree").TSESTree.TSInterfaceBody} TSInterfaceBody
+ * @typedef {import('@typescript-eslint/utils').TSESLint.RuleModule<'signaturesShouldBeReadonly' | 'arraySignaturesShouldBeReadonly', []>} RuleModule
+ * @typedef {import("@typescript-eslint/utils").TSESTree.TSInterfaceBody} TSInterfaceBody
  */
 
 /** @type {RuleModule} */
 module.exports = {
+  defaultOptions: [],
   meta: {
     type: 'problem',
     messages: {

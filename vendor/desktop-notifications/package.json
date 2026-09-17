@@ -1,6 +1,7 @@
 {
   "name": "desktop-notifications",
   "version": "0.2.6",
+  "type": "commonjs",
   "description": "A simple and opinionated library for handling Windows notifications",
   "license": "MIT",
   "main": "dist/index.js",
@@ -12,9 +13,10 @@
     "check-prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\""
   },
   "devDependencies": {
+    "@types/node": "22.10.9",
     "node-gyp": "^10.1.0",
     "prettier": "^2.0.5",
-    "typescript": "^5.4.5"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "node-addon-api": "^7.0.0"

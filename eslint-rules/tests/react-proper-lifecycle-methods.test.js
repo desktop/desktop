@@ -1,8 +1,10 @@
 // @ts-check
 const { describe, it } = require('node:test')
-const { ESLintUtils } = require('@typescript-eslint/experimental-utils')
+const { TSESLint } = require('@typescript-eslint/utils')
 
-const RuleTester = ESLintUtils.RuleTester
+const RuleTester = TSESLint.RuleTester
+RuleTester.describe = describe
+RuleTester.it = it
 const rule = require('../react-proper-lifecycle-methods')
 
 // ------------------------------------------------------------------------------
@@ -10,7 +12,7 @@ const rule = require('../react-proper-lifecycle-methods')
 // ------------------------------------------------------------------------------
 
 const ruleTester = new RuleTester({
-  parser: '@typescript-eslint/parser',
+  parser: require.resolve('@typescript-eslint/parser'),
   parserOptions: {
     ecmaVersion: 2015,
     sourceType: 'module',
@@ -18,7 +20,7 @@ const ruleTester = new RuleTester({
 })
 
 describe('react-proper-lifecycle-methods', () => {
-  it('should complain about incorrect lifecycle methods', () => {
+  describe('should complain about incorrect lifecycle methods', () => {
     ruleTester.run('react-proper-lifecycle-methods', rule, {
       valid: [
         // component without lifecycle methods passes without errors

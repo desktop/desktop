@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "rootDir": "..",
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,
     "target": "ES2021",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable",
+      "ScriptHost",
+      "WebWorker.ImportScripts"
+    ],
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "noImplicitReturns": true,
@@ -16,5 +27,6 @@
     "strict": true,
     "types": ["node"]
   },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.mjs"],
   "compileOnSave": false
 }

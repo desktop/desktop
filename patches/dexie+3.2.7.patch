@@ -1,0 +1,9 @@
+diff --git a/node_modules/dexie/dist/dexie.d.ts b/node_modules/dexie/dist/dexie.d.ts
+--- a/node_modules/dexie/dist/dexie.d.ts
++++ b/node_modules/dexie/dist/dexie.d.ts
+@@ -1008,4 +1008,4 @@ export interface _Table<T, TKey> extends Table<T, TKey> {
+ }
+ export interface _Collection<T, TKey> extends Collection<T, TKey> {
+ }
+-export declare module Dexie {
++export declare namespace Dexie {

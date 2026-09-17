@@ -64,6 +64,7 @@ describe('git/diff', () => {
       )
       const current = await getWorkingDirectoryImage(repository, file)
 
+      assert.ok(current.rawContents instanceof ArrayBuffer)
       assert.equal(current.mediaType, 'image/png')
       assert(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/.test(current.contents))
     })
@@ -105,6 +106,7 @@ describe('git/diff', () => {
       )
       const current = await getBlobImage(repository, file.path, 'HEAD')
 
+      assert.ok(current.rawContents instanceof ArrayBuffer)
       assert.equal(current.mediaType, 'image/jpg')
       assert(
         /zcabBFNf6G8U1y7QpBYtbOWQivIsDU8T4kYKKTQFg7v\/9k=/.test(

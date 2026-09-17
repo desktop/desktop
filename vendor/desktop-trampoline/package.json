@@ -1,6 +1,7 @@
 {
   "name": "desktop-trampoline",
   "version": "0.9.12",
+  "type": "commonjs",
   "main": "dist/index.js",
   "license": "MIT",
   "bin": {
@@ -11,18 +12,20 @@
     "install": "node-gyp rebuild && tsc",
     "lint": "prettier -c **/*.js **/*.md",
     "lint:fix": "prettier --write **/*.js **/*.md",
-    "test": "node script/test.mjs"
+    "test": "tsc -p tsconfig.test.json && node script/test.mjs"
   },
   "dependencies": {
     "node-addon-api": "^7.0.0"
   },
   "devDependencies": {
-    "node-test-github-reporter": "^1.2.0",
-    "tsx": "^4.10.5",
+    "@types/node": "22.10.9",
+    "@types/split2": "4.2.3",
     "node-gyp": "^10.1.0",
-    "typescript": "^5.4.5",
+    "node-test-github-reporter": "^1.2.0",
     "prettier": "^3.3.1",
-    "split2": "^4.1.0"
+    "split2": "^4.1.0",
+    "tsx": "^4.10.5",
+    "typescript": "7.0.2"
   },
   "binary": {
     "napi_versions": [

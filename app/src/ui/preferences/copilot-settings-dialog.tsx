@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../../lib/copilot/sdk-types'
 import type { IBYOKProvider } from '../../lib/copilot/byok'
 import type {
   CopilotFeature,
