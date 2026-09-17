@@ -3,19 +3,19 @@ import { Emitter, type Disposable } from 'event-kit'
 
 interface ICurrentFileTailState {
   /** The current read position in the file. */
-  position: number
+  readonly position: number
 
-  /** The currently active watcher instance. */
+  /** The watcher identifying the current tailing lifetime. */
   readonly watcher: Fs.FSWatcher
 
   /** Whether a stat or read is in progress. */
-  reading: boolean
+  readonly reading: boolean
 
   /** Whether a change arrived while a stat or read was in progress. */
-  readPending: boolean
+  readonly readPending: boolean
 
   /** The stream whose file descriptor must close before the next read. */
-  stream: Fs.ReadStream | null
+  readonly stream: Fs.ReadStream | null
 }
 
 /** Tail a file and read changes as they happen. */
@@ -65,8 +65,8 @@ export class Tailer {
       const watcher = Fs.watch(this.path, event => {
         const state = this.state
         if (state?.watcher === watcher && event === 'change') {
-          state.readPending = true
-          this.readNextChunk(state)
+          this.state = { ...state, readPending: true }
+          this.readNextChunk(watcher)
         }
       })
       watcher.on('error', error => {
@@ -86,16 +86,17 @@ export class Tailer {
     }
   }
 
-  private readNextChunk(state: ICurrentFileTailState) {
-    if (this.state !== state || state.reading) {
+  private readNextChunk(watcher: Fs.FSWatcher) {
+    const state = this.state
+    if (state?.watcher !== watcher || state.reading) {
       return
     }
 
-    state.reading = true
-    state.readPending = false
+    this.state = { ...state, reading: true, readPending: false }
 
     Fs.stat(this.path, (err, stats) => {
-      if (this.state !== state) {
+      const currentState = this.state
+      if (currentState?.watcher !== watcher) {
         return
       }
 
@@ -104,12 +105,12 @@ export class Tailer {
         return
       }
 
-      if (stats.size <= state.position) {
-        this.finishRead(state)
+      if (stats.size <= currentState.position) {
+        this.finishRead(watcher)
         return
       }
 
-      this.readChunk(state, stats.size)
+      this.readChunk(currentState, stats.size)
     })
   }
 
@@ -118,27 +119,30 @@ export class Tailer {
       start: state.position,
       end: size - 1,
     })
-    state.position = size
-    state.stream = stream
+    this.state = { ...state, position: size, stream }
 
     stream.on('error', error => {
-      if (this.state === state) {
+      if (this.state?.stream === stream) {
         this.handleError(error)
       }
     })
-    stream.on('close', () => this.finishRead(state))
+    stream.on('close', () => {
+      if (this.state?.stream === stream) {
+        this.finishRead(state.watcher)
+      }
+    })
     this.emitter.emit('data', stream)
   }
 
-  private finishRead(state: ICurrentFileTailState) {
-    if (this.state !== state) {
+  private finishRead(watcher: Fs.FSWatcher) {
+    const state = this.state
+    if (state?.watcher !== watcher) {
       return
     }
 
-    state.stream = null
-    state.reading = false
+    this.state = { ...state, stream: null, reading: false }
     if (state.readPending) {
-      this.readNextChunk(state)
+      this.readNextChunk(watcher)
     }
   }
 

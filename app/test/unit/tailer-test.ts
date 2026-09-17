@@ -91,6 +91,7 @@ describe('Tailer', { timeout: 5000 }, () => {
       code: 'EMFILE',
     })
 
+    watcher.emit('change', 'change')
     assert.doesNotThrow(() => stream.emit('error', error))
     assert.strictEqual(onError.mock.callCount(), 1)
     assert.strictEqual(onError.mock.calls[0].arguments[0], error)
@@ -124,6 +125,20 @@ describe('Tailer', { timeout: 5000 }, () => {
     completeStat(13)
     assert.strictEqual(await consume(await second), 'second\n')
     assert.strictEqual(read.mock.callCount(), 2)
+    assert.strictEqual(pendingStats.length, 0)
+  })
+
+  it('retains changes received during a stat that finds no growth', async t => {
+    const { watcher, nextStream, pendingStats, completeStat } =
+      await setupTailer(t)
+    const next = nextStream()
+    watcher.emit('change', 'change')
+    watcher.emit('change', 'change')
+    completeStat(0)
+
+    assert.strictEqual(pendingStats.length, 1)
+    completeStat(6)
+    assert.strictEqual(await consume(await next), 'first\n')
     assert.strictEqual(pendingStats.length, 0)
   })
 
