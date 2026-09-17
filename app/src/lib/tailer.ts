@@ -32,8 +32,8 @@ export class Tailer {
   }
 
   /**
-   * Register a function to be called whenever an error is reported by the underlying
-   * filesystem watcher.
+   * Register a function to be called whenever an error is reported by the
+   * filesystem watcher or a read stream.
    */
   public onError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('error', fn)
@@ -99,6 +99,7 @@ export class Tailer {
       end: stats.size,
     })
 
+    stream.on('error', error => this.handleError(error))
     this.emitter.emit('data', stream)
   }
 
