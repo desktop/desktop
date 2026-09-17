@@ -1,4 +1,4 @@
-import { describe, it, TestContext } from 'node:test'
+import { beforeEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import { readFile, writeFile } from 'fs/promises'
 import * as Path from 'path'
@@ -17,6 +17,7 @@ import { fetchTagsToPush, getAllTags } from '../../../src/lib/git/tag'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { createTempDirectory } from '../../helpers/temp'
+import { isolateGitConfig } from '../../helpers/git-config'
 import {
   cloneRepository,
   makeCommit,
@@ -70,6 +71,8 @@ async function setupRemote(t: TestContext, name: string) {
 }
 
 describe('git/remote operations', () => {
+  beforeEach(isolateGitConfig)
+
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
       it('discovers unpushed tags without modifying the remote', async t => {

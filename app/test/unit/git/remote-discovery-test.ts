@@ -1,17 +1,20 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { beforeEach, describe, it } from 'node:test'
 import { writeFile } from 'node:fs/promises'
 import * as Path from 'node:path'
 
 import { git } from '../../../src/lib/git/core'
 import { getRemotes, getRemoteURL } from '../../../src/lib/git/remote'
 import { setConfigValue } from '../../../src/lib/git/config'
+import { isolateGitConfig } from '../../helpers/git-config'
 import {
   setupEmptyDirectory,
   setupEmptyRepository,
 } from '../../helpers/repositories'
 
 describe('git/remote discovery', () => {
+  beforeEach(isolateGitConfig)
+
   for (const [description, separator] of [
     ['line separator', '\u2028'],
     ['paragraph separator', '\u2029'],
@@ -114,25 +117,28 @@ describe('git/remote discovery', () => {
     ])
   })
 
-  it('reads global remotes only when inside a repository', async t => {
-    const repository = await setupEmptyRepository(t)
-    const globalConfig = Path.join(repository.path, '.git', 'global-config')
-    await writeFile(globalConfig, '[remote "global"]\nurl = /global-fetch\n')
-    const previousGlobalConfig = process.env.GIT_CONFIG_GLOBAL
-    process.env.GIT_CONFIG_GLOBAL = globalConfig
-    t.after(() => {
-      if (previousGlobalConfig === undefined) {
-        delete process.env.GIT_CONFIG_GLOBAL
+  for (const scope of ['global', 'system']) {
+    it(`reads ${scope} remotes only when inside a repository`, async t => {
+      const repository = await setupEmptyRepository(t)
+      const config = Path.join(repository.path, '.git', `${scope}-config`)
+      await writeFile(
+        config,
+        `[remote "${scope}"]\nurl = desktop-remote-test:repository\n` +
+          `[url "/${scope}/"]\ninsteadOf = desktop-remote-test:\n`
+      )
+      if (scope === 'global') {
+        process.env.GIT_CONFIG_GLOBAL = config
       } else {
-        process.env.GIT_CONFIG_GLOBAL = previousGlobalConfig
+        process.env.GIT_CONFIG_SYSTEM = config
+        process.env.GIT_CONFIG_NOSYSTEM = '0'
       }
-    })
 
-    assert.deepStrictEqual(await getRemotes(repository), [
-      { name: 'global', url: '/global-fetch' },
-    ])
-    assert.deepStrictEqual(await getRemotes(await setupEmptyDirectory(t)), [])
-  })
+      assert.deepStrictEqual(await getRemotes(repository), [
+        { name: scope, url: `/${scope}/repository` },
+      ])
+      assert.deepStrictEqual(await getRemotes(await setupEmptyDirectory(t)), [])
+    })
+  }
 
   it('returns partial clone URLs without display annotations', async t => {
     const repository = await setupEmptyRepository(t)
