@@ -4246,7 +4246,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Note that this method should never leak the actual repositories
     // instance since that's a mutable array. We should always return
     // a copy.
-    return this.repositories.filter(x => x !== this.selectedRepository)
+    const selectedRepositoryID =
+      this.selectedRepository instanceof Repository
+        ? this.selectedRepository.id
+        : null
+    return this.repositories.filter(x => x.id !== selectedRepositoryID)
   }
 
   /**
