@@ -3,10 +3,19 @@ import { Emitter, type Disposable } from 'event-kit'
 
 interface ICurrentFileTailState {
   /** The current read position in the file. */
-  readonly position: number
+  position: number
 
   /** The currently active watcher instance. */
   readonly watcher: Fs.FSWatcher
+
+  /** Whether a stat or read is in progress. */
+  reading: boolean
+
+  /** Whether a change arrived while a stat or read was in progress. */
+  readPending: boolean
+
+  /** The stream whose file descriptor must close before the next read. */
+  stream: Fs.ReadStream | null
 }
 
 /** Tail a file and read changes as they happen. */
@@ -25,7 +34,7 @@ export class Tailer {
   /**
    * Register a function to be called whenever new data is available to be read.
    * The function will be given a read stream which has been created to read the
-   * new data.
+   * new data. The stream must be consumed for tailing to continue.
    */
   public onDataAvailable(fn: (stream: Fs.ReadStream) => void): Disposable {
     return this.emitter.on('data', fn)
@@ -33,15 +42,14 @@ export class Tailer {
 
   /**
    * Register a function to be called whenever an error is reported by the
-   * filesystem watcher or a read stream.
+   * filesystem watcher or while reading the file.
    */
   public onError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('error', fn)
   }
 
   private handleError(error: Error) {
-    this.state?.watcher.close()
-    this.state = null
+    this.stop()
     this.emitter.emit('error', error)
   }
 
@@ -54,61 +62,93 @@ export class Tailer {
     }
 
     try {
-      const watcher = Fs.watch(this.path, this.onWatchEvent)
-      watcher.on('error', error => {
-        this.handleError(error)
+      const watcher = Fs.watch(this.path, event => {
+        const state = this.state
+        if (state?.watcher === watcher && event === 'change') {
+          state.readPending = true
+          this.readNextChunk(state)
+        }
       })
-      this.state = { watcher, position: 0 }
+      watcher.on('error', error => {
+        if (this.state?.watcher === watcher) {
+          this.handleError(error)
+        }
+      })
+      this.state = {
+        watcher,
+        position: 0,
+        reading: false,
+        readPending: false,
+        stream: null,
+      }
     } catch (error) {
       this.handleError(error)
     }
   }
 
-  private onWatchEvent = (event: string) => {
-    if (event !== 'change') {
+  private readNextChunk(state: ICurrentFileTailState) {
+    if (this.state !== state || state.reading) {
       return
     }
 
-    if (!this.state) {
-      return
-    }
+    state.reading = true
+    state.readPending = false
 
     Fs.stat(this.path, (err, stats) => {
-      if (err) {
+      if (this.state !== state) {
         return
       }
 
-      const state = this.state
-      if (!state) {
+      if (err) {
+        this.handleError(err)
         return
       }
 
       if (stats.size <= state.position) {
+        this.finishRead(state)
         return
       }
 
-      this.state = { ...state, position: stats.size }
-
-      this.readChunk(stats, state.position)
+      this.readChunk(state, stats.size)
     })
   }
 
-  private readChunk(stats: Fs.Stats, position: number) {
+  private readChunk(state: ICurrentFileTailState, size: number) {
     const stream = Fs.createReadStream(this.path, {
-      start: position,
-      end: stats.size,
+      start: state.position,
+      end: size - 1,
     })
+    state.position = size
+    state.stream = stream
 
-    stream.on('error', error => this.handleError(error))
+    stream.on('error', error => {
+      if (this.state === state) {
+        this.handleError(error)
+      }
+    })
+    stream.on('close', () => this.finishRead(state))
     this.emitter.emit('data', stream)
   }
 
-  /** Stop tailing the file. */
+  private finishRead(state: ICurrentFileTailState) {
+    if (this.state !== state) {
+      return
+    }
+
+    state.stream = null
+    state.reading = false
+    if (state.readPending) {
+      this.readNextChunk(state)
+    }
+  }
+
+  /** Stop tailing the file and destroy any active read stream. */
   public stop() {
     const state = this.state
+    this.state = null
     if (state) {
       state.watcher.close()
-      this.state = null
+      state.stream?.destroy()
     }
   }
 }
