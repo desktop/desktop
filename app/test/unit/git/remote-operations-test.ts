@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { readFile, writeFile } from 'fs/promises'
 import * as Path from 'path'
 
-import { git } from '../../../src/lib/git/core'
+import { git, GitError } from '../../../src/lib/git/core'
 import { fetch, fetchRefspec } from '../../../src/lib/git/fetch'
 import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
@@ -426,6 +426,50 @@ describe('git/remote operations', () => {
       })
     })
   }
+
+  for (const operation of ['fetch', 'fetch with progress']) {
+    it(`rejects an unknown option-looking remote during ${operation}`, async t => {
+      const { repository, upstream } = await setupRemote(t, 'origin')
+      const before = await getRefOrError(
+        repository,
+        'refs/remotes/origin/master'
+      )
+      const remote = { name: '--dry-run', url: upstream.path }
+      const progress = t.mock.fn()
+      const result = fetch(
+        repository,
+        remote,
+        operation === 'fetch with progress' ? progress : undefined
+      )
+
+      await assert.rejects(
+        result,
+        (error: unknown) =>
+          error instanceof GitError &&
+          error.result.stderr.includes("'--dry-run'")
+      )
+
+      const after = await getRefOrError(
+        repository,
+        'refs/remotes/origin/master'
+      )
+      assert.strictEqual(after.sha, before.sha)
+    })
+  }
+
+  it('leaves origin unchanged when fetching a refspec from an unknown remote', async t => {
+    const { repository, upstream } = await setupRemote(t, 'origin')
+    const before = await getRefOrError(repository, 'refs/remotes/origin/master')
+
+    await fetchRefspec(
+      repository,
+      { name: '--multiple', url: upstream.path },
+      'origin'
+    )
+
+    const after = await getRefOrError(repository, 'refs/remotes/origin/master')
+    assert.strictEqual(after.sha, before.sha)
+  })
 
   for (const withProgress of [false, true]) {
     it(`pulls updates with progress ${withProgress}`, async t => {
