@@ -4243,6 +4243,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // focus event. No point in having the RepositoryIndicatorUpdater do
     // it as well.
     //
+    // Repository-list reloads can create a different object for the selected
+    // database row, so compare IDs rather than references. Cloning selections
+    // aren't local repositories and must not exclude an entry with the same ID.
+    //
     // Note that this method should never leak the actual repositories
     // instance since that's a mutable array. We should always return
     // a copy.

@@ -15,7 +15,8 @@ import { getSymbolicRef } from './refs'
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  // Config queries also work outside repositories. Check the repository first.
+  // Config queries also work outside repositories, where they can still return
+  // global remotes. Preserve the empty result for non-repository directories.
   const result = await git(
     ['rev-parse', '--git-dir'],
     repository.path,
@@ -27,17 +28,25 @@ export async function getRemotes(
     return []
   }
 
+  // Unlike `remote -v`, this format keeps tabs and line separators in URLs
+  // separate from remote names. Don't restrict the query to --local: included
+  // and globally configured remotes should remain visible.
   const config = await git(
     ['config', '--null', '--get-regexp', '^remote\\..+\\.url$'],
     repository.path,
     'getRemotes',
-    { successExitCodes: new Set([0, 1]) }
+    {
+      // Git returns 1 when no URL keys match, including in a new repository.
+      successExitCodes: new Set([0, 1]),
+    }
   )
 
   const names = new Set<string>()
+  // Output is key<LF>value<NUL>. The trailing NUL creates an empty split element.
+  // Only the first LF separates the key and value; later LFs belong to the URL.
   for (const entry of config.stdout.split('\0').slice(0, -1)) {
-    // Git separates the key from its value with LF, and records with NUL.
     const separator = entry.indexOf('\n')
+    // A valueless setting has no LF, unlike an explicitly empty URL value.
     if (separator === -1) {
       throw new Error('Remote URL configuration is missing a value')
     }
@@ -53,6 +62,8 @@ export async function getRemotes(
 
   const remotes: IRemote[] = []
   for (const name of [...names].sort()) {
+    // Let Git select the first fetch URL and apply insteadOf rewrites rather
+    // than returning raw config values or implementing those rules ourselves.
     // Unlike remote get-url, this also resolves globally configured remotes.
     // --get-url does not contact the remote.
     const { stdout } = await git(
@@ -60,6 +71,7 @@ export async function getRemotes(
       repository.path,
       'getRemotes'
     )
+    // Remove only Git's final LF; trimEnd() would also remove URL whitespace.
     remotes.push({ name, url: stdout.slice(0, -1) })
   }
 
@@ -123,6 +135,7 @@ export async function getRemoteURL(
     repository.path,
     'getRemoteURL',
     {
+      // 2 means a missing remote; 128 can also mean malformed configuration.
       successExitCodes: new Set([0, 2]),
       expectedErrors: new Set([GitError.NotAGitRepository]),
     }
@@ -132,6 +145,7 @@ export async function getRemoteURL(
     return null
   }
 
+  // The URL itself may end in LF, so strip exactly one output terminator.
   return result.stdout.slice(0, -1)
 }
 
