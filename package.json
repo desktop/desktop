@@ -30,6 +30,7 @@
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
     "generate-octicons": "ts-node -P script/tsconfig.json script/generate-octicons.ts",
+    "generate-example-usage-data": "cross-env TEST_ENV=1 node --disable-warning=ExperimentalWarning --experimental-test-module-mocks --conditions=import --import tsx --import ./app/test/globals.mts script/generate-example-usage-data.mjs",
     "compile:script": "tsc -P script/tsconfig.json",
     "lint": "yarn prettier && yarn lint:src",
     "lint:fix": "yarn prettier --write && yarn lint:src:fix",
