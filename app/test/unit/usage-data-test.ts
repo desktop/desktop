@@ -13,7 +13,7 @@ describe('usage data example', () => {
     const expected = `${JSON.stringify(generatedExample, null, 2)}\n`
 
     assert.strictEqual(
-      checkedInExample,
+      checkedInExample.replaceAll('\r\n', '\n'),
       expected,
       'Usage data example is stale. Run `yarn generate-example-usage-data`.'
     )
