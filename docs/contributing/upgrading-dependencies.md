@@ -152,6 +152,13 @@ yarn lint
 Also run `yarn build` in each TypeScript-based native module and `yarn test` in
 `vendor/desktop-trampoline`.
 
+Check emitted paths, not only successful compilation: a `rootDir` change can
+move output away from a package's published entry points. For example,
+`desktop-notifications` uses `lib/` as its source root to emit `dist/index.js`,
+not `dist/lib/index.js`. The native-module output tests in `yarn test:script`
+capture fresh compiler output in memory so stale build files cannot hide this
+regression.
+
 ## DefinitelyTyped dependencies
 
 We need to specifically call out the `@types/*` dependencies in `package.json`
