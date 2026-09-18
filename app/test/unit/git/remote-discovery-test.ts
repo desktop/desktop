@@ -5,7 +5,7 @@ import * as Path from 'node:path'
 
 import { git } from '../../../src/lib/git/core'
 import { getRemotes, getRemoteURL } from '../../../src/lib/git/remote'
-import { setConfigValue } from '../../../src/lib/git/config'
+import { getConfigValue, setConfigValue } from '../../../src/lib/git/config'
 import { isolateGitConfig } from '../../helpers/git-config'
 import {
   setupEmptyDirectory,
@@ -116,6 +116,48 @@ describe('git/remote discovery', () => {
       { name: 'included', url: '/resolved/repository' },
     ])
   })
+
+  for (const rewritten of [false, true]) {
+    it(`lists unused remotes without changing credential policy (rewritten=${rewritten})`, async t => {
+      const repository = await setupEmptyRepository(t)
+      const originURL = 'https://example.invalid/healthy.git'
+      const unusedURL =
+        'https://fixture-user:fixture-password@example.invalid/unused.git'
+      await setConfigValue(repository, 'remote.origin.url', originURL)
+      await setConfigValue(
+        repository,
+        'remote.unused.url',
+        rewritten ? 'desktop-remote-test:unused.git' : unusedURL
+      )
+      if (rewritten) {
+        await setConfigValue(
+          repository,
+          'url.https://fixture-user:fixture-password@example.invalid/.insteadOf',
+          'desktop-remote-test:'
+        )
+      }
+      await setConfigValue(repository, 'transfer.credentialsInUrl', 'die')
+      // Keep the test offline even if credential validation stops rejecting.
+      await setConfigValue(repository, 'protocol.allow', 'never')
+
+      assert.deepStrictEqual(await getRemotes(repository), [
+        { name: 'origin', url: originURL },
+        { name: 'unused', url: unusedURL },
+      ])
+      assert.strictEqual(
+        await getConfigValue(repository, 'transfer.credentialsInUrl'),
+        'die'
+      )
+
+      const result = await git(
+        ['fetch', '--', 'unused'],
+        repository.path,
+        'verify transfer credential policy',
+        { successExitCodes: new Set([128]) }
+      )
+      assert.match(result.stderr, /uses plaintext credentials/)
+    })
+  }
 
   for (const scope of ['global', 'system']) {
     it(`reads ${scope} remotes only when inside a repository`, async t => {
