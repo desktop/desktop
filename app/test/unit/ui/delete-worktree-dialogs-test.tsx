@@ -22,20 +22,14 @@ const options: IDeleteWorktreeOptions = {
   checkout: { branch },
 }
 
-type DeleteCall = {
-  readonly force: boolean | undefined
-  readonly options: IDeleteWorktreeOptions | undefined
-}
-
 function recordDeletes() {
-  const calls = new Array<DeleteCall>()
+  const calls = new Array<IDeleteWorktreeOptions | undefined>()
   const onDeleteWorktree = async (
     _repository: Repository,
     _worktreePath: string,
-    force?: boolean,
     options?: IDeleteWorktreeOptions
   ) => {
-    calls.push({ force, options })
+    calls.push(options)
   }
   return { calls, onDeleteWorktree }
 }
@@ -79,8 +73,7 @@ describe('DeleteWorktreeDialog', () => {
     submit(view, 'Remove')
 
     await waitFor(() => assert.equal(calls.length, 1))
-    assert.equal(calls[0].force, undefined)
-    assert.strictEqual(calls[0].options, options)
+    assert.strictEqual(calls[0], options)
   })
 
   it('does not offer to silence the prompt for a missing worktree', () => {
@@ -117,7 +110,7 @@ describe('DeleteWorktreeDialog', () => {
 })
 
 describe('DeleteWorktreeFailedDialog', () => {
-  it('forwards the removal options unchanged when forcing', async () => {
+  it('forwards the removal options and adds force', async () => {
     const { calls, onDeleteWorktree } = recordDeletes()
     const view = render(
       <DeleteWorktreeFailedDialog
@@ -135,7 +128,6 @@ describe('DeleteWorktreeFailedDialog', () => {
     submit(view, 'Forcefully delete')
 
     await waitFor(() => assert.equal(calls.length, 1))
-    assert.equal(calls[0].force, true)
-    assert.strictEqual(calls[0].options, options)
+    assert.deepStrictEqual(calls[0], { ...options, force: true })
   })
 })

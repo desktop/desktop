@@ -23,8 +23,6 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
     const { worktree, isCurrentWorktree, matches } = this.props
     const name = getWorktreeDisplayName(worktree)
     const description = getWorktreeDescription(worktree)
-    // Git keeps listing a worktree after its folder has gone until something
-    // prunes it. There's nothing to switch to in that state.
     const isMissing = worktree.isPrunable
     const icon = isCurrentWorktree
       ? octicons.check
@@ -48,11 +46,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         >
           <HighlightText text={name} highlight={matches.title} />
         </TooltippedContent>
-        {isMissing && (
-          // Deliberately outside the name element above, which ellipsizes: a
-          // long folder name mustn't be able to hide this.
-          <div className="missing-indicator">(missing)</div>
-        )}
+        {isMissing && <div className="missing-indicator">(missing)</div>}
         <TooltippedContent
           className="description"
           tooltip={worktree.branch ?? worktree.head}

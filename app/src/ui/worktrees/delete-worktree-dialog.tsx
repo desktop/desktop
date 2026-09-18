@@ -16,7 +16,6 @@ interface IDeleteWorktreeDialogProps {
   readonly onDeleteWorktree: (
     repository: Repository,
     worktreePath: string,
-    force?: boolean,
     options?: IDeleteWorktreeOptions
   ) => Promise<void>
   readonly onConfirmWorktreeRemovalChanged: (value: boolean) => void
@@ -117,7 +116,6 @@ export class DeleteWorktreeDialog extends React.Component<
     await this.props.onDeleteWorktree(
       this.props.repository,
       this.props.worktreePath,
-      undefined,
       this.props.options
     )
     this.props.onDismissed()

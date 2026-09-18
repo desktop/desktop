@@ -53,16 +53,12 @@ describe('WorktreeListItem', () => {
   })
 
   it('still shows the branch of a missing worktree', () => {
-    // The branch is worth keeping visible: it tells the user which branch is
-    // being held by the worktree that's gone.
     renderItem(worktree({ isPrunable: true }))
 
     assert.notEqual(screen.queryByText('feature'), null)
   })
 
   it('keeps the missing marker out of the truncating name element', () => {
-    // The folder name ellipsizes; the marker has to sit outside it so a long
-    // name can't hide the fact that the worktree is unavailable.
     renderItem(worktree({ isPrunable: true }))
 
     const marker = screen.getByText('(missing)')

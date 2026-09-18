@@ -3023,13 +3023,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDeleteWorkTree = (
     repository: Repository,
     worktreePath: string,
-    force?: boolean,
     options?: IDeleteWorktreeOptions
   ) => {
     return this.props.dispatcher.deleteWorktree(
       repository,
       worktreePath,
-      force,
       options
     )
   }

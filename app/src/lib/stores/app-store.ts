@@ -437,7 +437,11 @@ import {
   findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
-import { IDeleteWorktreeOptions, WorktreeEntry } from '../../models/worktree'
+import {
+  IDeferredCheckout,
+  IDeleteWorktreeOptions,
+  WorktreeEntry,
+} from '../../models/worktree'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -6124,22 +6128,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _requestDeleteWorktree(
     repository: Repository,
     worktreePath: string,
-    checkout?: IDeleteWorktreeOptions['checkout']
+    checkout?: IDeferredCheckout
   ): void {
     const wt = this.repositoryStateCache
       .get(repository)
       .worktrees.find(wt => wt.path === worktreePath)
-
-    if (wt?.isLocked === true) {
-      const name = Path.basename(worktreePath)
-      this.emitError(
-        new Error(
-          `The worktree ${name} is locked. Unlock it before removing it.`
-        )
-      )
-      return
-    }
-
     const options = { isMissing: wt?.isPrunable === true, checkout }
 
     if (this.confirmWorktreeRemoval || options.isMissing) {
@@ -6150,8 +6143,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         options,
       })
     } else {
-      this._deleteWorktree(repository, worktreePath, undefined, options).catch(
-        e => this.emitError(e)
+      this._deleteWorktree(repository, worktreePath, options).catch(e =>
+        this.emitError(e)
       )
     }
   }
@@ -6160,7 +6153,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean,
     options: IDeleteWorktreeOptions = {}
   ): Promise<void> {
     if (options.isMissing === true) {
@@ -6168,7 +6160,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (!worktrees.some(wt => wt.path === worktreePath && wt.isPrunable)) {
         await this._refreshWorktrees(repository)
-        return this.resumeCheckout(repository, options)
+
+        if (options.checkout === undefined) {
+          const name = Path.basename(worktreePath)
+          this.emitError(
+            new Error(
+              `The worktree ${name} is available again and was left in place.`
+            )
+          )
+        }
+
+        return this.checkoutAfterRemoval(repository, options)
       }
     }
 
@@ -6193,7 +6195,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     try {
-      await removeWorktree(repository.path, worktreePath, force)
+      await removeWorktree(repository.path, worktreePath, options.force)
     } catch (e) {
       this._closePopup(PopupType.DeleteWorktree)
       this._closePopup(PopupType.DeleteWorktreeFailed)
@@ -6210,10 +6212,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._refreshWorktrees(repository)
     this.statsStore.increment('worktreeDeletedCount')
-    this.resumeCheckout(repository, options)
+    this.checkoutAfterRemoval(repository, options)
   }
 
-  private resumeCheckout(
+  private checkoutAfterRemoval(
     repository: Repository,
     { checkout }: IDeleteWorktreeOptions
   ) {

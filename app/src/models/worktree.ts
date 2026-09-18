@@ -16,18 +16,21 @@ export type WorktreeEntry = {
   readonly isPrunable: boolean
 }
 
+/** A checkout to run once the worktree holding its branch has been removed. */
+export interface IDeferredCheckout {
+  readonly branch: Branch
+  readonly strategy?: UncommittedChangesStrategy
+}
+
 /**
- * What a worktree removal was asked to do beyond `git worktree remove`.
- * Carried through the confirmation and failure dialogs so a retry keeps it.
+ * How a worktree is to be removed. Carried through the confirmation and
+ * failure dialogs so a retry keeps it.
  */
 export interface IDeleteWorktreeOptions {
+  readonly force?: boolean
   /** The worktree's folder was gone when removal was offered. */
   readonly isMissing?: boolean
-  /** Branch held by the worktree, to check out once it's been removed. */
-  readonly checkout?: {
-    readonly branch: Branch
-    readonly strategy?: UncommittedChangesStrategy
-  }
+  readonly checkout?: IDeferredCheckout
 }
 
 /** The display name for a worktree (the basename of its path). */
@@ -43,4 +46,12 @@ export function getWorktreeDescription(worktree: WorktreeEntry): string {
   return worktree.branch
     ? worktree.branch.replace(/^refs\/heads\//, '')
     : shortenSHA(worktree.head)
+}
+
+/** The accessible name for a worktree list row. */
+export function getWorktreeAriaLabel(worktree: WorktreeEntry): string {
+  const missing = worktree.isPrunable ? ', missing' : ''
+  return `${getWorktreeDisplayName(
+    worktree
+  )}${missing}, ${getWorktreeDescription(worktree)}`
 }
