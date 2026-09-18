@@ -4195,6 +4195,11 @@ export class Dispatcher {
     return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
   }
 
+  /** Set whether the worktree list is shown even without linked worktrees. */
+  public setAlwaysShowWorktreeList(alwaysShowWorktreeList: boolean) {
+    return this.appStore._setAlwaysShowWorktreeList(alwaysShowWorktreeList)
+  }
+
   public setPreferAbsoluteDates(value: boolean) {
     return this.appStore._setPreferAbsoluteDates(value)
   }
