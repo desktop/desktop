@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.6.7-beta1": [
+      "[Fixed] Fix \"Open in Cygwin\" integration for repository folders whose names contain spaces or punctuation - #22883",
+      "[Fixed] Correctly handle branch, remote, and tag names that start with a dash across fetch, push, checkout, merge, rebase, and worktree operations - #22862"
+    ],
     "3.6.6": [
       "[Improved] Ask for confirmation before revealing certain folders in Finder - #22872",
       "[Improved] Improve how .gitignore files are handled - #22872"
