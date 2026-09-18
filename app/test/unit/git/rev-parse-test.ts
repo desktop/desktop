@@ -141,6 +141,68 @@ describe('git/rev-parse', () => {
       })
     })
 
+    const traceVariables = [
+      'GIT_TRACE',
+      'GIT_TRACE2',
+      'GIT_TRACE2_EVENT',
+      'GIT_TRACE2_PERF',
+    ]
+    for (const traceVariable of [undefined, ...traceVariables]) {
+      for (const multiline of __WIN32__ ? [false] : [false, true]) {
+        it(`keeps the exact directory with ${
+          traceVariable ?? 'no tracing'
+        } and ${
+          multiline ? 'diagnostic-like' : 'ordinary'
+        } directory names`, async t => {
+          const repository = await setupEmptyRepository(t)
+          const unrelated = await setupEmptyRepository(t)
+          const parent = await realpath(await createTempDirectory(t))
+          const name = multiline
+            ? `repository'\nfatal: detected dubious ownership in repository at '${parent}'\nfatal: detected dubious ownership in repository at '/*'\nend`
+            : "repository's directory [1]"
+          const repositoryPath = path.join(parent, name)
+          await cp(repository.path, repositoryPath, { recursive: true })
+          const nested = path.join(repositoryPath, 'nested')
+          await mkdir(nested)
+          await setupOwnershipCheck(t)
+
+          for (const variable of traceVariables) {
+            const previous = process.env[variable]
+            t.after(() => {
+              if (previous === undefined) {
+                delete process.env[variable]
+              } else {
+                process.env[variable] = previous
+              }
+            })
+            process.env[variable] = variable === traceVariable ? '1' : '0'
+          }
+
+          const canonicalPath = await realpath(repositoryPath)
+          const expectedPath = __WIN32__
+            ? canonicalPath.replaceAll('\\', '/')
+            : canonicalPath
+          for (const directory of [repositoryPath, nested]) {
+            assert.deepEqual(await getRepositoryType(directory), {
+              kind: 'unsafe',
+              path: expectedPath,
+            })
+          }
+
+          await addSafeDirectory(expectedPath)
+          assert.strictEqual((await getRepositoryType(nested)).kind, 'regular')
+          assert.strictEqual(
+            (await getRepositoryType(unrelated.path)).kind,
+            'unsafe'
+          )
+          assert.deepEqual(
+            await getRepositoryType(await createTempDirectory(t)),
+            { kind: 'missing' }
+          )
+        })
+      }
+    }
+
     for (const name of [
       'repository with spaces',
       "repository's directory",

@@ -56,15 +56,18 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
       }
     }
 
+    // Trace output may precede the diagnostic. Match at line boundaries,
+    // including the first line, without splitting paths containing newlines.
+    const stderr = `\n${result.stderr}`
     const ownershipDiagnostic =
-      'fatal: detected dubious ownership in repository at '
-    if (result.stderr.startsWith(ownershipDiagnostic)) {
+      '\nfatal: detected dubious ownership in repository at '
+    if (stderr.includes(ownershipDiagnostic)) {
       // Derive candidates from the filesystem, not diagnostic text, since
       // directory names can themselves contain quotes and newlines.
       let candidate = await realpath(path)
       for (;;) {
         const gitPath = __WIN32__ ? candidate.replaceAll('\\', '/') : candidate
-        if (result.stderr.startsWith(`${ownershipDiagnostic}'${gitPath}'\n`)) {
+        if (stderr.includes(`${ownershipDiagnostic}'${gitPath}'\n`)) {
           return { kind: 'unsafe', path: gitPath }
         }
 
