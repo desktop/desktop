@@ -99,7 +99,7 @@
     "ts-loader": "^9",
     "ts-node": "^7.0.0",
     "typescript": "^5.8.2",
-    "webpack": "^5.104.1",
+    "webpack": "^5.111.0",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-middleware": "^5.3.4",
     "webpack-hot-middleware": "^2.25.1",
