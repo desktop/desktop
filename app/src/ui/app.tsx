@@ -225,7 +225,7 @@ import { AddWorktreeDialog } from './worktrees/add-worktree-dialog'
 import { RenameWorktreeDialog } from './worktrees/rename-worktree-dialog'
 import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-dialog'
-import { WorktreeEntry } from '../models/worktree'
+import { IDeleteWorktreeOptions, WorktreeEntry } from '../models/worktree'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2981,6 +2981,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="delete-worktree"
             repository={popup.repository}
             worktreePath={popup.worktreePath}
+            options={popup.options}
             askForConfirmationOnWorktreeRemoval={
               this.state.askForConfirmationOnWorktreeRemoval
             }
@@ -3000,6 +3001,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             worktreePath={popup.worktreePath}
             error={popup.error}
             originalWorktree={popup.originalWorktree}
+            options={popup.options}
             onDeleteWorktree={this.onDeleteWorkTree}
             onSwitchToWorktree={this.onSwitchToWorktree}
             onDismissed={onPopupDismissedFn}
@@ -3021,9 +3023,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDeleteWorkTree = (
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options?: IDeleteWorktreeOptions
   ) => {
-    return this.props.dispatcher.deleteWorktree(repository, worktreePath, force)
+    return this.props.dispatcher.deleteWorktree(
+      repository,
+      worktreePath,
+      options
+    )
   }
 
   private onConfirmWorktreeRemovalChanged = (value: boolean) => {

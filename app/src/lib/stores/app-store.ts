@@ -437,7 +437,11 @@ import {
   findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
-import { WorktreeEntry } from '../../models/worktree'
+import {
+  IDeferredCheckout,
+  IDeleteWorktreeOptions,
+  WorktreeEntry,
+} from '../../models/worktree'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -4596,10 +4600,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // If the branch is checked out in another worktree, switch to that worktree
-    // instead of checking out the branch in the current worktree.
-    const wt = repositoryState.worktrees.find(wt => wt.branch === branch.ref)
+    // instead of checking out the branch in the current worktree. Git considers
+    // a branch held by a worktree whose folder has gone to still be in use, so
+    // that worktree has to be removed before the branch can be checked out.
+    await this._refreshWorktrees(repository)
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.branch === branch.ref)
 
     if (wt) {
+      if (wt.isPrunable) {
+        this._requestDeleteWorktree(repository, wt.path, {
+          branch,
+          strategy: explicitStrategy,
+        })
+        return repository
+      }
+
       return this._switchWorktree(repository, wt)
     }
 
@@ -6110,16 +6127,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public _requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    checkout?: IDeferredCheckout
   ): void {
-    if (this.confirmWorktreeRemoval) {
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.path === worktreePath)
+    const options = { isMissing: wt?.isPrunable === true, checkout }
+
+    if (this.confirmWorktreeRemoval || options.isMissing) {
       this._showPopup({
         type: PopupType.DeleteWorktree,
         repository,
         worktreePath,
+        options,
       })
     } else {
-      this._deleteWorktree(repository, worktreePath).catch(e =>
+      this._deleteWorktree(repository, worktreePath, options).catch(e =>
         this.emitError(e)
       )
     }
@@ -6129,8 +6153,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options: IDeleteWorktreeOptions = {}
   ): Promise<void> {
+    if (options.isMissing === true) {
+      const worktrees = await listWorktrees(repository)
+
+      if (!worktrees.some(wt => wt.path === worktreePath && wt.isPrunable)) {
+        await this._refreshWorktrees(repository)
+
+        if (options.checkout === undefined) {
+          const name = Path.basename(worktreePath)
+          this.emitError(
+            new Error(
+              `The worktree ${name} is available again and was left in place.`
+            )
+          )
+        }
+
+        return this.checkoutAfterRemoval(repository, options)
+      }
+    }
+
     const isDeletingCurrentWorktree = repository.path === worktreePath
     let originalWorktree: WorktreeEntry | null = null
 
@@ -6152,7 +6195,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     try {
-      await removeWorktree(repository.path, worktreePath, force)
+      await removeWorktree(repository.path, worktreePath, options.force)
     } catch (e) {
       this._closePopup(PopupType.DeleteWorktree)
       this._closePopup(PopupType.DeleteWorktreeFailed)
@@ -6162,12 +6205,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
         worktreePath,
         error: e,
         originalWorktree,
+        options,
       })
       return
     }
 
     await this._refreshWorktrees(repository)
     this.statsStore.increment('worktreeDeletedCount')
+    this.checkoutAfterRemoval(repository, options)
+  }
+
+  private checkoutAfterRemoval(
+    repository: Repository,
+    { checkout }: IDeleteWorktreeOptions
+  ) {
+    if (checkout !== undefined) {
+      this._checkoutBranch(
+        repository,
+        checkout.branch,
+        checkout.strategy
+      ).catch(e => this.emitError(e))
+    }
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
