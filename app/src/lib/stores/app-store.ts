@@ -437,7 +437,7 @@ import {
   findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
-import { WorktreeEntry } from '../../models/worktree'
+import { IDeleteWorktreeOptions, WorktreeEntry } from '../../models/worktree'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -4596,18 +4596,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // If the branch is checked out in another worktree, switch to that worktree
-    // instead of checking out the branch in the current worktree. Note that the
-    // search is deliberately over the unfiltered worktree list: git considers a
-    // branch held by a worktree whose folder has gone to still be in use, so it
-    // would refuse to check it out here.
+    // instead of checking out the branch in the current worktree. Git considers
+    // a branch held by a worktree whose folder has gone to still be in use, so
+    // that worktree has to be removed before the branch can be checked out.
     const wt = repositoryState.worktrees.find(wt => wt.branch === branch.ref)
 
     if (wt) {
-      // The folder is gone, so there's nothing to switch to and git won't let
-      // us check the branch out until the worktree is removed. Offer to do
-      // that and then carry on with the checkout the user asked for.
       if (wt.isPrunable) {
-        this._requestDeleteWorktree(repository, wt.path, true, branch)
+        this._requestDeleteWorktree(repository, wt.path, {
+          branch,
+          strategy: explicitStrategy,
+        })
         return repository
       }
 
@@ -6122,24 +6121,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _requestDeleteWorktree(
     repository: Repository,
     worktreePath: string,
-    isMissing: boolean = false,
-    branchToCheckout?: Branch
+    checkout?: IDeleteWorktreeOptions['checkout']
   ): void {
-    if (this.confirmWorktreeRemoval || isMissing) {
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.path === worktreePath)
+
+    if (wt?.isLocked === true) {
+      const name = Path.basename(worktreePath)
+      this.emitError(
+        new Error(
+          `The worktree ${name} is locked. Unlock it before removing it.`
+        )
+      )
+      return
+    }
+
+    const options = { isMissing: wt?.isPrunable === true, checkout }
+
+    if (this.confirmWorktreeRemoval || options.isMissing) {
       this._showPopup({
         type: PopupType.DeleteWorktree,
         repository,
         worktreePath,
-        isMissing,
-        branchToCheckout,
+        options,
       })
     } else {
-      this._deleteWorktree(
-        repository,
-        worktreePath,
-        undefined,
-        branchToCheckout
-      ).catch(e => this.emitError(e))
+      this._deleteWorktree(repository, worktreePath, undefined, options).catch(
+        e => this.emitError(e)
+      )
     }
   }
 
@@ -6148,8 +6158,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     worktreePath: string,
     force?: boolean,
-    branchToCheckout?: Branch
+    options: IDeleteWorktreeOptions = {}
   ): Promise<void> {
+    if (options.isMissing === true) {
+      const worktrees = await listWorktrees(repository)
+
+      if (!worktrees.some(wt => wt.path === worktreePath && wt.isPrunable)) {
+        await this._refreshWorktrees(repository)
+        return this.resumeCheckout(repository, options)
+      }
+    }
+
     const isDeletingCurrentWorktree = repository.path === worktreePath
     let originalWorktree: WorktreeEntry | null = null
 
@@ -6181,17 +6200,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
         worktreePath,
         error: e,
         originalWorktree,
+        options,
       })
       return
     }
 
     await this._refreshWorktrees(repository)
     this.statsStore.increment('worktreeDeletedCount')
+    this.resumeCheckout(repository, options)
+  }
 
-    // Removing the worktree releases whichever branch it was holding, so a
-    // checkout that was blocked by it can go ahead now.
-    if (branchToCheckout !== undefined) {
-      await this._checkoutBranch(repository, branchToCheckout)
+  private resumeCheckout(
+    repository: Repository,
+    { checkout }: IDeleteWorktreeOptions
+  ) {
+    if (checkout !== undefined) {
+      this._checkoutBranch(
+        repository,
+        checkout.branch,
+        checkout.strategy
+      ).catch(e => this.emitError(e))
     }
   }
 

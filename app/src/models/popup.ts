@@ -27,7 +27,7 @@ import { ISecretScanResult } from '../ui/secret-scanning/push-protection-error-d
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
 import { TerminalOutput, TerminalOutputListener } from '../lib/git'
 import type { IBYOKModel, IBYOKProvider } from '../lib/copilot/byok'
-import { WorktreeEntry } from './worktree'
+import { IDeleteWorktreeOptions, WorktreeEntry } from './worktree'
 
 export enum PopupType {
   RenameBranch = 'RenameBranch',
@@ -542,13 +542,7 @@ export type PopupDetail =
       type: PopupType.DeleteWorktree
       repository: Repository
       worktreePath: string
-      /**
-       * Whether the worktree's folder is already gone, in which case removing
-       * it only clears the repository's record of it.
-       */
-      isMissing?: boolean
-      /** Branch to check out once the worktree has been removed, if any. */
-      branchToCheckout?: Branch
+      options: IDeleteWorktreeOptions
     }
   | {
       type: PopupType.DeleteWorktreeFailed
@@ -556,5 +550,6 @@ export type PopupDetail =
       worktreePath: string
       error: Error
       originalWorktree: WorktreeEntry | null
+      options: IDeleteWorktreeOptions
     }
 export type Popup = IBasePopup & PopupDetail

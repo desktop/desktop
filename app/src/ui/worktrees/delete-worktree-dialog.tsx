@@ -5,26 +5,19 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
+import { IDeleteWorktreeOptions } from '../../models/worktree'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IDeleteWorktreeDialogProps {
   readonly repository: Repository
   readonly worktreePath: string
-  /**
-   * Whether the worktree's folder is already gone. Removing it then only clears
-   * the repository's record of it, so the wording differs and there's nothing
-   * destructive to opt out of confirming.
-   */
-  readonly isMissing: boolean
-  /** Branch to check out once the worktree has been removed, if any. */
-  readonly branchToCheckout?: Branch
+  readonly options: IDeleteWorktreeOptions
   readonly askForConfirmationOnWorktreeRemoval: boolean
   readonly onDeleteWorktree: (
     repository: Repository,
     worktreePath: string,
     force?: boolean,
-    branchToCheckout?: Branch
+    options?: IDeleteWorktreeOptions
   ) => Promise<void>
   readonly onConfirmWorktreeRemovalChanged: (value: boolean) => void
   readonly onDismissed: () => void
@@ -49,7 +42,7 @@ export class DeleteWorktreeDialog extends React.Component<
   }
 
   public render() {
-    const { isMissing } = this.props
+    const isMissing = this.props.options.isMissing === true
     const name = Path.basename(this.props.worktreePath)
 
     const title = isMissing
@@ -85,10 +78,6 @@ export class DeleteWorktreeDialog extends React.Component<
               </>
             )}
           </p>
-          {/*
-            Only offered for a real deletion. Opting out from here would also
-            silence the confirmation for worktrees that still have contents.
-          */}
           {!isMissing && (
             <Checkbox
               label="Do not show this message again"
@@ -129,7 +118,7 @@ export class DeleteWorktreeDialog extends React.Component<
       this.props.repository,
       this.props.worktreePath,
       undefined,
-      this.props.branchToCheckout
+      this.props.options
     )
     this.props.onDismissed()
   }
