@@ -93,7 +93,7 @@ describe('CIStatus', () => {
       const tooltip = screen.getByRole('tooltip', { hidden: true })
       assert.strictEqual(tooltip.textContent, `Checks: ${description}`)
       assert.notStrictEqual(tooltip.style.visibility, 'hidden')
-      assert.strictEqual(icon.getAttribute('aria-describedby'), tooltip.id)
+      assert.strictEqual(icon.getAttribute('aria-describedby'), null)
     })
   }
 
