@@ -4599,7 +4599,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // instead of checking out the branch in the current worktree. Git considers
     // a branch held by a worktree whose folder has gone to still be in use, so
     // that worktree has to be removed before the branch can be checked out.
-    const wt = repositoryState.worktrees.find(wt => wt.branch === branch.ref)
+    await this._refreshWorktrees(repository)
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.branch === branch.ref)
 
     if (wt) {
       if (wt.isPrunable) {
