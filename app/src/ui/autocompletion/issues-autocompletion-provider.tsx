@@ -4,6 +4,7 @@ import { IssuesStore, IIssueHit } from '../../lib/stores/issues-store'
 import { Dispatcher } from '../dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 /** The interval we should use to throttle the issues update. */
 const UpdateIssuesThrottleInterval = 1000 * 60
@@ -54,9 +55,20 @@ export class IssuesAutocompletionProvider
     return (
       <div className="issue" key={item.number}>
         <span className="number">#{item.number}</span>&nbsp;
-        <span className="title">{item.title}</span>
+        <TooltippedContent
+          className="title"
+          tagName="span"
+          tooltip={item.title}
+          onlyWhenOverflowed={true}
+        >
+          {item.title}
+        </TooltippedContent>
       </div>
     )
+  }
+
+  public getItemAriaLabel(item: IIssueHit): string {
+    return `#${item.number} ${item.title}`
   }
 
   public getCompletionText(item: IIssueHit): string {
