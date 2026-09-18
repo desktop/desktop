@@ -101,3 +101,9 @@ Tests should use realistic caller inputs and verify resulting commits, tracking
 configuration, file contents, and expected errors, not only successful exit
 codes. Cover ordinary names as well as supported leading-dash names. Document
 command-specific exceptions near the code that handles them.
+
+When consuming Git output, prefer machine-readable formats with explicit record
+delimiters, such as `git config --null`, over human-readable listings. Preserve
+whitespace in values: split only on the documented delimiters and remove only
+terminators added by Git. Cover embedded delimiters and URL rewrites in tests
+when changing remote discovery.
