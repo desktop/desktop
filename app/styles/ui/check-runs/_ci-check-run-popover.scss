@@ -65,6 +65,12 @@
         height: 30px;
       }
 
+      .completeness-indicator-success,
+      .completeness-indicator-error {
+        background-color: var(--background-color);
+        border-radius: 50%;
+      }
+
       .completeness-indicator-success {
         color: $green-500;
       }

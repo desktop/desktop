@@ -66,7 +66,8 @@ const StatsEndpoint =
   'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
 
 /** The URL to the stats samples page. */
-export const SamplesURL = 'https://desktop.github.com/usage-data/'
+export const SamplesURL =
+  'https://github.com/desktop/desktop/blob/development/docs/process/usage-data.md'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
@@ -513,7 +514,7 @@ function stringifyDimensions<
  * This conversion stays at the HTTP boundary so the legacy Central path can
  * continue sending the original payload unchanged.
  */
-function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
+export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
   if (body.eventType === 'ping') {
     return {
       events: [

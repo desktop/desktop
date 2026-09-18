@@ -527,8 +527,21 @@ dialog {
   &#preferences {
     width: 600px;
 
+    @media (max-height: 650px) {
+      .dialog-content,
+      .tab-bar,
+      .tab-container {
+        overflow-y: auto;
+        max-height: calc(100vh - 150px) !important;
+      }
+
+      .dialog-content {
+        min-height: calc(100vh - 150px) !important;
+      }
+    }
+
     .dialog-content {
-      $default-tab-height: 440px;
+      $default-tab-height: 500px;
       min-height: $default-tab-height;
 
       &.accounts-tab {
