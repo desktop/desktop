@@ -36,7 +36,7 @@ export async function getAuthorIdentity(
 
   try {
     return CommitIdentity.parseIdentity(result.stdout)
-  } catch (err) {
+  } catch {
     return null
   }
 }

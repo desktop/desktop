@@ -264,7 +264,7 @@ async function handleCommandLineArguments(argv: string[]) {
         try {
           new URL(arg)
           return true
-        } catch (e) {
+        } catch {
           log.error(`Unable to parse argument as URL: ${arg}`)
         }
       }

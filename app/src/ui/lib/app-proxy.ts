@@ -60,7 +60,7 @@ export async function getDocumentsPath(): Promise<string> {
   if (!documentsPath) {
     try {
       documentsPath = await getPath('documents')
-    } catch (ex) {
+    } catch {
       // a user profile may not have the Documents folder defined on Windows
       documentsPath = await getPath('home')
     }
