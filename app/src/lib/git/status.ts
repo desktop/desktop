@@ -444,7 +444,7 @@ async function getWorkingDirectoryConflictDetails(
       'HEAD',
       conflictedFilesInIndex
     )
-  } catch (error) {}
+  } catch {}
 
   return {
     conflictCountsByPath,

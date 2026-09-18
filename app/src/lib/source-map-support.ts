@@ -37,7 +37,7 @@ function retrieveSourceMap(source: string) {
       if (xhr.readyState === 4 && xhr.status === 200) {
         return { url: Path.basename(path), map: xhr.responseText }
       }
-    } catch (error) {
+    } catch {
       return null
     }
     return null
@@ -56,7 +56,7 @@ function retrieveSourceMap(source: string) {
     // eslint-disable-next-line no-sync
     const map = Fs.readFileSync(path, 'utf8')
     return { url: Path.basename(path), map }
-  } catch (error) {
+  } catch {
     return null
   }
 }
