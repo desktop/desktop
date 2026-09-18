@@ -35,7 +35,9 @@ $ yarn check:eslint
 ```
 
 The `eslint-rules/tsconfig.json` is setup to guide `tsc` to understand the environment for running the ESlint rules, and each rule is annotated
-with `@type` hints wherever possible to appease the typechecker.
+with `@type` hints wherever possible to appease the typechecker. Rules and their
+tests are checked in strict mode. TypeScript-aware rules use the `TSESTree` and
+`TSESLint` types from `@typescript-eslint/utils`.
 
 ## Testing locally
 
@@ -46,6 +48,28 @@ $ yarn test:eslint
 ```
 
 Each test suite is designed to exercise the relevant rule against code snippets that illustrate both valid and invalid code, and indicate which messages should be reported in case of failure.
+
+Name test files `*-test.mjs` so the Node.js test runner discovers them. Use
+ESLint's `RuleTester` for JavaScript rules, or the typed `TSESLint.RuleTester`
+wrapper from `@typescript-eslint/utils` for TypeScript rules. Resolve the
+TypeScript parser with
+`fileURLToPath(import.meta.resolve('@typescript-eslint/parser'))`.
+
+The recommended TypeScript lint preset remains enabled. When updating it,
+compare the effective configuration (`yarn eslint --print-config <file>`)
+before and after the upgrade, retaining checks removed from the preset and
+using replacements for renamed rules. For example, `no-empty-object-type` with
+`allowInterfaces: never` and `allowObjectTypes: always` preserves
+`no-empty-interface` without adding the empty object type restriction from the
+previously disabled `ban-types` rule. ESLint's core
+`no-loss-of-precision` replaces the removed TypeScript extension rule.
+
+The disabled `no-var-requires` rule maps to disabled `no-require-imports`:
+Electron renderer callbacks and startup paths can require synchronous CommonJS
+loading. This retains the previous policy rather than forcing asynchronous
+imports or changing where those modules execute. Other newly recommended
+checks, including `no-wrapper-object-types` and `no-unsafe-function-type`,
+remain enabled.
 
 If you wish to debug the rules using VSCode, add this action to the `configurations` array of the `.vscode/launch.json` settings:
 
