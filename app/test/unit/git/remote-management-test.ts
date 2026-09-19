@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { beforeEach, describe, it } from 'node:test'
 import { git } from '../../../src/lib/git/core'
 import {
   addRemote,
@@ -9,8 +9,11 @@ import {
   updateRemoteHEAD,
 } from '../../../src/lib/git/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
+import { isolateGitConfig } from '../../helpers/git-config'
 
 describe('git/remote management', () => {
+  beforeEach(isolateGitConfig)
+
   describe('updateRemoteHEAD', () => {
     for (const name of ['origin', '--remote']) {
       for (const isBackgroundTask of [false, true]) {
@@ -94,7 +97,7 @@ describe('git/remote management', () => {
           'set up distinct push URL'
         )
 
-        assert.strictEqual(await getRemoteURL(repository, name), `${url}\n`)
+        assert.strictEqual(await getRemoteURL(repository, name), url)
       })
 
       it(`returns null for missing remote ${name}`, async t => {
