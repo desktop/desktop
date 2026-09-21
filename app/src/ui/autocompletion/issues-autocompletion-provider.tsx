@@ -51,7 +51,11 @@ export class IssuesAutocompletionProvider
     return this.issuesStore.getIssuesMatching(this.repository, text)
   }
 
-  public renderItem(item: IIssueHit): JSX.Element {
+  public renderItem(item: IIssueHit, selected: boolean): JSX.Element {
+    // Keyboard users never focus the list itself, they move the selection with
+    // the arrow keys while focus stays in the input, so the selected item is
+    // what stands in for focus here. There's no pointer to anchor to in that
+    // case, hence positioning the tooltip relative to the title instead.
     return (
       <div className="issue" key={item.number}>
         <span className="number">#{item.number}</span>&nbsp;
@@ -60,6 +64,8 @@ export class IssuesAutocompletionProvider
           tagName="span"
           tooltip={item.title}
           onlyWhenOverflowed={true}
+          ancestorFocused={selected}
+          positionRelativeToTarget={selected}
         >
           {item.title}
         </TooltippedContent>

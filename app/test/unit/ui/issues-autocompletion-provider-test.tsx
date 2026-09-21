@@ -66,21 +66,26 @@ function stubOverflow(
   })
 }
 
-function renderIssueItem() {
-  const view = render(createProvider().renderItem(issue))
+function renderIssueItem(selected = false) {
+  const provider = createProvider()
+  const view = render(provider.renderItem(issue, selected))
   const title = view.container.querySelector('.title')
 
   if (title === null) {
     throw new Error('Expected the issue title to be rendered')
   }
 
-  return { view, title }
+  return { view, title, provider }
 }
 
 function hover(element: Element) {
   fireEvent.mouseEnter(element, { clientX: 20, clientY: 20 })
   fireEvent.mouseMove(element, { clientX: 20, clientY: 20 })
   advanceTimersBy(TooltipDelay)
+}
+
+function tooltipContent() {
+  return screen.queryByText(issue.title, { selector: '.tooltip-content' })
 }
 
 describe('IssuesAutocompletionProvider', () => {
@@ -112,10 +117,7 @@ describe('IssuesAutocompletionProvider', () => {
     stubOverflow(title, 400, 100)
     hover(title)
 
-    assert.notEqual(
-      screen.queryByText(issue.title, { selector: '.tooltip-content' }),
-      null
-    )
+    assert.notEqual(tooltipContent(), null)
   })
 
   it('does not show a tooltip when the title fits', () => {
@@ -124,9 +126,40 @@ describe('IssuesAutocompletionProvider', () => {
     stubOverflow(title, 100, 100)
     hover(title)
 
-    assert.equal(
-      screen.queryByText(issue.title, { selector: '.tooltip-content' }),
-      null
-    )
+    assert.equal(tooltipContent(), null)
+  })
+
+  it('shows a tooltip when the item becomes selected via the keyboard', () => {
+    const { view, title, provider } = renderIssueItem()
+
+    stubOverflow(title, 400, 100)
+    view.rerender(provider.renderItem(issue, true))
+    advanceTimersBy(TooltipDelay)
+
+    assert.notEqual(tooltipContent(), null)
+  })
+
+  it('hides the tooltip when the selection moves off the item', () => {
+    const { view, title, provider } = renderIssueItem()
+
+    stubOverflow(title, 400, 100)
+    view.rerender(provider.renderItem(issue, true))
+    advanceTimersBy(TooltipDelay)
+    assert.notEqual(tooltipContent(), null)
+
+    view.rerender(provider.renderItem(issue, false))
+    advanceTimersBy(TooltipDelay)
+
+    assert.equal(tooltipContent(), null)
+  })
+
+  it('does not show a tooltip on keyboard selection when the title fits', () => {
+    const { view, title, provider } = renderIssueItem()
+
+    stubOverflow(title, 100, 100)
+    view.rerender(provider.renderItem(issue, true))
+    advanceTimersBy(TooltipDelay)
+
+    assert.equal(tooltipContent(), null)
   })
 })
