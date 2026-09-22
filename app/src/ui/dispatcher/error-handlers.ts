@@ -150,7 +150,21 @@ export async function externalEditorErrorHandler(
     return error
   }
 
-  const { suggestDefaultEditor, openPreferences } = e.metadata
+  const {
+    suggestDefaultEditor,
+    openPreferences,
+    openRepositorySettings,
+    repository,
+  } = e.metadata
+
+  if (openRepositorySettings && repository instanceof Repository) {
+    await dispatcher.showPopup({
+      type: PopupType.RepositoryEditorNotFound,
+      message: e.message,
+      repository,
+    })
+    return null
+  }
 
   await dispatcher.showPopup({
     type: PopupType.ExternalEditorFailed,

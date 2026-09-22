@@ -80,7 +80,11 @@ import { ConfirmDeleteCopilotBYOKProviderDialog } from './copilot/confirm-delete
 import type { IBYOKProvider } from '../lib/copilot/byok'
 import { getConflictResolutionModelDisplay } from '../lib/copilot/conflict-resolution-model'
 import { OpenWithExternalEditor } from './open-with-external-editor/open-with-external-editor'
-import { RepositorySettings } from './repository-settings'
+import {
+  RepositorySettings,
+  RepositorySettingsTab,
+} from './repository-settings'
+import { RepositoryEditorNotFound } from './repository-editor-not-found'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -1374,6 +1378,17 @@ export class App extends React.Component<IAppProps, IAppState> {
    * `undefined` if the user has selected a custom editor.
    */
   private get externalEditorLabel() {
+    const repository = this.getRepository()
+    if (repository instanceof Repository) {
+      if (repository.preferredCustomEditor) {
+        return undefined
+      }
+
+      if (repository.preferredExternalEditor != null) {
+        return repository.preferredExternalEditor
+      }
+    }
+
     return this.state.useCustomEditor
       ? undefined
       : this.state.selectedExternalEditor ?? undefined
@@ -1837,6 +1852,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
+            globalExternalEditor={this.state.selectedExternalEditor}
+            onEditorPreferenceChanged={this.saveRepositoryEditorPreference}
           />
         )
       }
@@ -2067,13 +2084,36 @@ export class App extends React.Component<IAppProps, IAppState> {
             suggestDefaultEditor={suggestDefaultEditor}
           />
         )
-      case PopupType.OpenWithExternalEditor:
+      case PopupType.RepositoryEditorNotFound:
         return (
-          <OpenWithExternalEditor
+          <RepositoryEditorNotFound
+            key="repository-editor-not-found"
+            message={popup.message}
+            repository={popup.repository}
             onDismissed={onPopupDismissedFn}
-            onOpenWithEditor={this.openRepositoryInSelectedEditor}
+            onUseGlobalDefault={this.clearRepositoryEditorPreference}
+            onOpenRepositorySettings={this.showRepositoryEditorSettings}
           />
         )
+      case PopupType.OpenWithExternalEditor: {
+        const repositoryForEditor = this.getRepository()
+        const isRepository = repositoryForEditor instanceof Repository
+        const repositoryName = isRepository
+          ? repositoryForEditor.alias || repositoryForEditor.name
+          : undefined
+
+        return (
+          <OpenWithExternalEditor
+            key="open-with-external-editor"
+            onDismissed={onPopupDismissedFn}
+            onOpenWithEditor={this.openRepositoryInSelectedEditor}
+            onSavePreference={
+              isRepository ? this.saveRepositoryEditorPreference : undefined
+            }
+            repositoryName={repositoryName}
+          />
+        )
+      }
       case PopupType.OpenShellFailed:
         return (
           <ShellError
@@ -3399,6 +3439,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private openFileInExternalEditor = (fullPath: string) => {
+    const repository = this.getRepository()
+    if (repository instanceof Repository) {
+      this.props.dispatcher.openInExternalEditor(fullPath, repository)
+      return
+    }
+
     this.props.dispatcher.openInExternalEditor(fullPath)
   }
 
@@ -3409,7 +3455,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    this.props.dispatcher.openInExternalEditor(repository.path)
+    this.props.dispatcher.openInExternalEditor(repository.path, repository)
   }
 
   private openRepositoryInSelectedEditor = async (
@@ -3428,6 +3474,38 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private saveRepositoryEditorPreference = async (
+    editor: string | null,
+    customEditor: ICustomIntegration | null
+  ): Promise<void> => {
+    const repository = this.getRepository()
+    if (!(repository instanceof Repository)) {
+      return
+    }
+
+    await this.props.dispatcher.updateRepositoryEditorPreference(
+      repository,
+      editor,
+      customEditor
+    )
+  }
+
+  private clearRepositoryEditorPreference = async (repository: Repository) => {
+    await this.props.dispatcher.updateRepositoryEditorPreference(
+      repository,
+      null,
+      null
+    )
+  }
+
+  private showRepositoryEditorSettings = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository,
+      initialSelectedTab: RepositorySettingsTab.Editor,
+    })
+  }
+
   private onOpenInExternalEditor = (path: string) => {
     const repository = this.state.selectedState?.repository
     if (repository === undefined) {
@@ -3435,6 +3513,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const fullPath = Path.join(repository.path, path)
+    if (repository instanceof Repository) {
+      this.props.dispatcher.openInExternalEditor(fullPath, repository)
+      return
+    }
+
     this.props.dispatcher.openInExternalEditor(fullPath)
   }
 
