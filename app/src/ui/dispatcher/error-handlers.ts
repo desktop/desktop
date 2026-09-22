@@ -426,7 +426,7 @@ export async function refusedWorkflowUpdate(
 }
 
 const samlReauthErrorMessageRe =
-  /`([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
+  /'([^']+)' organization has enabled or enforced SAML SSO.*?you must re-authorize/s
 
 /**
  * Attempts to detect whether an error is the result of a failed push

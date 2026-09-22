@@ -14,10 +14,48 @@ import {
 } from '../../../src/lib/git'
 
 import { setupFixtureRepository } from '../../helpers/repositories'
-import { realpath } from 'fs/promises'
+import { mkdir, readFile, realpath } from 'fs/promises'
 import { createTempDirectory } from '../../helpers/temp'
+import { setupOwnershipCheck } from '../../helpers/ownership-check'
+import { addSafeDirectory } from '../../../src/lib/git/config'
 
 describe('git/config', () => {
+  describe('addSafeDirectory', () => {
+    for (const value of [
+      '*',
+      '/*',
+      '/shared/*',
+      '~/repository',
+      '%(prefix)/repository',
+      'relative',
+    ]) {
+      it(`rejects non-exact directory ${JSON.stringify(value)}`, async t => {
+        const configPath = await setupOwnershipCheck(t)
+        const before = await readFile(configPath, 'utf8')
+
+        await assert.rejects(addSafeDirectory(value))
+
+        assert.strictEqual(await readFile(configPath, 'utf8'), before)
+      })
+    }
+
+    it(
+      'rejects an existing directory whose name denotes a subtree',
+      { skip: __WIN32__ },
+      async t => {
+        const parent = await createTempDirectory(t)
+        const directory = Path.join(parent, '*')
+        await mkdir(directory)
+        const configPath = await setupOwnershipCheck(t)
+        const before = await readFile(configPath, 'utf8')
+
+        await assert.rejects(addSafeDirectory(`${directory}/`))
+
+        assert.strictEqual(await readFile(configPath, 'utf8'), before)
+      }
+    )
+  })
+
   describe('config', () => {
     it('looks up config values', async t => {
       const testRepoPath = await setupFixtureRepository(t, 'test-repo')

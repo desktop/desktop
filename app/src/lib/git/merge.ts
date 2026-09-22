@@ -48,7 +48,7 @@ export async function merge(
     args.push('--no-verify')
   }
 
-  args.push(branch)
+  args.push('--', branch)
 
   const { exitCode, stdout } = await git(args, repository.path, 'merge', {
     expectedErrors: new Set([GitError.MergeConflicts]),
@@ -104,7 +104,7 @@ export async function getMergeBase(
   secondCommitish: string
 ): Promise<string | null> {
   const process = await git(
-    ['merge-base', firstCommitish, secondCommitish],
+    ['merge-base', '--', firstCommitish, secondCommitish],
     repository.path,
     'merge-base',
     {

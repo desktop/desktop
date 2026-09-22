@@ -89,6 +89,7 @@ export const isWindowFocused = invokeProxy('is-window-focused', 0)
 export const focusWindow = sendProxy('focus-window', 0)
 
 const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
+const confirmRevealDirectory = invokeProxy('confirm-reveal-directory', 0)
 
 export const showItemInFolder = (path: string) =>
   pathExists(path)
@@ -97,26 +98,88 @@ export const showItemInFolder = (path: string) =>
 
 const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
 
-export async function showFolderContents(path: string) {
-  const stats = await stat(path).catch(err => {
+interface IFileInformation {
+  readonly isDirectory: () => boolean
+}
+
+/** Platform operations used to safely show the contents of a folder. */
+export interface IShowFolderContentsDependencies {
+  /** Whether the current platform is macOS. */
+  readonly isDarwin: boolean
+  /** Reads file information for the target path. */
+  readonly stat: (path: string) => Promise<IFileInformation>
+  /** Determines whether a path is a macOS application bundle. */
+  readonly isApplicationBundle: (path: string) => Promise<boolean>
+  /** Requests confirmation before revealing a potentially executable path. */
+  readonly confirmReveal: () => Promise<boolean>
+  /** Opens a directory directly in the platform file manager. */
+  readonly openDirectory: (path: string) => void
+  /** Reveals and selects a path in the platform file manager. */
+  readonly revealItem: (path: string) => Promise<void>
+}
+
+const defaultShowFolderContentsDependencies: IShowFolderContentsDependencies = {
+  isDarwin: __DARWIN__,
+  stat,
+  isApplicationBundle,
+  confirmReveal: confirmRevealDirectory,
+  openDirectory: UNSAFE_openDirectory,
+  revealItem: _showItemInFolder,
+}
+
+async function revealAfterConfirmation(
+  path: string,
+  dependencies: IShowFolderContentsDependencies
+) {
+  const confirmed = await dependencies.confirmReveal().catch(err => {
+    // If the warning cannot be shown, leave the path untouched.
+    log.error(`Unable to confirm revealing folder '${path}'`, err)
+    return false
+  })
+
+  if (confirmed) {
+    await dependencies
+      .revealItem(path)
+      .catch(err => log.error(`Unable to reveal folder '${path}'`, err))
+  }
+}
+
+/**
+ * Shows a folder's contents without executing application bundles on macOS.
+ *
+ * Dependencies default to the platform implementations and can be supplied
+ * for isolated testing of the classification and confirmation flow.
+ */
+export async function showFolderContents(
+  path: string,
+  dependencies = defaultShowFolderContentsDependencies
+) {
+  const stats = await dependencies.stat(path).catch(err => {
     log.error(`Unable to retrieve file information for ${path}`, err)
     return null
   })
 
   if (!stats) {
+    if (dependencies.isDarwin) {
+      await revealAfterConfirmation(path, dependencies)
+    }
     return
   }
 
   if (!stats.isDirectory()) {
     log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
-    await _showItemInFolder(path)
+    if (dependencies.isDarwin) {
+      await revealAfterConfirmation(path, dependencies)
+    } else {
+      await dependencies.revealItem(path)
+    }
     return
   }
 
   // On Windows and Linux we can count on a directory being just a
   // directory.
-  if (!__DARWIN__) {
-    UNSAFE_openDirectory(path)
+  if (!dependencies.isDarwin) {
+    dependencies.openDirectory(path)
     return
   }
 
@@ -125,21 +188,24 @@ export async function showFolderContents(path: string) {
   // it far from ideal so we'll look up the metadata for the path
   // and attempt to determine whether it's an app bundle or not.
   //
-  // If we fail loading the metadata we'll assume it's an app bundle
-  // out of an abundance of caution.
-  const isBundle = await isApplicationBundle(path).catch(err => {
-    log.error(`Failed to load metadata for path '${path}'`, err)
-    return true
-  })
+  // If we fail loading the metadata we won't open the directory out of an
+  // abundance of caution.
+  const canOpenSafely = await dependencies
+    .isApplicationBundle(path)
+    .then(isBundle => !isBundle)
+    .catch(err => {
+      log.error(`Failed to load metadata for path '${path}'`, err)
+      return false
+    })
 
-  if (isBundle) {
+  if (!canOpenSafely) {
     log.info(
-      `Preventing direct open of path '${path}' as it appears to be an application bundle`
+      `Preventing direct open of path '${path}' because it could not be conclusively identified as non-executable`
     )
 
-    await _showItemInFolder(path)
+    await revealAfterConfirmation(path, dependencies)
   } else {
-    UNSAFE_openDirectory(path)
+    dependencies.openDirectory(path)
   }
 }
 

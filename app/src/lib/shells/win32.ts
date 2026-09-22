@@ -530,14 +530,20 @@ export function launch(
         cwd: path,
       })
     case Shell.Cygwin:
-      const cygwinPath = `"${foundShell.path}"`
+      const cygwinPath = foundShell.path
       log.info(`launching ${shell} at path: ${cygwinPath}`)
+      // Pass the path through the environment so shell metacharacters in
+      // directory names remain literal instead of becoming part of the script.
       return spawn(
         cygwinPath,
-        [`/bin/sh -lc 'cd "$(cygpath "${path}")"; exec bash`],
+        [
+          '/bin/sh',
+          '-lc',
+          'cd -- "$(cygpath -- "$GITHUB_DESKTOP_CYGWIN_OPEN_PATH")" && exec bash',
+        ],
         {
-          shell: true,
           cwd: path,
+          env: { ...process.env, GITHUB_DESKTOP_CYGWIN_OPEN_PATH: path },
         }
       )
     case Shell.Warp:

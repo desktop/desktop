@@ -323,6 +323,9 @@ export interface IAppState {
   /** The selected tab size preference */
   readonly selectedTabSize: number
 
+  /** Whether to show the worktree dropdown even without linked worktrees. */
+  readonly alwaysShowWorktreeList: boolean
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated

@@ -90,12 +90,13 @@ export async function fetchTagsToPush(
 ): Promise<ReadonlyArray<string>> {
   const args = [
     'push',
-    remote.name,
-    branchName,
     '--follow-tags',
     '--dry-run',
     '--no-verify',
     '--porcelain',
+    '--',
+    remote.name,
+    branchName,
   ]
 
   const result = await git(args, repository.path, 'fetchTagsToPush', {

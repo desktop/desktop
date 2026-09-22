@@ -674,6 +674,9 @@ export function emit(name: MenuEvent): ClickHandler {
         ? focusedWindow
         : BrowserWindow.getAllWindows()[0]
     if (window !== undefined) {
+      if (!window.isVisible()) {
+        window.show()
+      }
       ipcWebContents.send(window.webContents, 'menu-event', name)
     }
   }
