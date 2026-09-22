@@ -417,12 +417,16 @@ export class SandboxedMarkdown extends React.PureComponent<
           // attribute we set the description where each actually looks:
           //  - On macOS, VoiceOver uses the sandboxed document's own
           //    `<title>` (set in getTitleTag) to announce the frame
-          //    instead of a generic "frame 0", so the `title` attribute
-          //    here is left unset to avoid a redundant announcement.
-          //  - On Windows, NVDA announces the iframe `title` attribute
-          //    followed by "frame" (e.g. "{title} frame"), and ignores the
-          //    inner document's `<title>` entirely.
-          title={__DARWIN__ ? undefined : this.props.title}
+          //    instead of a generic "frame 0", overriding this attribute
+          //    entirely once the document has loaded.
+          //  - On Windows, NVDA announces this `title` attribute followed
+          //    by "frame" (e.g. "{title} frame"), and ignores the inner
+          //    document's `<title>` entirely.
+          // The attribute is always set (rather than only on Windows) so
+          // the iframe has an accessible name before the sandboxed
+          // document finishes loading, and to satisfy the
+          // jsx-a11y/iframe-has-title lint rule.
+          title={this.props.title}
           className="sandboxed-markdown-component"
           sandbox="allow-same-origin"
           ref={this.onFrameRef}
