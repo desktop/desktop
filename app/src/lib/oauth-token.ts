@@ -164,9 +164,15 @@ async function requestOAuthToken(
       try {
         value = await response.json()
       } catch {
+        if (!response.ok) {
+          throw new Error('The OAuth token request failed.')
+        }
         throw new OAuthTokenResponseError()
       }
 
+      if (response.status >= 500) {
+        throw new Error('The OAuth token request failed.')
+      }
       if (isRecord(value) && 'error' in value) {
         if (
           refreshing &&

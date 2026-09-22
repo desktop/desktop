@@ -6,6 +6,37 @@ import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
+import { Disposable } from 'event-kit'
+import { deleteToken, getHTMLURL } from '../api'
+import {
+  IOAuthToken,
+  OAuthRefreshRejectedError,
+  OAuthTokenResponseError,
+  refreshOAuthToken,
+} from '../oauth-token'
+import {
+  AccountCredential,
+  deserializeAccountCredential,
+  serializeAccountCredential,
+} from '../account-credential'
+
+const refreshMargin = 10 * 60 * 1000
+
+interface ICredentialSession {
+  readonly account: Account
+  credential: AccountCredential
+  retired: boolean
+  notified: boolean
+  refreshing?: Promise<string>
+  retryAfter?: number
+}
+
+/** Authentication cannot proceed until the user signs in again. */
+export class AccountRequiresSignInError extends Error {
+  public constructor() {
+    super('Your GitHub session could not be renewed. Please sign in again.')
+  }
+}
 
 // Ensure that GitHub.com accounts appear first followed by Enterprise
 // accounts, sorted by the order in which they were added.
@@ -68,11 +99,21 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private secureStore: ISecureStore
 
   private accounts: ReadonlyArray<Account> = []
+  private readonly sessions = new Map<string, ICredentialSession>()
+  private readonly tokenSessions = new Map<string, ICredentialSession>()
+  private readonly writes = new Map<string, Promise<void>>()
+  private readonly versions = new Map<string, number>()
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
-  public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
+  public constructor(
+    dataStore: IDataStore,
+    secureStore: ISecureStore,
+    private readonly renewToken = refreshOAuthToken,
+    private readonly now = Date.now,
+    private readonly revokeToken = deleteToken
+  ) {
     super()
 
     this.dataStore = dataStore
@@ -89,17 +130,304 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.accounts.slice()
   }
 
+  /** Notify once per account when credentials require user intervention. */
+  public onRequiresSignIn(callback: (account: Account) => void): Disposable {
+    return this.emitter.on('requires-sign-in', callback)
+  }
+
+  /** Resolve token snapshots held by long-lived clients without changing identity. */
+  public resolveToken = async (
+    endpoint: string,
+    token: string
+  ): Promise<string> => {
+    await this.loadingPromise
+    const session = this.tokenSessions.get(this.tokenKey(endpoint, token))
+    const current = this.sessions.get(endpoint)
+    if (token === '' && current?.credential === null) {
+      return this.validToken(current)
+    }
+    return session === undefined ? token : this.validToken(session)
+  }
+
+  /** Get the current credential for an account before handing it to another consumer. */
+  public async getAccountWithFreshToken(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): Promise<Account> {
+    await this.loadingPromise
+    const session = this.sessions.get(account.endpoint)
+    if (session === undefined || session.account.id !== account.id) {
+      throw new AccountRequiresSignInError()
+    }
+    const token = await this.validToken(session, minimumValidity)
+    const current = this.accounts.find(a => a.endpoint === account.endpoint)
+    if (current === undefined || current.id !== account.id || session.retired) {
+      throw new AccountRequiresSignInError()
+    }
+    return current.withToken(token)
+  }
+
+  /** Whether an account owns a rotating credential pair. */
+  public isRefreshable(account: Account): boolean {
+    const session = this.sessions.get(account.endpoint)
+    return (
+      session?.account.id === account.id &&
+      session.credential?.refreshToken !== undefined
+    )
+  }
+
+  /** Access-token expiry for consumers that support on-demand token renewal. */
+  public getTokenExpiration(account: Account): number | undefined {
+    const session = this.sessions.get(account.endpoint)
+    return session?.account.id === account.id
+      ? session.credential?.expiresAt
+      : undefined
+  }
+
+  /** Ignore obsolete 401s; retain account identity when a current token is rejected. */
+  public async invalidateToken(endpoint: string, token: string): Promise<void> {
+    await this.loadingPromise
+    const session = this.sessions.get(endpoint)
+    if (session === undefined || session.credential?.accessToken !== token) {
+      return
+    }
+    // A request using the previous pair can finish while rotation is in flight.
+    if (session.refreshing !== undefined) {
+      try {
+        await session.refreshing
+      } catch {
+        // The renewal path reports its own failure and preserves its classification.
+        return
+      }
+      if (session.credential?.accessToken !== token) {
+        return
+      }
+    }
+    await this.requireSignIn(session)
+  }
+
+  private tokenKey(endpoint: string, token: string) {
+    return `${endpoint}\0${token}`
+  }
+
+  private installSession(account: Account, credential: AccountCredential) {
+    const session: ICredentialSession = {
+      account,
+      credential,
+      retired: false,
+      notified: false,
+    }
+    this.sessions.set(account.endpoint, session)
+    if (credential !== null) {
+      this.tokenSessions.set(
+        this.tokenKey(account.endpoint, credential.accessToken),
+        session
+      )
+    }
+  }
+
+  private retireSession(endpoint: string) {
+    const previous = this.sessions.get(endpoint)
+    if (previous !== undefined) {
+      previous.retired = true
+      previous.credential = null
+    }
+    this.sessions.delete(endpoint)
+    const version = (this.versions.get(endpoint) ?? 0) + 1
+    this.versions.set(endpoint, version)
+    return version
+  }
+
+  private async write(
+    endpoint: string,
+    action: () => Promise<void>
+  ): Promise<void> {
+    const previous = this.writes.get(endpoint)
+    const next = (previous ?? Promise.resolve()).then(action)
+    // The caller receives the error; the queue must remain usable for sign-out.
+    const settled = next.catch(() => {})
+    this.writes.set(endpoint, settled)
+    try {
+      await next
+    } finally {
+      if (this.writes.get(endpoint) === settled) {
+        this.writes.delete(endpoint)
+      }
+    }
+  }
+
+  private async validToken(
+    session: ICredentialSession,
+    minimumValidity = refreshMargin
+  ): Promise<string> {
+    if (session.retired) {
+      throw new AccountRequiresSignInError()
+    }
+    const credential = session.credential
+    if (credential === null) {
+      this.notifyRequiresSignIn(session)
+      throw new AccountRequiresSignInError()
+    }
+    if (
+      credential.refreshToken === undefined ||
+      (credential.expiresAt !== undefined &&
+        credential.expiresAt > this.now() + minimumValidity)
+    ) {
+      return credential.accessToken
+    }
+    if (session.refreshing !== undefined) {
+      return session.refreshing
+    }
+    if (session.retryAfter !== undefined && this.now() < session.retryAfter) {
+      throw new Error(
+        'Unable to renew your GitHub session. Check your connection and try again shortly.'
+      )
+    }
+    const refreshing = this.rotate(session, credential)
+    session.refreshing = refreshing
+    try {
+      return await refreshing
+    } finally {
+      session.refreshing = undefined
+    }
+  }
+
+  private async rotate(
+    session: ICredentialSession,
+    credential: IOAuthToken
+  ): Promise<string> {
+    const { account } = session
+    const refreshToken = credential.refreshToken
+    if (refreshToken === undefined) {
+      throw new Error('Cannot renew a credential without a refresh token.')
+    }
+    let renewed: IOAuthToken
+    try {
+      renewed = await this.renewToken(
+        getHTMLURL(account.endpoint),
+        refreshToken
+      )
+    } catch (e) {
+      if (!session.retired) {
+        if (
+          e instanceof OAuthRefreshRejectedError ||
+          e instanceof OAuthTokenResponseError
+        ) {
+          await this.requireSignIn(session)
+        } else {
+          session.retryAfter = this.now() + 30_000
+          log.warn(
+            'OAuth renewal failed; retaining credentials for a later retry.'
+          )
+        }
+      }
+      throw e
+    }
+
+    if (session.retired) {
+      await this.revokeToken(account.withToken(renewed.accessToken))
+      throw new AccountRequiresSignInError()
+    }
+    try {
+      await this.write(account.endpoint, async () => {
+        if (session.retired) {
+          throw new AccountRequiresSignInError()
+        }
+        await this.secureStore.setItem(
+          getKeyForAccount(account),
+          account.login,
+          serializeAccountCredential(renewed)
+        )
+      })
+    } catch {
+      await this.revokeToken(account.withToken(renewed.accessToken))
+      if (!session.retired) {
+        await this.requireSignIn(session)
+      }
+      throw new Error(
+        'Unable to save renewed GitHub credentials. Please sign in again.'
+      )
+    }
+    if (session.retired) {
+      await this.revokeToken(account.withToken(renewed.accessToken))
+      throw new AccountRequiresSignInError()
+    }
+    session.credential = renewed
+    session.retryAfter = undefined
+    this.tokenSessions.set(
+      this.tokenKey(account.endpoint, renewed.accessToken),
+      session
+    )
+    this.accounts = this.accounts.map(a =>
+      a.endpoint === account.endpoint ? a.withToken(renewed.accessToken) : a
+    )
+    this.save()
+    log.info('OAuth credentials renewed and saved.')
+    return renewed.accessToken
+  }
+
+  private notifyRequiresSignIn(session: ICredentialSession) {
+    if (!session.notified && !session.retired) {
+      session.notified = true
+      this.emitter.emit('requires-sign-in', session.account.withToken(''))
+    }
+  }
+
+  private async requireSignIn(session: ICredentialSession) {
+    session.credential = null
+    this.accounts = this.accounts.map(a =>
+      a.endpoint === session.account.endpoint ? a.withToken('') : a
+    )
+    this.save()
+    this.notifyRequiresSignIn(session)
+    try {
+      await this.write(session.account.endpoint, async () => {
+        if (!session.retired) {
+          await this.secureStore.setItem(
+            getKeyForAccount(session.account),
+            session.account.login,
+            serializeAccountCredential(null)
+          )
+        }
+      })
+    } catch {
+      log.error(
+        'Unable to clear unusable OAuth credentials from secure storage.'
+      )
+      this.emitError(
+        new Error(
+          'Unable to update your saved GitHub credentials. Please sign in again.'
+        )
+      )
+    }
+  }
+
   /**
    * Add the account to the store.
    */
-  public async addAccount(account: Account): Promise<Account | null> {
+  public async addAccount(
+    account: Account,
+    credential: IOAuthToken = { accessToken: account.token },
+    isCurrent: () => boolean = () => true
+  ): Promise<Account | null> {
     await this.loadingPromise
-
+    const version = this.retireSession(account.endpoint)
     try {
       const key = getKeyForAccount(account)
-      await this.secureStore.setItem(key, account.login, account.token)
+      await this.write(account.endpoint, async () => {
+        if (this.versions.get(account.endpoint) === version && isCurrent()) {
+          await this.secureStore.setItem(
+            key,
+            account.login,
+            serializeAccountCredential(credential)
+          )
+          if (!isCurrent()) {
+            await this.secureStore.deleteItem(key, account.login)
+          }
+        }
+      })
     } catch (e) {
-      log.error(`Error adding account '${account.login}'`, e)
+      log.error('Unable to save GitHub credentials in secure storage.')
 
       if (__DARWIN__ && isKeyChainError(e)) {
         this.emitError(
@@ -108,50 +436,58 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
           )
         )
       } else {
-        this.emitError(e)
+        this.emitError(
+          new Error('Unable to save GitHub credentials in secure storage.')
+        )
       }
       return null
     }
+    if (this.versions.get(account.endpoint) !== version || !isCurrent()) {
+      return null
+    }
+    const authenticatedAccount = account.withToken(credential.accessToken)
+    this.installSession(authenticatedAccount, credential)
 
     const accountsByEndpoint = this.accounts.reduce(
       (map, x) => map.set(x.endpoint, x),
       new Map<string, Account>()
     )
-    accountsByEndpoint.set(account.endpoint, account)
+    accountsByEndpoint.set(account.endpoint, authenticatedAccount)
 
     this.accounts = sortAccounts([...accountsByEndpoint.values()])
 
     this.save()
-    return account
+    return authenticatedAccount
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
-    this.accounts = await Promise.all(
-      this.accounts.map(acc => this.tryUpdateAccount(acc))
-    )
-
-    this.save()
-    this.emitUpdate(this.accounts)
+    await this.loadingPromise
+    await Promise.all(this.accounts.map(acc => this.tryUpdateAccount(acc)))
   }
 
   /**
-   * Attempts to update the Account with new information from
-   * the API.
-   *
-   * If the update fails for whatever reason this function
-   * will return the old Account instance. Usually updates fails
-   * due to connectivity issues but in the future we should
-   * investigate whether we're able to detect here that the
-   * token is definitely not valid anymore and let the
-   * user know that they've been signed out.
+   * Refresh profile data without resurrecting a removed account or replacing
+   * credentials that rotated while the profile request was in flight.
    */
-  private async tryUpdateAccount(account: Account): Promise<Account> {
+  private async tryUpdateAccount(account: Account): Promise<void> {
+    const session = this.sessions.get(account.endpoint)
     try {
-      return await updatedAccount(account)
+      const fresh = await this.getAccountWithFreshToken(account)
+      const updated = await updatedAccount(fresh)
+      if (
+        session !== undefined &&
+        !session.retired &&
+        session.credential !== null
+      ) {
+        const token = session.credential.accessToken
+        this.accounts = this.accounts.map(a =>
+          a.endpoint === account.endpoint ? updated.withToken(token) : a
+        )
+        this.save()
+      }
     } catch (e) {
       log.warn(`Error refreshing account '${account.login}'`, e)
-      return account
     }
   }
 
@@ -160,23 +496,27 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    */
   public async removeAccount(account: Account): Promise<void> {
     await this.loadingPromise
-
-    try {
-      await this.secureStore.deleteItem(
-        getKeyForAccount(account),
-        account.login
-      )
-    } catch (e) {
-      log.error(`Error removing account '${account.login}'`, e)
-      this.emitError(e)
+    const current = this.accounts.find(a => a.endpoint === account.endpoint)
+    if (current === undefined || current.id !== account.id) {
       return
     }
-
-    this.accounts = this.accounts.filter(
-      a => !(a.endpoint === account.endpoint && a.id === account.id)
-    )
-
+    this.retireSession(account.endpoint)
+    this.accounts = this.accounts.filter(a => a.endpoint !== account.endpoint)
     this.save()
+    try {
+      await this.write(account.endpoint, async () => {
+        await this.secureStore.deleteItem(
+          getKeyForAccount(account),
+          account.login
+        )
+      })
+    } catch {
+      log.error('Unable to remove GitHub credentials from secure storage.')
+      this.emitError(
+        new Error('Unable to remove GitHub credentials from secure storage.')
+      )
+      return
+    }
   }
 
   private getMigratedGHEAccounts(
@@ -230,12 +570,23 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const token = await this.secureStore.getItem(key, account.login)
-        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
-      } catch (e) {
-        log.error(`Error getting token for '${key}'. Skipping.`, e)
-
-        this.emitError(e)
+        const credential = deserializeAccountCredential(
+          await this.secureStore.getItem(key, account.login)
+        )
+        const loaded = accountWithoutToken.withToken(
+          credential?.accessToken ?? ''
+        )
+        accountsWithTokens.push(loaded)
+        this.installSession(loaded, credential)
+      } catch {
+        log.error('Unable to read GitHub credentials from secure storage.')
+        this.emitError(
+          new Error(
+            'Unable to read GitHub credentials from secure storage. Please sign in again.'
+          )
+        )
+        accountsWithTokens.push(accountWithoutToken)
+        this.installSession(accountWithoutToken, null)
       }
     }
 

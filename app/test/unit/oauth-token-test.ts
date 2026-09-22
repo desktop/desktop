@@ -144,7 +144,7 @@ describe('OAuth token requests', () => {
           assert.strictEqual(init.cache, 'no-store')
           assert.ok(init.signal)
           assert.strictEqual(init.signal.aborted, false)
-          assert.strictEqual(typeof init.body, 'string')
+          assert.ok(typeof init.body === 'string')
           assert.deepStrictEqual(JSON.parse(init.body), {
             client_id: '',
             client_secret: '',
@@ -168,7 +168,7 @@ describe('OAuth token requests', () => {
       'fetch',
       async (_input: RequestInfo | URL, init?: RequestInit) => {
         assert.ok(init)
-        assert.strictEqual(typeof init.body, 'string')
+        assert.ok(typeof init.body === 'string')
         assert.deepStrictEqual(JSON.parse(init.body), {
           client_id: '',
           client_secret: '',
@@ -273,6 +273,18 @@ describe('OAuth token requests', () => {
     await assert.rejects(exchangeOAuthToken('https://github.com', 'code'), {
       name: 'OAuthTokenResponseError',
       message: 'The OAuth token response is invalid.',
+    })
+
+    it('treats an HTML gateway failure as temporary rather than a malformed replacement pair', async t => {
+      t.mock.method(
+        globalThis,
+        'fetch',
+        async () => new Response('<html>Unavailable</html>', { status: 502 })
+      )
+      await assert.rejects(refreshOAuthToken('https://github.com', 'refresh'), {
+        name: 'Error',
+        message: 'The OAuth token request failed.',
+      })
     })
   })
 

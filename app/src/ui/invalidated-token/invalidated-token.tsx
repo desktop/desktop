@@ -7,7 +7,10 @@ import { getHTMLURL } from '../../lib/api'
 import { Ref } from '../lib/ref'
 
 interface IInvalidatedTokenProps {
-  readonly dispatcher: Dispatcher
+  readonly dispatcher: Pick<
+    Dispatcher,
+    'showEnterpriseSignInDialog' | 'showDotComSignInDialog'
+  >
   readonly account: Account
   readonly onDismissed: () => void
 }
@@ -24,19 +27,20 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
       <Dialog
         id="invalidated-token"
         type="warning"
-        title={
-          __DARWIN__ ? 'Invalidated Account Token' : 'Invalidated account token'
-        }
+        title={__DARWIN__ ? 'Sign In Again' : 'Sign in again'}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          Your account token has been invalidated and you have been signed out
-          from your <Ref>{account.friendlyEndpoint}</Ref> account. Do you want
-          to sign in again?
+          Your session for <Ref>{account.friendlyEndpoint}</Ref> could not be
+          renewed. Sign in again to continue. Your local repositories and
+          changes are not affected.
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup okButtonText="Yes" cancelButtonText="No" />
+          <OkCancelButtonGroup
+            okButtonText="Sign in"
+            cancelButtonText="Not now"
+          />
         </DialogFooter>
       </Dialog>
     )

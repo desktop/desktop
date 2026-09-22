@@ -159,6 +159,7 @@ export type SignInResult =
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
+  private resolvingOAuthState: string | undefined
 
   private accounts: ReadonlyArray<Account> = []
 
@@ -234,7 +235,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
+    const existingAccount = this.accounts.find(
+      a => isDotComAccount(a) && a.token !== ''
+    )
 
     if (existingAccount) {
       this.setState({
@@ -310,7 +313,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
     })
       .then(account => {
-        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+        if (
+          this.state?.kind !== SignInStep.Authentication ||
+          this.state.oauthState?.state !== csrfToken
+        ) {
           // Looks like the sign in flow has been aborted
           log.warn('[SignInStore] account resolved but session has changed')
           return
@@ -353,16 +359,43 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint } = this.state
-    const token = await requestOAuthToken(endpoint, action.code)
-
-    if (token) {
-      const account = await fetchUser(endpoint, token)
-      this.state.oauthState.onAuthCompleted(account)
-    } else {
-      this.state.oauthState.onAuthError(
-        new Error('Failed retrieving authenticated user')
+    const { endpoint, oauthState } = this.state
+    if (this.resolvingOAuthState === oauthState.state) {
+      return
+    }
+    this.resolvingOAuthState = oauthState.state
+    const isCurrent = () =>
+      this.state?.kind === SignInStep.Authentication &&
+      this.state.oauthState === oauthState
+    try {
+      const credential = await requestOAuthToken(endpoint, action.code)
+      if (!isCurrent()) {
+        return
+      }
+      const account = await fetchUser(endpoint, credential.accessToken, true)
+      if (!isCurrent()) {
+        return
+      }
+      const stored = await this.accountStore.addAccount(
+        account,
+        credential,
+        isCurrent
       )
+      if (!isCurrent()) {
+        return
+      }
+      if (stored === null) {
+        throw new Error(
+          'Unable to save your GitHub credentials. Please try signing in again.'
+        )
+      }
+      oauthState.onAuthCompleted(stored)
+    } catch (e) {
+      oauthState.onAuthError(e)
+    } finally {
+      if (this.resolvingOAuthState === oauthState.state) {
+        this.resolvingOAuthState = undefined
+      }
     }
   }
 
@@ -443,7 +476,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
 
-    if (existingAccount) {
+    if (existingAccount && existingAccount.token !== '') {
       this.setState({
         kind: SignInStep.ExistingAccountWarning,
         endpoint,

@@ -5,6 +5,7 @@ import {
   AssistantMessageEvent,
   MessageOptions,
   SessionConfig,
+  GitHubTokenProvider,
 } from '@github/copilot-sdk'
 import { AccountsStore } from './accounts-store'
 import { Account, isDotComAccount } from '../../models/account'
@@ -236,6 +237,37 @@ export function getCopilotGHHost(account: Account): string | undefined {
     : new URL(account.endpoint).host
 
   return isGHE(account.endpoint) && host ? host.replace(/^api\./, '') : host
+}
+
+/** Supply only access tokens to SDK sessions, with the SDK's required validity margin. */
+export function createCopilotTokenProvider(
+  accountsStore: AccountsStore,
+  account: Account
+): GitHubTokenProvider | undefined {
+  if (!accountsStore.isRefreshable(account)) {
+    return undefined
+  }
+  return async ({ host }) => {
+    if (host !== (getCopilotGHHost(account) ?? 'github.com')) {
+      throw new Error(
+        'Copilot requested credentials for an unexpected GitHub host.'
+      )
+    }
+    // The SDK renews an hour before expiry; leave room for IPC transit as well.
+    const fresh = await accountsStore.getAccountWithFreshToken(
+      account,
+      61 * 60 * 1000
+    )
+    const expiresAt = accountsStore.getTokenExpiration(fresh)
+    const expiresIn =
+      expiresAt === undefined ? 0 : Math.floor((expiresAt - Date.now()) / 1000)
+    if (expiresIn <= 3600) {
+      throw new Error(
+        'GitHub returned credentials without enough lifetime for a Copilot session.'
+      )
+    }
+    return { kind: 'token', accessToken: fresh.token, expiresIn }
+  }
 }
 
 /**
@@ -758,6 +790,7 @@ export async function runConflictResolutionTurn(
  * Copilot feature is used.
  */
 export class CopilotStore extends BaseStore {
+  private readonly clientAccounts = new WeakMap<CopilotClient, Account>()
   private readonly modelCaches = new Map<string, ICopilotModelCacheEntry>()
   private readonly modelsInFlight = new Map<
     string,
@@ -832,6 +865,7 @@ export class CopilotStore extends BaseStore {
     account: Account,
     repositoryPath?: string
   ): Promise<CopilotClient> {
+    account = await this.accountsStore.getAccountWithFreshToken(account)
     if (!account.token) {
       throw new Error('Cannot create Copilot client: Account has no token')
     }
@@ -843,7 +877,7 @@ export class CopilotStore extends BaseStore {
       )
     }
 
-    return new CopilotClient({
+    const client = new CopilotClient({
       connection: RuntimeConnection.forStdio({
         path: runtimePath,
       }),
@@ -859,6 +893,19 @@ export class CopilotStore extends BaseStore {
         __WIN32__ ? 'windows' : 'posix'
       ),
       gitHubToken: account.token,
+    })
+    this.clientAccounts.set(client, account)
+    return client
+  }
+
+  private createSession(client: CopilotClient, config: SessionConfig) {
+    const account = this.clientAccounts.get(client)
+    return client.createSession({
+      ...config,
+      gitHubTokenProvider:
+        account === undefined
+          ? undefined
+          : createCopilotTokenProvider(this.accountsStore, account),
     })
   }
 
@@ -885,7 +932,7 @@ export class CopilotStore extends BaseStore {
       throw new CommitMessageGenerationCancelledError()
     }
 
-    const sessionCreation = client.createSession(config)
+    const sessionCreation = this.createSession(client, config)
 
     if (signal === undefined) {
       return sessionCreation
@@ -1415,7 +1462,7 @@ export class CopilotStore extends BaseStore {
         const sessionTimer = startTimer(
           `createSession (attempt ${attempt + 1})`
         )
-        const session = await client.createSession({
+        const session = await this.createSession(client, {
           clientName: CopilotClientNames['conflict-resolution'],
           model: modelConfig.modelId,
           reasoningEffort: modelConfig.reasoningEffort,
@@ -1704,8 +1751,9 @@ export class CopilotStore extends BaseStore {
 
     try {
       await client.start()
+      const fresh = await this.accountsStore.getAccountWithFreshToken(account)
       const result = await client.rpc.account.getQuota({
-        gitHubToken: account.token,
+        gitHubToken: fresh.token,
       })
 
       const quotaSnapshots = new Map<string, ICopilotQuotaSnapshot>()
