@@ -14,14 +14,6 @@ import { Emoji } from '../../lib/emoji'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
-/**
- * A description of the sandboxed iframe's content type, used both as the
- * iframe's `title` attribute and as the `<title>` of the document rendered
- * inside it. See the comment on the `title` prop of the rendered `<iframe>`
- * for why both are needed.
- */
-const FRAME_CONTENT_TYPE = 'markdown'
-
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
   readonly markdown: string
@@ -53,9 +45,15 @@ interface ISandboxedMarkdownProps {
 
   readonly underlineLinks: boolean
 
-  /** An area label to explain to screen reader users what the contents of the
-   * iframe are before they navigate into them. */
-  readonly ariaLabel: string
+  /**
+   * A description of the iframe's contents to announce to screen reader
+   * users before they navigate into it, e.g. "Pull request comment".
+   *
+   * VoiceOver and NVDA read this differently, so it's applied to whichever
+   * element each of them actually uses rather than to a single attribute -
+   * see the render method for details.
+   */
+  readonly title: string
 
   /**
    * Optional additional CSS injected after the base markdown stylesheet
@@ -158,7 +156,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     const src = `
       <html>
         <head>
-          ${this.getTitleTag()}
+          ${__DARWIN__ ? this.getTitleTag() : ''}
           ${this.getBaseTag(this.props.baseHref)}
           ${styleSheet}
         </head>
@@ -329,15 +327,15 @@ export class SandboxedMarkdown extends React.PureComponent<
   /**
    * Builds a <title> tag for the sandboxed document.
    *
-   * VoiceOver announces an iframe's contained document by its `<title>`,
-   * falling back to a generic, unhelpful "frame N" when the document has
-   * none - regardless of the `aria-label` set on the outer `<iframe>`
-   * element. Giving the document its own title lets VoiceOver announce
-   * something meaningful once a user has navigated inside the frame.
+   * On macOS, VoiceOver announces an iframe's contained document by its
+   * `<title>`, falling back to a generic, unhelpful "frame N" when the
+   * document has none. Giving the document a title matching the iframe's
+   * description lets VoiceOver announce something meaningful once a user
+   * has navigated inside the frame.
    */
   private getTitleTag(): string {
     const title = document.createElement('title')
-    title.textContent = FRAME_CONTENT_TYPE
+    title.textContent = this.props.title
     return title.outerHTML
   }
 
@@ -414,23 +412,21 @@ export class SandboxedMarkdown extends React.PureComponent<
         ref={this.frameContainingDivRef}
       >
         <iframe
-          // NVDA and VoiceOver announce this iframe differently, and no
-          // single attribute covers both:
-          //  - VoiceOver appends this `title` after "frame 0" unless
-          //    `aria-label` is set, in which case it's ignored in favor of
-          //    the inner document's own `<title>` (set in getTitleTag) to
-          //    replace "frame 0" with something meaningful.
-          //  - NVDA always announces "frame", and reads this `title` after
-          //    it (e.g. "{aria-label} frame {title}"), ignoring the inner
-          //    document's `<title>` entirely.
-          // Setting all three keeps each screen reader's announcement
-          // meaningful instead of a bare, unnamed "frame 0"/"frame".
-          title={FRAME_CONTENT_TYPE}
+          // VoiceOver and NVDA read the iframe's `title` attribute
+          // differently, so instead of trying to satisfy both from one
+          // attribute we set the description where each actually looks:
+          //  - On macOS, VoiceOver uses the sandboxed document's own
+          //    `<title>` (set in getTitleTag) to announce the frame
+          //    instead of a generic "frame 0", so the `title` attribute
+          //    here is left unset to avoid a redundant announcement.
+          //  - On Windows, NVDA announces the iframe `title` attribute
+          //    followed by "frame" (e.g. "{title} frame"), and ignores the
+          //    inner document's `<title>` entirely.
+          title={__DARWIN__ ? undefined : this.props.title}
           className="sandboxed-markdown-component"
           sandbox="allow-same-origin"
           ref={this.onFrameRef}
           onLoad={this.refreshHeight}
-          aria-label={this.props.ariaLabel}
         />
         {tooltipElements.map(e => (
           <Tooltip
