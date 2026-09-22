@@ -14,6 +14,14 @@ import { Emoji } from '../../lib/emoji'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
+/**
+ * A description of the sandboxed iframe's content type, used both as the
+ * iframe's `title` attribute and as the `<title>` of the document rendered
+ * inside it. See the comment on the `title` prop of the rendered `<iframe>`
+ * for why both are needed.
+ */
+const FRAME_CONTENT_TYPE = 'markdown'
+
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
   readonly markdown: string
@@ -329,7 +337,7 @@ export class SandboxedMarkdown extends React.PureComponent<
    */
   private getTitleTag(): string {
     const title = document.createElement('title')
-    title.textContent = 'markdown'
+    title.textContent = FRAME_CONTENT_TYPE
     return title.outerHTML
   }
 
@@ -406,7 +414,18 @@ export class SandboxedMarkdown extends React.PureComponent<
         ref={this.frameContainingDivRef}
       >
         <iframe
-          title="sandboxed-markdown-component"
+          // NVDA and VoiceOver announce this iframe differently, and no
+          // single attribute covers both:
+          //  - VoiceOver appends this `title` after "frame 0" unless
+          //    `aria-label` is set, in which case it's ignored in favor of
+          //    the inner document's own `<title>` (set in getTitleTag) to
+          //    replace "frame 0" with something meaningful.
+          //  - NVDA always announces "frame", and reads this `title` after
+          //    it (e.g. "{aria-label} frame {title}"), ignoring the inner
+          //    document's `<title>` entirely.
+          // Setting all three keeps each screen reader's announcement
+          // meaningful instead of a bare, unnamed "frame 0"/"frame".
+          title={FRAME_CONTENT_TYPE}
           className="sandboxed-markdown-component"
           sandbox="allow-same-origin"
           ref={this.onFrameRef}
