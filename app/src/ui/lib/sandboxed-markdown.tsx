@@ -150,6 +150,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     const src = `
       <html>
         <head>
+          ${this.getTitleTag()}
           ${this.getBaseTag(this.props.baseHref)}
           ${styleSheet}
         </head>
@@ -315,6 +316,21 @@ export class SandboxedMarkdown extends React.PureComponent<
     const base = document.createElement('base')
     base.href = baseHref
     return base.outerHTML
+  }
+
+  /**
+   * Builds a <title> tag for the sandboxed document.
+   *
+   * VoiceOver announces an iframe's contained document by its `<title>`,
+   * falling back to a generic, unhelpful "frame N" when the document has
+   * none - regardless of the `aria-label` set on the outer `<iframe>`
+   * element. Giving the document its own title lets VoiceOver announce
+   * something meaningful once a user has navigated inside the frame.
+   */
+  private getTitleTag(): string {
+    const title = document.createElement('title')
+    title.textContent = 'markdown'
+    return title.outerHTML
   }
 
   private onDocumentDOMContentLoaded = (doc: Document) => {
