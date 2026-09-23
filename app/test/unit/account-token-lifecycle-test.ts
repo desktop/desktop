@@ -218,6 +218,55 @@ describe('Coordinated account token renewal', () => {
     )
   })
 
+  for (const failRenewal of [false, true]) {
+    it(`joins a longer-margin renewal before returning an otherwise valid token (failure: ${failRenewal})`, async () => {
+      const gate = deferred<void>()
+      const started = deferred<void>()
+      let calls = 0
+      const { store } = setup(async () => {
+        calls++
+        started.resolve()
+        await gate.promise
+        if (failRenewal) {
+          throw new Error('Network unavailable')
+        }
+        return renewed
+      })
+      await store.addAccount(account, {
+        ...rotating,
+        expiresAt: now + 30 * 60 * 1000,
+      })
+      const copilot = store.getAccountWithFreshToken(account, 61 * 60 * 1000)
+      await started.promise
+      let settled = 0
+      const requests = [
+        copilot.then(a => a.token),
+        store.resolveToken(account.endpoint, account.token),
+        store.getAccountWithFreshToken(account).then(a => a.token),
+      ].map(request =>
+        request.finally(() => {
+          settled++
+        })
+      )
+      const result = Promise.allSettled(requests)
+      try {
+        await new Promise<void>(resolve => setImmediate(resolve))
+        assert.equal(settled, 0)
+      } finally {
+        gate.resolve()
+      }
+      assert.deepEqual(
+        await result,
+        requests.map(() =>
+          failRenewal
+            ? { status: 'rejected', reason: new Error('Network unavailable') }
+            : { status: 'fulfilled', value: renewed.accessToken }
+        )
+      )
+      assert.equal(calls, 1)
+    })
+  }
+
   it('retains credentials on temporary failure and prevents immediate retry storms', async () => {
     let calls = 0
     const { store, secure } = setup(async () => {
@@ -303,6 +352,130 @@ describe('Coordinated account token renewal', () => {
       !data.getItem('users')?.includes(renewed.refreshToken ?? 'new-refresh')
     )
   })
+
+  it('persists recovery and releases callers before a stalled revocation times out', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const data = new InMemoryStore()
+    const secure = new AsyncInMemoryStore()
+    const store = new AccountsStore(
+      data,
+      secure,
+      async () => renewed,
+      () => now
+    )
+    await store.addAccount(account, rotating)
+    const original = secure.setItem.bind(secure)
+    t.mock.method(
+      secure,
+      'setItem',
+      async (key: string, login: string, value: string) => {
+        if (value === serializeAccountCredential(renewed)) {
+          throw new Error('Keychain locked')
+        }
+        return original(key, login, value)
+      }
+    )
+    let signal: AbortSignal | null | undefined
+    const stalled = deferred<Response>()
+    t.after(() => stalled.resolve(new Response(null, { status: 204 })))
+    const fetch = t.mock.method(
+      globalThis,
+      'fetch',
+      (_input: RequestInfo | URL, init?: RequestInit) => {
+        signal = init?.signal
+        return stalled.promise
+      }
+    )
+    const warnings = t.mock.method(log, 'warn')
+    let prompts = 0
+    store.onRequiresSignIn(() => prompts++)
+    const results = Promise.allSettled([
+      store.resolveToken(account.endpoint, account.token),
+      store.getAccountWithFreshToken(account),
+    ])
+    await new Promise<void>(resolve => setImmediate(resolve))
+    assert.equal(prompts, 1)
+    assert.equal((await store.getAll())[0].token, '')
+    assert.equal(
+      deserializeAccountCredential(
+        await secure.getItem(getKeyForAccount(account), account.login)
+      ),
+      null
+    )
+    for (const result of await results) {
+      assert.equal(result.status, 'rejected')
+      if (result.status === 'rejected') {
+        assert.match(result.reason.message, /Unable to save/)
+      }
+    }
+    await assert.rejects(
+      store.getAccountWithFreshToken(account),
+      AccountRequiresSignInError
+    )
+    assert.equal(fetch.mock.callCount(), 1)
+    assert.equal(signal?.aborted, false)
+    t.mock.timers.tick(29_999)
+    assert.equal(signal?.aborted, false)
+    t.mock.timers.tick(1)
+    await new Promise<void>(resolve => setImmediate(resolve))
+    assert.equal(signal?.aborted, true)
+    assert.deepEqual(
+      warnings.mock.calls.map(call => call.arguments),
+      [['Unable to revoke unused OAuth credentials.']]
+    )
+  })
+
+  for (const rejects of [false, true]) {
+    it(`keeps recovery independent of revocation failure (rejects: ${rejects})`, async t => {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const data = new InMemoryStore()
+      const secure = new AsyncInMemoryStore()
+      const warnings = t.mock.method(log, 'warn')
+      let signal: AbortSignal | undefined
+      const store = new AccountsStore(
+        data,
+        secure,
+        async () => renewed,
+        () => now,
+        async (_account, cancellation) => {
+          signal = cancellation
+          if (rejects) {
+            throw new Error('secret-revocation-failure')
+          }
+          return false
+        }
+      )
+      await store.addAccount(account, rotating)
+      const original = secure.setItem.bind(secure)
+      t.mock.method(
+        secure,
+        'setItem',
+        async (key: string, login: string, value: string) => {
+          if (value === serializeAccountCredential(renewed)) {
+            throw new Error('Keychain locked')
+          }
+          return original(key, login, value)
+        }
+      )
+      await assert.rejects(
+        store.resolveToken(account.endpoint, account.token),
+        /Unable to save/
+      )
+      assert.equal((await store.getAll())[0].token, '')
+      assert.equal(
+        deserializeAccountCredential(
+          await secure.getItem(getKeyForAccount(account), account.login)
+        ),
+        null
+      )
+      assert.deepEqual(
+        warnings.mock.calls.map(call => call.arguments),
+        [['Unable to revoke unused OAuth credentials.']]
+      )
+      t.mock.timers.tick(30_000)
+      assert.equal(signal?.aborted, false)
+    })
+  }
 
   it('sign-out during exchange prevents resurrection and revokes the unused replacement', async () => {
     const gate = deferred<IOAuthToken>()

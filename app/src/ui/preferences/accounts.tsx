@@ -18,7 +18,7 @@ interface IAccountsProps {
   readonly accounts: ReadonlyArray<Account>
 
   readonly onDotComSignIn: () => void
-  readonly onEnterpriseSignIn: () => void
+  readonly onEnterpriseSignIn: (endpoint?: string) => void
   readonly onLogout: (account: Account) => void
 }
 
@@ -56,7 +56,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         {enterpriseAccounts.length === 0 ? (
           this.renderSignIn(SignInType.Enterprise)
         ) : (
-          <Button onClick={this.props.onEnterpriseSignIn}>
+          <Button onClick={this.onEnterpriseSignIn}>
             Add GitHub Enterprise account
           </Button>
         )}
@@ -99,7 +99,15 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             )}
           </div>
         </div>
-        <Button onClick={this.logout(account)} className={className}>
+        {account.token === '' && (
+          <Button onClick={this.signIn(account)} className={className}>
+            {__DARWIN__ ? 'Sign In Again' : 'Sign in again'}
+          </Button>
+        )}
+        <Button
+          onClick={this.logout(account)}
+          className={account.token === '' ? undefined : className}
+        >
           {__DARWIN__ ? 'Sign Out' : 'Sign out'}
         </Button>
       </Row>
@@ -152,6 +160,16 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
   private logout = (account: Account) => {
     return () => {
       this.props.onLogout(account)
+    }
+  }
+
+  private signIn = (account: Account) => {
+    return () => {
+      if (isEnterpriseAccount(account)) {
+        this.props.onEnterpriseSignIn(getHTMLURL(account.endpoint))
+      } else {
+        this.props.onDotComSignIn()
+      }
     }
   }
 }

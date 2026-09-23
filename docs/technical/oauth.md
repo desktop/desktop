@@ -54,6 +54,8 @@ fallback when secure storage fails.
 
 Before authenticated work, Desktop renews a token that expires within ten minutes
 (inclusive), or whose expiry is unknown. Concurrent callers share one exchange.
+Once rotation starts, even callers with a shorter validity requirement wait for
+that exchange rather than receiving the old token that rotation invalidates.
 Secure writes, account replacement, and sign-out are coordinated so a late
 exchange cannot restore a signed-out account. Both replacement tokens must be
 saved before publishing the new access token.
@@ -74,10 +76,15 @@ the server omits it.
   impose a 30-second retry cooldown. They do not sign the user out.
 - Explicit refresh rejection or a malformed replacement pair requires sign-in.
   The account identity remains available and a single recovery dialog explains
-  that local repositories and changes are unaffected.
+  that local repositories and changes are unaffected. After choosing **Not now**,
+  use **Sign in again** in Settings/Preferences > Accounts to recover without
+  signing out first. This action remains available after restart and preselects
+  the account's host for Enterprise sign-in.
 - Failed persistence after rotation never returns the new access token or falls
-  back to plaintext. Desktop attempts to revoke the unused replacement and
-  records that sign-in is required.
+  back to plaintext. Desktop records that sign-in is required before attempting
+  to revoke the unused replacement. Revocation runs independently of waiting
+  credential consumers, has a 30-second cancellation deadline, and logs failures
+  without preventing sign-in recovery.
 - OAuth exchanges have a 30-second deadline, including response parsing. They
   reject redirects and are never automatically replayed. Errors and lifecycle
   logs do not include token values or server-provided error descriptions.
@@ -96,7 +103,8 @@ downgrading and sign in again in the older version. Keep renewal support in
 rollback builds even if new acquisition is disabled.
 
 Run the OAuth protocol, account lifecycle, authentication integration, image IPC,
-consumer, and recovery-dialog tests with `yarn test`, followed by the full suite.
+consumer, recovery-dialog, and account-settings tests with `yarn test`, followed
+by the full suite.
 The tests use mock OAuth responses and in-memory secure stores. Before broad
 rollout, also verify real browser authorization and rotation on macOS and Windows,
 Git/LFS, sleep/resume, keychain failures, and supported Enterprise deployments.
