@@ -21,6 +21,7 @@ import {
 } from '../account-credential'
 
 const refreshMargin = 10 * 60 * 1000
+const revocationTimeout = 30_000
 
 interface ICredentialSession {
   readonly account: Account
@@ -326,7 +327,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
 
     if (session.retired) {
-      await this.revokeToken(account.withToken(renewed.accessToken))
+      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
     try {
@@ -341,16 +342,16 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         )
       })
     } catch {
-      await this.revokeToken(account.withToken(renewed.accessToken))
       if (!session.retired) {
         await this.requireSignIn(session)
       }
+      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new Error(
         'Unable to save renewed GitHub credentials. Please sign in again.'
       )
     }
     if (session.retired) {
-      await this.revokeToken(account.withToken(renewed.accessToken))
+      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
     session.credential = renewed
@@ -365,6 +366,30 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     this.save()
     log.info('OAuth credentials renewed and saved.')
     return renewed.accessToken
+  }
+
+  private async revokeUnusedToken(account: Account): Promise<void> {
+    const controller = new AbortController()
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const deadline = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        controller.abort()
+        reject(new Error('OAuth revocation timed out.'))
+      }, revocationTimeout)
+    })
+    try {
+      const revoked = await Promise.race([
+        this.revokeToken(account, controller.signal),
+        deadline,
+      ])
+      if (!revoked) {
+        log.warn('Unable to revoke unused OAuth credentials.')
+      }
+    } catch {
+      log.warn('Unable to revoke unused OAuth credentials.')
+    } finally {
+      clearTimeout(timeout)
+    }
   }
 
   private notifyRequiresSignIn(session: ICredentialSession) {
