@@ -1,9 +1,9 @@
-import { clipboard } from 'electron'
 import React from 'react'
 import { Commit, shortenSHA } from '../../models/commit'
 import { Ref } from './ref'
 import { TooltipDirection } from './tooltip'
 import { TooltippedContent } from './tooltipped-content'
+import { writeClipboardText } from '../main-process-proxy'
 
 interface ITooltippedCommitSHAProps {
   readonly className?: string
@@ -63,6 +63,6 @@ export class TooltippedCommitSHA extends React.Component<
 
   private onCopySHAButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    clipboard.writeText(this.longSHA)
+    writeClipboardText(this.longSHA)
   }
 }

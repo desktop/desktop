@@ -4,6 +4,8 @@ import {
   app,
   Menu,
   BrowserWindow,
+  clipboard,
+  dialog,
   shell,
   session,
   systemPreferences,
@@ -511,6 +513,10 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.handle('write-clipboard-text', async (_, text) =>
+    clipboard.writeText(text)
+  )
+
   ipcMain.handle('check-for-updates', async (_, url) =>
     mainWindow?.checkForUpdates(url)
   )
@@ -636,6 +642,26 @@ app.on('ready', () => {
   ipcMain.handle('show-item-in-folder', async (_, path) =>
     shell.showItemInFolder(path)
   )
+  ipcMain.handle('confirm-reveal-directory', async event => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    const options: Electron.MessageBoxOptions = {
+      type: 'warning',
+      title: 'Reveal Repository in Finder?',
+      message: 'This repository might be an application.',
+      detail:
+        'Opening it directly could run software. You can reveal and select it in Finder without opening it.',
+      buttons: ['Reveal in Finder', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    }
+    const result =
+      window === null
+        ? await dialog.showMessageBox(options)
+        : await dialog.showMessageBox(window, options)
+
+    return result.response === 0
+  })
 
   ipcMain.on('unsafe-open-directory', async (_, path) =>
     UNSAFE_openDirectory(path)

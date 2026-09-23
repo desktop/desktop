@@ -24,6 +24,12 @@ import {
   runConflictResolutionTurn,
 } from '../../../src/lib/stores/copilot-store'
 import { Account } from '../../../src/models/account'
+import {
+  CopilotConflictResolutionError,
+  type CopilotConflictResolutionFailureStage,
+  type CopilotConflictResolutionRetryState,
+} from '../../../src/lib/copilot-conflict-resolution-error'
+import type { IConflictResolutionContext } from '../../../src/lib/copilot-conflict-context'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 const PreviewFeaturesEnv = 'GITHUB_DESKTOP_PREVIEW_FEATURES'
@@ -55,6 +61,13 @@ interface ITestableCommitMessageCopilotStore {
 
 interface ITestableQuotaCopilotStore {
   createClient(account: Account): Promise<CopilotClient>
+}
+
+interface ITestableConflictResolutionCopilotStore {
+  createClient(
+    account: Account,
+    repositoryPath?: string
+  ): Promise<CopilotClient>
 }
 
 type TestQuotaSnapshot = AccountQuotaSnapshot & {
@@ -193,6 +206,17 @@ function createBYOKRequest(): CopilotModelRequest {
 
 function assertCommitMessageGenerationCancelled(error: unknown): boolean {
   assert.ok(error instanceof CommitMessageGenerationCancelledError)
+  return true
+}
+
+function assertConflictResolutionFailure(
+  error: unknown,
+  stage: CopilotConflictResolutionFailureStage,
+  retryState: CopilotConflictResolutionRetryState
+): error is CopilotConflictResolutionError {
+  assert.ok(error instanceof CopilotConflictResolutionError)
+  assert.strictEqual(error.stage, stage)
+  assert.strictEqual(error.retryState, retryState)
   return true
 }
 
@@ -966,6 +990,54 @@ function createFakeSession() {
   }
 }
 
+function createResponseSession(response: string): CopilotSession {
+  const handlers: Record<string, Array<(event: unknown) => void>> = {}
+
+  return {
+    on(event: string, handler: (event: unknown) => void) {
+      handlers[event] = handlers[event] ?? []
+      handlers[event].push(handler)
+      return () => {}
+    },
+    send() {
+      queueMicrotask(() => {
+        for (const handler of handlers['assistant.message'] ?? []) {
+          handler({ data: { content: response } })
+        }
+      })
+      return Promise.resolve()
+    },
+    disconnect() {
+      return Promise.resolve()
+    },
+  } as unknown as CopilotSession
+}
+
+function makeConflictResolutionContext(): IConflictResolutionContext {
+  return {
+    ourLabel: 'main',
+    theirLabel: 'feature',
+    files: [
+      {
+        path: 'conflicted.txt',
+        hunks: [
+          {
+            oursContent: 'ours',
+            theirsContent: 'theirs',
+            baseContent: null,
+            contextBefore: '',
+            contextAfter: '',
+          },
+        ],
+        rawContent: '<<<<<<< main\nours\n=======\ntheirs\n>>>>>>> feature\n',
+      },
+    ],
+    pullRequests: [],
+    ourCommits: [],
+    theirCommits: [],
+  }
+}
+
 describe('runConflictResolutionTurn', () => {
   it('rejects as aborted and tears down the session when cancelled mid-turn', async () => {
     const fake = createFakeSession()
@@ -1044,5 +1116,119 @@ describe('runConflictResolutionTurn', () => {
       'Looking at both sides.',
       'Now comparing changes.',
     ])
+  })
+})
+
+describe('CopilotStore conflict resolution', () => {
+  it('returns an empty result when every conflicted file was skipped', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const result = await store.resolveConflicts(
+      makeAccount(),
+      {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'large-file.txt',
+            hunks: [],
+            skippedReason: 'File too large to resolve automatically',
+          },
+        ],
+        pullRequests: [],
+        ourCommits: [],
+        theirCommits: [],
+      },
+      '/repository'
+    )
+
+    assert.deepStrictEqual(result, {
+      resolutions: [],
+      summary: null,
+      references: [],
+    })
+  })
+
+  it('reports session creation failures without retrying', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const sessionError = new Error('Session transport failed')
+    let createSessionCount = 0
+    const client = {
+      createSession: async () => {
+        createSessionCount++
+        throw sessionError
+      },
+      stop: async () => {},
+    } as unknown as CopilotClient
+    const testableStore =
+      store as unknown as ITestableConflictResolutionCopilotStore
+    testableStore.createClient = async () => client
+
+    await assert.rejects(
+      store.resolveConflicts(
+        makeAccount(),
+        makeConflictResolutionContext(),
+        '/repository',
+        createBYOKRequest()
+      ),
+      error => {
+        assert.ok(
+          assertConflictResolutionFailure(
+            error,
+            'create-session',
+            'not-retried'
+          )
+        )
+        assert.strictEqual(error.underlyingError, sessionError)
+        return true
+      }
+    )
+    assert.strictEqual(createSessionCount, 1)
+  })
+
+  it('reports the final validation stage after one retry', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const responses = [
+      'not valid JSON',
+      JSON.stringify({
+        resolutions: [
+          {
+            path: 'unexpected.txt',
+            hunks: [{ resolvedContent: 'resolved' }],
+            reasoning: 'test',
+          },
+        ],
+      }),
+    ]
+    let createSessionCount = 0
+    const client = {
+      createSession: async () => {
+        const response = responses[createSessionCount]
+        createSessionCount++
+        if (response === undefined) {
+          throw new Error('Unexpected extra validation retry')
+        }
+        return createResponseSession(response)
+      },
+      stop: async () => {},
+    } as unknown as CopilotClient
+    const testableStore =
+      store as unknown as ITestableConflictResolutionCopilotStore
+    testableStore.createClient = async () => client
+
+    await assert.rejects(
+      store.resolveConflicts(
+        makeAccount(),
+        makeConflictResolutionContext(),
+        '/repository',
+        createBYOKRequest()
+      ),
+      error =>
+        assertConflictResolutionFailure(
+          error,
+          'validate-response',
+          'failed-after-validation-retry'
+        )
+    )
+    assert.strictEqual(createSessionCount, 2)
   })
 })

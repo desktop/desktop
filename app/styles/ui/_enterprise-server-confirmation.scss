@@ -1,0 +1,23 @@
+.enterprise-server-confirmation {
+  margin-bottom: var(--spacing-double);
+
+  .enterprise-server-warning {
+    display: flex;
+    gap: var(--spacing);
+    margin-top: var(--spacing-double);
+    padding: var(--spacing);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    background: var(--box-alt-background-color);
+
+    .octicon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--warning-badge-icon-color);
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+}

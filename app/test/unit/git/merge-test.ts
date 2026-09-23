@@ -14,6 +14,7 @@ import {
 } from '../../helpers/repositories'
 import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
+import { git } from '../../../src/lib/git/core'
 
 describe('git/merge', () => {
   describe('merge', () => {
@@ -38,6 +39,29 @@ describe('git/merge', () => {
   })
 
   describe('getMergeBase', () => {
+    for (const remoteName of ['-remote', '--remote']) {
+      it(`accepts a ${remoteName} tracking ref in either argument position`, async t => {
+        const path = await setupFixtureRepository(t, 'merge-base-test')
+        const repository = new Repository(path, -1, null, false)
+        const upstream = `${remoteName}/dev`
+        await git(
+          ['update-ref', `refs/remotes/${upstream}`, 'dev'],
+          repository.path,
+          'create remote-tracking ref'
+        )
+
+        const expected = 'df0d73dc92ff496c6a61f10843d527b7461703f4'
+        assert.strictEqual(
+          await getMergeBase(repository, 'master', upstream),
+          expected
+        )
+        assert.strictEqual(
+          await getMergeBase(repository, upstream, 'master'),
+          expected
+        )
+      })
+    }
+
     it('returns the common ancestor of two branches', async t => {
       const path = await setupFixtureRepository(t, 'merge-base-test')
       const repository = new Repository(path, -1, null, false)
