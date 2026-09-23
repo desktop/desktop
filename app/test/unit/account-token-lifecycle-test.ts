@@ -218,6 +218,55 @@ describe('Coordinated account token renewal', () => {
     )
   })
 
+  for (const failRenewal of [false, true]) {
+    it(`joins a longer-margin renewal before returning an otherwise valid token (failure: ${failRenewal})`, async () => {
+      const gate = deferred<void>()
+      const started = deferred<void>()
+      let calls = 0
+      const { store } = setup(async () => {
+        calls++
+        started.resolve()
+        await gate.promise
+        if (failRenewal) {
+          throw new Error('Network unavailable')
+        }
+        return renewed
+      })
+      await store.addAccount(account, {
+        ...rotating,
+        expiresAt: now + 30 * 60 * 1000,
+      })
+      const copilot = store.getAccountWithFreshToken(account, 61 * 60 * 1000)
+      await started.promise
+      let settled = 0
+      const requests = [
+        copilot.then(a => a.token),
+        store.resolveToken(account.endpoint, account.token),
+        store.getAccountWithFreshToken(account).then(a => a.token),
+      ].map(request =>
+        request.finally(() => {
+          settled++
+        })
+      )
+      const result = Promise.allSettled(requests)
+      try {
+        await new Promise<void>(resolve => setImmediate(resolve))
+        assert.equal(settled, 0)
+      } finally {
+        gate.resolve()
+      }
+      assert.deepEqual(
+        await result,
+        requests.map(() =>
+          failRenewal
+            ? { status: 'rejected', reason: new Error('Network unavailable') }
+            : { status: 'fulfilled', value: renewed.accessToken }
+        )
+      )
+      assert.equal(calls, 1)
+    })
+  }
+
   it('retains credentials on temporary failure and prevents immediate retry storms', async () => {
     let calls = 0
     const { store, secure } = setup(async () => {

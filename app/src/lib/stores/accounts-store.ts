@@ -268,15 +268,16 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       this.notifyRequiresSignIn(session)
       throw new AccountRequiresSignInError()
     }
+    // Rotation invalidates the old pair even if this caller needs less validity.
+    if (session.refreshing !== undefined) {
+      return session.refreshing
+    }
     if (
       credential.refreshToken === undefined ||
       (credential.expiresAt !== undefined &&
         credential.expiresAt > this.now() + minimumValidity)
     ) {
       return credential.accessToken
-    }
-    if (session.refreshing !== undefined) {
-      return session.refreshing
     }
     if (session.retryAfter !== undefined && this.now() < session.retryAfter) {
       throw new Error(
