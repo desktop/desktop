@@ -526,13 +526,17 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   /**
-   * Remove the account from the store.
+   * Remove an account and return its credential snapshot for remote revocation.
+   *
+   * Capture and retire the current session without yielding so renewal cannot
+   * publish a token between those steps. Return the snapshot even if deleting
+   * secure storage fails, or null if this account is no longer installed.
    */
-  public async removeAccount(account: Account): Promise<void> {
+  public async removeAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
     const current = this.accounts.find(a => a.endpoint === account.endpoint)
     if (current === undefined || current.id !== account.id) {
-      return
+      return null
     }
     this.retireSession(account.endpoint)
     this.accounts = this.accounts.filter(a => a.endpoint !== account.endpoint)
@@ -549,8 +553,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       this.emitError(
         new Error('Unable to remove GitHub credentials from secure storage.')
       )
-      return
     }
+    return current
   }
 
   private getMigratedGHEAccounts(

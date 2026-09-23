@@ -17,6 +17,7 @@ import {
 import { getKeyForAccount } from '../../src/lib/auth'
 import { API } from '../../src/lib/api'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { AppStore } from '../../src/lib/stores/app-store'
 
 const now = 1_800_000_000_000
 const account = new Account(
@@ -509,6 +510,121 @@ describe('Coordinated account token renewal', () => {
       assert.equal(signal?.aborted, false)
     })
   }
+
+  it('sign-out revokes the token published between account lookup and retirement', async t => {
+    const gate = deferred<IOAuthToken>()
+    const { store, secure, revoked } = setup(() => gate.promise)
+    await store.addAccount(account, rotating)
+    const renewal = store.resolveToken(account.endpoint, account.token)
+    const remove = store.removeAccount.bind(store)
+    t.mock.method(store, 'removeAccount', async (removed: Account) => {
+      gate.resolve(renewed)
+      await renewal
+      return remove(removed)
+    })
+    const deleted: string[] = []
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async (_input: RequestInfo | URL, init?: RequestInit) => {
+        assert.equal(init?.method, 'DELETE')
+        assert.ok(typeof init.body === 'string')
+        const body: unknown = JSON.parse(init.body)
+        assert.deepEqual(body, { access_token: renewed.accessToken })
+        deleted.push(renewed.accessToken)
+        return new Response(null, { status: 204 })
+      }
+    )
+    await AppStore.prototype._removeAccount.call(
+      { accountsStore: store },
+      account
+    )
+    assert.deepEqual(deleted, [renewed.accessToken])
+    assert.deepEqual(revoked, [])
+    assert.deepEqual(await store.getAll(), [])
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      null
+    )
+  })
+
+  it('returns the retired credential even when secure-store deletion fails', async t => {
+    const { store, secure } = setup()
+    await store.addAccount(account, rotating)
+    await store.resolveToken(account.endpoint, account.token)
+    t.mock.method(secure, 'deleteItem', async () => {
+      throw new Error('Keychain locked')
+    })
+    const errors: Error[] = []
+    store.onDidError(error => errors.push(error))
+    const removed = await store.removeAccount(account)
+    assert.equal(removed?.token, renewed.accessToken)
+    assert.deepEqual(await store.getAll(), [])
+    assert.equal(errors.length, 1)
+    await assert.rejects(
+      store.resolveToken(account.endpoint, renewed.accessToken),
+      AccountRequiresSignInError
+    )
+  })
+
+  it('does not revoke a credential for an absent or different account', async t => {
+    const { store } = setup()
+    assert.equal(await store.removeAccount(account), null)
+    const fetch = t.mock.method(globalThis, 'fetch', async () => {
+      throw new Error('Unexpected revocation')
+    })
+    await AppStore.prototype._removeAccount.call(
+      { accountsStore: store },
+      account
+    )
+    const replacement = new Account(
+      'other',
+      account.endpoint,
+      'other-token',
+      [],
+      '',
+      2,
+      'Other'
+    )
+    await store.addAccount(replacement)
+    assert.equal(await store.removeAccount(account), null)
+    await AppStore.prototype._removeAccount.call(
+      { accountsStore: store },
+      account
+    )
+    assert.equal(fetch.mock.callCount(), 0)
+    assert.deepEqual(await store.getAll(), [replacement])
+    assert.equal(
+      (await store.getAccountWithFreshToken(replacement)).token,
+      replacement.token
+    )
+  })
+
+  it('keeps retirement and its returned credential together during replacement', async t => {
+    const { store, secure } = setup()
+    await store.addAccount(account)
+    const started = deferred<void>()
+    const gate = deferred<void>()
+    const remove = secure.deleteItem.bind(secure)
+    t.mock.method(secure, 'deleteItem', async (key: string, login: string) => {
+      started.resolve()
+      await gate.promise
+      return remove(key, login)
+    })
+    const removal = store.removeAccount(account)
+    await started.promise
+    const replacement = account.withToken('replacement-token')
+    const addition = store.addAccount(replacement)
+    gate.resolve()
+    const removed = await removal
+    await addition
+    assert.equal(removed?.token, account.token)
+    assert.deepEqual(await store.getAll(), [replacement])
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      replacement.token
+    )
+  })
 
   it('sign-out during exchange prevents resurrection and revokes the unused replacement', async () => {
     const gate = deferred<IOAuthToken>()

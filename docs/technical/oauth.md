@@ -60,6 +60,12 @@ Secure writes, account replacement, and sign-out are coordinated so a late
 exchange cannot restore a signed-out account. Both replacement tokens must be
 saved before publishing the new access token.
 
+Sign-out captures the credential to revoke in the same synchronous step that
+retires its session. A renewal published before retirement is revoked by sign-out;
+a replacement received after retirement is handled by unused-credential cleanup.
+Failure to delete secure storage is reported without discarding the credential
+needed for remote revocation.
+
 API clients resolve credentials for every request, including clients created
 before rotation. Git and Git LFS resolve credentials before delivery. Git clients
 advertising `authtype` receive ephemeral Basic credentials. Older clients retain

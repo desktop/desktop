@@ -8075,10 +8075,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    const current = (await this.accountsStore.getAll()).find(
-      a => a.endpoint === account.endpoint && a.id === account.id
-    )
-    await this.accountsStore.removeAccount(account)
+    const current = await this.accountsStore.removeAccount(account)
     if (current?.token) {
       await deleteToken(current)
     }
