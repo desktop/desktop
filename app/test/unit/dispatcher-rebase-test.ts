@@ -1,5 +1,7 @@
 import { after, before, describe, it, mock, TestContext } from 'node:test'
 import assert from 'node:assert'
+import { writeFile } from 'fs/promises'
+import { join } from 'path'
 import type { AppStore } from '../../src/lib/stores/app-store'
 import type { Dispatcher } from '../../src/ui/dispatcher'
 import type { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
@@ -170,7 +172,10 @@ describe('Dispatcher rebase retry after stashing', () => {
     const repository = await setupEmptyRepository(t)
 
     await scaffolding.makeCommit(repository, {
-      entries: [{ path: 'base.txt', contents: 'base' }],
+      entries: [
+        { path: 'base.txt', contents: 'base' },
+        { path: 'shared.txt', contents: 'shared\n' },
+      ],
       commitMessage: 'initial commit',
     })
 
@@ -182,8 +187,13 @@ describe('Dispatcher rebase retry after stashing', () => {
     })
 
     await scaffolding.switchTo(repository, 'master')
+    // Touching `shared.txt` here is what lets a local edit to that same file
+    // block the rebase, which is the situation the issue describes.
     await scaffolding.makeCommit(repository, {
-      entries: [{ path: 'master.txt', contents: 'master' }],
+      entries: [
+        { path: 'master.txt', contents: 'master' },
+        { path: 'shared.txt', contents: 'shared, changed on master\n' },
+      ],
       commitMessage: 'master commit',
     })
 
@@ -292,6 +302,64 @@ describe('Dispatcher rebase retry after stashing', () => {
       commitsAfter.map(c => c.summary),
       commitsBefore.map(c => c.summary),
       'the merge in progress should not have been replaced by a rebase'
+    )
+  })
+
+  it('completes the rebase after the user stashes the blocking changes', async t => {
+    const { repository, baseBranch, targetBranch } =
+      await setupDivergedBranches(t)
+
+    // Leave an uncommitted edit to a file the rebase has to touch. This is the
+    // situation the user is in when Desktop offers to stash and continue.
+    await writeFile(
+      join(repository.path, 'shared.txt'),
+      'shared, edited locally\n'
+    )
+
+    await appStore._loadStatus(repository)
+
+    const commits = await git.getCommitsBetweenCommits(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+    assert.ok(commits !== null, 'expected to resolve the commits to rebase')
+
+    // Step 1: the user starts the rebase and git refuses it.
+    await dispatcher.startRebase(repository, baseBranch, targetBranch, commits)
+
+    // The failed attempt tears down its own operation state. This is the
+    // precondition that used to make the retry a no-op.
+    assert.equal(
+      repositoryStateCache.get(repository).multiCommitOperationState,
+      null,
+      'expected the blocked rebase to have ended the operation'
+    )
+
+    const blocked = await git.getCommits(repository, 'HEAD', 10)
+    assert.deepEqual(
+      blocked.map(c => c.summary),
+      ['feature commit', 'initial commit'],
+      'expected the blocked rebase to have left the branch alone'
+    )
+
+    // Step 2: the user picks "Stash changes and continue".
+    const stashed = await dispatcher.createStashForCurrentBranch(
+      repository,
+      false
+    )
+    assert.equal(stashed, true, 'expected the local changes to be stashed')
+
+    // Step 3: the dialog retries the rebase, which re-enters `rebase` directly
+    // rather than going back through `startRebase`.
+    await dispatcher.rebase(repository, baseBranch, targetBranch)
+
+    // The rebase the user asked for finally happens.
+    const rebased = await git.getCommits(repository, 'HEAD', 10)
+    assert.deepEqual(
+      rebased.map(c => c.summary),
+      ['feature commit', 'master commit', 'initial commit'],
+      'expected the stashed retry to complete the rebase'
     )
   })
 })
