@@ -477,9 +477,9 @@ export class Preferences extends React.Component<
     this.props.dispatcher.showDotComSignInDialog()
   }
 
-  private onEnterpriseSignIn = () => {
+  private onEnterpriseSignIn = (endpoint?: string) => {
     this.props.onDismissed()
-    this.props.dispatcher.showEnterpriseSignInDialog()
+    this.props.dispatcher.showEnterpriseSignInDialog(endpoint)
   }
 
   private onCopilotSignIn = () => {

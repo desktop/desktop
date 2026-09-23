@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import * as React from 'react'
 import { InvalidatedToken } from '../../../src/ui/invalidated-token/invalidated-token'
+import { Accounts } from '../../../src/ui/preferences/accounts'
 import { Account } from '../../../src/models/account'
 import { DialogStackContext } from '../../../src/ui/dialog/dialog'
 import { render, screen, fireEvent, waitFor } from '../../helpers/ui/render'
@@ -84,20 +85,20 @@ describe('Session recovery dialog', () => {
 
   it('allows deferring sign-in without removing repositories', async () => {
     let dismissed = 0
+    let signIns = 0
+    const account = new Account(
+      'octocat',
+      'https://api.github.com',
+      '',
+      [],
+      '',
+      1,
+      'Octocat'
+    )
     view = render(
       <DialogStackContext.Provider value={{ isTopMost: true }}>
         <InvalidatedToken
-          account={
-            new Account(
-              'octocat',
-              'https://api.github.com',
-              '',
-              [],
-              '',
-              1,
-              'Octocat'
-            )
-          }
+          account={account}
           dispatcher={{
             showDotComSignInDialog: () => assert.fail('Unexpected sign-in'),
             showEnterpriseSignInDialog: () => assert.fail('Unexpected sign-in'),
@@ -112,5 +113,15 @@ describe('Session recovery dialog', () => {
       )
       assert.equal(dismissed, 1)
     })
+    view.rerender(
+      <Accounts
+        accounts={[account]}
+        onDotComSignIn={() => signIns++}
+        onEnterpriseSignIn={() => assert.fail('Unexpected Enterprise sign-in')}
+        onLogout={() => assert.fail('Recovery must not require signing out')}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /sign in again/i }))
+    assert.equal(signIns, 1)
   })
 })
