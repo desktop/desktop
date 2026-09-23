@@ -2245,7 +2245,10 @@ export class API {
 }
 
 /** Revoke a token, optionally allowing the caller to cancel the request. */
-export async function deleteToken(account: Account, signal?: AbortSignal) {
+export async function deleteToken(
+  account: Pick<Account, 'endpoint' | 'token'>,
+  signal?: AbortSignal
+) {
   try {
     const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
     const response = await request(

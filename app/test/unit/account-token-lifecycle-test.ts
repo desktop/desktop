@@ -128,6 +128,39 @@ describe('OAuth credential persistence', () => {
   })
 })
 
+describe('Unused OAuth credential cleanup', () => {
+  for (const endpoint of [
+    'https://api.github.com',
+    'https://github.example.com/api/v3',
+  ]) {
+    it(`revokes a credential before account discovery at ${endpoint}`, async t => {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const store = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore()
+      )
+      let signal: AbortSignal | null | undefined
+      const fetch = t.mock.method(
+        globalThis,
+        'fetch',
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          assert.equal(input, `${endpoint}/applications//token`)
+          assert.equal(init?.method, 'DELETE')
+          assert.ok(typeof init?.body === 'string')
+          assert.deepEqual(JSON.parse(init.body), { access_token: 'unused' })
+          signal = init.signal
+          return new Response(null, { status: 204 })
+        }
+      )
+      await store.revokeUnusedToken({ endpoint, token: 'unused' })
+      assert.equal(fetch.mock.callCount(), 1)
+      assert.deepEqual(await store.getAll(), [])
+      t.mock.timers.tick(30_000)
+      assert.equal(signal?.aborted, false)
+    })
+  }
+})
+
 describe('Coordinated account token renewal', () => {
   it('allows explicitly anonymous public API requests while an account requires sign-in', async t => {
     const { store } = setup()

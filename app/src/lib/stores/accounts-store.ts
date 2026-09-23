@@ -368,7 +368,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return renewed.accessToken
   }
 
-  private async revokeUnusedToken(account: Account): Promise<void> {
+  /**
+   * Revoke an unused credential, even if account lookup has not completed.
+   *
+   * Cleanup is bounded and failures are logged. Callers need not await it, but
+   * must only pass credentials that have not been installed for an account.
+   */
+  public async revokeUnusedToken(
+    account: Pick<Account, 'endpoint' | 'token'>
+  ): Promise<void> {
     const controller = new AbortController()
     let timeout: ReturnType<typeof setTimeout> | undefined
     const deadline = new Promise<never>((_, reject) => {
