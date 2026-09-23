@@ -1,4 +1,5 @@
 import { getAbsoluteUrl, getUserAgent } from './http'
+import { isRecord } from './is-record'
 
 const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -30,10 +31,6 @@ export class OAuthRefreshRejectedError extends Error {
     super('The OAuth refresh token was rejected.')
     this.name = 'OAuthRefreshRejectedError'
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function isToken(value: unknown): value is string {
