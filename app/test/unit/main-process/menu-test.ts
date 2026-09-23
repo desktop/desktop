@@ -5,6 +5,7 @@ import {
   buildDefaultMenuTemplate,
 } from '../../../src/main-process/menu'
 import type { MenuLabelsEvent } from '../../../src/models/menu-labels'
+import { enableCopilotAppHandoff } from '../../../src/lib/feature-flag'
 
 /** Extract the Windows-style access key from a menu item label, if any. */
 function getAccessKey(label: string): string | null {
@@ -158,6 +159,37 @@ describe('main-process menu', () => {
   })
 
   describe('buildDefaultMenuTemplate', () => {
+    it('gates Copilot handoff to supported platforms and preview channels', t => {
+      const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const hasCopilotMenuItem = () => {
+        const template = buildDefaultMenuTemplate(baseParams)
+        const repository = template.find(item => item.id === 'repository')
+        assert.ok(Array.isArray(repository?.submenu))
+        return repository.submenu.some(
+          item => item.id === 'open-in-copilot-app'
+        )
+      }
+
+      t.after(() => {
+        if (preview === undefined) {
+          delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+        } else {
+          process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = preview
+        }
+      })
+
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      assert.strictEqual(
+        enableCopilotAppHandoff(),
+        (__DARWIN__ || __WIN32__) && (__DEV__ || __RELEASE_CHANNEL__ === 'beta')
+      )
+      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
+
+      process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+      assert.strictEqual(enableCopilotAppHandoff(), __DARWIN__ || __WIN32__)
+      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
+    })
+
     // The boolean parameters that affect which labels (and therefore access
     // keys) appear in the menu. We generate all 2^N combinations to ensure no
     // state produces a duplicate access key in any submenu.
@@ -179,6 +211,28 @@ describe('main-process menu', () => {
       askForConfirmationOnForcePush: false,
       askForConfirmationOnRepositoryRemoval: false,
     }
+
+    it('provides a gated Copilot handoff without replacing the editor command', () => {
+      const template = buildDefaultMenuTemplate(baseParams)
+      const repository = template.find(item => item.id === 'repository')
+      assert.ok(Array.isArray(repository?.submenu))
+      const copilot = repository.submenu.find(
+        item => item.id === 'open-in-copilot-app'
+      )
+      assert.strictEqual(copilot !== undefined, enableCopilotAppHandoff())
+      if (copilot !== undefined) {
+        assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
+        assert.ok(
+          repository.submenu.indexOf(copilot) <
+            repository.submenu.findIndex(
+              item => item.id === 'open-with-external-editor'
+            )
+        )
+      }
+      assert.ok(
+        repository.submenu.some(item => item.id === 'open-external-editor')
+      )
+    })
 
     it('has no duplicate access keys for any combination of label-affecting parameters', () => {
       const combinationCount = 1 << variantKeys.length
