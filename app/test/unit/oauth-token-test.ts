@@ -264,6 +264,51 @@ describe('OAuth token requests', () => {
     })
   })
 
+  for (const [grant, requestToken] of [
+    ['authorization code', exchangeOAuthToken],
+    ['refresh token', refreshOAuthToken],
+  ] as const) {
+    for (const status of [400, 401, 429, 500, 502, 503]) {
+      it(`treats non-JSON HTTP ${status} as a request failure during ${grant} exchange`, async t => {
+        const fetchMock = t.mock.method(
+          globalThis,
+          'fetch',
+          async () =>
+            new Response('<html>secret-gateway-response</html>', { status })
+        )
+        await assert.rejects(
+          requestToken('https://github.com', 'secret-credential'),
+          {
+            name: 'Error',
+            message: 'The OAuth token request failed.',
+          }
+        )
+        assert.strictEqual(fetchMock.mock.callCount(), 1)
+      })
+    }
+
+    for (const status of [500, 502, 503]) {
+      for (const error of ['bad_refresh_token', 'invalid_grant']) {
+        it(`does not trust ${error} in HTTP ${status} during ${grant} exchange`, async t => {
+          const fetchMock = t.mock.method(globalThis, 'fetch', async () =>
+            Response.json(
+              { error, error_description: 'secret-error-description' },
+              { status }
+            )
+          )
+          await assert.rejects(
+            requestToken('https://github.com', 'secret-credential'),
+            {
+              name: 'Error',
+              message: 'The OAuth token request failed.',
+            }
+          )
+          assert.strictEqual(fetchMock.mock.callCount(), 1)
+        })
+      }
+    }
+  }
+
   it('sanitizes malformed JSON responses', async t => {
     t.mock.method(
       globalThis,
