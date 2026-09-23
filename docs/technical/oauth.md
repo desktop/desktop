@@ -85,6 +85,11 @@ the server omits it.
   to revoke the unused replacement. Revocation runs independently of waiting
   credential consumers, has a 30-second cancellation deadline, and logs failures
   without preventing sign-in recovery.
+- During sign-in, credentials returned by the code exchange remain owned by the
+  sign-in flow until `AccountsStore` accepts them. Cancellation, profile lookup
+  failure, or failed persistence attempts the same bounded, nonblocking cleanup
+  of unpublished credentials. Once installed, credentials are owned by
+  `AccountsStore` and are not revoked merely because the sign-in UI is dismissed.
 - OAuth exchanges have a 30-second deadline, including response parsing. They
   reject redirects and are never automatically replayed. Errors and lifecycle
   logs do not include token values or server-provided error descriptions.

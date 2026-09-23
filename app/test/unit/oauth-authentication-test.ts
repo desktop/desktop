@@ -42,9 +42,15 @@ function deferred<T>() {
   return { promise, resolve }
 }
 
+interface IAuthenticationResponses {
+  readonly exchange?: () => Promise<Response>
+  readonly user?: () => Promise<Response>
+  readonly revoke?: (init?: RequestInit) => Promise<Response>
+}
+
 async function createAuthentication(
   t: TestContext,
-  exchange: () => Promise<Response> = async () => Response.json(oauthResponse)
+  responses: IAuthenticationResponses = {}
 ) {
   const dataStore = new InMemoryStore()
   const secureStore = new AsyncInMemoryStore()
@@ -55,6 +61,7 @@ async function createAuthentication(
   const results: SignInResult[] = []
   const authenticated: Account[] = []
   const stateSnapshots: string[] = []
+  const revoked: string[] = []
   const disposeAuthentication = signInStore.onDidAuthenticate(account =>
     authenticated.push(account)
   )
@@ -74,7 +81,16 @@ async function createAuthentication(
       assert.ok(typeof input === 'string')
       const url = new URL(input)
       if (url.pathname === '/login/oauth/access_token') {
-        return exchange()
+        return responses.exchange?.() ?? Response.json(oauthResponse)
+      }
+      if (init?.method === 'DELETE') {
+        assert.strictEqual(input, `${endpoint}/applications//token`)
+        assert.ok(typeof init.body === 'string')
+        assert.deepStrictEqual(JSON.parse(init.body), {
+          access_token: oauthResponse.access_token,
+        })
+        revoked.push(oauthResponse.access_token)
+        return responses.revoke?.(init) ?? new Response(null, { status: 204 })
       }
       assert.strictEqual(
         new Headers(init?.headers).get('Authorization'),
@@ -82,7 +98,7 @@ async function createAuthentication(
       )
       switch (url.pathname) {
         case '/user':
-          return Response.json(userResponse)
+          return responses.user?.() ?? Response.json(userResponse)
         case '/user/emails':
           return Response.json([
             {
@@ -128,6 +144,7 @@ async function createAuthentication(
     results,
     authenticated,
     stateSnapshots,
+    revoked,
     action,
     fetchMock,
   }
@@ -352,6 +369,7 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     assert.ok(value.includes(oauthResponse.refresh_token))
     assert.ok(value.includes(oauthResponse.access_token))
     assert.strictEqual(harness.fetchMock.mock.callCount(), 5)
+    assert.deepStrictEqual(harness.revoked, [])
 
     for (const publicState of [
       ...harness.stateSnapshots,
@@ -386,11 +404,14 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     assert.deepStrictEqual(harness.results, [])
     assert.deepStrictEqual(await harness.accountsStore.getAll(), [])
     assert.ok(!state.error.message.includes(oauthResponse.refresh_token))
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
   })
 
   it('ignores duplicate OAuth callbacks while exchange is in flight', async t => {
     const response = deferred<Response>()
-    const harness = await createAuthentication(t, () => response.promise)
+    const harness = await createAuthentication(t, {
+      exchange: () => response.promise,
+    })
     const first = harness.signInStore.resolveOAuthRequest(harness.action)
     await harness.signInStore.resolveOAuthRequest(harness.action)
     assert.strictEqual(harness.fetchMock.mock.callCount(), 1)
@@ -405,7 +426,9 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
 
   it('does not save or authenticate after cancellation during code exchange', async t => {
     const response = deferred<Response>()
-    const harness = await createAuthentication(t, () => response.promise)
+    const harness = await createAuthentication(t, {
+      exchange: () => response.promise,
+    })
     const storage = t.mock.method(harness.secureStore, 'setItem')
     const completion = harness.signInStore.resolveOAuthRequest(harness.action)
     harness.signInStore.reset()
@@ -416,7 +439,8 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     assert.deepStrictEqual(harness.results, [{ kind: 'cancelled' }])
     assert.deepStrictEqual(harness.authenticated, [])
     assert.strictEqual(storage.mock.callCount(), 0)
-    assert.strictEqual(harness.fetchMock.mock.callCount(), 1)
+    assert.strictEqual(harness.fetchMock.mock.callCount(), 2)
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
   })
 
   it('removes credentials saved after cancellation during secure storage', async t => {
@@ -445,7 +469,171 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     assert.deepStrictEqual(harness.authenticated, [])
     assert.deepStrictEqual(harness.results, [{ kind: 'cancelled' }])
     assert.strictEqual(harness.signInStore.getState(), null)
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
   })
+
+  it('revokes credentials after cancellation during profile lookup', async t => {
+    const started = deferred<void>()
+    const response = deferred<Response>()
+    const harness = await createAuthentication(t, {
+      user: () => {
+        started.resolve()
+        return response.promise
+      },
+    })
+    const completion = harness.signInStore.resolveOAuthRequest(harness.action)
+    await started.promise
+    harness.signInStore.reset()
+    response.resolve(Response.json(userResponse))
+    await completion
+    await setImmediate()
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+    assert.deepStrictEqual(await harness.accountsStore.getAll(), [])
+    assert.deepStrictEqual(harness.results, [{ kind: 'cancelled' }])
+    assert.deepStrictEqual(harness.authenticated, [])
+  })
+
+  it('revokes credentials when profile lookup fails', async t => {
+    const harness = await createAuthentication(t, {
+      user: async () =>
+        Response.json({ message: 'Profile unavailable' }, { status: 500 }),
+    })
+    await harness.signInStore.resolveOAuthRequest(harness.action)
+    await setImmediate()
+    const state = harness.signInStore.getState()
+    assert.ok(state?.kind === SignInStep.Authentication)
+    assert.match(state.error?.message ?? '', /Profile unavailable/)
+    assert.strictEqual(state.loading, false)
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+    assert.deepStrictEqual(await harness.accountsStore.getAll(), [])
+    assert.deepStrictEqual(harness.authenticated, [])
+  })
+
+  it('does not revoke credentials when the code exchange fails', async t => {
+    const harness = await createAuthentication(t, {
+      exchange: async () => new Response('Unavailable', { status: 502 }),
+    })
+    await harness.signInStore.resolveOAuthRequest(harness.action)
+    await setImmediate()
+    const state = harness.signInStore.getState()
+    assert.ok(state?.kind === SignInStep.Authentication)
+    assert.ok(state.error)
+    assert.strictEqual(state.loading, false)
+    assert.deepStrictEqual(harness.revoked, [])
+    assert.strictEqual(harness.fetchMock.mock.callCount(), 1)
+  })
+
+  it('does not revoke installed credentials when publication cancels the sign-in flow', async t => {
+    const harness = await createAuthentication(t)
+    const subscription = harness.accountsStore.onDidUpdate(accounts => {
+      if (accounts.length > 0) {
+        harness.signInStore.reset()
+      }
+    })
+    t.after(() => subscription.dispose())
+    await harness.signInStore.resolveOAuthRequest(harness.action)
+    await setImmediate()
+    assert.deepStrictEqual(harness.results, [{ kind: 'cancelled' }])
+    assert.deepStrictEqual(harness.authenticated, [])
+    assert.strictEqual(
+      (await harness.accountsStore.getAll())[0].token,
+      oauthResponse.access_token
+    )
+    assert.deepStrictEqual(harness.revoked, [])
+  })
+
+  it('revokes only the abandoned credential when another account is installed', async t => {
+    const response = deferred<Response>()
+    const harness = await createAuthentication(t, {
+      exchange: () => response.promise,
+    })
+    const completion = harness.signInStore.resolveOAuthRequest(harness.action)
+    harness.signInStore.reset()
+    const replacement = new Account(
+      'other',
+      endpoint,
+      'replacement-token',
+      [],
+      '',
+      2,
+      'Other'
+    )
+    await harness.accountsStore.addAccount(replacement)
+    response.resolve(Response.json(oauthResponse))
+    await completion
+    await setImmediate()
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+    assert.deepStrictEqual(await harness.accountsStore.getAll(), [replacement])
+    assert.strictEqual(
+      (await harness.accountsStore.getAccountWithFreshToken(replacement)).token,
+      replacement.token
+    )
+  })
+
+  it('finishes a failed sign-in without waiting for stalled cleanup and aborts cleanup at its deadline', async t => {
+    const stalled = deferred<Response>()
+    t.after(() => stalled.resolve(new Response(null, { status: 204 })))
+    let signal: AbortSignal | null | undefined
+    const harness = await createAuthentication(t, {
+      user: async () =>
+        Response.json({ message: 'Profile unavailable' }, { status: 500 }),
+      revoke: init => {
+        signal = init?.signal
+        return stalled.promise
+      },
+    })
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const warnings = t.mock.method(log, 'warn')
+    await harness.signInStore.resolveOAuthRequest(harness.action)
+    await setImmediate()
+    const state = harness.signInStore.getState()
+    assert.ok(state?.kind === SignInStep.Authentication)
+    assert.strictEqual(state.loading, false)
+    assert.match(state.error?.message ?? '', /Profile unavailable/)
+    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+    t.mock.timers.tick(29_999)
+    assert.strictEqual(signal?.aborted, false)
+    t.mock.timers.tick(1)
+    await setImmediate()
+    assert.strictEqual(signal?.aborted, true)
+    assert.strictEqual(harness.signInStore.getState(), state)
+    assert.strictEqual(
+      warnings.mock.calls.filter(
+        call =>
+          call.arguments[0] === 'Unable to revoke unused OAuth credentials.'
+      ).length,
+      1
+    )
+  })
+
+  for (const rejects of [false, true]) {
+    it(`keeps storage failure actionable when cleanup fails (rejects: ${rejects})`, async t => {
+      const harness = await createAuthentication(t, {
+        revoke: async () => {
+          if (rejects) {
+            throw new Error('Cleanup unavailable')
+          }
+          return new Response(null, { status: 503 })
+        },
+      })
+      const warnings = t.mock.method(log, 'warn')
+      t.mock.method(harness.secureStore, 'setItem', async () => {
+        throw new Error('Keychain locked')
+      })
+      await harness.signInStore.resolveOAuthRequest(harness.action)
+      await setImmediate()
+      const state = harness.signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.loading, false)
+      assert.match(state.error?.message ?? '', /Unable to save/)
+      assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+      assert.deepStrictEqual(harness.authenticated, [])
+      assert.deepStrictEqual(
+        warnings.mock.calls.map(call => call.arguments),
+        [['Unable to revoke unused OAuth credentials.']]
+      )
+    })
+  }
 
   it('rejects mismatched OAuth state without issuing requests', async t => {
     const harness = await createAuthentication(t)

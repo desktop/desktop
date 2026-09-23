@@ -367,8 +367,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     const isCurrent = () =>
       this.state?.kind === SignInStep.Authentication &&
       this.state.oauthState === oauthState
+    let unpublishedToken: string | undefined
     try {
       const credential = await requestOAuthToken(endpoint, action.code)
+      unpublishedToken = credential.accessToken
       if (!isCurrent()) {
         return
       }
@@ -381,6 +383,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         credential,
         isCurrent
       )
+      if (stored !== null) {
+        unpublishedToken = undefined
+      }
       if (!isCurrent()) {
         return
       }
@@ -395,6 +400,12 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     } finally {
       if (this.resolvingOAuthState === oauthState.state) {
         this.resolvingOAuthState = undefined
+      }
+      if (unpublishedToken !== undefined) {
+        void this.accountStore.revokeUnusedToken({
+          endpoint,
+          token: unpublishedToken,
+        })
       }
     }
   }
