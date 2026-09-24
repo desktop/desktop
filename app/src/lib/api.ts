@@ -839,6 +839,7 @@ export class API {
 
   public static onTokenInvalidated(callback: TokenInvalidatedCallback) {
     this.tokenInvalidatedListeners.add(callback)
+    return () => this.tokenInvalidatedListeners.delete(callback)
   }
 
   private static emitTokenInvalidated(endpoint: string, token: string) {
