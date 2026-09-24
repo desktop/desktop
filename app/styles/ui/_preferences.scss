@@ -113,11 +113,6 @@
         .button-component {
           align-self: normal;
         }
-
-        & > .button-component:not(:last-child) {
-          margin-right: 0;
-          margin-bottom: var(--spacing);
-        }
       }
     }
 
