@@ -2,10 +2,10 @@ import { getDotComAPIEndpoint, getHTMLURL } from '../lib/api'
 import { EndpointToken } from '../lib/endpoint-token'
 import { OrderedWebRequest } from './ordered-webrequest'
 
-interface IImageAccount {
+interface IImageEndpointToken {
+  readonly session: symbol
   readonly endpoint: string
   readonly token: string
-  readonly session: symbol
 }
 
 function isEnterpriseAvatarPath(pathname: string) {
@@ -33,7 +33,7 @@ export function installAuthenticatedImageFilter(
   orderedWebRequest: OrderedWebRequest,
   resolveToken: (endpoint: string, token: string) => Promise<string>
 ) {
-  let originTokens = new Map<string, IImageAccount>()
+  let originTokens = new Map<string, IImageEndpointToken>()
 
   orderedWebRequest.onBeforeSendHeaders.addEventListener(async details => {
     const { origin, pathname } = new URL(details.url)
