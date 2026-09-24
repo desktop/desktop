@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { getEnterpriseAPIURL } from '../../src/lib/api'
+import { getAPIEndpoint, getEnterpriseAPIURL } from '../../src/lib/api'
 import {
   getLegacyGHEEndpoints,
   getMigratedGHEEndpoint,
@@ -21,6 +21,20 @@ describe('getEnterpriseAPIURL', () => {
   it('uses the /api/v3 path for GHES', () => {
     assert.equal(
       getEnterpriseAPIURL('https://ghes.example.com/'),
+      'https://ghes.example.com/api/v3'
+    )
+  })
+})
+
+describe('getAPIEndpoint', () => {
+  it('maps repository hosts to API endpoints', () => {
+    assert.equal(getAPIEndpoint('https://github.com'), 'https://api.github.com')
+    assert.equal(
+      getAPIEndpoint('https://whatever.ghe.com'),
+      'https://api.whatever.ghe.com'
+    )
+    assert.equal(
+      getAPIEndpoint('https://ghes.example.com'),
       'https://ghes.example.com/api/v3'
     )
   })

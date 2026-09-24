@@ -2265,21 +2265,6 @@ export async function fetchUser(
 }
 
 /**
- * Map a repository's URL to the endpoint associated with it. For example:
- *
- * https://github.com/desktop/desktop -> https://api.github.com
- * http://github.mycompany.com/my-team/my-project -> http://github.mycompany.com/api
- */
-export function getEndpointForRepository(url: string): string {
-  const parsed = URL.parse(url)
-  if (parsed.hostname === 'github.com') {
-    return getDotComAPIEndpoint()
-  } else {
-    return `${parsed.protocol}//${parsed.hostname}/api`
-  }
-}
-
-/**
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
