@@ -2,7 +2,7 @@ import { IOAuthToken } from './oauth-token'
 
 const prefix = 'github-desktop-oauth:'
 
-/** A null credential records that this account must sign in again. */
+/** A null credential represents missing or previously invalidated credentials. */
 export type AccountCredential = IOAuthToken | null
 
 /** Store the entire rotating pair in one secure-store item. */

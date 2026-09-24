@@ -51,7 +51,7 @@ describe('Session recovery dialog', () => {
     'https://api.github.com',
     'https://github.example.com/api/v3',
   ]) {
-    it(`offers explicit sign-in without claiming local work is lost (${endpoint})`, () => {
+    it(`offers sign-in after signing out (${endpoint})`, () => {
       const actions: string[] = []
       const dispatcher = {
         showDotComSignInDialog: async () => {
@@ -68,12 +68,8 @@ describe('Session recovery dialog', () => {
           onDismissed={() => actions.push('dismiss')}
         />
       )
-      assert.ok(
-        screen.getByText(/local repositories and changes are not affected/)
-      )
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Sign in', hidden: true })
-      )
+      assert.ok(screen.getByText(/you have been signed out/))
+      fireEvent.click(screen.getByRole('button', { name: 'Yes', hidden: true }))
       assert.deepEqual(actions, [
         'dismiss',
         endpoint === 'https://api.github.com'
@@ -83,7 +79,7 @@ describe('Session recovery dialog', () => {
     })
   }
 
-  it('allows deferring sign-in without removing repositories', async () => {
+  it('dismisses sign-in while leaving the account signed out', async () => {
     let dismissed = 0
     let signIns = 0
     const account = new Account(
@@ -108,20 +104,21 @@ describe('Session recovery dialog', () => {
       </DialogStackContext.Provider>
     )
     await waitFor(() => {
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Not now', hidden: true })
-      )
+      fireEvent.click(screen.getByRole('button', { name: 'No', hidden: true }))
       assert.equal(dismissed, 1)
     })
     view.rerender(
       <Accounts
-        accounts={[account]}
+        accounts={[]}
         onDotComSignIn={() => signIns++}
         onEnterpriseSignIn={() => assert.fail('Unexpected Enterprise sign-in')}
-        onLogout={() => assert.fail('Recovery must not require signing out')}
+        onLogout={() => assert.fail('Account should already be signed out')}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: /sign in again/i }))
+    assert.equal(screen.queryByText('Octocat'), null)
+    fireEvent.click(
+      screen.getByRole('button', { name: /sign into GitHub.com/i })
+    )
     assert.equal(signIns, 1)
   })
 })

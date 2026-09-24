@@ -27,20 +27,19 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
       <Dialog
         id="invalidated-token"
         type="warning"
-        title={__DARWIN__ ? 'Sign In Again' : 'Sign in again'}
+        title={
+          __DARWIN__ ? 'Invalidated Account Token' : 'Invalidated account token'
+        }
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          Your session for <Ref>{account.friendlyEndpoint}</Ref> could not be
-          renewed. Sign in again to continue. Your local repositories and
-          changes are not affected.
+          Your account token is no longer valid and you have been signed out
+          from your <Ref>{account.friendlyEndpoint}</Ref> account. Do you want
+          to sign in again?
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup
-            okButtonText="Sign in"
-            cancelButtonText="Not now"
-          />
+          <OkCancelButtonGroup okButtonText="Yes" cancelButtonText="No" />
         </DialogFooter>
       </Dialog>
     )
