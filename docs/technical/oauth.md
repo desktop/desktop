@@ -31,12 +31,14 @@ Product-level use cases are captured as
 [Gherkin scenarios](./oauth-scenarios.feature); implementation details follow.
 
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`
-request `offline_access` in addition to Desktop's existing OAuth scopes. The
-authorization response determines whether the account uses rotating credentials:
-older hosts and existing non-expiring tokens remain supported. This does not
-automatically migrate existing accounts. Reauthenticate to opt an account in.
-The platform announced OAuth refresh support for GitHub Enterprise Server 3.23;
-Desktop does not assume that every Enterprise host supports it.
+request `offline_access` in addition to Desktop's existing OAuth scopes for
+GitHub.com and GitHub Enterprise Cloud. GitHub Enterprise Server always uses the
+existing scopes for new sign-ins; no GHES version is currently enabled for
+refreshable OAuth acquisition. When GHES support becomes available, add a
+version-based capability check before opting in. The authorization response
+determines whether the account uses rotating credentials. Existing non-expiring
+tokens remain supported; this does not automatically migrate existing accounts.
+Reauthenticate to opt an eligible account in.
 
 The flag controls acquisition only. Disabling the preview must not stop renewal
 of already-issued credentials. Do not force expiring tokens in the OAuth app's
@@ -81,8 +83,10 @@ the server omits it.
 
 ### Failure and recovery
 
-- Temporary network/service failures retain credentials, fail the operation, and
-  impose a 30-second retry cooldown. They do not sign the user out.
+- Temporary network/service failures retain credentials, fail the operation
+  with connection guidance, and allow the next authenticated operation to retry
+  immediately. They do not sign the user out. Simultaneous callers still share
+  an in-flight renewal.
 - Explicit refresh rejection or a malformed replacement pair signs the user out
   and immediately asks whether to sign in again, matching the existing
   invalid-token flow. Choosing **No** leaves the account signed out; the usual

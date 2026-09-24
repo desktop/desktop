@@ -26,14 +26,20 @@ Feature: Stay signed in to GitHub Desktop with short-lived credentials
       When I sign in to Desktop
       Then I can continue using the existing sign-in experience
 
+    Scenario: Sign in to GitHub Enterprise Server
+      Given GitHub Enterprise Server does not yet support renewable credentials
+      When I sign in to Desktop
+      Then I can use the existing browser sign-in experience
+      And Desktop does not request renewable credentials
+
     Scenario: Continue an active session when the preview is turned off
       Given I signed in with renewable credentials during the preview
       When the preview feature flag is turned off
       Then Desktop continues renewing my existing session
       And new sign-ins no longer opt in to the preview
 
-    Scenario: Sign in to a supported GitHub Enterprise host
-      Given my GitHub Enterprise host supports renewable credentials
+    Scenario: Sign in to a supported GitHub Enterprise Cloud host
+      Given my GitHub Enterprise Cloud host supports renewable credentials
       When I sign in to that host
       Then Desktop can keep my Enterprise session active
       And Desktop does not use credentials from another host
@@ -78,6 +84,12 @@ Feature: Stay signed in to GitHub Desktop with short-lived credentials
       Then Desktop tells me the current operation cannot continue
       And I remain signed in
       And Desktop can try renewal again later
+
+    Scenario: Retry work as soon as a temporary outage ends
+      Given a temporary issue prevented my session from renewing
+      When I retry my work after the service recovers
+      Then Desktop renews my session without making me wait
+      And I can continue without signing in again
 
     Scenario: Require sign-in if my session cannot be renewed
       Given I am signed in with renewable credentials
