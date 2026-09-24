@@ -867,7 +867,12 @@ export class API {
     endpoint: string,
     token: string,
     copilotEndpoint?: string,
-    private readonly useManagedCredentials = true
+    /**
+     * Use the account store to resolve/refresh tokens and handle rejected tokens.
+     * Disable for new sign-in tokens and the anonymous public-repository fallback:
+     * those must use the supplied token, not another signed-in account's token.
+     */
+    private readonly manageAccountToken = true
   ) {
     this.endpoint = endpoint
     this.token = token
@@ -1833,7 +1838,7 @@ export class API {
   ): Promise<Response> {
     const token =
       resolvedToken ??
-      (API.tokenProvider && this.useManagedCredentials
+      (API.tokenProvider && this.manageAccountToken
         ? await API.tokenProvider(this.endpoint, this.token)
         : this.token)
     return await request(
@@ -1861,7 +1866,7 @@ export class API {
     } = {}
   ): Promise<Response> {
     const token =
-      API.tokenProvider && this.useManagedCredentials
+      API.tokenProvider && this.manageAccountToken
         ? await API.tokenProvider(this.endpoint, this.token)
         : this.token
     const response = await this.request(
@@ -1878,7 +1883,7 @@ export class API {
     // We're also not considering a token has been invalidated when the reason
     // behind a 401 is the fact that any kind of 2 factor auth is required.
     if (
-      this.useManagedCredentials &&
+      this.manageAccountToken &&
       response.status === HttpStatusCode.Unauthorized &&
       response.headers.has('X-GitHub-Request-Id') &&
       !response.headers.has('X-GitHub-OTP')
