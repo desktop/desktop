@@ -27,9 +27,6 @@ environment variables:
 
 ## Short-lived credentials (preview)
 
-Product-level use cases are captured as
-[Gherkin scenarios](./oauth-scenarios.feature); implementation details follow.
-
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`
 request `offline_access` in addition to Desktop's existing OAuth scopes for
 GitHub.com and GitHub Enterprise Cloud. GitHub Enterprise Server always uses the
