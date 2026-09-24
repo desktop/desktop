@@ -39,7 +39,7 @@ describe('Account settings after invalidation', () => {
         <Accounts
           accounts={await restarted.getAll()}
           onDotComSignIn={() => actions.push('dotcom')}
-          onEnterpriseSignIn={url => actions.push(url ?? 'new-enterprise')}
+          onEnterpriseSignIn={() => actions.push('new-enterprise')}
           onLogout={() => assert.fail('Account should be signed out')}
         />
       )
