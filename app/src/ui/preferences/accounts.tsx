@@ -18,7 +18,7 @@ interface IAccountsProps {
   readonly accounts: ReadonlyArray<Account>
 
   readonly onDotComSignIn: () => void
-  readonly onEnterpriseSignIn: (endpoint?: string) => void
+  readonly onEnterpriseSignIn: () => void
   readonly onLogout: (account: Account) => void
 }
 
@@ -56,7 +56,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         {enterpriseAccounts.length === 0 ? (
           this.renderSignIn(SignInType.Enterprise)
         ) : (
-          <Button onClick={this.onEnterpriseSignIn}>
+          <Button onClick={this.props.onEnterpriseSignIn}>
             Add GitHub Enterprise account
           </Button>
         )}
