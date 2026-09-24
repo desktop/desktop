@@ -7,7 +7,7 @@ describe('authenticated image token handler', () => {
   it('returns the resolved access token with its request id', async () => {
     const ipc = new MockIPC()
     const resolveToken = mock.fn(async () => 'fresh-token')
-    const dispose = installAuthenticatedImageTokenHandler({ resolveToken }, ipc)
+    const dispose = installAuthenticatedImageTokenHandler(resolveToken, ipc)
     ipc.emit('resolve-image-token', 12, 'endpoint', 'old-token')
     await Promise.resolve()
     assert.deepStrictEqual(resolveToken.mock.calls[0].arguments, [
@@ -23,14 +23,9 @@ describe('authenticated image token handler', () => {
   it('sends failure without exposing token-bearing errors', async t => {
     const ipc = new MockIPC()
     const warning = t.mock.method(log, 'warn')
-    const dispose = installAuthenticatedImageTokenHandler(
-      {
-        resolveToken: async () => {
-          throw new Error('secret refresh token')
-        },
-      },
-      ipc
-    )
+    const dispose = installAuthenticatedImageTokenHandler(async () => {
+      throw new Error('secret refresh token')
+    }, ipc)
     ipc.emit('resolve-image-token', 12, 'endpoint', 'old-token')
     await Promise.resolve()
     assert.deepStrictEqual(ipc.sends, [
@@ -51,7 +46,7 @@ describe('authenticated image token handler', () => {
           finish = resolve
         })
     )
-    const dispose = installAuthenticatedImageTokenHandler({ resolveToken }, ipc)
+    const dispose = installAuthenticatedImageTokenHandler(resolveToken, ipc)
     ipc.emit('resolve-image-token', 12, 'endpoint', 'old-token')
     dispose()
     finish('fresh-token')

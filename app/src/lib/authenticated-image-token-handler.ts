@@ -6,9 +6,7 @@ import * as ipcRenderer from './ipc-renderer'
  * state lives. Returns a function to remove the listener.
  */
 export function installAuthenticatedImageTokenHandler(
-  store: {
-    resolveToken(endpoint: string, token: string): Promise<string>
-  },
+  resolveToken: (endpoint: string, token: string) => Promise<string>,
   ipc: Pick<typeof ipcRenderer, 'on' | 'send' | 'removeListener'> = ipcRenderer
 ) {
   let disposed = false
@@ -20,7 +18,7 @@ export function installAuthenticatedImageTokenHandler(
   ) => {
     let resolvedToken: string | null = null
     try {
-      resolvedToken = await store.resolveToken(endpoint, token)
+      resolvedToken = await resolveToken(endpoint, token)
     } catch {
       // Errors from refresh exchanges may contain credentials.
       log.warn('Unable to resolve authentication for a private image')
