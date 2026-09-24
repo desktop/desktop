@@ -27,6 +27,9 @@ environment variables:
 
 ## Short-lived credentials (preview)
 
+Product-level use cases are captured as
+[Gherkin scenarios](./oauth-scenarios.feature); implementation details follow.
+
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`
 request `offline_access` in addition to Desktop's existing OAuth scopes. The
 authorization response determines whether the account uses rotating credentials:
@@ -80,17 +83,17 @@ the server omits it.
 
 - Temporary network/service failures retain credentials, fail the operation, and
   impose a 30-second retry cooldown. They do not sign the user out.
-- Explicit refresh rejection or a malformed replacement pair requires sign-in.
-  The account identity remains available and a single recovery dialog explains
-  that local repositories and changes are unaffected. After choosing **Not now**,
-  use **Sign in again** in Settings/Preferences > Accounts to recover without
-  signing out first. This action remains available after restart and preselects
-  the account's host for Enterprise sign-in.
+- Explicit refresh rejection or a malformed replacement pair signs the user out
+  and immediately asks whether to sign in again, matching the existing
+  invalid-token flow. Choosing **No** leaves the account signed out; the usual
+  sign-in options remain available in Settings/Preferences > Accounts. Choosing
+  **Yes** opens sign-in for the same host, including the original Enterprise
+  endpoint. Local repositories and changes remain unaffected.
 - Failed persistence after rotation never returns the new access token or falls
-  back to plaintext. Desktop records that sign-in is required before attempting
-  to revoke the unused replacement. Revocation runs independently of waiting
-  credential consumers, has a 30-second cancellation deadline, and logs failures
-  without preventing sign-in recovery.
+  back to plaintext. Desktop signs out and removes the unusable stored
+  credential before attempting to revoke the unused replacement. Revocation
+  runs independently of waiting credential consumers, has a 30-second
+  cancellation deadline, and logs failures without preventing sign-in recovery.
 - During sign-in, credentials returned by the code exchange remain owned by the
   sign-in flow until `AccountsStore` accepts them. Cancellation, profile lookup
   failure, or failed persistence attempts the same bounded, nonblocking cleanup
