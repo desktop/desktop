@@ -107,7 +107,7 @@
     "webpack-merge": "^6.0.1"
   },
   "devDependencies": {
-    "@electron/packager": "^18.4.4",
+    "@electron/packager": "^20.3.0",
     "@github/markdownlint-github": "^0.8.3",
     "@playwright/test": "^1.58.2",
     "@types/byline": "^4.2.31",

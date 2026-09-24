@@ -2,7 +2,7 @@
 /// <reference path="./globals.d.ts" />
 
 import * as cp from 'child_process'
-import packager, { OfficialArch, Options } from '@electron/packager'
+import type { OfficialArch, Options } from '@electron/packager'
 import frontMatter from 'front-matter'
 import * as os from 'os'
 import * as path from 'path'
@@ -130,7 +130,9 @@ verifyInjectedSassVariables(outRoot)
     console.log(`Built to ${appPaths}`)
   })
 
-function packageApp() {
+async function packageApp() {
+  const { packager } = await import('@electron/packager')
+
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
