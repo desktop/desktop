@@ -326,7 +326,7 @@ describe('Coordinated account token renewal', () => {
     })
     await store.addAccount(account, rotating)
     let prompts = 0
-    store.onRequiresSignIn(() => prompts++)
+    store.onTokenInvalidated(() => prompts++)
     await assert.rejects(
       store.resolveToken(account.endpoint, account.token),
       /Network unavailable/
@@ -359,7 +359,7 @@ describe('Coordinated account token renewal', () => {
       store.onDidUpdate(accounts => {
         accountsAtPrompt = accounts
       })
-      store.onRequiresSignIn(a => {
+      store.onTokenInvalidated(a => {
         prompts++
         assert.equal(a.token, '')
         assert.deepEqual(accountsAtPrompt, [])
@@ -406,7 +406,7 @@ describe('Coordinated account token renewal', () => {
       assert.deepEqual(await new AccountsStore(data, secure).getAll(), [])
     })
     let prompts = 0
-    store.onRequiresSignIn(() => prompts++)
+    store.onTokenInvalidated(() => prompts++)
     await assert.rejects(
       store.resolveToken(account.endpoint, account.token),
       /Unable to save/
@@ -458,7 +458,7 @@ describe('Coordinated account token renewal', () => {
     )
     const warnings = t.mock.method(log, 'warn')
     let prompts = 0
-    store.onRequiresSignIn(() => prompts++)
+    store.onTokenInvalidated(() => prompts++)
     const results = Promise.allSettled([
       store.resolveToken(account.endpoint, account.token),
       store.getAccountWithFreshToken(account),
@@ -733,6 +733,21 @@ describe('Coordinated account token renewal', () => {
       await store.resolveToken(other.endpoint, other.token),
       other.token
     )
+  })
+
+  it('reports failures from API invalidation callbacks through the store', async t => {
+    const { store } = setup()
+    const failure = new Error('Keychain unavailable')
+    t.mock.method(store, 'invalidateToken', async () => {
+      throw failure
+    })
+    const errors: Error[] = []
+    store.onDidError(error => errors.push(error))
+    t.mock.method(log, 'error')
+
+    store.handleTokenInvalidated(account.endpoint, account.token)
+    await new Promise<void>(resolve => setImmediate(resolve))
+    assert.deepEqual(errors, [failure])
   })
 
   it('ignores stale 401s after rotation and rejects current invalidated credentials', async () => {

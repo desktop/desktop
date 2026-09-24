@@ -831,8 +831,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }, InitialRepositoryIndicatorTimeout)
 
-    API.onTokenInvalidated(this.onTokenInvalidated)
-
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
@@ -891,13 +889,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return zoomFactor
-  }
-
-  private onTokenInvalidated = (endpoint: string, token: string) => {
-    this.accountsStore.invalidateToken(endpoint, token).catch(error => {
-      log.error('Unable to invalidate rejected GitHub credentials', error)
-      this.emitError(error)
-    })
   }
 
   private onShowInstallingUpdate = () => {
@@ -1040,7 +1031,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
-    this.accountsStore.onRequiresSignIn(account => {
+    this.accountsStore.onTokenInvalidated(account => {
       this._showPopup({ type: PopupType.InvalidatedToken, account })
     })
 

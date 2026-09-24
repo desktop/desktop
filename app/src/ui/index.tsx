@@ -259,6 +259,7 @@ const statsStore = new StatsStore(
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
 API.setTokenProvider(accountsStore.resolveToken)
+API.onTokenInvalidated(accountsStore.handleTokenInvalidated)
 installAuthenticatedImageTokenHandler(accountsStore)
 
 const signInStore = new SignInStore(accountsStore)

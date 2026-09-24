@@ -131,9 +131,17 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.accounts.slice()
   }
 
-  /** Notify once per account when credentials require user intervention. */
-  public onRequiresSignIn(callback: (account: Account) => void): Disposable {
-    return this.emitter.on('requires-sign-in', callback)
+  /** Notify once per account when invalid credentials sign it out. */
+  public onTokenInvalidated(callback: (account: Account) => void): Disposable {
+    return this.emitter.on('token-invalidated', callback)
+  }
+
+  /** Handle a rejected API token without leaving unhandled callback errors. */
+  public handleTokenInvalidated = (endpoint: string, token: string): void => {
+    void this.invalidateToken(endpoint, token).catch(error => {
+      log.error('Unable to invalidate rejected GitHub credentials', error)
+      this.emitError(error)
+    })
   }
 
   /** Resolve token snapshots held by long-lived clients without changing identity. */
@@ -403,10 +411,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
   }
 
-  private notifyRequiresSignIn(session: ICredentialSession) {
+  private notifyTokenInvalidated(session: ICredentialSession) {
     if (!session.notified) {
       session.notified = true
-      this.emitter.emit('requires-sign-in', session.account.withToken(''))
+      this.emitter.emit('token-invalidated', session.account.withToken(''))
     }
   }
 
@@ -420,7 +428,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (retired === null) {
       return null
     }
-    this.notifyRequiresSignIn(session)
+    this.notifyTokenInvalidated(session)
     await this.deleteStoredAccount(retired)
     return retired
   }
