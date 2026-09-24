@@ -5,8 +5,9 @@ import {
   API,
   getDotComAPIEndpoint,
   getOAuthAuthorizationURL,
-  requestOAuthToken,
+  getHTMLURL,
 } from '../../src/lib/api'
+import { exchangeOAuthToken } from '../../src/lib/oauth-token'
 import { shell } from '../../src/lib/app-shell'
 import { AccountsStore } from '../../src/lib/stores/accounts-store'
 import {
@@ -189,8 +190,8 @@ describe('OAuth API integration', () => {
       return Response.json(oauthResponse)
     })
     assert.deepStrictEqual(
-      await requestOAuthToken(
-        'https://enterprise.example.com/api/v3',
+      await exchangeOAuthToken(
+        getHTMLURL('https://enterprise.example.com/api/v3'),
         'browser-code'
       ),
       {
