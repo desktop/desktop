@@ -118,8 +118,8 @@ export function request(
   token: string | null,
   method: HTTPMethod,
   path: string,
-  jsonBody?: Object,
-  customHeaders?: Object,
+  jsonBody?: object,
+  customHeaders?: object,
   reloadCache: boolean = false
 ): Promise<Response> {
   const url = getAbsoluteUrl(endpoint, path)
@@ -171,7 +171,7 @@ export async function parsedResponse<T>(response: Response): Promise<T> {
     // general API error.
     try {
       apiError = await deserialize<IAPIError>(response)
-    } catch (e) {
+    } catch {
       throw new APIError(response, null)
     }
 

@@ -77,7 +77,7 @@ export async function log(level: LogLevel, message: string) {
         }
       })
     })
-  } catch (error) {
+  } catch {
     /**
      * Welp. I guess we have to ignore this for now, we
      * don't have any good mechanisms for reporting this.
