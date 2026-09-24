@@ -3,6 +3,8 @@ import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
 import { GitHubAccountType } from '../api'
+import { isGHE } from '../endpoint-capabilities'
+import { getMigratedGHEEndpoint } from '../ghe-endpoint-migration'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -146,6 +148,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+    this.conditionalVersion(10, {}, migrateGHEOwnerEndpoints)
   }
 }
 
@@ -240,6 +243,121 @@ async function createOwnerKey(tx: Transaction) {
   }
 
   await ownersTable.bulkDelete(ownersToDelete)
+}
+
+/**
+ * Migrate owners belonging to `.ghe.com` endpoints persisted in a legacy
+ * format (using the `/api/v3` path or a trailing slash) to the canonical
+ * endpoint format so that they keep matching the endpoints of accounts which
+ * are migrated in the same way. See `getMigratedGHEEndpoint`.
+ *
+ * Since previous account endpoint migrations didn't migrate owners it's
+ * possible for multiple owners to map to the same canonical endpoint and
+ * login. In that case we keep the most recently created owner and merge the
+ * GitHub repositories of the others into it.
+ */
+async function migrateGHEOwnerEndpoints(tx: Transaction) {
+  const ownersTable = tx.table<IDatabaseOwner, number>('owners')
+  const allOwners = await ownersTable.toArray()
+
+  const ownersByKey = new Map<string, Array<IDatabaseOwner>>()
+
+  for (const owner of allOwners) {
+    if (!isGHE(owner.endpoint)) {
+      continue
+    }
+
+    const endpoint = getMigratedGHEEndpoint(owner.endpoint) ?? owner.endpoint
+    const key = getOwnerKey(endpoint, owner.login)
+    const owners = ownersByKey.get(key) ?? []
+    ownersByKey.set(key, [...owners, owner])
+  }
+
+  const ownersToUpdate = new Array<IDatabaseOwner>()
+  const ownersToDelete = new Array<number>()
+
+  for (const [key, owners] of ownersByKey) {
+    const [owner, ...duplicates] = owners.toSorted(
+      (x, y) => (y.id ?? 0) - (x.id ?? 0)
+    )
+    assertNonNullable(owner.id, 'Missing owner id')
+
+    for (const duplicate of duplicates) {
+      assertNonNullable(duplicate.id, 'Missing duplicate owner id')
+      log.info(
+        `migrateGHEOwnerEndpoints: Merging owner ${duplicate.id} into ${owner.id}`
+      )
+      await mergeOwnerGitHubRepositories(tx, duplicate.id, owner.id)
+      ownersToDelete.push(duplicate.id)
+    }
+
+    const endpoint = getMigratedGHEEndpoint(owner.endpoint) ?? owner.endpoint
+
+    if (owner.endpoint !== endpoint || owner.key !== key) {
+      ownersToUpdate.push({ ...owner, endpoint, key })
+    }
+  }
+
+  log.info(
+    `migrateGHEOwnerEndpoints: Updating ${ownersToUpdate.length} owners, deleting ${ownersToDelete.length} duplicates`
+  )
+
+  // Delete duplicates first in order to not violate the uniqueness constraint
+  // of the key index when updating the remaining owners.
+  await ownersTable.bulkDelete(ownersToDelete)
+  await ownersTable.bulkPut(ownersToUpdate)
+}
+
+/**
+ * Move all GitHub repositories belonging to one owner to another owner. If
+ * the target owner already has a GitHub repository with the same name the
+ * source repository is deleted and any references to it are updated to point
+ * to the target repository.
+ */
+async function mergeOwnerGitHubRepositories(
+  tx: Transaction,
+  fromOwnerID: number,
+  toOwnerID: number
+) {
+  const reposTable = tx.table<IDatabaseRepository, number>('repositories')
+  const ghReposTable = tx.table<IDatabaseGitHubRepository, number>(
+    'gitHubRepositories'
+  )
+  const protectedBranchesTable = tx.table<IDatabaseProtectedBranch, BranchKey>(
+    'protectedBranches'
+  )
+
+  const ghRepos = await ghReposTable
+    .where('[ownerID+name]')
+    .between([fromOwnerID], [fromOwnerID + 1])
+    .toArray()
+
+  for (const ghRepo of ghRepos) {
+    const fromID = ghRepo.id
+    assertNonNullable(fromID, 'Missing GitHub repository id')
+
+    const existing = await ghReposTable
+      .where('[ownerID+name]')
+      .equals([toOwnerID, ghRepo.name])
+      .first()
+
+    if (existing === undefined) {
+      await ghReposTable.update(fromID, { ownerID: toOwnerID })
+      continue
+    }
+
+    const toID = existing.id
+    assertNonNullable(toID, 'Missing existing GitHub repository id')
+
+    await reposTable
+      .filter(r => r.gitHubRepositoryID === fromID)
+      .modify({ gitHubRepositoryID: toID })
+    await ghReposTable
+      .filter(r => r.parentID === fromID)
+      .modify({ parentID: toID })
+    await protectedBranchesTable.where('repoId').equals(fromID).delete()
+    await ghReposTable.delete(fromID)
+  }
 }
 
 /* Creates a case-insensitive key used to uniquely identify an owner

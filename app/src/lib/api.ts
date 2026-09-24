@@ -2322,11 +2322,12 @@ export function getHTMLURL(endpoint: string): string {
  * Get the API URL for an HTML URL. For example:
  *
  * http://github.mycompany.com -> https://github.mycompany.com/api/v3
+ * https://example.ghe.com -> https://api.example.ghe.com
  */
 export function getEnterpriseAPIURL(endpoint: string): string {
   const { host } = new window.URL(endpoint)
 
-  return isGHE(endpoint) ? `https://api.${host}/` : `https://${host}/api/v3`
+  return isGHE(endpoint) ? `https://api.${host}` : `https://${host}/api/v3`
 }
 
 export const getAPIEndpoint = (endpoint: string) =>
