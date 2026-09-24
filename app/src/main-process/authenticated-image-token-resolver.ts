@@ -3,6 +3,12 @@ import { EndpointToken } from '../lib/endpoint-token'
 import * as ipcWebContents from './ipc-webcontents'
 import { isTrustedIPCSender } from './trusted-ipc-sender'
 
+interface IPendingImageTokenRequest {
+  readonly sender: WebContents
+  readonly endpoint: string
+  readonly finish: (token: string | null) => void
+}
+
 /**
  * Requests fresh image credentials from the current main renderer. Replies
  * from other windows, old requests, and timed-out requests are ignored.
@@ -12,14 +18,7 @@ export function createAuthenticatedImageTokenResolver(
   timeoutMilliseconds = 35_000
 ) {
   let nextRequestId = 0
-  const pending = new Map<
-    number,
-    {
-      readonly sender: WebContents
-      readonly endpoint: string
-      readonly finish: (token: string | null) => void
-    }
-  >()
+  const pending = new Map<number, IPendingImageTokenRequest>()
 
   return {
     resolveToken: (endpoint: string, token: string): Promise<string> => {
