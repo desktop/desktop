@@ -29,7 +29,6 @@ interface ICredentialSession {
   retired: boolean
   notified: boolean
   refreshing?: Promise<string>
-  retryAfter?: number
 }
 
 /** Authentication cannot proceed until the user signs in again. */
@@ -291,11 +290,6 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     ) {
       return credential.accessToken
     }
-    if (session.retryAfter !== undefined && this.now() < session.retryAfter) {
-      throw new Error(
-        'Unable to renew your GitHub session. Check your connection and try again shortly.'
-      )
-    }
     const refreshing = this.rotate(session, credential)
     session.refreshing = refreshing
     try {
@@ -328,9 +322,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         ) {
           await this.requireSignIn(session)
         } else {
-          session.retryAfter = this.now() + 30_000
           log.warn(
             'OAuth renewal failed; retaining credentials for a later retry.'
+          )
+          throw new Error(
+            'Unable to renew your GitHub session. Check your connection and try again shortly.'
           )
         }
       }
@@ -366,7 +362,6 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       throw new AccountRequiresSignInError()
     }
     session.credential = renewed
-    session.retryAfter = undefined
     this.tokenSessions.set(
       this.tokenKey(account.endpoint, renewed.accessToken),
       session

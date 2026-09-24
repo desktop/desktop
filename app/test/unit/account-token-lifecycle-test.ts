@@ -310,7 +310,12 @@ describe('Coordinated account token renewal', () => {
         await result,
         requests.map(() =>
           failRenewal
-            ? { status: 'rejected', reason: new Error('Network unavailable') }
+            ? {
+                status: 'rejected',
+                reason: new Error(
+                  'Unable to renew your GitHub session. Check your connection and try again shortly.'
+                ),
+              }
             : { status: 'fulfilled', value: renewed.accessToken }
         )
       )
@@ -318,30 +323,40 @@ describe('Coordinated account token renewal', () => {
     })
   }
 
-  it('retains credentials on temporary failure and prevents immediate retry storms', async () => {
+  it('retains credentials and retries immediately after a temporary failure', async () => {
     let calls = 0
     const { store, secure } = setup(async () => {
       calls++
-      throw new Error('Network unavailable')
+      if (calls === 1) {
+        throw new Error('Network unavailable')
+      }
+      return renewed
     })
     await store.addAccount(account, rotating)
     let prompts = 0
     store.onTokenInvalidated(() => prompts++)
     await assert.rejects(
       store.resolveToken(account.endpoint, account.token),
-      /Network unavailable/
-    )
-    await assert.rejects(
-      store.resolveToken(account.endpoint, account.token),
       /try again shortly/
     )
-    assert.equal(calls, 1)
     assert.equal(prompts, 0)
     assert.deepEqual(
       deserializeAccountCredential(
         await secure.getItem(getKeyForAccount(account), account.login)
       ),
       rotating
+    )
+    assert.equal(
+      await store.resolveToken(account.endpoint, account.token),
+      renewed.accessToken
+    )
+    assert.equal(calls, 2)
+    assert.equal(prompts, 0)
+    assert.deepEqual(
+      deserializeAccountCredential(
+        await secure.getItem(getKeyForAccount(account), account.login)
+      ),
+      renewed
     )
   })
 

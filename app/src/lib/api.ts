@@ -2402,7 +2402,10 @@ export function getOAuthAuthorizationURL(
 ): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(
-    (shortLived ? [...oauthScopes, 'offline_access'] : oauthScopes).join(' ')
+    (shortLived && !isGHES(endpoint)
+      ? [...oauthScopes, 'offline_access']
+      : oauthScopes
+    ).join(' ')
   )
 
   return new window.URL(

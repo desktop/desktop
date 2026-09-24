@@ -152,10 +152,15 @@ async function createAuthentication(
 
 describe('OAuth API integration', () => {
   for (const shortLived of [false, true]) {
-    for (const apiEndpoint of [
-      endpoint,
-      'https://enterprise.example.com/api/v3',
-    ]) {
+    for (const [apiEndpoint, htmlHost, supportsRefresh] of [
+      [endpoint, 'github.com', true],
+      [
+        'https://enterprise.example.com/api/v3',
+        'enterprise.example.com',
+        false,
+      ],
+      ['https://api.customer.ghe.com', 'customer.ghe.com', true],
+    ] as const) {
       it(`preserves scopes with short-lived tokens ${shortLived} at ${apiEndpoint}`, () => {
         const url = new URL(
           getOAuthAuthorizationURL(apiEndpoint, 'csrf-state', shortLived)
@@ -164,14 +169,11 @@ describe('OAuth API integration', () => {
         assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
         assert.deepStrictEqual(
           url.searchParams.get('scope')?.split(' '),
-          shortLived
+          shortLived && supportsRefresh
             ? ['repo', 'user', 'workflow', 'offline_access']
             : ['repo', 'user', 'workflow']
         )
-        assert.strictEqual(
-          url.hostname,
-          apiEndpoint === endpoint ? 'github.com' : 'enterprise.example.com'
-        )
+        assert.strictEqual(url.hostname, htmlHost)
       })
     }
   }
