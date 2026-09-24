@@ -11,8 +11,8 @@ import {
   fetchUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  requestOAuthToken,
   getOAuthAuthorizationURL,
+  getHTMLURL,
 } from '../../lib/api'
 
 import { TypedBaseStore } from './base-store'
@@ -21,6 +21,7 @@ import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
+import { exchangeOAuthToken } from '../oauth-token'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -369,7 +370,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.state.oauthState === oauthState
     let unpublishedToken: string | undefined
     try {
-      const credential = await requestOAuthToken(endpoint, action.code)
+      const credential = await exchangeOAuthToken(
+        getHTMLURL(endpoint),
+        action.code
+      )
       unpublishedToken = credential.accessToken
       if (!isCurrent()) {
         return

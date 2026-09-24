@@ -28,7 +28,6 @@ import {
 import { HttpStatusCode } from './http-status-code'
 import { CopilotError, parseCopilotPaymentRequiredError } from './copilot-error'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
-import { exchangeOAuthToken, IOAuthToken } from './oauth-token'
 import { enableShortLivedTokens } from './feature-flag'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
@@ -2412,13 +2411,6 @@ export function getOAuthAuthorizationURL(
     `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`,
     urlBase
   ).toString()
-}
-
-export async function requestOAuthToken(
-  endpoint: string,
-  code: string
-): Promise<IOAuthToken> {
-  return exchangeOAuthToken(getHTMLURL(endpoint), code)
 }
 
 function tryUpdateEndpointVersionFromResponse(
