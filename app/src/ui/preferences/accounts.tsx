@@ -99,15 +99,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             )}
           </div>
         </div>
-        {account.token === '' && (
-          <Button onClick={this.signIn(account)} className={className}>
-            {__DARWIN__ ? 'Sign In Again' : 'Sign in again'}
-          </Button>
-        )}
-        <Button
-          onClick={this.logout(account)}
-          className={account.token === '' ? undefined : className}
-        >
+        <Button onClick={this.logout(account)} className={className}>
           {__DARWIN__ ? 'Sign Out' : 'Sign out'}
         </Button>
       </Row>
@@ -160,16 +152,6 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
   private logout = (account: Account) => {
     return () => {
       this.props.onLogout(account)
-    }
-  }
-
-  private signIn = (account: Account) => {
-    return () => {
-      if (isEnterpriseAccount(account)) {
-        this.props.onEnterpriseSignIn(getHTMLURL(account.endpoint))
-      } else {
-        this.props.onDotComSignIn()
-      }
     }
   }
 }

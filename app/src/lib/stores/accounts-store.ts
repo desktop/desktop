@@ -185,7 +185,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       : undefined
   }
 
-  /** Ignore obsolete 401s; retain account identity when a current token is rejected. */
+  /** Ignore obsolete 401s; sign out when the current token is rejected. */
   public async invalidateToken(endpoint: string, token: string): Promise<void> {
     await this.loadingPromise
     const session = this.sessions.get(endpoint)
@@ -204,7 +204,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         return
       }
     }
-    await this.requireSignIn(session)
+    const retired = await this.requireSignIn(session)
+    if (retired !== null) {
+      void this.revokeUnusedToken(retired)
+    }
   }
 
   private tokenKey(endpoint: string, token: string) {
@@ -266,7 +269,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
     const credential = session.credential
     if (credential === null) {
-      this.notifyRequiresSignIn(session)
+      await this.requireSignIn(session)
       throw new AccountRequiresSignInError()
     }
     // Rotation invalidates the old pair even if this caller needs less validity.
@@ -401,39 +404,25 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   private notifyRequiresSignIn(session: ICredentialSession) {
-    if (!session.notified && !session.retired) {
+    if (!session.notified) {
       session.notified = true
       this.emitter.emit('requires-sign-in', session.account.withToken(''))
     }
   }
 
-  private async requireSignIn(session: ICredentialSession) {
-    session.credential = null
-    this.accounts = this.accounts.map(a =>
-      a.endpoint === session.account.endpoint ? a.withToken('') : a
-    )
-    this.save()
-    this.notifyRequiresSignIn(session)
-    try {
-      await this.write(session.account.endpoint, async () => {
-        if (!session.retired) {
-          await this.secureStore.setItem(
-            getKeyForAccount(session.account),
-            session.account.login,
-            serializeAccountCredential(null)
-          )
-        }
-      })
-    } catch {
-      log.error(
-        'Unable to clear unusable OAuth credentials from secure storage.'
-      )
-      this.emitError(
-        new Error(
-          'Unable to update your saved GitHub credentials. Please sign in again.'
-        )
-      )
+  private async requireSignIn(
+    session: ICredentialSession
+  ): Promise<Account | null> {
+    if (this.sessions.get(session.account.endpoint) !== session) {
+      return null
     }
+    const retired = this.retireAccount(session.account)
+    if (retired === null) {
+      return null
+    }
+    this.notifyRequiresSignIn(session)
+    await this.deleteStoredAccount(retired)
+    return retired
   }
 
   /**
@@ -525,15 +514,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
   }
 
-  /**
-   * Remove an account and return its credential snapshot for remote revocation.
-   *
-   * Capture and retire the current session without yielding so renewal cannot
-   * publish a token between those steps. Return the snapshot even if deleting
-   * secure storage fails, or null if this account is no longer installed.
-   */
-  public async removeAccount(account: Account): Promise<Account | null> {
-    await this.loadingPromise
+  private retireAccount(account: Account): Account | null {
     const current = this.accounts.find(a => a.endpoint === account.endpoint)
     if (current === undefined || current.id !== account.id) {
       return null
@@ -541,6 +522,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     this.retireSession(account.endpoint)
     this.accounts = this.accounts.filter(a => a.endpoint !== account.endpoint)
     this.save()
+    return current
+  }
+
+  private async deleteStoredAccount(account: Account): Promise<void> {
     try {
       await this.write(account.endpoint, async () => {
         await this.secureStore.deleteItem(
@@ -553,6 +538,21 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       this.emitError(
         new Error('Unable to remove GitHub credentials from secure storage.')
       )
+    }
+  }
+
+  /**
+   * Remove an account and return its credential snapshot for remote revocation.
+   *
+   * Capture and retire the current session without yielding so renewal cannot
+   * publish a token between those steps. Return the snapshot even if deleting
+   * secure storage fails, or null if this account is no longer installed.
+   */
+  public async removeAccount(account: Account): Promise<Account | null> {
+    await this.loadingPromise
+    const current = this.retireAccount(account)
+    if (current !== null) {
+      await this.deleteStoredAccount(current)
     }
     return current
   }
@@ -594,6 +594,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const rawAccounts = migratedAccounts ?? parsedAccounts
 
     const accountsWithTokens = []
+    let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
         account.login,
@@ -608,9 +609,20 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const credential = deserializeAccountCredential(
-          await this.secureStore.getItem(key, account.login)
-        )
+        const stored = await this.secureStore.getItem(key, account.login)
+        const credential = deserializeAccountCredential(stored)
+        if (credential === null && stored !== null) {
+          removedInvalidAccounts = true
+          try {
+            await this.secureStore.deleteItem(key, account.login)
+          } catch {
+            log.error('Unable to remove unusable GitHub credentials.')
+            this.emitError(
+              new Error('Unable to remove unusable GitHub credentials.')
+            )
+          }
+          continue
+        }
         const loaded = accountWithoutToken.withToken(
           credential?.accessToken ?? ''
         )
@@ -630,7 +642,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     this.accounts = sortAccounts(accountsWithTokens)
     // If any account was migrated, make sure to persist the new value
-    if (migratedAccounts !== null) {
+    if (migratedAccounts !== null || removedInvalidAccounts) {
       this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)

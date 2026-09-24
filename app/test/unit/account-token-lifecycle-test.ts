@@ -127,6 +127,23 @@ describe('OAuth credential persistence', () => {
       renewed.accessToken
     )
   })
+
+  it('signs out accounts marked as requiring sign-in by an earlier build', async () => {
+    const { store, data, secure } = setup()
+    await store.addAccount(account, rotating)
+    await secure.setItem(
+      getKeyForAccount(account),
+      account.login,
+      serializeAccountCredential(null)
+    )
+    const restarted = new AccountsStore(data, secure)
+    assert.deepEqual(await restarted.getAll(), [])
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      null
+    )
+    assert.equal(data.getItem('users'), '[]')
+  })
 })
 
 describe('Unused OAuth credential cleanup', () => {
@@ -332,15 +349,20 @@ describe('Coordinated account token renewal', () => {
     new OAuthRefreshRejectedError(),
     new OAuthTokenResponseError(),
   ]) {
-    it(`requires reauthentication once for ${error.name} and persists the blocked state`, async () => {
+    it(`signs out and prompts once for ${error.name}`, async () => {
       const { store, data, secure } = setup(async () => {
         throw error
       })
       await store.addAccount(account, rotating)
       let prompts = 0
+      let accountsAtPrompt: ReadonlyArray<Account> = [account]
+      store.onDidUpdate(accounts => {
+        accountsAtPrompt = accounts
+      })
       store.onRequiresSignIn(a => {
         prompts++
         assert.equal(a.token, '')
+        assert.deepEqual(accountsAtPrompt, [])
       })
       await assert.rejects(store.resolveToken(account.endpoint, account.token))
       await assert.rejects(
@@ -348,19 +370,13 @@ describe('Coordinated account token renewal', () => {
         AccountRequiresSignInError
       )
       assert.equal(prompts, 1)
-      assert.equal((await store.getAll())[0].token, '')
+      assert.deepEqual(await store.getAll(), [])
       assert.equal(
-        deserializeAccountCredential(
-          await secure.getItem(getKeyForAccount(account), account.login)
-        ),
+        await secure.getItem(getKeyForAccount(account), account.login),
         null
       )
       const restarted = new AccountsStore(data, secure)
-      const loaded = (await restarted.getAll())[0]
-      await assert.rejects(
-        restarted.getAccountWithFreshToken(loaded),
-        AccountRequiresSignInError
-      )
+      assert.deepEqual(await restarted.getAll(), [])
     })
   }
 
@@ -370,8 +386,27 @@ describe('Coordinated account token renewal', () => {
     t.mock.method(secure, 'setItem', async () => {
       throw new Error('Keychain locked')
     })
-    const errors: Error[] = []
-    store.onDidError(e => errors.push(e))
+
+    it('stays signed out if secure deletion fails after renewal rejection', async t => {
+      const { store, secure, data } = setup(async () => {
+        throw new OAuthRefreshRejectedError()
+      })
+      await store.addAccount(account, rotating)
+      t.mock.method(secure, 'deleteItem', async () => {
+        throw new Error('Keychain locked')
+      })
+      const errors: Error[] = []
+      store.onDidError(error => errors.push(error))
+      await assert.rejects(
+        store.resolveToken(account.endpoint, account.token),
+        OAuthRefreshRejectedError
+      )
+      assert.deepEqual(await store.getAll(), [])
+      assert.equal(errors.length, 1)
+      assert.deepEqual(await new AccountsStore(data, secure).getAll(), [])
+    })
+    let prompts = 0
+    store.onRequiresSignIn(() => prompts++)
     await assert.rejects(
       store.resolveToken(account.endpoint, account.token),
       /Unable to save/
@@ -381,7 +416,8 @@ describe('Coordinated account token renewal', () => {
       AccountRequiresSignInError
     )
     assert.deepEqual(revoked, [renewed.accessToken])
-    assert.ok(errors.length > 0)
+    assert.equal(prompts, 1)
+    assert.deepEqual(await store.getAll(), [])
     assert.ok(
       !data.getItem('users')?.includes(renewed.refreshToken ?? 'new-refresh')
     )
@@ -429,11 +465,9 @@ describe('Coordinated account token renewal', () => {
     ])
     await new Promise<void>(resolve => setImmediate(resolve))
     assert.equal(prompts, 1)
-    assert.equal((await store.getAll())[0].token, '')
+    assert.deepEqual(await store.getAll(), [])
     assert.equal(
-      deserializeAccountCredential(
-        await secure.getItem(getKeyForAccount(account), account.login)
-      ),
+      await secure.getItem(getKeyForAccount(account), account.login),
       null
     )
     for (const result of await results) {
@@ -495,11 +529,9 @@ describe('Coordinated account token renewal', () => {
         store.resolveToken(account.endpoint, account.token),
         /Unable to save/
       )
-      assert.equal((await store.getAll())[0].token, '')
+      assert.deepEqual(await store.getAll(), [])
       assert.equal(
-        deserializeAccountCredential(
-          await secure.getItem(getKeyForAccount(account), account.login)
-        ),
+        await secure.getItem(getKeyForAccount(account), account.login),
         null
       )
       assert.deepEqual(
@@ -710,6 +742,7 @@ describe('Coordinated account token renewal', () => {
     await store.invalidateToken(account.endpoint, account.token)
     assert.equal((await store.getAll())[0].token, renewed.accessToken)
     await store.invalidateToken(account.endpoint, renewed.accessToken)
+    assert.deepEqual(await store.getAll(), [])
     await assert.rejects(
       store.getAccountWithFreshToken(account),
       AccountRequiresSignInError
