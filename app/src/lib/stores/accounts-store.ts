@@ -7,36 +7,14 @@ import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
 import { Disposable } from 'event-kit'
-import { deleteToken, getHTMLURL } from '../api'
+import { deleteToken } from '../api'
+import { IOAuthToken, refreshOAuthToken } from '../oauth-token'
+import { deserializeAccountCredential } from '../account-credential'
 import {
-  IOAuthToken,
-  OAuthRefreshRejectedError,
-  OAuthTokenResponseError,
-  refreshOAuthToken,
-} from '../oauth-token'
-import {
-  AccountCredential,
-  deserializeAccountCredential,
-  serializeAccountCredential,
-} from '../account-credential'
-
-const refreshMargin = 10 * 60 * 1000
-const revocationTimeout = 30_000
-
-interface ICredentialSession {
-  readonly account: Account
-  credential: AccountCredential
-  retired: boolean
-  notified: boolean
-  refreshing?: Promise<string>
-}
-
-/** Authentication cannot proceed until the user signs in again. */
-export class AccountRequiresSignInError extends Error {
-  public constructor() {
-    super('Your GitHub session could not be renewed. Please sign in again.')
-  }
-}
+  AccountRequiresSignInError,
+  CredentialSessions,
+  refreshMargin,
+} from '../credential-sessions'
 
 // Ensure that GitHub.com accounts appear first followed by Enterprise
 // accounts, sorted by the order in which they were added.
@@ -99,21 +77,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private secureStore: ISecureStore
 
   private accounts: ReadonlyArray<Account> = []
-  /** Signed-in session for each endpoint: account, credential, renewal state. */
-  private readonly sessionsByEndpoint = new Map<string, ICredentialSession>()
-  /**
-   * Session that issued each access token, keyed by `tokenKey`. API clients
-   * keep the token they were created with; this maps that copy (even after
-   * rotation) back to its session so `resolveToken` can return the current one.
-   */
-  private readonly sessionsByToken = new Map<string, ICredentialSession>()
-  /** Per-endpoint queue so secure-storage saves and deletes never interleave. */
-  private readonly credentialWriteQueues = new Map<string, Promise<void>>()
-  /**
-   * Per-endpoint counter bumped whenever a session is replaced or removed.
-   * Async sign-in steps compare it afterwards to drop stale results.
-   */
-  private readonly sessionGenerations = new Map<string, number>()
+  private readonly credentials: CredentialSessions
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
@@ -121,14 +85,24 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   public constructor(
     dataStore: IDataStore,
     secureStore: ISecureStore,
-    private readonly renewToken = refreshOAuthToken,
-    private readonly now = Date.now,
-    private readonly revokeToken = deleteToken
+    renewToken = refreshOAuthToken,
+    now = Date.now,
+    revokeToken = deleteToken
   ) {
     super()
 
     this.dataStore = dataStore
     this.secureStore = secureStore
+    this.credentials = new CredentialSessions(
+      secureStore,
+      {
+        requireSignIn: this.requireSignIn,
+        onTokenRenewed: this.onTokenRenewed,
+      },
+      renewToken,
+      now,
+      revokeToken
+    )
     this.loadingPromise = this.loadFromStore()
   }
 
@@ -160,12 +134,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     token: string
   ): Promise<string> => {
     await this.loadingPromise
-    const session = this.sessionsByToken.get(this.tokenKey(endpoint, token))
-    const current = this.sessionsByEndpoint.get(endpoint)
-    if (token === '' && current?.credential === null) {
-      return this.validToken(current)
-    }
-    return session === undefined ? token : this.validToken(session)
+    return this.credentials.resolveToken(endpoint, token)
   }
 
   /** Get the current credential for an account before handing it to another consumer. */
@@ -174,13 +143,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     minimumValidity = refreshMargin
   ): Promise<Account> {
     await this.loadingPromise
-    const session = this.sessionsByEndpoint.get(account.endpoint)
-    if (session === undefined || session.account.id !== account.id) {
-      throw new AccountRequiresSignInError()
-    }
-    const token = await this.validToken(session, minimumValidity)
+    const token = await this.credentials.getFreshToken(account, minimumValidity)
     const current = this.accounts.find(a => a.endpoint === account.endpoint)
-    if (current === undefined || current.id !== account.id || session.retired) {
+    if (current === undefined || current.id !== account.id) {
       throw new AccountRequiresSignInError()
     }
     return current.withToken(token)
@@ -188,201 +153,18 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
-    return (
-      session?.account.id === account.id &&
-      session.credential?.refreshToken !== undefined
-    )
+    return this.credentials.isRefreshable(account)
   }
 
   /** Access-token expiry for consumers that support on-demand token renewal. */
   public getTokenExpiration(account: Account): number | undefined {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
-    return session?.account.id === account.id
-      ? session.credential?.expiresAt
-      : undefined
+    return this.credentials.getTokenExpiration(account)
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
   public async invalidateToken(endpoint: string, token: string): Promise<void> {
     await this.loadingPromise
-    const session = this.sessionsByEndpoint.get(endpoint)
-    if (session === undefined || session.credential?.accessToken !== token) {
-      return
-    }
-    // A request using the previous pair can finish while rotation is in flight.
-    if (session.refreshing !== undefined) {
-      try {
-        await session.refreshing
-      } catch {
-        // The renewal path reports its own failure and preserves its classification.
-        return
-      }
-      if (session.credential?.accessToken !== token) {
-        return
-      }
-    }
-    const retired = await this.requireSignIn(session)
-    if (retired !== null) {
-      void this.revokeUnusedToken(retired)
-    }
-  }
-
-  private tokenKey(endpoint: string, token: string) {
-    return `${endpoint}\0${token}`
-  }
-
-  private installSession(account: Account, credential: AccountCredential) {
-    const session: ICredentialSession = {
-      account,
-      credential,
-      retired: false,
-      notified: false,
-    }
-    this.sessionsByEndpoint.set(account.endpoint, session)
-    if (credential !== null) {
-      this.sessionsByToken.set(
-        this.tokenKey(account.endpoint, credential.accessToken),
-        session
-      )
-    }
-  }
-
-  private retireSession(endpoint: string) {
-    const previous = this.sessionsByEndpoint.get(endpoint)
-    if (previous !== undefined) {
-      previous.retired = true
-      previous.credential = null
-    }
-    this.sessionsByEndpoint.delete(endpoint)
-    const generation = (this.sessionGenerations.get(endpoint) ?? 0) + 1
-    this.sessionGenerations.set(endpoint, generation)
-    return generation
-  }
-
-  private async write(
-    endpoint: string,
-    action: () => Promise<void>
-  ): Promise<void> {
-    const previous = this.credentialWriteQueues.get(endpoint)
-    const next = (previous ?? Promise.resolve()).then(action)
-    // The caller receives the error; the queue must remain usable for sign-out.
-    const settled = next.catch(() => {})
-    this.credentialWriteQueues.set(endpoint, settled)
-    try {
-      await next
-    } finally {
-      if (this.credentialWriteQueues.get(endpoint) === settled) {
-        this.credentialWriteQueues.delete(endpoint)
-      }
-    }
-  }
-
-  private async validToken(
-    session: ICredentialSession,
-    minimumValidity = refreshMargin
-  ): Promise<string> {
-    if (session.retired) {
-      throw new AccountRequiresSignInError()
-    }
-    const credential = session.credential
-    if (credential === null) {
-      await this.requireSignIn(session)
-      throw new AccountRequiresSignInError()
-    }
-    // Rotation invalidates the old pair even if this caller needs less validity.
-    if (session.refreshing !== undefined) {
-      return session.refreshing
-    }
-    if (
-      credential.refreshToken === undefined ||
-      (credential.expiresAt !== undefined &&
-        credential.expiresAt > this.now() + minimumValidity)
-    ) {
-      return credential.accessToken
-    }
-    const refreshing = this.rotate(session, credential)
-    session.refreshing = refreshing
-    try {
-      return await refreshing
-    } finally {
-      session.refreshing = undefined
-    }
-  }
-
-  private async rotate(
-    session: ICredentialSession,
-    credential: IOAuthToken
-  ): Promise<string> {
-    const { account } = session
-    const refreshToken = credential.refreshToken
-    if (refreshToken === undefined) {
-      throw new Error('Cannot renew a credential without a refresh token.')
-    }
-    let renewed: IOAuthToken
-    try {
-      renewed = await this.renewToken(
-        getHTMLURL(account.endpoint),
-        refreshToken
-      )
-    } catch (e) {
-      if (!session.retired) {
-        if (
-          e instanceof OAuthRefreshRejectedError ||
-          e instanceof OAuthTokenResponseError
-        ) {
-          await this.requireSignIn(session)
-        } else {
-          log.warn(
-            'OAuth renewal failed; retaining credentials for a later retry.'
-          )
-          throw new Error(
-            'Unable to renew your GitHub session. Check your connection and try again shortly.'
-          )
-        }
-      }
-      throw e
-    }
-
-    if (session.retired) {
-      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
-      throw new AccountRequiresSignInError()
-    }
-    try {
-      await this.write(account.endpoint, async () => {
-        if (session.retired) {
-          throw new AccountRequiresSignInError()
-        }
-        await this.secureStore.setItem(
-          getKeyForAccount(account),
-          account.login,
-          serializeAccountCredential(renewed)
-        )
-      })
-    } catch {
-      if (!session.retired) {
-        await this.requireSignIn(session)
-      }
-      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
-      throw new Error(
-        'Unable to save renewed GitHub credentials. Please sign in again.'
-      )
-    }
-    if (session.retired) {
-      void this.revokeUnusedToken(account.withToken(renewed.accessToken))
-      throw new AccountRequiresSignInError()
-    }
-    session.credential = renewed
-    this.sessionsByToken.set(
-      this.tokenKey(account.endpoint, renewed.accessToken),
-      session
-    )
-    this.accounts = this.accounts.map(a =>
-      a.endpoint === account.endpoint ? a.withToken(renewed.accessToken) : a
-    )
-    this.save()
-    log.info('OAuth credentials renewed and saved.')
-    return renewed.accessToken
+    await this.credentials.invalidateToken(endpoint, token)
   }
 
   /**
@@ -391,52 +173,28 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    * Cleanup is bounded and failures are logged. Callers need not await it, but
    * must only pass credentials that have not been installed for an account.
    */
-  public async revokeUnusedToken(
+  public revokeUnusedToken(
     account: Pick<Account, 'endpoint' | 'token'>
   ): Promise<void> {
-    const controller = new AbortController()
-    let timeout: ReturnType<typeof setTimeout> | undefined
-    const deadline = new Promise<never>((_, reject) => {
-      timeout = setTimeout(() => {
-        controller.abort()
-        reject(new Error('OAuth revocation timed out.'))
-      }, revocationTimeout)
-    })
-    try {
-      const revoked = await Promise.race([
-        this.revokeToken(account, controller.signal),
-        deadline,
-      ])
-      if (!revoked) {
-        log.warn('Unable to revoke unused OAuth credentials.')
-      }
-    } catch {
-      log.warn('Unable to revoke unused OAuth credentials.')
-    } finally {
-      clearTimeout(timeout)
-    }
+    return this.credentials.revokeUnusedToken(account)
   }
 
-  private notifyTokenInvalidated(session: ICredentialSession) {
-    if (!session.notified) {
-      session.notified = true
-      this.emitter.emit('token-invalidated', session.account.withToken(''))
-    }
-  }
-
-  private async requireSignIn(
-    session: ICredentialSession
-  ): Promise<Account | null> {
-    if (this.sessionsByEndpoint.get(session.account.endpoint) !== session) {
-      return null
-    }
-    const retired = this.retireAccount(session.account)
+  /** Sign out an account whose credential can no longer be used. */
+  private requireSignIn = async (account: Account): Promise<Account | null> => {
+    const retired = this.retireAccount(account)
     if (retired === null) {
       return null
     }
-    this.notifyTokenInvalidated(session)
+    this.emitter.emit('token-invalidated', account.withToken(''))
     await this.deleteStoredAccount(retired)
     return retired
+  }
+
+  private onTokenRenewed = (endpoint: string, accessToken: string) => {
+    this.accounts = this.accounts.map(a =>
+      a.endpoint === endpoint ? a.withToken(accessToken) : a
+    )
+    this.save()
   }
 
   /**
@@ -448,24 +206,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     isCurrent: () => boolean = () => true
   ): Promise<Account | null> {
     await this.loadingPromise
-    const generation = this.retireSession(account.endpoint)
+    let authenticatedAccount: Account | null
     try {
-      const key = getKeyForAccount(account)
-      await this.write(account.endpoint, async () => {
-        if (
-          this.sessionGenerations.get(account.endpoint) === generation &&
-          isCurrent()
-        ) {
-          await this.secureStore.setItem(
-            key,
-            account.login,
-            serializeAccountCredential(credential)
-          )
-          if (!isCurrent()) {
-            await this.secureStore.deleteItem(key, account.login)
-          }
-        }
-      })
+      authenticatedAccount = await this.credentials.add(
+        account,
+        credential,
+        isCurrent
+      )
     } catch (e) {
       log.error('Unable to save GitHub credentials in secure storage.')
 
@@ -482,14 +229,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
       return null
     }
-    if (
-      this.sessionGenerations.get(account.endpoint) !== generation ||
-      !isCurrent()
-    ) {
+    if (authenticatedAccount === null) {
       return null
     }
-    const authenticatedAccount = account.withToken(credential.accessToken)
-    this.installSession(authenticatedAccount, credential)
 
     const accountsByEndpoint = this.accounts.reduce(
       (map, x) => map.set(x.endpoint, x),
@@ -514,16 +256,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    * credentials that rotated while the profile request was in flight.
    */
   private async tryUpdateAccount(account: Account): Promise<void> {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
+    const currentToken = this.credentials.trackToken(account.endpoint)
     try {
       const fresh = await this.getAccountWithFreshToken(account)
       const updated = await updatedAccount(fresh)
-      if (
-        session !== undefined &&
-        !session.retired &&
-        session.credential !== null
-      ) {
-        const token = session.credential.accessToken
+      const token = currentToken()
+      if (token !== null) {
         this.accounts = this.accounts.map(a =>
           a.endpoint === account.endpoint ? updated.withToken(token) : a
         )
@@ -539,7 +277,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (current === undefined || current.id !== account.id) {
       return null
     }
-    this.retireSession(account.endpoint)
+    this.credentials.retire(account.endpoint)
     this.accounts = this.accounts.filter(a => a.endpoint !== account.endpoint)
     this.save()
     return current
@@ -547,12 +285,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   private async deleteStoredAccount(account: Account): Promise<void> {
     try {
-      await this.write(account.endpoint, async () => {
-        await this.secureStore.deleteItem(
-          getKeyForAccount(account),
-          account.login
-        )
-      })
+      await this.credentials.delete(account)
     } catch {
       log.error('Unable to remove GitHub credentials from secure storage.')
       this.emitError(
@@ -647,7 +380,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
           credential?.accessToken ?? ''
         )
         accountsWithTokens.push(loaded)
-        this.installSession(loaded, credential)
+        this.credentials.restore(loaded, credential)
       } catch {
         log.error('Unable to read GitHub credentials from secure storage.')
         this.emitError(
@@ -656,7 +389,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
           )
         )
         accountsWithTokens.push(accountWithoutToken)
-        this.installSession(accountWithoutToken, null)
+        this.credentials.restore(accountWithoutToken, null)
       }
     }
 

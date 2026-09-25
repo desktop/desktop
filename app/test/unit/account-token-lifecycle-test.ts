@@ -1,10 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { Account } from '../../src/models/account'
-import {
-  AccountsStore,
-  AccountRequiresSignInError,
-} from '../../src/lib/stores/accounts-store'
+import { AccountsStore } from '../../src/lib/stores/accounts-store'
+import { AccountRequiresSignInError } from '../../src/lib/credential-sessions'
 import {
   IOAuthToken,
   OAuthRefreshRejectedError,
