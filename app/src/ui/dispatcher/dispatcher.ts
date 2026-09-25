@@ -122,7 +122,10 @@ import {
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
-import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
+import {
+  getMultiCommitOperationChooseBranchStep,
+  getRebaseOperationStateAction,
+} from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
@@ -1355,17 +1358,17 @@ export class Dispatcher {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<void> {
-    const { branchesState, multiCommitOperationState } =
-      this.repositoryStateManager.get(repository)
+    const commits = await this.ensureRebaseOperationState(
+      repository,
+      baseBranch,
+      targetBranch
+    )
 
-    if (
-      multiCommitOperationState == null ||
-      multiCommitOperationState.operationDetail.kind !==
-        MultiCommitOperationKind.Rebase
-    ) {
+    if (commits === null) {
       return
     }
-    const { commits } = multiCommitOperationState.operationDetail
+
+    const { branchesState } = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(branchesState.tip)
 
@@ -1424,16 +1427,10 @@ export class Dispatcher {
         return
       }
 
-      const { operationDetail } = multiCommitOperationState
-      const { sourceBranch } = operationDetail
-
-      const ourBranch = targetBranch !== null ? targetBranch.name : ''
-      const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
-
       const banner: Banner = {
         type: BannerType.BranchAlreadyUpToDate,
-        ourBranch,
-        theirBranch,
+        ourBranch: targetBranch.name,
+        theirBranch: baseBranch.name,
       }
 
       this.statsStore.increment('rebaseWithBranchAlreadyUpToDateCount')
@@ -1457,6 +1454,102 @@ export class Dispatcher {
       // just abandon the rebase for now
       this.endMultiCommitOperation(repository)
     }
+  }
+
+  /**
+   * Resolve the commits that rebasing `targetBranch` onto `baseBranch` will
+   * replay, restoring the multi commit operation state if it's missing.
+   *
+   * Returns null when the rebase shouldn't proceed, either because an
+   * unrelated multi commit operation is in progress or because the commits
+   * couldn't be determined.
+   */
+  private async ensureRebaseOperationState(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ): Promise<ReadonlyArray<CommitOneLine> | null> {
+    const { multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
+    const action = getRebaseOperationStateAction(multiCommitOperationState)
+
+    switch (action.kind) {
+      case 'proceed':
+        return action.commits
+      case 'abort':
+        log.warn(
+          `[rebase] another multi commit operation is already in progress - unable to rebase`
+        )
+        return null
+      case 'restore':
+        return this.restoreRebaseOperationState(
+          repository,
+          baseBranch,
+          targetBranch
+        )
+      default:
+        return assertNever(
+          action,
+          `Unknown rebase operation state action: ${action}`
+        )
+    }
+  }
+
+  /**
+   * Rebuild the multi commit operation state for a rebase whose state was
+   * cleared by a previous failed attempt.
+   *
+   * A rebase blocked by uncommitted local changes ends the operation before
+   * surfacing the error, so retrying it (after the user stashes their changes)
+   * has to set the state back up before the rebase can run.
+   *
+   * Returns the commits being rebased, or null if they couldn't be determined
+   * or another multi commit operation started while they were being looked up.
+   */
+  private async restoreRebaseOperationState(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ): Promise<ReadonlyArray<CommitOneLine> | null> {
+    const commits = await getCommitsBetweenCommits(
+      repository,
+      baseBranch.tip.sha,
+      targetBranch.tip.sha
+    )
+
+    if (commits === null) {
+      log.warn(
+        `[rebase] unable to determine the commits to rebase ${targetBranch.name} onto ${baseBranch.name}`
+      )
+      return null
+    }
+
+    // Looking up the commits above is asynchronous, so the user may have
+    // started another operation in the meantime. Bail rather than clobber it.
+    const { branchesState, multiCommitOperationState } =
+      this.repositoryStateManager.get(repository)
+
+    if (multiCommitOperationState !== null) {
+      log.warn(
+        `[rebase] another multi commit operation started while preparing the rebase - unable to rebase`
+      )
+      return null
+    }
+
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Rebase,
+        commits,
+        currentTip: baseBranch.tip.sha,
+        sourceBranch: baseBranch,
+      },
+      targetBranch,
+      commits,
+      getTipSha(branchesState.tip)
+    )
+
+    return commits
   }
 
   /** Abort the current rebase and refreshes the repository status */

@@ -7,7 +7,12 @@ import {
   getRebaseInternalState,
   RebaseResult,
 } from '../../../src/lib/git/rebase'
-import { getCommits, getBranches, git } from '../../../src/lib/git'
+import {
+  getCommits,
+  getBranches,
+  getCommitsBetweenCommits,
+  git,
+} from '../../../src/lib/git'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
   makeCommit,
@@ -214,6 +219,99 @@ describe('git/rebase', () => {
       // Verify we're back to the original feature commit
       const status = await getStatusOrThrow(repo)
       assert.equal(status.currentBranch, 'feature')
+    })
+  })
+
+  describe('getCommitsBetweenCommits', () => {
+    /**
+     * When a rebase is blocked by uncommitted local changes the multi commit
+     * operation state is torn down before the error is surfaced. Retrying the
+     * rebase after stashing those changes has to rebuild that state, and it
+     * derives the commits being replayed from the two branch tips rather than
+     * from the discarded state. These tests pin down that derivation.
+     */
+    it('returns the commits that a rebase would replay', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      await makeCommit(repo, {
+        entries: [{ path: 'base.txt', contents: 'base' }],
+        commitMessage: 'initial commit',
+      })
+
+      await createBranch(repo, 'feature', 'HEAD')
+      await switchTo(repo, 'feature')
+      await makeCommit(repo, {
+        entries: [{ path: 'feature-one.txt', contents: 'one' }],
+        commitMessage: 'feature one',
+      })
+      await makeCommit(repo, {
+        entries: [{ path: 'feature-two.txt', contents: 'two' }],
+        commitMessage: 'feature two',
+      })
+
+      await switchTo(repo, 'master')
+      await makeCommit(repo, {
+        entries: [{ path: 'master.txt', contents: 'master' }],
+        commitMessage: 'master commit',
+      })
+
+      await switchTo(repo, 'feature')
+
+      const baseBranch = await findBranch(repo, 'master')
+      const targetBranch = await findBranch(repo, 'feature')
+
+      const commits = await getCommitsBetweenCommits(
+        repo,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      assert.notEqual(commits, null)
+      assert.deepEqual(
+        commits?.map(commit => commit.summary),
+        ['feature one', 'feature two']
+      )
+    })
+
+    it('returns an empty list when the branch is already up to date', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      await makeCommit(repo, {
+        entries: [{ path: 'base.txt', contents: 'base' }],
+        commitMessage: 'initial commit',
+      })
+
+      await createBranch(repo, 'feature', 'HEAD')
+
+      const baseBranch = await findBranch(repo, 'master')
+      const targetBranch = await findBranch(repo, 'feature')
+
+      const commits = await getCommitsBetweenCommits(
+        repo,
+        baseBranch.tip.sha,
+        targetBranch.tip.sha
+      )
+
+      assert.deepEqual(commits, [])
+    })
+
+    it('returns null when given a revision that does not exist', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      await makeCommit(repo, {
+        entries: [{ path: 'base.txt', contents: 'base' }],
+        commitMessage: 'initial commit',
+      })
+
+      const masterBranch = await findBranch(repo, 'master')
+
+      const commits = await getCommitsBetweenCommits(
+        repo,
+        'not-a-real-ref',
+        masterBranch.tip.sha
+      )
+
+      assert.equal(commits, null)
     })
   })
 })
