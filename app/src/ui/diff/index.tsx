@@ -20,6 +20,7 @@ import {
   ILargeTextDiff,
   ImageDiffType,
   ISubmoduleDiff,
+  ILFSTextDiff,
 } from '../../models/diff'
 import { Button } from '../lib/button'
 import {
@@ -37,7 +38,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
 
-type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+export type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 /** The props for the Diff component. */
 interface IDiffProps {
@@ -105,10 +106,15 @@ interface IDiffProps {
 
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when the user wants to fetch and display the real LFS diff. */
+  readonly onLoadLFSDiff?: () => Promise<IDiff | null>
 }
 
 interface IDiffState {
   readonly forceShowLargeDiff: boolean
+  readonly resolvedLFSDiff: IDiff | null
+  readonly isLoadingLFS: boolean
 }
 
 /** A component which renders a diff for a file. */
@@ -118,6 +124,21 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     this.state = {
       forceShowLargeDiff: false,
+      resolvedLFSDiff: null,
+      isLoadingLFS: false,
+    }
+  }
+
+  public componentDidUpdate(prevProps: IDiffProps) {
+    if (
+      prevProps.file.id !== this.props.file.id ||
+      prevProps.diff !== this.props.diff
+    ) {
+      this.setState({
+        resolvedLFSDiff: null,
+        isLoadingLFS: false,
+        forceShowLargeDiff: false,
+      })
     }
   }
 
@@ -140,6 +161,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       }
       case DiffType.Unrenderable:
         return this.renderUnrenderableDiff()
+      case DiffType.LFSText:
+        return this.renderLFSTextDiff(diff)
       default:
         return assertNever(diff, `Unsupported diff type: ${diff}`)
     }
@@ -300,6 +323,62 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         showDiffCheckMarks={this.props.showDiffCheckMarks}
       />
     )
+  }
+
+  private renderLFSTextDiff(_diff: ILFSTextDiff) {
+    const resolved = this.state.resolvedLFSDiff
+
+    if (resolved) {
+      switch (resolved.kind) {
+        case DiffType.Text:
+          return this.renderTextDiff(resolved)
+        case DiffType.Image:
+          return this.renderImage(resolved)
+        case DiffType.Binary:
+          return this.renderBinaryFile()
+        default:
+          return this.renderBinaryFile()
+      }
+    }
+
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} className="blankslate-image" alt="" />
+        <div className="description">
+          <p>
+            This file is stored with Git LFS. Showing the diff may require
+            downloading the file content, which could generate extra network
+            traffic.
+          </p>
+        </div>
+        <Button onClick={this.loadLFSDiff} disabled={this.state.isLoadingLFS}>
+          {this.state.isLoadingLFS
+            ? 'Loading…'
+            : __DARWIN__
+            ? 'Show Diff'
+            : 'Show diff'}
+        </Button>
+      </div>
+    )
+  }
+
+  private loadLFSDiff = async () => {
+    if (!this.props.onLoadLFSDiff) {
+      return
+    }
+
+    this.setState({ isLoadingLFS: true })
+
+    try {
+      const result = await this.props.onLoadLFSDiff()
+      if (result) {
+        this.setState({ resolvedLFSDiff: result, isLoadingLFS: false })
+      } else {
+        this.setState({ isLoadingLFS: false })
+      }
+    } catch {
+      this.setState({ isLoadingLFS: false })
+    }
   }
 
   private showLargeDiff = () => {
