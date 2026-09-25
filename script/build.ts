@@ -159,7 +159,9 @@ async function packageApp() {
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): DesktopPackageArch => {
+  const toPackageArch = (
+    targetArch: string | undefined
+  ): DesktopPackageArch => {
     if (targetArch === undefined) {
       targetArch = os.arch()
     }
