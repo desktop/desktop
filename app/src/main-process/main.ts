@@ -14,7 +14,12 @@ import {
 import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, getAllMenuItems } from './menu'
+import {
+  buildDefaultMenu,
+  getAllMenuItems,
+  ZoomDirection,
+  performZoom,
+} from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
 import {
@@ -748,6 +753,16 @@ app.on('ready', () => {
   ipcMain.handle('request-notifications-permission', async () =>
     requestNotificationsPermission()
   )
+  ipcMain.handle('zoom', async (event, direction: 'in' | 'out') => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) {
+      return
+    }
+    performZoom(
+      win.webContents,
+      direction === 'in' ? ZoomDirection.In : ZoomDirection.Out
+    )
+  })
 })
 
 app.on('activate', () => {
