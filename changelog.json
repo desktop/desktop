@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.7-test3": ["[New] packagy test"],
     "3.6.7-beta2": [
       "[Added] Keep the current worktree toolbar segment visible with the \"Always show worktree list\" Appearance setting - #22888",
       "[Fixed] Fix a crash that could occur when Git LFS progress tracking encountered a file read error - #22889",
