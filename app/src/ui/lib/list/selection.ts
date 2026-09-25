@@ -2,6 +2,28 @@ import * as React from 'react'
 
 export type SelectionDirection = 'up' | 'down'
 
+/**
+ * Check if the keyboard event represents an "up" navigation action.
+ * This includes ArrowUp and, on macOS, Ctrl+P (Emacs-style).
+ */
+export function isUpKeyEvent(event: React.KeyboardEvent<any>): boolean {
+  return (
+    event.key === 'ArrowUp' ||
+    (__DARWIN__ && event.ctrlKey && event.key === 'p')
+  )
+}
+
+/**
+ * Check if the keyboard event represents a "down" navigation action.
+ * This includes ArrowDown and, on macOS, Ctrl+N (Emacs-style).
+ */
+export function isDownKeyEvent(event: React.KeyboardEvent<any>): boolean {
+  return (
+    event.key === 'ArrowDown' ||
+    (__DARWIN__ && event.ctrlKey && event.key === 'n')
+  )
+}
+
 interface ISelectRowAction {
   /**
    * The vertical direction use when searching for a selectable row.

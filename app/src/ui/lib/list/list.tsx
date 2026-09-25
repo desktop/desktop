@@ -12,6 +12,8 @@ import {
   IKeyboardSource,
   ISelectAllSource,
   findLastSelectableRow,
+  isUpKeyEvent,
+  isDownKeyEvent,
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
@@ -626,8 +628,8 @@ export class List extends React.Component<IListProps, IListState> {
         this.moveSelectionToLastSelectableRow(direction, source)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-      const direction = event.key === 'ArrowUp' ? 'up' : 'down'
+    } else if (isUpKeyEvent(event) || isDownKeyEvent(event)) {
+      const direction = isUpKeyEvent(event) ? 'up' : 'down'
       if (isRangeSelection) {
         this.addSelection(direction, source)
       } else {
