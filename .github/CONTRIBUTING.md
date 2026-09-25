@@ -45,6 +45,9 @@ how to contribute your feedback.
 
 ### Reporting Bugs
 
+For security vulnerabilities or other security-related concerns or questions,
+follow our [security policy](../SECURITY.md) instead of opening a public issue.
+
 This section guides you through submitting a bug report for GitHub Desktop.
 Following these guidelines helps maintainers and the community understand your
 report :pencil:, reproduce the behavior :computer: :computer:, and find related
