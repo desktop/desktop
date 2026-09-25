@@ -121,6 +121,103 @@ function createExistingAccountWarningState(): IExistingAccountWarning {
 }
 
 describe('welcome and sign-in wrappers', () => {
+  it('only closes the sign-in popup on success, even after the callback closed both nested dialogs', t => {
+    const dispatcher = new TestDispatcher()
+    const popupStack = [
+      PopupType.Preferences,
+      PopupType.RepositoryAccount,
+      PopupType.SignIn,
+    ]
+    const closedTypes: Array<PopupType | undefined> = []
+    t.mock.method(dispatcher, 'closePopup', (type?: PopupType) => {
+      closedTypes.push(type)
+      if (popupStack[popupStack.length - 1] === type) {
+        popupStack.pop()
+      }
+    })
+    const onDismissed = () => {
+      popupStack.pop()
+    }
+    const view = render(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={createAuthenticationState('https://api.github.com')}
+        onDismissed={onDismissed}
+      />
+    )
+    // The result callback has already closed SignIn and RepositoryAccount.
+    popupStack.pop()
+    popupStack.pop()
+    const success = {
+      kind: SignInStep.Success as const,
+      resultCallback: noopResultCallback,
+    }
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={success}
+        onDismissed={onDismissed}
+      />
+    )
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={{ ...success }}
+        onDismissed={onDismissed}
+      />
+    )
+    assert.deepStrictEqual(popupStack, [PopupType.Preferences])
+    assert.deepStrictEqual(closedTypes, [PopupType.SignIn])
+    assert.strictEqual(dispatcher.resetCount, 0)
+  })
+
+  it('closes normal sign-in successfully without cancelling or dismissing its parent', t => {
+    const dispatcher = new TestDispatcher()
+    const closedTypes: Array<PopupType | undefined> = []
+    let dismissed = 0
+    t.mock.method(dispatcher, 'closePopup', (type?: PopupType) => {
+      closedTypes.push(type)
+    })
+    const onDismissed = () => dismissed++
+    const view = render(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={createAuthenticationState('https://api.github.com')}
+        onDismissed={onDismissed}
+      />
+    )
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={{
+          kind: SignInStep.Success,
+          resultCallback: noopResultCallback,
+        }}
+        onDismissed={onDismissed}
+      />
+    )
+    assert.deepStrictEqual(closedTypes, [PopupType.SignIn])
+    assert.strictEqual(dispatcher.resetCount, 0)
+    assert.strictEqual(dismissed, 0)
+    assert.strictEqual(view.container.textContent, '')
+  })
+
+  it('shows the required account and host for targeted reauthentication', () => {
+    render(
+      <SignInDialog
+        signInState={{
+          ...createAuthenticationState('https://api.github.com'),
+          expectedLogin: 'work-account',
+        }}
+        dispatcher={toDispatcher(new TestDispatcher())}
+        onDismissed={noopResultCallback}
+      />
+    )
+    assert.ok(screen.getByText('work-account'))
+    assert.ok(screen.getByText('github.com'))
+    assert.ok(screen.getByText(/Sign in as/))
+  })
+
   let restoreIpcSend: (() => void) | undefined
 
   beforeEach(async () => {

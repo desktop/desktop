@@ -3,6 +3,7 @@ import { IGitAccount } from '../../models/git-account'
 import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../ui/dispatcher'
 import { SignInResult } from '../stores'
+import { Repository } from '../../models/repository'
 
 type PromptSSHSecretResponse = {
   readonly secret: string | undefined
@@ -15,6 +16,10 @@ class TrampolineUIHelper {
 
   public setDispatcher(dispatcher: Dispatcher) {
     this.dispatcher = dispatcher
+  }
+
+  public promptForRepositoryAccount(repository: Repository) {
+    return this.dispatcher.ensureRepositoryAccount(repository)
   }
 
   public promptAddingSSHHost(

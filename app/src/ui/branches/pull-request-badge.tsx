@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { CIStatus } from './ci-status'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
 import { getPullRequestCommitRef } from '../../models/pull-request'
@@ -14,6 +15,7 @@ interface IPullRequestBadgeProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+  readonly localRepository: Repository
 
   /** Whether or not the check runs popover is open */
   readonly showCIStatusPopover?: boolean
@@ -95,6 +97,7 @@ export class PullRequestBadge extends React.Component<
           commitRef={ref}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          localRepository={this.props.localRepository}
           onCheckChange={this.onCheckChange}
         />
       </Button>

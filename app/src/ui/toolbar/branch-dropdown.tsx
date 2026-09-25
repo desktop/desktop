@@ -489,6 +489,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         prNumber={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        localRepository={this.props.repository}
         branchName={currentBranchName}
         anchor={this.badgeRef}
         closePopover={this.closePopover}
@@ -512,6 +513,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         number={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        localRepository={this.props.repository}
         onBadgeRef={this.onBadgeRef}
         onBadgeClick={this.onBadgeClick}
         showCIStatusPopover={this.props.showCIStatusPopover}

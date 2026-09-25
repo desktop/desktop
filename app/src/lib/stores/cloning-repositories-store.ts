@@ -6,11 +6,23 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { clone as cloneRepo } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
+import { IAccessibleRepository } from '../repository-matching'
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore extends BaseStore {
   private readonly _repositories = new Array<CloningRepository>()
   private readonly stateByID = new Map<number, ICloneProgress>()
+  private readonly completedAssignments = new Map<
+    string,
+    IAccessibleRepository | null
+  >()
+
+  /** Consume the account selected for a successfully completed clone. */
+  public takeCompletedAssignment(path: string) {
+    const assignment = this.completedAssignments.get(path)
+    this.completedAssignments.delete(path)
+    return assignment
+  }
 
   /**
    * Clone the repository at the URL to the path.
@@ -20,7 +32,8 @@ export class CloningRepositoriesStore extends BaseStore {
   public async clone(
     url: string,
     path: string,
-    options: CloneOptions
+    options: CloneOptions,
+    chooseAccount?: () => Promise<IAccessibleRepository | null | undefined>
   ): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
@@ -32,10 +45,30 @@ export class CloningRepositoriesStore extends BaseStore {
 
     let success = true
     try {
+      const assignment = await chooseAccount?.()
+      if (chooseAccount !== undefined && assignment === undefined) {
+        this.remove(repository)
+        return false
+      }
+      if (assignment !== undefined) {
+        options = {
+          ...options,
+          fallbackAccount:
+            assignment === null
+              ? undefined
+              : {
+                  endpoint: assignment.account.endpoint,
+                  login: assignment.account.login,
+                },
+        }
+      }
       await cloneRepo(url, path, options, progress => {
         this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })
+      if (assignment !== undefined) {
+        this.completedAssignments.set(path, assignment)
+      }
     } catch (e) {
       success = false
 

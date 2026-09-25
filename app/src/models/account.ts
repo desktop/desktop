@@ -15,6 +15,17 @@ export function accountEquals(x: Account, y: Account) {
 }
 
 /**
+ * Identifies an account by its endpoint and login without carrying any of its
+ * credentials. Use this when an account needs to be referenced from data that
+ * may outlive the operation it was created for (for example retry actions),
+ * and resolve the signed-in `Account` when its token is needed.
+ */
+export interface IAccountIdentity {
+  readonly endpoint: string
+  readonly login: string
+}
+
+/**
  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
  *
  * This contains a token that will be used for operations that require authentication.

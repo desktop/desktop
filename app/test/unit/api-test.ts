@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { API, getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import {
+  API,
+  getNextPagePathWithIncreasingPageSize,
+  getOAuthAuthorizationURL,
+} from '../../src/lib/api'
 import { CopilotError } from '../../src/lib/copilot-error'
 import * as URL from 'url'
 
@@ -50,6 +54,34 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
 }
 
 describe('API', () => {
+  describe('getOAuthAuthorizationURL', () => {
+    it('preserves ordinary OAuth without selecting an account', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL('https://api.github.com', 'csrf-state')
+      )
+      assert.strictEqual(url.origin, 'https://github.com')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.strictEqual(url.searchParams.has('client_id'), true)
+      assert.ok(url.searchParams.get('scope'))
+      assert.strictEqual(url.searchParams.has('login'), false)
+      assert.strictEqual(url.searchParams.has('allow_signup'), false)
+    })
+
+    it('encodes the expected login and disables signup for targeted authentication', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL(
+          'https://enterprise.example.com/api/v3',
+          'csrf-state',
+          'mona+work&scope=admin'
+        )
+      )
+      assert.strictEqual(url.origin, 'https://enterprise.example.com')
+      assert.strictEqual(url.searchParams.get('login'), 'mona+work&scope=admin')
+      assert.strictEqual(url.searchParams.get('allow_signup'), 'false')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.notStrictEqual(url.searchParams.get('scope'), 'admin')
+    })
+  })
   describe('getNextPagePathWithIncreasingPageSize', () => {
     it("returns null when there's no link header", () => {
       assert(getNextPagePathWithIncreasingPageSize(new Response()) === null)

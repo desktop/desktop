@@ -57,6 +57,7 @@ describe('Update remote url', () => {
     gitStore = new GitStore(repository, shell, new TestStatsStore())
     await gitStore.loadRemotes()
     const { gitHubRepository } = repository
+    assert.ok(gitHubRepository)
 
     return { gitHubRepository, gitStore }
   }

@@ -14,6 +14,7 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
+import { PopupType } from '../../models/popup'
 import { getHTMLURL } from '../../lib/api'
 import {
   EnterpriseServerConfirmation,
@@ -70,13 +71,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   public componentWillReceiveProps(nextProps: ISignInProps) {
-    if (nextProps.signInState !== this.props.signInState) {
-      if (
-        nextProps.signInState &&
-        nextProps.signInState.kind === SignInStep.Success
-      ) {
-        this.onDismissed()
-      }
+    if (
+      this.props.signInState?.kind !== SignInStep.Success &&
+      nextProps.signInState?.kind === SignInStep.Success
+    ) {
+      // The result callback may already have closed this and its parent dialog.
+      this.props.dispatcher.closePopup(PopupType.SignIn)
     }
   }
 
@@ -94,15 +94,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
       case SignInStep.ExistingAccountWarning:
-        this.props.dispatcher
-          .removeAccount(state.existingAccount)
-          .then(() => this.props.dispatcher.setSignInEndpoint(state.endpoint))
+        this.props.dispatcher.requestBrowserAuthentication()
         break
       case SignInStep.Authentication:
         this.props.dispatcher.requestBrowserAuthentication()
         break
       case SignInStep.Success:
-        this.onDismissed()
         break
       default:
         assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -161,8 +158,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         <p className="existing-account-warning">
           You're already signed in to{' '}
           <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. If you continue, you will
-          first be signed out.
+          <Ref>{state.existingAccount.login}</Ref>. You can sign in to another
+          account without signing out.
         </p>
         {browserSignInInfoContent}
       </DialogContent>
@@ -205,6 +202,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogContent>
         {credentialHelperInfo}
+        {state.expectedLogin !== undefined && (
+          <p>
+            Sign in as <Ref>{state.expectedLogin}</Ref> on{' '}
+            <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> to continue.
+          </p>
+        )}
         {browserSignInInfoContent}
       </DialogContent>
     )
@@ -277,6 +280,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private onDismissed = () => {
+    if (
+      this.props.signInState === null ||
+      this.props.signInState.kind === SignInStep.Success
+    ) {
+      return
+    }
     this.props.dispatcher.resetSignInState()
     this.props.onDismissed()
   }

@@ -3,6 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import type { Disposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
@@ -20,6 +21,9 @@ interface ICIStatusProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+
+  /** The local repository whose account is used to retrieve checks. */
+  readonly localRepository: Repository
 
   /** The commit ref (can be a SHA or a Git ref) for which to fetch status. */
   readonly commitRef: string
@@ -43,6 +47,7 @@ export class CIStatus extends React.PureComponent<
     super(props)
     const check = props.dispatcher.tryGetCommitStatus(
       this.props.repository,
+      this.props.localRepository,
       this.props.commitRef
     )
     this.state = {
@@ -56,6 +61,7 @@ export class CIStatus extends React.PureComponent<
 
     this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
       this.props.repository,
+      this.props.localRepository,
       this.props.commitRef,
       this.onStatus
     )
@@ -72,14 +78,16 @@ export class CIStatus extends React.PureComponent<
     // Re-subscribe if we're being reused to show a different status.
     if (
       this.props.repository !== prevProps.repository ||
+      this.props.localRepository !== prevProps.localRepository ||
       this.props.commitRef !== prevProps.commitRef
     ) {
-      this.setState({
-        check: this.props.dispatcher.tryGetCommitStatus(
+      this.onStatus(
+        this.props.dispatcher.tryGetCommitStatus(
           this.props.repository,
+          this.props.localRepository,
           this.props.commitRef
-        ),
-      })
+        )
+      )
       this.subscribe()
     }
   }

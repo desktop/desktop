@@ -11,7 +11,7 @@ import {
   getForkContributionTarget,
   isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
-import { Dialog, DialogError, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
 import { readGitIgnoreAtRoot } from '../../lib/git'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -31,6 +31,8 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { Select } from '../lib/select'
+import { caseInsensitiveEquals } from '../../lib/compare'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -38,6 +40,7 @@ interface IRepositorySettingsProps {
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly onDismissed: () => void
 }
 
@@ -66,6 +69,7 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
   readonly isLoadingGitConfig: boolean
+  readonly selectedLogin?: string | null
 }
 
 export class RepositorySettings extends React.Component<
@@ -220,16 +224,19 @@ export class RepositorySettings extends React.Component<
     switch (tab) {
       case RepositorySettingsTab.Remote: {
         const remote = this.state.remote
-        if (remote) {
-          return (
-            <Remote
-              remote={remote}
-              onRemoteUrlChanged={this.onRemoteUrlChanged}
-            />
-          )
-        } else {
-          return <NoRemote onPublish={this.onPublish} />
-        }
+        return (
+          <>
+            {this.renderAccount()}
+            {remote ? (
+              <Remote
+                remote={remote}
+                onRemoteUrlChanged={this.onRemoteUrlChanged}
+              />
+            ) : (
+              <NoRemote onPublish={this.onPublish} />
+            )}
+          </>
+        )
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return (
@@ -259,7 +266,7 @@ export class RepositorySettings extends React.Component<
       case RepositorySettingsTab.GitConfig: {
         return (
           <GitConfig
-            account={this.props.repositoryAccount}
+            account={this.selectedAccount}
             gitConfigLocation={this.state.gitConfigLocation}
             onGitConfigLocationChanged={this.onGitConfigLocationChanged}
             name={this.state.committerName}
@@ -278,6 +285,66 @@ export class RepositorySettings extends React.Component<
     }
   }
 
+  private get selectedLogin() {
+    return this.state.selectedLogin === undefined
+      ? this.props.repository.login
+      : this.state.selectedLogin
+  }
+
+  private get selectedAccount() {
+    const endpoint = this.props.repository.gitHubRepository?.endpoint
+    const login = this.selectedLogin
+    return endpoint === undefined
+      ? this.props.repositoryAccount
+      : this.props.accounts.find(
+          a =>
+            a.endpoint === endpoint &&
+            login !== null &&
+            caseInsensitiveEquals(a.login, login)
+        ) ?? null
+  }
+
+  private renderAccount() {
+    const endpoint = this.props.repository.gitHubRepository?.endpoint
+    if (endpoint === undefined) {
+      return null
+    }
+
+    const accounts = this.props.accounts.filter(a => a.endpoint === endpoint)
+    const login = this.selectedLogin
+    const signedOut = login !== null && this.selectedAccount === null
+
+    return (
+      <DialogContent>
+        <Select
+          label="Account"
+          value={this.selectedAccount?.login ?? login ?? ''}
+          onChange={this.onAccountChanged}
+        >
+          <option value="">None (unassigned)</option>
+          {signedOut && (
+            <option value={login ?? ''} disabled={true}>
+              @{login} (signed out)
+            </option>
+          )}
+          {accounts.map(account => (
+            <option key={account.login} value={account.login}>
+              @{account.login}
+            </option>
+          ))}
+        </Select>
+        <p>
+          The account used for GitHub API requests and HTTPS authentication.
+          This does not change your Git author name or email.
+        </p>
+      </DialogContent>
+    )
+  }
+
+  private onAccountChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    this.setState({ selectedLogin: event.currentTarget.value || null })
+  }
+
   private onPublish = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.PublishRepository,
@@ -292,6 +359,21 @@ export class RepositorySettings extends React.Component<
   private onSubmit = async () => {
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
+
+    if (
+      this.props.repository.gitHubRepository !== null &&
+      this.state.selectedLogin !== undefined &&
+      this.state.selectedLogin !== this.props.repository.login
+    ) {
+      try {
+        await this.props.dispatcher.updateRepositoryAccount(
+          this.props.repository,
+          this.state.selectedLogin
+        )
+      } catch (e) {
+        errors.push(`Failed saving the repository account: ${e}`)
+      }
+    }
 
     if (this.state.remote && this.props.remote) {
       const trimmedUrl = this.state.remote.url.trim()

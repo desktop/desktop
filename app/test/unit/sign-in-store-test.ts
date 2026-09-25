@@ -1,10 +1,15 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert'
-import { SignInStore, SignInStep } from '../../src/lib/stores/sign-in-store'
+import {
+  SignInStore,
+  SignInStep,
+  SignInResult,
+} from '../../src/lib/stores/sign-in-store'
 import { AccountsStore } from '../../src/lib/stores'
 import { Account } from '../../src/models/account'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { shell } from '../../src/lib/app-shell'
 
 function createAccountsStore(
   accounts: ReadonlyArray<Account> = []
@@ -62,6 +67,28 @@ describe('SignInStore', () => {
   })
 
   describe('beginDotComSignIn', () => {
+    it('retains a second login and refreshes a repeated login after authentication', async () => {
+      const first = createDotComAccount()
+      const second = createDotComAccount('second-user')
+      const refreshed = first.withToken('refreshed-token')
+      await accountsStore.addAccount(first)
+      signInStore.onDidAuthenticate(account => {
+        void accountsStore.addAccount(account)
+      })
+
+      for (const account of [second, refreshed]) {
+        signInStore.beginDotComSignIn()
+        await signInStore.authenticateWithBrowser()
+        const state = signInStore.getState()
+        assert.ok(state?.kind === SignInStep.Authentication)
+        state.oauthState?.onAuthCompleted(account)
+        await new Promise<void>(resolve => setImmediate(resolve))
+        assert.strictEqual(signInStore.getState()?.kind, SignInStep.Success)
+      }
+
+      assert.deepStrictEqual(await accountsStore.getAll(), [refreshed, second])
+    })
+
     it('transitions to Authentication step when no existing account', async () => {
       signInStore.beginDotComSignIn()
       const state = signInStore.getState()
@@ -74,7 +101,7 @@ describe('SignInStore', () => {
       }
     })
 
-    it('transitions to ExistingAccountWarning when a dotcom account exists', async () => {
+    it('allows another sign-in when a dotcom account exists', async () => {
       const existingAccount = createDotComAccount()
       accountsStore = createAccountsStore()
       signInStore = new SignInStore(accountsStore)
@@ -84,7 +111,10 @@ describe('SignInStore', () => {
       signInStore.beginDotComSignIn()
       const state = signInStore.getState()
       assert.notEqual(state, null)
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
+      assert.equal(state?.kind, SignInStep.Authentication)
+      await signInStore.authenticateWithBrowser()
+      assert.deepStrictEqual(await accountsStore.getAll(), [existingAccount])
+      signInStore.reset()
     })
 
     it('calls resultCallback when provided', async () => {
@@ -214,15 +244,14 @@ describe('SignInStore', () => {
       })
     }
 
-    it('keeps the existing-account warning for a known Enterprise endpoint', async () => {
+    it('allows another account without server guidance for a known Enterprise endpoint', async () => {
       await accountsStore.addAccount(createEnterpriseAccount())
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com', true)
 
-      assert.strictEqual(
-        signInStore.getState()?.kind,
-        SignInStep.ExistingAccountWarning
-      )
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, false)
     })
 
     it('transitions to Authentication step for valid enterprise URL', async () => {
@@ -268,7 +297,7 @@ describe('SignInStore', () => {
       }
     })
 
-    it('shows ExistingAccountWarning if enterprise account exists', async () => {
+    it('retains an existing enterprise account when starting another sign-in', async () => {
       const endpoint = 'https://github.example.com/api/v3'
       const existingAccount = createEnterpriseAccount('user', endpoint)
       accountsStore = createAccountsStore()
@@ -280,11 +309,251 @@ describe('SignInStore', () => {
       await signInStore.setEndpoint('https://github.example.com')
 
       const state = signInStore.getState()
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
+      assert.equal(state?.kind, SignInStep.Authentication)
+      await signInStore.authenticateWithBrowser()
+      assert.deepStrictEqual(await accountsStore.getAll(), [existingAccount])
+      signInStore.reset()
+    })
+  })
+
+  describe('beginSignInForAccount', () => {
+    it('enters authentication at the supplied API endpoint with the expected login', () => {
+      signInStore.beginSignInForAccount(
+        'https://enterprise.example.com/api/v3',
+        'mona'
+      )
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(
+        state.endpoint,
+        'https://enterprise.example.com/api/v3'
+      )
+      assert.strictEqual(state.expectedLogin, 'mona')
+      assert.strictEqual(state.error, null)
+      assert.strictEqual(state.loading, false)
+    })
+
+    it('opens OAuth with the required login and signup disabled', async t => {
+      const openedURLs: string[] = []
+      t.mock.method(shell, 'openExternal', async (url: string) => {
+        openedURLs.push(url)
+      })
+      signInStore.beginSignInForAccount(getDotComAPIEndpoint(), 'mona+work')
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      const url = new URL(openedURLs[0])
+      assert.strictEqual(url.searchParams.get('login'), 'mona+work')
+      assert.strictEqual(url.searchParams.get('allow_signup'), 'false')
+      assert.strictEqual(url.searchParams.get('state'), state.oauthState?.state)
+      signInStore.reset()
+    })
+
+    for (const account of [
+      createDotComAccount('other-user'),
+      createEnterpriseAccount('octocat'),
+    ]) {
+      it(`rejects a different identity (${account.login} at ${account.endpoint}) without account changes`, async () => {
+        const original = createDotComAccount()
+        await accountsStore.addAccount(original)
+        const authenticated: Account[] = []
+        const results: SignInResult[] = []
+        signInStore.onDidAuthenticate(account => {
+          authenticated.push(account)
+          void accountsStore.addAccount(account)
+        })
+        signInStore.beginSignInForAccount(
+          original.endpoint,
+          original.login,
+          result => results.push(result)
+        )
+        await signInStore.authenticateWithBrowser()
+        const pendingState = signInStore.getState()
+        assert.ok(pendingState?.kind === SignInStep.Authentication)
+        pendingState.oauthState?.onAuthCompleted(account)
+        await new Promise<void>(resolve => setImmediate(resolve))
+
+        const state = signInStore.getState()
+        assert.ok(state?.kind === SignInStep.Authentication)
+        assert.match(state.error?.message ?? '', /Please sign in as octocat/)
+        assert.strictEqual(state.loading, false)
+        assert.strictEqual(state.expectedLogin, original.login)
+        assert.deepStrictEqual(authenticated, [])
+        assert.deepStrictEqual(results, [])
+        assert.deepStrictEqual(await accountsStore.getAll(), [original])
+
+        await signInStore.authenticateWithBrowser()
+        const retryState = signInStore.getState()
+        assert.ok(retryState?.kind === SignInStep.Authentication)
+        assert.strictEqual(retryState.expectedLogin, original.login)
+        retryState.oauthState?.onAuthCompleted(original)
+        await new Promise<void>(resolve => setImmediate(resolve))
+        assert.strictEqual(signInStore.getState()?.kind, SignInStep.Success)
+        assert.deepStrictEqual(results, [
+          { kind: 'success', account: original },
+        ])
+      })
+    }
+
+    it('accepts matching endpoint and login case-insensitively', async () => {
+      const authenticated: Account[] = []
+      const results: SignInResult[] = []
+      const account = createDotComAccount()
+      signInStore.onDidAuthenticate(account => authenticated.push(account))
+      signInStore.beginSignInForAccount(
+        account.endpoint.toUpperCase(),
+        account.login.toUpperCase(),
+        result => results.push(result)
+      )
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      state.oauthState?.onAuthCompleted(account)
+      await new Promise<void>(resolve => setImmediate(resolve))
+
+      assert.strictEqual(signInStore.getState()?.kind, SignInStep.Success)
+      assert.deepStrictEqual(authenticated, [account])
+      assert.deepStrictEqual(results, [{ kind: 'success', account }])
+    })
+
+    it('ignores an OAuth callback with an invalid state', async () => {
+      signInStore.beginSignInForAccount(getDotComAPIEndpoint(), 'octocat')
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      await signInStore.resolveOAuthRequest({
+        name: 'oauth',
+        state: 'incorrect-state',
+        code: 'unused-code',
+      })
+      assert.strictEqual(signInStore.getState(), state)
+      signInStore.reset()
+    })
+
+    it('does not authenticate an account resolved after the session changes', async () => {
+      const authenticated: Account[] = []
+      signInStore.onDidAuthenticate(account => authenticated.push(account))
+      signInStore.beginSignInForAccount(getDotComAPIEndpoint(), 'octocat')
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      state.oauthState?.onAuthCompleted(createDotComAccount())
+      signInStore.beginSignInForAccount(getDotComAPIEndpoint(), 'other-user')
+      await signInStore.authenticateWithBrowser()
+      await new Promise<void>(resolve => setImmediate(resolve))
+
+      assert.deepStrictEqual(authenticated, [])
+      const currentState = signInStore.getState()
+      assert.ok(currentState?.kind === SignInStep.Authentication)
+      assert.strictEqual(currentState.expectedLogin, 'other-user')
+      signInStore.reset()
     })
   })
 
   describe('reset', () => {
+    it('reports cancellation once even when its callback resets again', () => {
+      const results: SignInResult[] = []
+      signInStore.beginDotComSignIn(result => {
+        results.push(result)
+        signInStore.reset()
+      })
+      signInStore.reset()
+      signInStore.reset()
+      assert.deepStrictEqual(results, [{ kind: 'cancelled' }])
+      assert.strictEqual(signInStore.getState(), null)
+    })
+
+    it('delivers one success when completion is repeated and success observers reset', async () => {
+      const results: SignInResult[] = []
+      const authenticated: Account[] = []
+      signInStore.onDidAuthenticate(account => authenticated.push(account))
+      signInStore.onDidUpdate(state => {
+        if (state?.kind === SignInStep.Success) {
+          signInStore.reset()
+        }
+      })
+      signInStore.beginDotComSignIn(result => results.push(result))
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      const account = createDotComAccount()
+      state.oauthState?.onAuthCompleted(account)
+      state.oauthState?.onAuthCompleted(account)
+      await new Promise<void>(resolve => setImmediate(resolve))
+      signInStore.reset()
+      assert.deepStrictEqual(authenticated, [account])
+      assert.deepStrictEqual(results, [{ kind: 'success', account }])
+      assert.strictEqual(signInStore.getState(), null)
+    })
+
+    it('reports success exactly once when the result callback resets the store', async () => {
+      const results: SignInResult[] = []
+      signInStore.beginDotComSignIn(result => {
+        results.push(result)
+        if (result.kind === 'success') {
+          signInStore.reset()
+        }
+      })
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      state.oauthState?.onAuthCompleted(createDotComAccount())
+      await new Promise<void>(resolve => setImmediate(resolve))
+
+      assert.strictEqual(signInStore.getState(), null)
+      assert.deepStrictEqual(
+        results.map(result => result.kind),
+        ['success']
+      )
+    })
+
+    it('does not overwrite a new sign-in started by a success callback', async () => {
+      const results: SignInResult[] = []
+      const nextResults: SignInResult[] = []
+      signInStore.beginDotComSignIn(result => {
+        results.push(result)
+        if (result.kind === 'success') {
+          signInStore.beginSignInForAccount(
+            getDotComAPIEndpoint(),
+            'next-account',
+            next => nextResults.push(next)
+          )
+        }
+      })
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      state.oauthState?.onAuthCompleted(createDotComAccount())
+      await new Promise<void>(resolve => setImmediate(resolve))
+
+      const next = signInStore.getState()
+      assert.ok(next?.kind === SignInStep.Authentication)
+      assert.strictEqual(next.expectedLogin, 'next-account')
+      assert.deepStrictEqual(
+        results.map(result => result.kind),
+        ['success']
+      )
+      assert.deepStrictEqual(nextResults, [])
+      signInStore.reset()
+      assert.deepStrictEqual(nextResults, [{ kind: 'cancelled' }])
+    })
+
+    it('delivers success after the authentication subscriber resets the store', async () => {
+      const events: string[] = []
+      signInStore.onDidAuthenticate(() => {
+        events.push('authenticated')
+        signInStore.reset()
+      })
+      signInStore.beginDotComSignIn(result => events.push(result.kind))
+      await signInStore.authenticateWithBrowser()
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      state.oauthState?.onAuthCompleted(createDotComAccount())
+      await new Promise<void>(resolve => setImmediate(resolve))
+
+      assert.deepStrictEqual(events, ['authenticated', 'success'])
+      assert.strictEqual(signInStore.getState(), null)
+    })
+
     it('clears the state back to null', () => {
       signInStore.beginDotComSignIn()
       assert.notEqual(signInStore.getState(), null)

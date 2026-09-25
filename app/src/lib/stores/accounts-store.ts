@@ -90,7 +90,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   /**
-   * Add the account to the store.
+   * Add the account, or refresh an existing endpoint and login identity.
    */
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
@@ -113,13 +113,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
+    const accountKey = (a: Account) =>
+      `${a.endpoint}/users/${a.login}`.toLowerCase()
+    const accountsByIdentity = this.accounts.reduce(
+      (map, x) => map.set(accountKey(x), x),
       new Map<string, Account>()
     )
-    accountsByEndpoint.set(account.endpoint, account)
+    accountsByIdentity.set(accountKey(account), account)
 
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    this.accounts = sortAccounts([...accountsByIdentity.values()])
 
     this.save()
     return account

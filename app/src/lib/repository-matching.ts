@@ -3,10 +3,90 @@ import * as Path from 'path'
 
 import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
-import { getHTMLURL } from './api'
+import { API, getHTMLURL, IAPIFullRepository } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+  assertIsRepositoryWithGitHubRepository,
+} from '../models/repository'
+import { Owner } from '../models/owner'
+
+/** An account whose access to a remote has been verified by the API. */
+export interface IAccessibleRepository extends IMatchedGitHubRepository {
+  readonly apiRepository: IAPIFullRepository
+}
+
+/** Discover remote metadata using each matching account, without assigning one. */
+export async function probeRemoteRepositoryAccounts(
+  accounts: ReadonlyArray<Account>,
+  remote: string
+): Promise<ReadonlyArray<IAccessibleRepository>> {
+  const matches = await Promise.all(
+    accounts.map(async account => {
+      const match = matchGitHubRepository([account], remote)
+      if (match === null) {
+        return null
+      }
+      const apiRepository = await API.fromAccount(account).fetchRepository(
+        match.owner,
+        match.name
+      )
+      return apiRepository === null ? null : { ...match, apiRepository }
+    })
+  )
+  return matches.filter(
+    (match): match is IAccessibleRepository => match !== null
+  )
+}
+
+/**
+ * Probe every signed-in account matching the remote, then choose among accounts
+ * with access. Null means no account has access; undefined means canceled.
+ */
+export async function chooseAccountForRemoteRepository(
+  accounts: ReadonlyArray<Account>,
+  remote: string,
+  path: string,
+  choose: (
+    repository: RepositoryWithGitHubRepository,
+    accounts: ReadonlyArray<Account>
+  ) => Promise<Account | undefined>
+): Promise<IAccessibleRepository | null | undefined> {
+  const accessible = await probeRemoteRepositoryAccounts(accounts, remote)
+  if (accessible.length < 2) {
+    return accessible[0] ?? null
+  }
+
+  const { name, owner, account } = accessible[0]
+  const repository = new Repository(
+    path,
+    -1,
+    new GitHubRepository(name, new Owner(owner, account.endpoint, -1), -1),
+    false
+  )
+  assertIsRepositoryWithGitHubRepository(repository)
+  const selected = await choose(
+    repository,
+    accessible.map(match => match.account)
+  )
+  if (selected === undefined) {
+    return undefined
+  }
+  const match = accessible.find(
+    match =>
+      match.account.endpoint === selected.endpoint &&
+      caseInsensitiveEquals(match.account.login, selected.login)
+  )
+  if (match === undefined) {
+    throw new Error(
+      'The selected account has not been verified for this repository.'
+    )
+  }
+  return match
+}
 
 export interface IMatchedGitHubRepository {
   /**
