@@ -2,6 +2,12 @@ import { getDotComAPIEndpoint, getHTMLURL } from '../lib/api'
 import { EndpointToken } from '../lib/endpoint-token'
 import { OrderedWebRequest } from './ordered-webrequest'
 
+interface IImageOriginEntry {
+  readonly endpoint: string
+  readonly token: string
+  readonly session: symbol
+}
+
 function isEnterpriseAvatarPath(pathname: string) {
   return pathname.startsWith('/api/v3/enterprise/avatars/')
 }
@@ -24,23 +30,38 @@ function isGitHubRepoAssetPath(pathname: string) {
  * which is used to resolve which token to use.
  */
 export function installAuthenticatedImageFilter(
-  orderedWebRequest: OrderedWebRequest
+  orderedWebRequest: OrderedWebRequest,
+  resolveToken: (endpoint: string, token: string) => Promise<string>
 ) {
-  let originTokens = new Map<string, string>()
+  let imageOrigins = new Map<string, IImageOriginEntry>()
 
   orderedWebRequest.onBeforeSendHeaders.addEventListener(async details => {
     const { origin, pathname } = new URL(details.url)
-    const token = originTokens.get(origin)
+    const entry = imageOrigins.get(origin)
 
     if (
-      token &&
+      entry?.token &&
       (isEnterpriseAvatarPath(pathname) || isGitHubRepoAssetPath(pathname))
     ) {
-      return {
-        requestHeaders: {
-          ...details.requestHeaders,
-          Authorization: `token ${token}`,
-        },
+      try {
+        const token = await resolveToken(entry.endpoint, entry.token)
+        const current = imageOrigins.get(origin)
+        if (
+          !token ||
+          current?.session !== entry.session ||
+          (current.token !== entry.token && current.token !== token)
+        ) {
+          return { cancel: true }
+        }
+
+        return {
+          requestHeaders: {
+            ...details.requestHeaders,
+            Authorization: `token ${token}`,
+          },
+        }
+      } catch {
+        return { cancel: true }
       }
     }
 
@@ -48,17 +69,24 @@ export function installAuthenticatedImageFilter(
   })
 
   return (accounts: ReadonlyArray<EndpointToken>) => {
-    originTokens = new Map(
-      accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token])
+    imageOrigins = new Map(
+      accounts.map(({ endpoint, token }) => {
+        const origin = new URL(endpoint).origin
+        const previous = imageOrigins.get(origin)
+        // Keep the session across token rotation, but never across signout.
+        const session =
+          previous?.endpoint === endpoint ? previous.session : Symbol()
+        return [origin, { endpoint, token, session }]
+      })
     )
 
     // If we have a token for api.github.com, add another entry in our
     // tokens-by-origin map with the same token for github.com. This is
     // necessary for private image URLs.
     const dotComAPIEndpoint = getDotComAPIEndpoint()
-    const dotComAPIToken = originTokens.get(dotComAPIEndpoint)
+    const dotComAPIToken = imageOrigins.get(dotComAPIEndpoint)
     if (dotComAPIToken) {
-      originTokens.set(getHTMLURL(dotComAPIEndpoint), dotComAPIToken)
+      imageOrigins.set(getHTMLURL(dotComAPIEndpoint), dotComAPIToken)
     }
   }
 }
