@@ -99,10 +99,21 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private secureStore: ISecureStore
 
   private accounts: ReadonlyArray<Account> = []
-  private readonly sessions = new Map<string, ICredentialSession>()
-  private readonly tokenSessions = new Map<string, ICredentialSession>()
-  private readonly writes = new Map<string, Promise<void>>()
-  private readonly versions = new Map<string, number>()
+  /** Signed-in session for each endpoint: account, credential, renewal state. */
+  private readonly sessionsByEndpoint = new Map<string, ICredentialSession>()
+  /**
+   * Session that issued each access token, keyed by `tokenKey`. API clients
+   * keep the token they were created with; this maps that copy (even after
+   * rotation) back to its session so `resolveToken` can return the current one.
+   */
+  private readonly sessionsByToken = new Map<string, ICredentialSession>()
+  /** Per-endpoint queue so secure-storage saves and deletes never interleave. */
+  private readonly credentialWriteQueues = new Map<string, Promise<void>>()
+  /**
+   * Per-endpoint counter bumped whenever a session is replaced or removed.
+   * Async sign-in steps compare it afterwards to drop stale results.
+   */
+  private readonly sessionGenerations = new Map<string, number>()
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
@@ -149,8 +160,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     token: string
   ): Promise<string> => {
     await this.loadingPromise
-    const session = this.tokenSessions.get(this.tokenKey(endpoint, token))
-    const current = this.sessions.get(endpoint)
+    const session = this.sessionsByToken.get(this.tokenKey(endpoint, token))
+    const current = this.sessionsByEndpoint.get(endpoint)
     if (token === '' && current?.credential === null) {
       return this.validToken(current)
     }
@@ -163,7 +174,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     minimumValidity = refreshMargin
   ): Promise<Account> {
     await this.loadingPromise
-    const session = this.sessions.get(account.endpoint)
+    const session = this.sessionsByEndpoint.get(account.endpoint)
     if (session === undefined || session.account.id !== account.id) {
       throw new AccountRequiresSignInError()
     }
@@ -177,7 +188,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
-    const session = this.sessions.get(account.endpoint)
+    const session = this.sessionsByEndpoint.get(account.endpoint)
     return (
       session?.account.id === account.id &&
       session.credential?.refreshToken !== undefined
@@ -186,7 +197,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /** Access-token expiry for consumers that support on-demand token renewal. */
   public getTokenExpiration(account: Account): number | undefined {
-    const session = this.sessions.get(account.endpoint)
+    const session = this.sessionsByEndpoint.get(account.endpoint)
     return session?.account.id === account.id
       ? session.credential?.expiresAt
       : undefined
@@ -195,7 +206,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
   public async invalidateToken(endpoint: string, token: string): Promise<void> {
     await this.loadingPromise
-    const session = this.sessions.get(endpoint)
+    const session = this.sessionsByEndpoint.get(endpoint)
     if (session === undefined || session.credential?.accessToken !== token) {
       return
     }
@@ -228,9 +239,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       retired: false,
       notified: false,
     }
-    this.sessions.set(account.endpoint, session)
+    this.sessionsByEndpoint.set(account.endpoint, session)
     if (credential !== null) {
-      this.tokenSessions.set(
+      this.sessionsByToken.set(
         this.tokenKey(account.endpoint, credential.accessToken),
         session
       )
@@ -238,31 +249,31 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   private retireSession(endpoint: string) {
-    const previous = this.sessions.get(endpoint)
+    const previous = this.sessionsByEndpoint.get(endpoint)
     if (previous !== undefined) {
       previous.retired = true
       previous.credential = null
     }
-    this.sessions.delete(endpoint)
-    const version = (this.versions.get(endpoint) ?? 0) + 1
-    this.versions.set(endpoint, version)
-    return version
+    this.sessionsByEndpoint.delete(endpoint)
+    const generation = (this.sessionGenerations.get(endpoint) ?? 0) + 1
+    this.sessionGenerations.set(endpoint, generation)
+    return generation
   }
 
   private async write(
     endpoint: string,
     action: () => Promise<void>
   ): Promise<void> {
-    const previous = this.writes.get(endpoint)
+    const previous = this.credentialWriteQueues.get(endpoint)
     const next = (previous ?? Promise.resolve()).then(action)
     // The caller receives the error; the queue must remain usable for sign-out.
     const settled = next.catch(() => {})
-    this.writes.set(endpoint, settled)
+    this.credentialWriteQueues.set(endpoint, settled)
     try {
       await next
     } finally {
-      if (this.writes.get(endpoint) === settled) {
-        this.writes.delete(endpoint)
+      if (this.credentialWriteQueues.get(endpoint) === settled) {
+        this.credentialWriteQueues.delete(endpoint)
       }
     }
   }
@@ -362,7 +373,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       throw new AccountRequiresSignInError()
     }
     session.credential = renewed
-    this.tokenSessions.set(
+    this.sessionsByToken.set(
       this.tokenKey(account.endpoint, renewed.accessToken),
       session
     )
@@ -416,7 +427,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private async requireSignIn(
     session: ICredentialSession
   ): Promise<Account | null> {
-    if (this.sessions.get(session.account.endpoint) !== session) {
+    if (this.sessionsByEndpoint.get(session.account.endpoint) !== session) {
       return null
     }
     const retired = this.retireAccount(session.account)
@@ -437,11 +448,14 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     isCurrent: () => boolean = () => true
   ): Promise<Account | null> {
     await this.loadingPromise
-    const version = this.retireSession(account.endpoint)
+    const generation = this.retireSession(account.endpoint)
     try {
       const key = getKeyForAccount(account)
       await this.write(account.endpoint, async () => {
-        if (this.versions.get(account.endpoint) === version && isCurrent()) {
+        if (
+          this.sessionGenerations.get(account.endpoint) === generation &&
+          isCurrent()
+        ) {
           await this.secureStore.setItem(
             key,
             account.login,
@@ -468,7 +482,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
       return null
     }
-    if (this.versions.get(account.endpoint) !== version || !isCurrent()) {
+    if (
+      this.sessionGenerations.get(account.endpoint) !== generation ||
+      !isCurrent()
+    ) {
       return null
     }
     const authenticatedAccount = account.withToken(credential.accessToken)
@@ -497,7 +514,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    * credentials that rotated while the profile request was in flight.
    */
   private async tryUpdateAccount(account: Account): Promise<void> {
-    const session = this.sessions.get(account.endpoint)
+    const session = this.sessionsByEndpoint.get(account.endpoint)
     try {
       const fresh = await this.getAccountWithFreshToken(account)
       const updated = await updatedAccount(fresh)
