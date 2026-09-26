@@ -36,6 +36,7 @@ import { PullRequestSuggestedNextAction } from '../models/pull-request'
 import { clamp } from '../lib/clamp'
 import { Emoji } from '../lib/emoji'
 import { PopupType } from '../models/popup'
+import { hasConflictedFiles } from '../lib/status'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -344,6 +345,9 @@ export class RepositoryView extends React.Component<
     } = state
     const { tip } = branchesState
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+    const { conflictState, workingDirectory } = state.changesState
+    const hasConflicts =
+      conflictState !== null || hasConflictedFiles(workingDirectory)
     const scrollTop =
       this.forceCompareListScrollTop ||
       this.previousSection === RepositorySectionTab.Changes
@@ -374,6 +378,7 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
+        hasConflicts={hasConflicts}
         isMultiCommitOperationInProgress={mcos !== null}
         askForConfirmationOnCheckoutCommit={
           this.props.askForConfirmationOnCheckoutCommit
