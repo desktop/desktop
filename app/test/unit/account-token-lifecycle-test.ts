@@ -401,25 +401,6 @@ describe('Coordinated account token renewal', () => {
     t.mock.method(secure, 'setItem', async () => {
       throw new Error('Keychain locked')
     })
-
-    it('stays signed out if secure deletion fails after renewal rejection', async t => {
-      const { store, secure, data } = setup(async () => {
-        throw new OAuthRefreshRejectedError()
-      })
-      await store.addAccount(account, rotating)
-      t.mock.method(secure, 'deleteItem', async () => {
-        throw new Error('Keychain locked')
-      })
-      const errors: Error[] = []
-      store.onDidError(error => errors.push(error))
-      await assert.rejects(
-        store.resolveToken(account.endpoint, account.token),
-        OAuthRefreshRejectedError
-      )
-      assert.deepEqual(await store.getAll(), [])
-      assert.equal(errors.length, 1)
-      assert.deepEqual(await new AccountsStore(data, secure).getAll(), [])
-    })
     let prompts = 0
     store.onTokenInvalidated(() => prompts++)
     await assert.rejects(
@@ -436,6 +417,25 @@ describe('Coordinated account token renewal', () => {
     assert.ok(
       !data.getItem('users')?.includes(renewed.refreshToken ?? 'new-refresh')
     )
+  })
+
+  it('stays signed out if secure deletion fails after renewal rejection', async t => {
+    const { store, secure, data } = setup(async () => {
+      throw new OAuthRefreshRejectedError()
+    })
+    await store.addAccount(account, rotating)
+    t.mock.method(secure, 'deleteItem', async () => {
+      throw new Error('Keychain locked')
+    })
+    const errors: Error[] = []
+    store.onDidError(error => errors.push(error))
+    await assert.rejects(
+      store.resolveToken(account.endpoint, account.token),
+      OAuthRefreshRejectedError
+    )
+    assert.deepEqual(await store.getAll(), [])
+    assert.equal(errors.length, 1)
+    assert.deepEqual(await new AccountsStore(data, secure).getAll(), [])
   })
 
   it('persists recovery and releases callers before a stalled revocation times out', async t => {
@@ -724,6 +724,60 @@ describe('Coordinated account token renewal', () => {
     assert.equal(
       await secure.getItem(getKeyForAccount(account), account.login),
       null
+    )
+  })
+
+  it('keeps the current account usable when saving a replacement fails', async t => {
+    const { store, secure } = setup()
+    await store.addAccount(account, rotating)
+    t.mock.method(secure, 'setItem', async () => {
+      throw new Error('Keychain locked')
+    })
+    const errors: Error[] = []
+    store.onDidError(error => errors.push(error))
+    const replacement = new Account(
+      'other',
+      account.endpoint,
+      renewed.accessToken,
+      [],
+      '',
+      2,
+      'Other'
+    )
+    assert.equal(await store.addAccount(replacement, renewed), null)
+    assert.equal(errors.length, 1)
+    assert.deepEqual(await store.getAll(), [account])
+    assert.equal(store.isRefreshable(account), true)
+    assert.equal(
+      (await store.getAccountWithFreshToken(account, 0)).token,
+      account.token
+    )
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      serializeAccountCredential(rotating)
+    )
+  })
+
+  it('a renewal finishing after a replacement cannot overwrite it', async () => {
+    const gate = deferred<IOAuthToken>()
+    const started = deferred<void>()
+    const { store, secure, revoked } = setup(async () => {
+      started.resolve()
+      return gate.promise
+    })
+    await store.addAccount(account, rotating)
+    const pending = store.resolveToken(account.endpoint, account.token)
+    const rejected = assert.rejects(pending, AccountRequiresSignInError)
+    await started.promise
+    const replacement = account.withToken('replacement-token')
+    await store.addAccount(replacement)
+    gate.resolve(renewed)
+    await rejected
+    assert.deepEqual(revoked, [renewed.accessToken])
+    assert.deepEqual(await store.getAll(), [replacement])
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      replacement.token
     )
   })
 
