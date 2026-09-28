@@ -52,8 +52,26 @@ async function getGitHubCredential(cred: Credential, store: AccountsStore) {
   const account = await findGitHubTrampolineAccount(store, endpoint)
   if (account) {
     info(`found GitHub credential for ${endpoint} in store`)
+    const fresh = await store.getAccountWithFreshToken(account)
+    const result = credWithAccount(cred, fresh)
+    if (result && store.isRefreshable(fresh)) {
+      const supportsAuthType = [...cred].some(
+        ([key, value]) => key.startsWith('capability[') && value === 'authtype'
+      )
+      if (supportsAuthType) {
+        result.delete('username')
+        result.delete('password')
+        result.set('authtype', 'Basic')
+        result.set(
+          'credential',
+          Buffer.from(`${fresh.login}:${fresh.token}`).toString('base64')
+        )
+        result.set('ephemeral', '1')
+      }
+    }
+    return result
   }
-  return credWithAccount(cred, account)
+  return undefined
 }
 
 async function promptForCredential(cred: Credential, endpoint: string) {
@@ -232,6 +250,7 @@ export const createCredentialHelperTrampolineHandler: (
     debug(
       `${firstParameter}\n${command.stdin
         .replaceAll(/^password=.*$/gm, 'password=***')
+        .replaceAll(/^(credential|oauth_refresh_token)=.*$/gm, '$1=[redacted]')
         .replaceAll(/^(.*)$/gm, '  $1')
         .trimEnd()}`
     )
