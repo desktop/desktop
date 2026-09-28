@@ -383,11 +383,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       if (!isSignInAttemptActive()) {
         return
       }
-      const stored = await this.accountStore.addAccount(
-        account,
-        credential,
-        isSignInAttemptActive
-      )
+      const stored = await this.accountStore.addAccount(account, credential)
       if (stored !== null) {
         unpublishedToken = undefined
       }

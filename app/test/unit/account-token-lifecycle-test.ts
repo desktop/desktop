@@ -792,24 +792,4 @@ describe('Coordinated account token renewal', () => {
     await Promise.all([pending, invalidation])
     assert.equal((await store.getAll())[0].token, renewed.accessToken)
   })
-
-  it('does not publish a cancelled login after secure storage completes', async t => {
-    const { store, secure } = setup()
-    let current = true
-    const original = secure.setItem.bind(secure)
-    t.mock.method(
-      secure,
-      'setItem',
-      async (key: string, login: string, value: string) => {
-        await original(key, login, value)
-        current = false
-      }
-    )
-    assert.equal(await store.addAccount(account, rotating, () => current), null)
-    assert.deepEqual(await store.getAll(), [])
-    assert.equal(
-      await secure.getItem(getKeyForAccount(account), account.login),
-      null
-    )
-  })
 })

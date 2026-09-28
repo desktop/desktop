@@ -481,7 +481,7 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
   })
 
-  it('removes credentials saved after cancellation during secure storage', async t => {
+  it('keeps credentials whose save began before cancellation', async t => {
     const harness = await createAuthentication(t)
     const started = deferred<void>()
     const release = deferred<void>()
@@ -502,12 +502,15 @@ describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
     await completion
     await setImmediate()
     const [key, login] = storage.mock.calls[0].arguments
-    assert.strictEqual(await harness.secureStore.getItem(key, login), null)
-    assert.deepStrictEqual(await harness.accountsStore.getAll(), [])
+    assert.notStrictEqual(await harness.secureStore.getItem(key, login), null)
+    assert.deepStrictEqual(
+      (await harness.accountsStore.getAll()).map(a => a.token),
+      [oauthResponse.access_token]
+    )
     assert.deepStrictEqual(harness.authenticated, [])
     assert.deepStrictEqual(harness.results, [{ kind: 'cancelled' }])
     assert.strictEqual(harness.signInStore.getState(), null)
-    assert.deepStrictEqual(harness.revoked, [oauthResponse.access_token])
+    assert.deepStrictEqual(harness.revoked, [])
   })
 
   it('revokes credentials after cancellation during profile lookup', async t => {

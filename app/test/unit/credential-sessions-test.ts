@@ -121,8 +121,8 @@ describe('CredentialSessions', () => {
 
   it('drops a sign-in superseded while storage was pending', async () => {
     const { sessions, secure } = setup()
-    const first = sessions.add(account, expiring, () => true)
-    const second = sessions.add(account.withToken('newer'), renewed, () => true)
+    const first = sessions.add(account, expiring)
+    const second = sessions.add(account.withToken('newer'), renewed)
 
     assert.equal(await first, null)
     assert.equal((await second)?.token, 'new-access')

@@ -199,23 +199,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account to the store.
-   *
-   * `isSignInAttemptActive` lets the sign-in flow abandon the save if the user
-   * cancels or restarts sign-in while secure storage is pending.
    */
   public async addAccount(
     account: Account,
-    credential: IOAuthToken = { accessToken: account.token },
-    isSignInAttemptActive: () => boolean = () => true
+    credential: IOAuthToken = { accessToken: account.token }
   ): Promise<Account | null> {
     await this.loadingPromise
     let authenticatedAccount: Account | null
     try {
-      authenticatedAccount = await this.credentials.add(
-        account,
-        credential,
-        isSignInAttemptActive
-      )
+      authenticatedAccount = await this.credentials.add(account, credential)
     } catch (e) {
       log.error('Unable to save GitHub credentials in secure storage.')
 

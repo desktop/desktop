@@ -93,31 +93,23 @@ export class CredentialSessions {
    * Save and install a new credential, replacing any session for its endpoint.
    *
    * Returns the account carrying the credential's access token, or null if
-   * `isSignInAttemptActive` turned false (the user cancelled or restarted
-   * sign-in) or another sign-in superseded this one while storage was pending.
-   * Throws if secure storage fails.
+   * another sign-in or a sign-out superseded this one while storage was
+   * pending. Throws if secure storage fails.
    */
   public async add(
     account: Account,
-    credential: IOAuthToken,
-    isSignInAttemptActive: () => boolean
+    credential: IOAuthToken
   ): Promise<Account | null> {
     const { endpoint } = account
     const generation = this.retireSession(endpoint)
-    const isLatest = () =>
-      this.sessionGenerations.get(endpoint) === generation &&
-      isSignInAttemptActive()
-    const key = getKeyForAccount(account)
+    const isLatest = () => this.sessionGenerations.get(endpoint) === generation
     await this.write(endpoint, async () => {
       if (isLatest()) {
         await this.secureStore.setItem(
-          key,
+          getKeyForAccount(account),
           account.login,
           serializeAccountCredential(credential)
         )
-        if (!isSignInAttemptActive()) {
-          await this.secureStore.deleteItem(key, account.login)
-        }
       }
     })
     if (!isLatest()) {
