@@ -61,6 +61,16 @@ describe('StatsStore', () => {
     assert.equal(activityMonitor.subscriptionCount, 1)
   })
 
+  it('tracks GitHub Copilot app handoffs', async () => {
+    statsDb = await createStatsDb()
+    const store = new StatsStore(statsDb, new TestActivityMonitor(), fakePost)
+
+    await store.increment('openInCopilotAppCount')
+
+    const statsEntry = await statsDb.dailyMeasures.limit(1).first()
+    assert.strictEqual(statsEntry?.openInCopilotAppCount, 1)
+  })
+
   it('reports stats on demand in a test environment', async () => {
     statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()

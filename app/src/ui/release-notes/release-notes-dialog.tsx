@@ -121,7 +121,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         emoji={this.props.emoji}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
         underlineLinks={this.props.underlineLinks}
-        ariaLabel="Release notes generated from markdown"
+        title="Release notes generated from markdown"
       />
     )
   }

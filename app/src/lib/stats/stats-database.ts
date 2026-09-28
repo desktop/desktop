@@ -35,6 +35,9 @@ export interface IDailyMeasures {
   /** The number of times the user has opened a shell from the app. */
   readonly openShellCount: number
 
+  /** The number of times the user invoked the GitHub Copilot app handoff. */
+  readonly openInCopilotAppCount: number
+
   /** The number of partial commits. */
   readonly partialCommits: number
 

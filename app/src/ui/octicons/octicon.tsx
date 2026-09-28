@@ -94,7 +94,11 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         width={width}
       >
         {title !== undefined && (
-          <Tooltip target={this.svgRef} direction={direction}>
+          <Tooltip
+            target={this.svgRef}
+            direction={direction}
+            applyAriaDescribedBy={false}
+          >
             {title}
           </Tooltip>
         )}

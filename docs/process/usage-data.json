@@ -40,6 +40,7 @@
         "repositoriesCommittedInWithoutWriteAccess": 1,
         "commits": 1,
         "openShellCount": 1,
+        "openInCopilotAppCount": 1,
         "partialCommits": 1,
         "coAuthoredCommits": 1,
         "commitsUndoneWithChanges": 1,

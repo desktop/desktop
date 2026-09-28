@@ -99,6 +99,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
   partialCommits: 0,
   openShellCount: 0,
+  openInCopilotAppCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,

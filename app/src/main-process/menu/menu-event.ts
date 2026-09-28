@@ -37,6 +37,7 @@ export type MenuEvent =
   | 'install-windows-cli'
   | 'uninstall-windows-cli'
   | 'open-external-editor'
+  | 'open-in-copilot-app'
   | 'open-with-external-editor'
   | 'select-all'
   | 'show-stashed-changes'

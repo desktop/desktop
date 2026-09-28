@@ -150,7 +150,7 @@ export class CopilotConflictsResolutionSummary extends React.Component<ICopilotC
           repository={this.props.gitHubRepository ?? undefined}
           onMarkdownLinkClicked={this.props.onMarkdownLinkClicked}
           underlineLinks={true}
-          ariaLabel="Copilot conflict resolution summary"
+          title="Copilot conflict resolution summary"
           customCSS={summaryMarkdownCSS}
         />
       </div>
