@@ -1,4 +1,4 @@
-import { IOAuthToken } from './oauth-token'
+import { IOAuthToken, isToken } from './oauth-token'
 
 const prefix = 'github-desktop-oauth:'
 
@@ -41,11 +41,9 @@ export function deserializeAccountCredential(
       if (
         typeof credential === 'object' &&
         'accessToken' in credential &&
-        typeof credential.accessToken === 'string' &&
-        credential.accessToken.length > 0 &&
+        isToken(credential.accessToken) &&
         'refreshToken' in credential &&
-        typeof credential.refreshToken === 'string' &&
-        credential.refreshToken.length > 0
+        isToken(credential.refreshToken)
       ) {
         const expiresAt =
           'expiresAt' in credential ? credential.expiresAt : undefined

@@ -54,6 +54,8 @@ describe('OAuth credential persistence', () => {
       'github-desktop-oauth:secret',
       'github-desktop-oauth:{"version":2,"credential":"secret"}',
       'github-desktop-oauth:{"version":1,"credential":{"accessToken":"secret"}}',
+      'github-desktop-oauth:{"version":1,"credential":{"accessToken":" ","refreshToken":"secret"}}',
+      'github-desktop-oauth:{"version":1,"credential":{"accessToken":"secret","refreshToken":"a secret"}}',
     ]) {
       assert.throws(
         () => deserializeAccountCredential(value),
