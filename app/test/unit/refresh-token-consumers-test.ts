@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores/accounts-store'
+import { createCopilotTokenProvider } from '../../src/lib/stores/copilot-store'
 import { createCredentialHelperTrampolineHandler } from '../../src/lib/trampoline/trampoline-credential-helper'
 import { TrampolineCommandIdentifier } from '../../src/lib/trampoline/trampoline-command'
 import { getHasRejectedCredentialsForEndpoint } from '../../src/lib/trampoline/trampoline-environment'
@@ -128,6 +129,46 @@ describe('Refreshing Git credentials', () => {
     assert.equal(prompt.mock.calls[0].arguments[0], 'https://github.com/')
     assert.ok(
       getHasRejectedCredentialsForEndpoint(token, 'https://github.com/')
+    )
+  })
+})
+
+describe('Refreshing Copilot session credentials', () => {
+  it('does not change the legacy SDK authentication mode', async () => {
+    const store = new AccountsStore(
+      new InMemoryStore(),
+      new AsyncInMemoryStore()
+    )
+    await store.addAccount(account)
+    assert.equal(createCopilotTokenProvider(store, account), undefined)
+  })
+
+  it('satisfies the SDK one-hour refresh margin without exporting refresh tokens', async () => {
+    const { store, renewals } = await setup(Date.now() + 45 * 60 * 1000)
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+    const result = await provider({ host: 'github.com', reason: 'initial' })
+    assert.equal(result.kind, 'token')
+    assert.ok(result.kind === 'token')
+    assert.equal(result.accessToken, 'new-access')
+    assert.ok(result.expiresIn > 3600)
+    assert.equal('refreshToken' in result, false)
+    assert.equal(renewals(), 1)
+  })
+
+  it('refuses credentials for a different host and after sign-out', async () => {
+    const { store, renewals } = await setup()
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+    await assert.rejects(
+      async () => provider({ host: 'attacker.example', reason: 'initial' }),
+      /unexpected GitHub host/
+    )
+    assert.equal(renewals(), 0)
+    await store.removeAccount(account)
+    await assert.rejects(
+      async () => provider({ host: 'github.com', reason: 'initial' }),
+      /sign in again/
     )
   })
 })
