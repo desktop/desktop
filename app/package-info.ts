@@ -1,9 +1,14 @@
 import { bundleID, companyName, productName, version } from './package.json'
 
+function isDevelopmentBuild() {
+  return (
+    (process.env.RELEASE_CHANNEL ?? process.env.NODE_ENV ?? 'development') ===
+    'development'
+  )
+}
+
 export function getProductName() {
-  return process.env.NODE_ENV === 'development'
-    ? `${productName}-dev`
-    : productName
+  return isDevelopmentBuild() ? `${productName}-dev` : productName
 }
 
 export function getCompanyName() {
@@ -15,5 +20,5 @@ export function getVersion() {
 }
 
 export function getBundleID() {
-  return process.env.NODE_ENV === 'development' ? `${bundleID}Dev` : bundleID
+  return isDevelopmentBuild() ? `${bundleID}Dev` : bundleID
 }
