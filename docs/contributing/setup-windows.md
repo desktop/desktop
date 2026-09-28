@@ -289,6 +289,57 @@ rebuilding, since that directory is replaced. Installed copies are unaffected.
 Custom commands that invoke Node, npm or a compiler still require those tools
 on the destination computer.
 
+## Publishing Custom builds on GitHub
+
+The fork-specific workflow `.github/workflows/custom-release.yml` builds unsigned
+Windows x64 installers in `jim-jiang-github/desktop`. It uses the Node version in
+`.nvmrc`, Python 3.11, the Windows 2022 runner's native build tools, and the existing
+`package-custom.ps1` script. It does not use GitHub's official signing credentials
+or deployment infrastructure.
+
+Commit and push the workflow and all Custom source changes to your fork. Enable
+Actions in the fork if GitHub asks you to do so. To use **Actions > Build and
+release Custom (Windows) > Run workflow**, the workflow must also exist on the
+fork's default branch (`development`); select the branch containing your Custom
+changes when running it. Manual runs only build: download `custom-windows-x64`
+from the run's artifacts within 14 days.
+
+To create a release, push a tag matching **exactly** `custom-v` followed by the
+version in `app/package.json`, on the commit you want to ship. For example, for
+version `3.6.7-beta2`, from the Custom source branch:
+
+```powershell
+git tag custom-v3.6.7-beta2
+git push origin custom-v3.6.7-beta2
+```
+
+The tagged commit must contain the workflow, packaging script, and Custom
+features. Creating a local tag with `git tag` does not trigger the workflow;
+you must push the tag with `git push origin <tag>`. A tag push builds that exact
+source and, only after a successful build and checksum verification,
+**automatically publishes a public Release** containing the EXE, MSI, and
+`SHA256SUMS.txt`. Versions with a prerelease identifier (such as `-alpha1`,
+`-beta2`, or `-rc1`) are published as public prereleases; stable versions are
+published as normal releases. No draft or manual publish step is required.
+Review the source and version before pushing the tag. The job uses the
+automatically supplied `GITHUB_TOKEN` with `contents: write` only for the release
+job; no personal access token or custom secret is needed. Repository or
+organization policies must allow that permission.
+
+Before each subsequent release, increase `app/package.json`'s version (including
+the corresponding package metadata if required), commit it, and use a new
+matching tag. Do not reuse or move published tags: the workflow deliberately
+refuses to overwrite an existing Release. If a release upload fails partway
+through, inspect the release and its assets before retrying; do not automatically
+delete or replace a public release. The existing tag must continue pointing to
+the same source commit.
+
+Install either EXE or MSI, not both. These are unofficial, unsigned Custom builds;
+SmartScreen may show a warning. Verify the downloaded installer with
+`Get-FileHash -Algorithm SHA256` against `SHA256SUMS.txt`. This workflow does not
+enable automatic updates, change the Custom profile location, or package your
+local accounts, repository list, or custom-command settings.
+
 ## Troubleshooting
 
 If your local copy gets "stuck" try deleting the folder `C:\Users\[Your_User]\AppData\Roaming\GitHub Desktop-dev`.

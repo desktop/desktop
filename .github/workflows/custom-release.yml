@@ -1,0 +1,146 @@
+name: Build and release Custom (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'custom-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: custom-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'jim-jiang-github/desktop'
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      TARGET_ARCH: x64
+      npm_config_arch: x64
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Validate release tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $version = (Get-Content -LiteralPath 'app\package.json' -Raw | ConvertFrom-Json).version
+          if ($env:EVENT_NAME -eq 'push' -and $env:REF_NAME -cne "custom-v$version") {
+            throw "The release tag must be custom-v$version, matching app\package.json."
+          }
+
+      - name: Install dependencies
+        run: |
+          node .\vendor\yarn-1.21.1.js install --frozen-lockfile --non-interactive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- yarn.lock app/yarn.lock package.json app/package.json
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation changed a manifest or lockfile.' }
+
+      - name: Check types, lint and packaging tests
+        run: |
+          node .\node_modules\typescript\bin\tsc --noEmit --skipLibCheck
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\vendor\yarn-1.21.1.js lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node .\vendor\yarn-1.21.1.js test:script
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build unsigned Custom installers
+        run: |
+          & .\script\package-custom.ps1 -NodePath (Get-Command node.exe).Source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Stage release files and SHA256 checksums
+        run: |
+          New-Item -ItemType Directory -Path 'release-assets' | Out-Null
+          $names = @('GitHubDesktopCustomSetup-x64.exe', 'GitHubDesktopCustomSetup-x64.msi')
+          $checksums = foreach ($name in $names) {
+            $source = Join-Path '.custom-build\dist' $name
+            if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Missing installer: $source" }
+            if ((Get-Item -LiteralPath $source).Length -eq 0) { throw "Empty installer: $source" }
+            Copy-Item -LiteralPath $source -Destination 'release-assets'
+            $hash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $name"
+          }
+          $checksums | Set-Content -LiteralPath 'release-assets\SHA256SUMS.txt' -Encoding ascii
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: custom-windows-x64
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if:
+      github.event_name == 'push' && startsWith(github.ref,
+      'refs/tags/custom-v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: custom-windows-x64
+          path: release-assets
+
+      - name: Verify checksums
+        working-directory: release-assets
+        run: sha256sum --check SHA256SUMS.txt
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > release-notes.txt <<'EOF'
+          Community Custom build of GitHub Desktop for Windows x64.
+          This is not an official GitHub Desktop release.
+
+          Includes Custom commands, command import/export, yellow application icons,
+          and per-repository GitHub account selection.
+
+          Install either the EXE or MSI, not both. These installers are unsigned;
+          Windows may display an unknown-publisher or SmartScreen warning.
+          Verify the SHA256 checksum before installing.
+
+          Custom uses its own profile and does not replace official GitHub Desktop.
+          Existing Custom settings are retained. Updates are installed manually.
+          GitHub sign-in uses the public development OAuth client; this is not the
+          official production OAuth application.
+          EOF
+          version="${RELEASE_TAG#custom-v}"
+          version="${version%%+*}"
+          release_flags=()
+          if [[ "$version" == *-* ]]; then
+            release_flags+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" \
+            release-assets/GitHubDesktopCustomSetup-x64.exe \
+            release-assets/GitHubDesktopCustomSetup-x64.msi \
+            release-assets/SHA256SUMS.txt \
+            --verify-tag "${release_flags[@]}" \
+            --title "GitHub Desktop Custom $RELEASE_TAG" \
+            --notes-file release-notes.txt
