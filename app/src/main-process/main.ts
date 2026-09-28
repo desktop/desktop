@@ -59,7 +59,10 @@ import { CLIAction } from '../lib/cli-action'
 // to this app, while the author/committer variables ensure repository-local
 // config cannot accidentally switch commits back to the other account.
 if (__APP_NAME__ === 'GitHub Desktop-dev') {
-  process.env.GIT_CONFIG_GLOBAL = Path.join(app.getPath('userData'), 'gitconfig')
+  process.env.GIT_CONFIG_GLOBAL = Path.join(
+    app.getPath('userData'),
+    'gitconfig'
+  )
   process.env.GIT_AUTHOR_NAME = 'iwbinb'
   process.env.GIT_AUTHOR_EMAIL = 'iwbinb@gmail.com'
   process.env.GIT_COMMITTER_NAME = 'iwbinb'
