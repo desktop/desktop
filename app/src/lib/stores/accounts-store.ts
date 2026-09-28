@@ -1,11 +1,17 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
 import { Account, isDotComAccount } from '../../models/account'
-import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
+import {
+  fetchUser,
+  EmailVisibility,
+  getEnterpriseAPIURL,
+  deleteToken,
+} from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
+import { Disposable } from 'event-kit'
 
 // Ensure that GitHub.com accounts appear first followed by Enterprise
 // accounts, sorted by the order in which they were added.
@@ -87,6 +93,41 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     await this.loadingPromise
 
     return this.accounts.slice()
+  }
+
+  /** Notify once per account when invalid credentials sign it out. */
+  public onTokenInvalidated(callback: (account: Account) => void): Disposable {
+    return this.emitter.on('token-invalidated', callback)
+  }
+
+  /** Handle a rejected API token without leaving unhandled callback errors. */
+  public handleTokenInvalidated = (endpoint: string, token: string): void => {
+    void this.invalidateToken(endpoint, token).catch(error => {
+      log.error('Unable to invalidate rejected GitHub credentials', error)
+      this.emitError(error)
+    })
+  }
+
+  /** Sign out the account whose current token was rejected. */
+  public async invalidateToken(endpoint: string, token: string): Promise<void> {
+    await this.loadingPromise
+    const account = this.accounts.find(a => a.endpoint === endpoint)
+    if (account === undefined) {
+      return
+    }
+
+    // If we have a token for the account but it doesn't match the token that
+    // was invalidated that likely means that someone held onto an account for
+    // longer than they should have which is bad but what's even worse is if we
+    // invalidate an active account.
+    if (account.token !== '' && account.token !== token) {
+      log.error(`Token for ${endpoint} invalidated but token mismatch`)
+      return
+    }
+
+    await this.removeAccount(account)
+    this.emitter.emit('token-invalidated', account.withToken(''))
+    void deleteToken(account)
   }
 
   /**
