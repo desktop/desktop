@@ -71,4 +71,38 @@ describe('Refreshing Git credentials', () => {
       }
     })
   }
+
+  it('redacts secrets from development debug logs', async t => {
+    const { store } = await setup()
+    const wasDev = __DEV__
+    Object.assign(globalThis, { __DEV__: true })
+    t.after(() => {
+      Object.assign(globalThis, { __DEV__: wasDev })
+    })
+    const logged: string[] = []
+    t.mock.method(log, 'debug', (message: string) => logged.push(message))
+
+    const handler = createCredentialHelperTrampolineHandler(store)
+    await handler({
+      identifier: TrampolineCommandIdentifier.CredentialHelper,
+      trampolineToken: 'test',
+      parameters: ['erase'],
+      environmentVariables: new Map(),
+      stdin: [
+        'protocol=https',
+        'host=github.com',
+        'username=octocat',
+        'password=secret-password',
+        'credential=secret-credential',
+        'oauth_refresh_token=secret-refresh',
+        '',
+      ].join('\n'),
+    })
+
+    const output = logged.join('\n')
+    assert.ok(output.includes('host=github.com'))
+    assert.ok(output.includes('credential=[redacted]'))
+    assert.ok(output.includes('oauth_refresh_token=[redacted]'))
+    assert.ok(!output.includes('secret-'))
+  })
 })
