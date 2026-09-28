@@ -365,7 +365,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
     this.resolvingOAuthState = oauthState.state
-    const isCurrent = () =>
+    // False once the user cancels, restarts, or leaves this browser sign-in.
+    const isSignInAttemptActive = () =>
       this.state?.kind === SignInStep.Authentication &&
       this.state.oauthState === oauthState
     let unpublishedToken: string | undefined
@@ -375,22 +376,22 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         action.code
       )
       unpublishedToken = credential.accessToken
-      if (!isCurrent()) {
+      if (!isSignInAttemptActive()) {
         return
       }
       const account = await fetchUser(endpoint, credential.accessToken, true)
-      if (!isCurrent()) {
+      if (!isSignInAttemptActive()) {
         return
       }
       const stored = await this.accountStore.addAccount(
         account,
         credential,
-        isCurrent
+        isSignInAttemptActive
       )
       if (stored !== null) {
         unpublishedToken = undefined
       }
-      if (!isCurrent()) {
+      if (!isSignInAttemptActive()) {
         return
       }
       if (stored === null) {
