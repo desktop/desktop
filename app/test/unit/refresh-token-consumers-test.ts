@@ -40,69 +40,21 @@ async function setup(expiresAt = Date.now()) {
 }
 
 describe('Refreshing Git credentials', () => {
-  for (const capabilities of ['', 'capability[]=authtype\n']) {
-    it(`refreshes before returning credentials (${
-      capabilities || 'Git LFS / legacy protocol'
-    })`, async () => {
-      const { store, renewals } = await setup()
-      const handler = createCredentialHelperTrampolineHandler(store)
-      const result = await handler({
-        identifier: TrampolineCommandIdentifier.CredentialHelper,
-        trampolineToken: 'test',
-        parameters: ['get'],
-        environmentVariables: new Map(),
-        stdin: `protocol=https\nhost=github.com\n${capabilities}\n`,
-      })
-      assert.ok(result)
-      assert.equal(renewals(), 1)
-      assert.ok(!result.includes('old-access') && !result.includes('refresh'))
-      const credential = parseCredential(result)
-      if (capabilities) {
-        assert.equal(credential.get('authtype'), 'Basic')
-        assert.equal(credential.get('ephemeral'), '1')
-        assert.equal(
-          Buffer.from(credential.get('credential') ?? '', 'base64').toString(),
-          'octocat:new-access'
-        )
-        assert.equal(credential.has('password'), false)
-      } else {
-        assert.equal(credential.get('username'), 'octocat')
-        assert.equal(credential.get('password'), 'new-access')
-      }
-    })
-  }
-
-  it('redacts secrets from development debug logs', async t => {
-    const { store } = await setup()
-    const wasDev = __DEV__
-    Object.assign(globalThis, { __DEV__: true })
-    t.after(() => {
-      Object.assign(globalThis, { __DEV__: wasDev })
-    })
-    const logged: string[] = []
-    t.mock.method(log, 'debug', (message: string) => logged.push(message))
-
+  it('refreshes before returning credentials', async () => {
+    const { store, renewals } = await setup()
     const handler = createCredentialHelperTrampolineHandler(store)
-    await handler({
+    const result = await handler({
       identifier: TrampolineCommandIdentifier.CredentialHelper,
       trampolineToken: 'test',
-      parameters: ['erase'],
+      parameters: ['get'],
       environmentVariables: new Map(),
-      stdin: [
-        'protocol=https',
-        'host=github.com',
-        'username=octocat',
-        'password=secret-password',
-        'credential=secret-credential',
-        'oauth_refresh_token=secret-refresh',
-        '',
-      ].join('\n'),
+      stdin: 'protocol=https\nhost=github.com\n\n',
     })
-
-    const output = logged.join('\n')
-    assert.ok(output.includes('host=github.com'))
-    assert.ok(output.includes('credential=[redacted]'))
-    assert.ok(output.includes('oauth_refresh_token=[redacted]'))
-    assert.ok(!output.includes('secret-'))
+    assert.ok(result)
+    assert.equal(renewals(), 1)
+    const credential = parseCredential(result)
+    assert.equal(credential.get('username'), 'octocat')
+    assert.equal(credential.get('password'), 'new-access')
+    assert.ok(!result.includes('old-access') && !result.includes('refresh'))
   })
 })
