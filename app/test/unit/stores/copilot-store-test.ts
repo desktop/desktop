@@ -480,6 +480,45 @@ describe('CopilotStore quota snapshots', () => {
     )
     assert.strictEqual(snapshots?.has('missing'), false)
   })
+
+  it('requests quota with a renewed token for an expiring account', async () => {
+    const account = makeAccount({ token: 'old-access' })
+    const accountsStore = new AccountsStore(
+      new InMemoryStore(),
+      new AsyncInMemoryStore(),
+      async () => ({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+      })
+    )
+    const store = new CopilotStore(accountsStore)
+    const quotaTokens: Array<string | undefined> = []
+    const testableStore = store as unknown as ITestableQuotaCopilotStore
+    testableStore.createClient = async () =>
+      ({
+        start: async () => {},
+        stop: async () => {},
+        rpc: {
+          account: {
+            getQuota: async (request: { gitHubToken?: string }) => {
+              quotaTokens.push(request.gitHubToken)
+              return { quotaSnapshots: { chat: makeQuotaSnapshot() } }
+            },
+          },
+        },
+      } as unknown as CopilotClient)
+
+    await accountsStore.addAccount(account, {
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: Date.now(),
+    })
+
+    const snapshots = await store.getQuotaSnapshots(account)
+    assert.strictEqual(snapshots?.size, 1)
+    assert.deepStrictEqual(quotaTokens, ['new-access'])
+  })
 })
 
 describe('CopilotStore commit message generation cancellation', () => {
