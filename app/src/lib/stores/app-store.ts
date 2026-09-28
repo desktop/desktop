@@ -1016,7 +1016,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => this._addAccount(account))
+    this.signInStore.onDidAuthenticate(account =>
+      this.onDidAuthenticate(account)
+    )
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
@@ -8123,18 +8125,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async _addAccount(account: Account): Promise<void> {
-    log.info(
-      `[AppStore] adding account ${account.login} (${account.name}) to store`
-    )
-    const storedAccount = await this.accountsStore.addAccount(account)
-
+  private onDidAuthenticate(account: Account): void {
+    log.info(`[AppStore] signed in as ${account.login} (${account.name})`)
     // If we're in the welcome flow and a user signs in we want to trigger
     // a refresh of the repositories available for cloning straight away
     // in order to have the list of repositories ready for them when they
     // get to the blankslate.
-    if (this.showWelcomeFlow && storedAccount !== null) {
-      this.apiRepositoriesStore.loadRepositories(storedAccount)
+    if (this.showWelcomeFlow) {
+      this.apiRepositoriesStore.loadRepositories(account)
     }
   }
 
