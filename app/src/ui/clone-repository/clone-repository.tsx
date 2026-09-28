@@ -15,6 +15,7 @@ import {
   sanitizeCloneName,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
+import { supportsRepositoryAccounts } from '../../lib/repository-account'
 import { API, IAPIRepository, IAPIRepositoryCloneInfo } from '../../lib/api'
 import { Dialog, DialogError, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
@@ -410,7 +411,9 @@ export class CloneRepository extends React.Component<
     const selectedAccount =
       (tabState.selectedAccount
         ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
+            a =>
+              a.endpoint === tabState.selectedAccount?.endpoint &&
+              a.id === tabState.selectedAccount.id
           )
         : undefined) ?? tabAccounts.at(0)
 
@@ -744,7 +747,11 @@ export class CloneRepository extends React.Component<
       return { url }
     }
 
-    const account = await findAccountForRemoteURL(url, this.props.accounts)
+    const account =
+      supportsRepositoryAccounts() &&
+      this.props.selectedTab !== CloneRepositoryTab.Generic
+        ? this.getAccountForTab(this.props.selectedTab)
+        : await findAccountForRemoteURL(url, this.props.accounts)
     if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const { owner, name } = lastParsedIdentifier
@@ -801,6 +808,20 @@ export class CloneRepository extends React.Component<
 
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
+      if (
+        supportsRepositoryAccounts() &&
+        this.props.selectedTab !== CloneRepositoryTab.Generic
+      ) {
+        const account = this.getAccountForTab(this.props.selectedTab)
+        if (account === null) {
+          throw new Error('Sign in to the selected account before cloning.')
+        }
+        await this.props.dispatcher.setRepositoryAccount(
+          null,
+          url.trim(),
+          account
+        )
+      }
       this.cloneImpl(url.trim(), path, defaultBranch)
     } catch (e) {
       log.error(`CloneRepository: clone failed to complete to ${path}`, e)

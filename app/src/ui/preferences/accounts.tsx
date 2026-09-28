@@ -13,6 +13,7 @@ import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
 import { getHTMLURL } from '../../lib/api'
+import { supportsRepositoryAccounts } from '../../lib/repository-account'
 
 interface IAccountsProps {
   readonly accounts: ReadonlyArray<Account>
@@ -35,9 +36,24 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
-          : this.renderSignIn(SignInType.DotCom)}
+        {supportsRepositoryAccounts() && dotComAccount ? (
+          <>
+            {accounts
+              .filter(isDotComAccount)
+              .map(account => this.renderAccount(account, SignInType.DotCom))}
+            <Button onClick={this.onDotComSignIn}>
+              Add GitHub.com account
+            </Button>
+            <p>
+              Select a different account in your browser when signing in. Choose
+              which account to use in each repository's settings.
+            </p>
+          </>
+        ) : dotComAccount ? (
+          this.renderAccount(dotComAccount, SignInType.DotCom)
+        ) : (
+          this.renderSignIn(SignInType.DotCom)
+        )}
 
         <h2>GitHub Enterprise</h2>
         {this.renderMultipleEnterpriseAccounts()}
@@ -78,7 +94,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       type === SignInType.DotCom ? DialogPreferredFocusClassName : undefined
 
     return (
-      <Row className="account-info">
+      <Row className="account-info" key={`${account.endpoint}:${account.id}`}>
         <div className="user-info-container">
           <Avatar accounts={this.props.accounts} user={avatarUser} />
           <div className="user-info">

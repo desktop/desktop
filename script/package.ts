@@ -16,10 +16,12 @@ import {
   getBundleSizes,
   getDistRoot,
   getDistArchitecture,
-  getIconDirectory,
+  getWindowsIconPath,
+  getOutPath,
+  getChannel,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
-import { existsSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { getVersion } from '../app/package-info'
 import { computeBundleHashSync } from '../app/src/lib/compute-bundle-hash'
 import { rename } from 'fs/promises'
@@ -55,7 +57,7 @@ console.log('Writing bundle hash…')
 writeFileSync(
   path.join(getDistRoot(), 'bundle-hash.json'),
   JSON.stringify({
-    bundleHash: computeBundleHashSync(path.join(__dirname, '..', 'out')),
+    bundleHash: computeBundleHashSync(getOutPath()),
   })
 )
 
@@ -70,7 +72,7 @@ function packageOSX() {
 }
 
 function packageWindows() {
-  const iconSource = join(getIconDirectory(), 'icon-logo.ico')
+  const iconSource = getWindowsIconPath()
 
   if (!existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
@@ -104,6 +106,23 @@ function packageWindows() {
     title: productName,
     setupExe: getWindowsStandaloneName(),
     setupMsi: getWindowsInstallerName(),
+  }
+
+  if (getChannel() === 'custom') {
+    // Custom icons are local. Omit the remote icon instead of downloading the
+    // official purple logo. NuGet rejects an empty iconUrl element.
+    const template = readFileSync(
+      require.resolve('electron-winstaller/template.nuspectemplate'),
+      'utf8'
+    )
+    const customTemplate = template.replace(/<iconUrl>.*?<\/iconUrl>/, '')
+    if (customTemplate === template) {
+      throw new Error(
+        'Could not remove the remote icon from the installer template'
+      )
+    }
+    options.nuspecTemplate = join(outputDir, 'custom-installer.nuspectemplate')
+    writeFileSync(options.nuspecTemplate, customTemplate)
   }
 
   if (shouldMakeDelta()) {

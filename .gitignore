@@ -1,5 +1,6 @@
 out/
 dist/
+.custom-build/
 node_modules/
 coverage/
 npm-debug.log

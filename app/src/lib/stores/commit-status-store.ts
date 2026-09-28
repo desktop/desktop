@@ -5,7 +5,12 @@ import { Disposable } from 'event-kit'
 import xor from 'lodash/xor'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
+import { API, IAPICheckSuite } from '../api'
+import {
+  getAccountForGitHubRepository,
+  getAccountForRepositoryDetails,
+  supportsRepositoryAccounts,
+} from '../repository-account'
 import {
   apiCheckRunToRefCheck,
   apiStatusToRefCheck,
@@ -130,6 +135,7 @@ export class CommitStatusStore {
 
   private backgroundRefreshHandle: number | null = null
   private refreshQueued = false
+  private accountGeneration = 0
 
   /**
    * A map keyed on the value of `getCacheKey` containing one object
@@ -170,6 +176,19 @@ export class CommitStatusStore {
 
   private readonly onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
     this.accounts = accounts
+    if (supportsRepositoryAccounts()) {
+      this.invalidateAccounts()
+    }
+  }
+
+  /** Drop results from the previous identity, including in-flight requests. */
+  public invalidateAccounts() {
+    this.accountGeneration++
+    this.cache.clear()
+    for (const subscription of this.subscriptions.values()) {
+      subscription.callbacks.forEach(callback => callback(null))
+    }
+    this.queueRefresh()
   }
 
   /**
@@ -265,6 +284,7 @@ export class CommitStatusStore {
   }
 
   private async refreshSubscription(key: string) {
+    const generation = this.accountGeneration
     // Make sure it's still a valid subscription that
     // someone might care about before fetching
     const subscription = this.subscriptions.get(key)
@@ -274,9 +294,14 @@ export class CommitStatusStore {
     }
 
     const { endpoint, owner, name, ref } = subscription
-    const account = this.accounts.find(a => a.endpoint === endpoint)
+    const account = getAccountForRepositoryDetails(
+      this.accounts,
+      endpoint,
+      owner,
+      name
+    )
 
-    if (account === undefined) {
+    if (account === null) {
       return
     }
 
@@ -286,6 +311,10 @@ export class CommitStatusStore {
       api.fetchCombinedRefStatus(owner, name, ref),
       api.fetchRefCheckRuns(owner, name, ref),
     ])
+    if (generation !== this.accountGeneration) {
+      setImmediate(() => this.queueRefresh())
+      return
+    }
 
     const checks = new Array<IRefCheck>()
 
@@ -324,6 +353,10 @@ export class CommitStatusStore {
     }
 
     const check = createCombinedCheckFromChecks(checksWithActions ?? checks)
+    if (generation !== this.accountGeneration) {
+      setImmediate(() => this.queueRefresh())
+      return
+    }
     this.cache.set(key, { check, fetchedAt: new Date() })
     subscription.callbacks.forEach(cb => cb(check))
   }
@@ -497,8 +530,13 @@ export class CommitStatusStore {
     }
 
     const { endpoint, owner, name } = subscription
-    const account = this.accounts.find(a => a.endpoint === endpoint)
-    if (account === undefined) {
+    const account = getAccountForRepositoryDetails(
+      this.accounts,
+      endpoint,
+      owner,
+      name
+    )
+    if (account === null) {
       return checkRuns
     }
 
@@ -524,9 +562,14 @@ export class CommitStatusStore {
     }
 
     const { endpoint, owner, name } = subscription
-    const account = this.accounts.find(a => a.endpoint === endpoint)
+    const account = getAccountForRepositoryDetails(
+      this.accounts,
+      endpoint,
+      owner,
+      name
+    )
 
-    if (account === undefined) {
+    if (account === null) {
       return checkRuns
     }
 
@@ -540,7 +583,7 @@ export class CommitStatusStore {
     checkSuiteId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForGitHubRepository(this.accounts, repository)
     if (account === null) {
       return false
     }
@@ -554,7 +597,7 @@ export class CommitStatusStore {
     jobId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForGitHubRepository(this.accounts, repository)
     if (account === null) {
       return false
     }
@@ -568,7 +611,7 @@ export class CommitStatusStore {
     workflowRunId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForGitHubRepository(this.accounts, repository)
     if (account === null) {
       return false
     }
@@ -582,7 +625,7 @@ export class CommitStatusStore {
     checkSuiteId: number
   ): Promise<IAPICheckSuite | null> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForGitHubRepository(this.accounts, repository)
     if (account === null) {
       return null
     }

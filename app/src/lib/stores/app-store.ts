@@ -1,5 +1,16 @@
 import * as Path from 'path'
-import { writeFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
+import {
+  CustomCommandScope,
+  ICustomCommand,
+  getCustomCommands,
+  getCustomCommandDuration,
+  saveCustomCommands,
+  saveCustomCommandDuration,
+  startCustomCommand,
+  serializeCustomCommands,
+  importCustomCommandsFromJSON,
+} from '../custom-command'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -134,12 +145,12 @@ import {
   quitApp,
   sendCancelQuittingSync,
   showOpenDialog,
+  showSaveDialog,
 } from '../../ui/main-process-proxy'
 import {
   API,
   getAccountForEndpoint,
   IAPIOrganization,
-  getEndpointForRepository,
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
@@ -187,6 +198,13 @@ import {
   getAccountForCopilotConflictResolution,
   getAccountForRepository,
 } from '../get-account-for-repository'
+import {
+  getAccountForGitHubRepository,
+  getAccountForRemote,
+  getRepositoryAccountBindings,
+  setRepositoryAccountBinding,
+  supportsRepositoryAccounts,
+} from '../repository-account'
 import {
   abortMerge,
   addRemote,
@@ -902,7 +920,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onTokenInvalidated = (endpoint: string, token: string) => {
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    const account = supportsRepositoryAccounts()
+      ? this.accounts.find(a => a.endpoint === endpoint && a.token === token) ??
+        null
+      : getAccountForEndpoint(this.accounts, endpoint)
 
     if (account === null) {
       return
@@ -1053,11 +1074,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
       this.updateCopilotQuotaSnapshotsForCurrentAccount()
-      const endpointTokens = accounts.map<EndpointToken>(
-        ({ endpoint, token }) => ({ endpoint, token })
-      )
-
-      updateAccounts(endpointTokens)
+      this.updateAuthenticatedImageAccounts()
 
       this.refreshSelectedRepositoryAfterAccountChange()
 
@@ -1510,7 +1527,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const branchName = findRemoteBranchName(tip, currentRemote, gitHubRepo)
 
     if (branchName !== null) {
-      const account = getAccountForEndpoint(this.accounts, gitHubRepo.endpoint)
+      const account = getAccountForGitHubRepository(this.accounts, gitHubRepo)
 
       if (account === null) {
         return
@@ -2157,6 +2174,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.selectedRepository = repository
+    this.updateAuthenticatedImageAccounts()
 
     this.emitUpdate()
     this.stopBackgroundFetching()
@@ -2303,7 +2321,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _refreshIssues(repository: GitHubRepository) {
-    const user = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const user = getAccountForGitHubRepository(this.accounts, repository)
     if (!user) {
       return
     }
@@ -2324,7 +2342,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private refreshMentionables(repository: GitHubRepository) {
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForGitHubRepository(this.accounts, repository)
     if (!account) {
       return
     }
@@ -2353,8 +2371,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async fetchPullRequest(repoUrl: string, pr: string) {
-    const endpoint = getEndpointForRepository(repoUrl)
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    const account = getAccountForRemote(this.accounts, repoUrl)
 
     if (account) {
       const api = API.fromAccount(account)
@@ -4914,6 +4931,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
+    if (supportsRepositoryAccounts()) {
+      const current = (await this.matchGitHubRepository(repository))?.account
+      if (
+        current?.id !== account.id ||
+        current.endpoint !== account.endpoint ||
+        current.token !== account.token
+      ) {
+        return repository
+      }
+    }
+
     if (apiRepo === null) {
       // If the request fails, we want to preserve the existing GitHub
       // repository info. But if we didn't have a GitHub repository already or
@@ -4954,7 +4982,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.repositoryWithRefreshedGitHubRepository(repository)
+    if (supportsRepositoryAccounts()) {
+      this.stopPullRequestUpdater()
+      this.clearBranchProtectionState(repository)
+    }
+    const refreshed = await this.repositoryWithRefreshedGitHubRepository(
+      repository
+    )
+    if (
+      supportsRepositoryAccounts() &&
+      this.selectedRepository?.id === repository.id
+    ) {
+      this.startPullRequestUpdater(refreshed)
+    }
   }
 
   private async updateBranchProtectionsFromAPI(repository: Repository) {
@@ -4964,10 +5004,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { owner, name } = repository.gitHubRepository
 
-    const account = getAccountForEndpoint(
-      this.accounts,
-      repository.gitHubRepository.endpoint
-    )
+    const account = getAccountForRepository(this.accounts, repository)
 
     if (account === null) {
       return
@@ -7637,6 +7674,152 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.setRemoteURL(name, url)
   }
 
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _getCustomCommands(
+    repository: Repository,
+    scope: CustomCommandScope
+  ): ReadonlyArray<ICustomCommand> | null {
+    try {
+      return getCustomCommands(localStorage, repository.path, scope)
+    } catch (error) {
+      this.emitError(error)
+      return null
+    }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _showCustomCommand(
+    repository: Repository,
+    scope: CustomCommandScope
+  ): Promise<void> {
+    try {
+      await this._showPopup({
+        type: PopupType.CustomCommand,
+        repository,
+        scope,
+        commands: getCustomCommands(localStorage, repository.path, scope),
+      })
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _saveCustomCommands(
+    repository: Repository,
+    commands: ReadonlyArray<ICustomCommand>,
+    scope: CustomCommandScope
+  ): Promise<boolean> {
+    try {
+      saveCustomCommands(localStorage, repository.path, commands, scope)
+      return true
+    } catch (error) {
+      this.emitError(error)
+      return false
+    }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _importCustomCommands(
+    existing: ReadonlyArray<ICustomCommand>
+  ): Promise<ReadonlyArray<ICustomCommand> | null> {
+    const path = await showOpenDialog({
+      title: 'Import custom commands',
+      filters: [{ name: 'Custom commands (JSON)', extensions: ['json'] }],
+      properties: ['openFile'],
+    })
+    return path === null
+      ? null
+      : importCustomCommandsFromJSON(await readFile(path, 'utf8'), existing)
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _exportCustomCommands(
+    commands: ReadonlyArray<ICustomCommand>
+  ): Promise<boolean> {
+    const contents = serializeCustomCommands(commands)
+    const path = await showSaveDialog({
+      title: 'Export custom commands',
+      defaultPath: 'custom-commands.json',
+      filters: [{ name: 'Custom commands (JSON)', extensions: ['json'] }],
+      properties: ['createDirectory', 'showOverwriteConfirmation'],
+    })
+    if (path === null) {
+      return false
+    }
+    await writeFile(path, contents, 'utf8')
+    return true
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _runCustomCommand(
+    repository: Repository,
+    id: string,
+    scope: CustomCommandScope
+  ): Promise<void> {
+    try {
+      const command = getCustomCommands(
+        localStorage,
+        repository.path,
+        scope
+      ).find(c => c.id === id)
+      if (command === undefined) {
+        throw new Error(
+          'This custom command no longer exists. Open Configure commands to update the list.'
+        )
+      }
+      await this._showPopup({
+        type: PopupType.RunCustomCommand,
+        repository,
+        command,
+        expectedDurationMs: getCustomCommandDuration(
+          localStorage,
+          repository.path,
+          command
+        ),
+      })
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _executeCustomCommand(
+    repository: Repository,
+    command: ICustomCommand,
+    onOutput: (chunk: Buffer) => void
+  ) {
+    const startedAt = performance.now()
+    const execution = startCustomCommand(
+      repository.path,
+      command.command,
+      onOutput
+    )
+    return {
+      ...execution,
+      result: execution.result.then(result => {
+        if (result.kind === 'exited' && result.exitCode === 0) {
+          try {
+            saveCustomCommandDuration(
+              localStorage,
+              repository.path,
+              command,
+              Math.max(1, performance.now() - startedAt)
+            )
+          } catch (error) {
+            this.emitError(
+              new Error(
+                'The command succeeded, but its duration could not be saved for future progress estimates.',
+                { cause: error }
+              )
+            )
+          }
+        }
+        return result
+      }),
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
     this.statsStore.increment('openShellCount')
@@ -8176,6 +8359,79 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       workflowPreferences
     )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryAccount(
+    repository: Repository | null,
+    remoteURL: string,
+    account: Account | null
+  ): Promise<void> {
+    const state =
+      repository === null ? null : this.repositoryStateCache.get(repository)
+    if (state !== null && state.pushPullFetchProgress !== null) {
+      throw new Error(
+        'Wait for the current Git operation to finish before changing accounts.'
+      )
+    }
+    const currentAccount =
+      account === null
+        ? null
+        : this.accounts.find(
+            a => a.endpoint === account.endpoint && a.id === account.id
+          )
+    if (currentAccount === undefined) {
+      throw new Error('The selected account is no longer signed in.')
+    }
+    setRepositoryAccountBinding(remoteURL, currentAccount)
+    this.updateAuthenticatedImageAccounts()
+    if (repository === null || state === null) {
+      this.emitUpdate()
+      return
+    }
+    this.clearBranchProtectionState(repository)
+    this.stopPullRequestUpdater()
+    this.emitUpdate()
+    // Changing the remote is saved separately by Repository settings.
+    if (state.remote?.url.trim() === remoteURL) {
+      const refreshed = await this.repositoryWithRefreshedGitHubRepository(
+        repository
+      )
+      await this._refreshRepository(refreshed)
+      if (this.selectedRepository?.id === repository.id) {
+        this.startPullRequestUpdater(refreshed)
+      }
+    }
+  }
+
+  private updateAuthenticatedImageAccounts() {
+    const tokens = this.accounts.map<EndpointToken>(({ endpoint, token }) => ({
+      endpoint,
+      token,
+    }))
+    if (supportsRepositoryAccounts()) {
+      if (
+        this.selectedRepository instanceof Repository &&
+        this.selectedRepository.gitHubRepository !== null
+      ) {
+        const account = getAccountForRepository(
+          this.accounts,
+          this.selectedRepository
+        )
+        tokens.unshift({
+          endpoint: this.selectedRepository.gitHubRepository.endpoint,
+          token: account?.token ?? '',
+        })
+      }
+      for (const { remoteURL, binding } of getRepositoryAccountBindings()) {
+        tokens.push({
+          endpoint: binding.endpoint,
+          token: getAccountForRemote(this.accounts, remoteURL)?.token ?? '',
+          repositoryURL: remoteURL,
+        })
+      }
+    }
+    updateAccounts(tokens)
   }
 
   /**
@@ -10807,7 +11063,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { endpoint, name, owner } = repository.gitHubRepository
 
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    const account = getAccountForRepository(this.accounts, repository)
 
     if (account === null) {
       log.error(

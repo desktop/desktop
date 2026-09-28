@@ -31,6 +31,12 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import {
+  getRepositoryAccountBinding,
+  IRepositoryAccountBinding,
+  supportsRepositoryAccounts,
+} from '../../lib/repository-account'
+import { RepositoryAccount } from './repository-account'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -38,6 +44,7 @@ interface IRepositorySettingsProps {
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly onDismissed: () => void
 }
 
@@ -66,6 +73,8 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
   readonly isLoadingGitConfig: boolean
+  readonly accountBinding: IRepositoryAccountBinding | null
+  readonly accountChanged: boolean
 }
 
 export class RepositorySettings extends React.Component<
@@ -93,6 +102,11 @@ export class RepositorySettings extends React.Component<
       initialCommitterName: null,
       initialCommitterEmail: null,
       isLoadingGitConfig: true,
+      accountBinding:
+        props.remote === null
+          ? null
+          : getRepositoryAccountBinding(props.remote.url),
+      accountChanged: false,
     }
   }
 
@@ -225,7 +239,16 @@ export class RepositorySettings extends React.Component<
             <Remote
               remote={remote}
               onRemoteUrlChanged={this.onRemoteUrlChanged}
-            />
+            >
+              {supportsRepositoryAccounts() && (
+                <RepositoryAccount
+                  accounts={this.props.accounts}
+                  remoteURL={remote.url}
+                  binding={this.state.accountBinding}
+                  onChange={this.onAccountChanged}
+                />
+              )}
+            </Remote>
           )
         } else {
           return <NoRemote onPublish={this.onPublish} />
@@ -292,6 +315,35 @@ export class RepositorySettings extends React.Component<
   private onSubmit = async () => {
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
+
+    if (this.state.accountChanged && this.state.remote !== null) {
+      try {
+        const binding = this.state.accountBinding
+        const account =
+          binding === null
+            ? null
+            : this.props.accounts.find(
+                account =>
+                  account.endpoint === binding.endpoint &&
+                  account.id === binding.id
+              )
+        if (account === undefined) {
+          throw new Error('The selected account is no longer signed in.')
+        }
+        await this.props.dispatcher.setRepositoryAccount(
+          this.props.repository,
+          this.state.remote.url.trim(),
+          account
+        )
+      } catch (e) {
+        log.error('RepositorySettings: unable to save repository account', e)
+        this.setState({
+          disabled: false,
+          errors: [`Failed saving the repository account: ${e}`],
+        })
+        return
+      }
+    }
 
     if (this.state.remote && this.props.remote) {
       const trimmedUrl = this.state.remote.url.trim()
@@ -396,7 +448,25 @@ export class RepositorySettings extends React.Component<
     }
 
     const newRemote = { ...remote, url }
-    this.setState({ remote: newRemote })
+    this.setState({
+      remote: newRemote,
+      accountBinding: getRepositoryAccountBinding(url.trim()),
+      accountChanged: false,
+    })
+  }
+
+  private onAccountChanged = (account: Account | null) => {
+    this.setState({
+      accountBinding:
+        account === null
+          ? null
+          : {
+              endpoint: account.endpoint,
+              id: account.id,
+              login: account.login,
+            },
+      accountChanged: true,
+    })
   }
 
   private onIgnoreTextChanged = (text: string) => {

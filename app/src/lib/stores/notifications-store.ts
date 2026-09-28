@@ -12,6 +12,7 @@ import {
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
 import { API, APICheckConclusion, IAPIComment } from '../api'
+import { getAccountForGitHubRepository } from '../repository-account'
 import {
   IRefCheck,
   apiCheckRunToRefCheck,
@@ -494,10 +495,8 @@ export class NotificationsStore {
   }
 
   private async getAccountForRepository(repository: GitHubRepository) {
-    const { endpoint } = repository
-
     const accounts = await this.accountsStore.getAll()
-    return accounts.find(a => a.endpoint === endpoint) ?? null
+    return getAccountForGitHubRepository(accounts, repository)
   }
 
   private async getAPIForRepository(repository: GitHubRepository) {

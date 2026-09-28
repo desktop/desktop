@@ -1,6 +1,7 @@
 import { Repository } from '../../../models/repository'
 import { GitHubRepository } from '../../../models/github-repository'
-import { API, getAccountForEndpoint } from '../../api'
+import { API } from '../../api'
+import { getAccountForGitHubRepository } from '../../repository-account'
 import { fatalError } from '../../fatal-error'
 import { AccountsStore } from '../accounts-store'
 
@@ -119,9 +120,9 @@ export class BackgroundFetcher {
   private async getFetchInterval(
     repository: GitHubRepository
   ): Promise<number> {
-    const account = getAccountForEndpoint(
+    const account = getAccountForGitHubRepository(
       await this.accountsStore.getAll(),
-      repository.endpoint
+      repository
     )
 
     let interval = DefaultFetchInterval

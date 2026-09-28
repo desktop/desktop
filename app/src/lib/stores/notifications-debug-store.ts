@@ -13,6 +13,7 @@ import { AccountsStore } from './accounts-store'
 import { IDesktopChecksFailedAliveEvent } from './alive-store'
 import { NotificationsStore } from './notifications-store'
 import { PullRequestCoordinator } from './pull-request-coordinator'
+import { getAccountForGitHubRepository } from '../repository-account'
 
 /**
  * This class allows the TestNotifications dialog to fetch real data to simulate
@@ -32,10 +33,8 @@ export class NotificationsDebugStore {
   ) {}
 
   private async getAccountForRepository(repository: GitHubRepository) {
-    const { endpoint } = repository
-
     const accounts = await this.accountsStore.getAll()
-    return accounts.find(a => a.endpoint === endpoint) ?? null
+    return getAccountForGitHubRepository(accounts, repository)
   }
 
   private async getAPIForRepository(repository: GitHubRepository) {

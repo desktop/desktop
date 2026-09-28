@@ -1,0 +1,39 @@
+#custom-command-run {
+  max-width: 800px;
+
+  .command-run-status {
+    font-weight: var(--font-weight-semibold);
+
+    &[data-failed='true'] {
+      color: var(--error-color);
+    }
+  }
+
+  .command-working-directory {
+    overflow-wrap: anywhere;
+    color: var(--text-secondary-color);
+  }
+
+  progress {
+    width: 100%;
+    margin-bottom: var(--spacing);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+
+    &::-webkit-progress-value {
+      background-color: var(--button-background);
+    }
+  }
+
+  .command-output {
+    padding: var(--spacing);
+    background: #000;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+  }
+
+  .command-run-hint {
+    margin-top: var(--spacing);
+    color: var(--text-secondary-color);
+  }
+}

@@ -152,7 +152,9 @@ export class AliveStore {
   private sessionForAccount(
     account: Account
   ): IAliveEndpointSession | undefined {
-    return this.sessionPerEndpoint.get(account.endpoint)
+    return this.sessionPerEndpoint.get(
+      JSON.stringify([account.endpoint, account.id])
+    )
   }
 
   private async createSessionForAccount(
@@ -189,7 +191,10 @@ export class AliveStore {
       webSocketUrl,
     }
 
-    this.sessionPerEndpoint.set(account.endpoint, newSession)
+    this.sessionPerEndpoint.set(
+      JSON.stringify([account.endpoint, account.id]),
+      newSession
+    )
 
     return newSession
   }
@@ -212,7 +217,9 @@ export class AliveStore {
       s => !accountEquals(s.account, account)
     )
 
-    this.sessionPerEndpoint.delete(account.endpoint)
+    this.sessionPerEndpoint.delete(
+      JSON.stringify([account.endpoint, account.id])
+    )
 
     endpointSession.session.offline()
 

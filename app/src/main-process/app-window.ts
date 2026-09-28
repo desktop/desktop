@@ -442,6 +442,11 @@ export class AppWindow {
   }
 
   public async checkForUpdates(url: string) {
+    if (__RELEASE_CHANNEL__ === 'custom') {
+      return new Error(
+        'Automatic updates are disabled for GitHub Desktop Custom. Build and install a new local installer to update.'
+      )
+    }
     try {
       autoUpdater.setFeedURL({ url: await trySetUpdaterGuid(url) })
       autoUpdater.checkForUpdates()

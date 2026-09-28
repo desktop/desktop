@@ -21,6 +21,7 @@ import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
+import { supportsRepositoryAccounts } from '../repository-account'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -236,7 +237,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const existingAccount = this.accounts.find(isDotComAccount)
 
-    if (existingAccount) {
+    if (existingAccount && !supportsRepositoryAccounts()) {
       this.setState({
         kind: SignInStep.ExistingAccountWarning,
         endpoint,
@@ -443,7 +444,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
 
-    if (existingAccount) {
+    if (existingAccount && !supportsRepositoryAccounts()) {
       this.setState({
         kind: SignInStep.ExistingAccountWarning,
         endpoint,

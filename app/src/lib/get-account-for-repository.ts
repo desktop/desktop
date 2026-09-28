@@ -1,6 +1,20 @@
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
-import { getAccountForEndpoint } from './api'
+import {
+  getAccountForGitHubRepository,
+  getRepositoryAccountBinding,
+} from './repository-account'
+import { getHTMLURL } from './api'
+
+function hasRepositoryAccountBinding(repository: Repository) {
+  const gh = repository.gitHubRepository
+  return (
+    gh !== null &&
+    getRepositoryAccountBinding(
+      `${getHTMLURL(gh.endpoint)}/${gh.owner.login}/${gh.name}`
+    ) !== null
+  )
+}
 import {
   enableCommitMessageGeneration,
   enableCopilotConflictResolution,
@@ -17,7 +31,7 @@ export function getAccountForRepository(
     return null
   }
 
-  return getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+  return getAccountForGitHubRepository(accounts, gitHubRepository)
 }
 
 /**
@@ -36,7 +50,9 @@ export function getAccountForCommitMessageGeneration(
     return repositoryAccount
   }
 
-  return accounts.find(enableCommitMessageGeneration)
+  return hasRepositoryAccountBinding(repository)
+    ? undefined
+    : accounts.find(enableCommitMessageGeneration)
 }
 
 /**
@@ -75,5 +91,7 @@ export function getAccountForCopilotConflictResolution(
     return repositoryAccount
   }
 
-  return accounts.find(isAccountEligibleForCopilotConflictResolution)
+  return hasRepositoryAccountBinding(repository)
+    ? undefined
+    : accounts.find(isAccountEligibleForCopilotConflictResolution)
 }

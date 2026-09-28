@@ -28,8 +28,11 @@ import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-d
 import { TerminalOutput, TerminalOutputListener } from '../lib/git'
 import type { IBYOKModel, IBYOKProvider } from '../lib/copilot/byok'
 import { WorktreeEntry } from './worktree'
+import type { CustomCommandScope, ICustomCommand } from '../lib/custom-command'
 
 export enum PopupType {
+  CustomCommand = 'CustomCommand',
+  RunCustomCommand = 'RunCustomCommand',
   RenameBranch = 'RenameBranch',
   DeleteBranch = 'DeleteBranch',
   DeleteRemoteBranch = 'DeleteRemoteBranch',
@@ -133,6 +136,18 @@ interface IBasePopup {
 }
 
 export type PopupDetail =
+  | {
+      type: PopupType.RunCustomCommand
+      repository: Repository
+      command: ICustomCommand
+      expectedDurationMs: number | null
+    }
+  | {
+      type: PopupType.CustomCommand
+      repository: Repository
+      scope: CustomCommandScope
+      commands: ReadonlyArray<ICustomCommand>
+    }
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
       type: PopupType.DeleteBranch

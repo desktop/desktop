@@ -7,6 +7,10 @@ import { getHTMLURL } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
+import {
+  getAccountForRemote,
+  supportsRepositoryAccounts,
+} from './repository-account'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -30,6 +34,13 @@ export function matchGitHubRepository(
   accounts: ReadonlyArray<Account>,
   remote: string
 ): IMatchedGitHubRepository | null {
+  if (supportsRepositoryAccounts()) {
+    const account = getAccountForRemote(accounts, remote)
+    const parsed = parseRemote(remote)
+    return account === null || parsed === null
+      ? null
+      : { name: parsed.name, owner: parsed.owner, account }
+  }
   for (const account of accounts) {
     const htmlURL = getHTMLURL(account.endpoint)
     const { hostname } = URL.parse(htmlURL)

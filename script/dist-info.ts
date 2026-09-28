@@ -10,7 +10,19 @@ const version = getVersion()
 const projectRoot = Path.join(__dirname, '..')
 
 export function getDistRoot() {
-  return Path.join(projectRoot, 'dist')
+  return Path.join(getBuildRoot(), 'dist')
+}
+
+/** Keep local Custom builds separate from a running development build. */
+function getBuildRoot() {
+  return getChannel() === 'custom'
+    ? Path.join(projectRoot, '.custom-build')
+    : projectRoot
+}
+
+/** Directory for compiled application resources. */
+export function getOutPath() {
+  return Path.join(getBuildRoot(), 'out')
 }
 
 export function getDistPath() {
@@ -95,11 +107,11 @@ export function getWindowsDeltaNugetPackagePath() {
 }
 
 export function getWindowsIdentifierName() {
-  return 'GitHubDesktop'
+  return getChannel() === 'custom' ? 'GitHubDesktopCustom' : 'GitHubDesktop'
 }
 
 export function getBundleSizes() {
-  const outPath = Path.join(projectRoot, 'out')
+  const outPath = getOutPath()
   return {
     // eslint-disable-next-line no-sync
     rendererBundleSize: Fs.statSync(Path.join(outPath, 'renderer.js')).size,
@@ -156,6 +168,22 @@ export function shouldMakeDelta() {
 export function getIconDirectory() {
   const devOrProd = getChannel() === 'development' ? 'dev' : 'prod'
   return join(projectRoot, 'app', 'static', 'logos', devOrProd)
+}
+
+/** Custom Windows builds use a yellow icon without changing official assets. */
+export function getWindowsIconPath() {
+  return join(
+    projectRoot,
+    'app',
+    'static',
+    'logos',
+    getChannel() === 'custom'
+      ? 'custom'
+      : getChannel() === 'development'
+      ? 'dev'
+      : 'prod',
+    'icon-logo.ico'
+  )
 }
 
 export function getChannelFromReleaseBranch(): string {

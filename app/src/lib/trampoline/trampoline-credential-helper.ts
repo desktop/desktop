@@ -13,6 +13,7 @@ import {
   getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
   setHasRejectedCredentialsForEndpoint,
+  setTrampolineAuthenticationError,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
 import {
@@ -28,6 +29,7 @@ import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
 import { getAPIEndpoint, isGitHubHost } from '../api'
 import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
+import { RepositoryAccountUnavailableError } from '../repository-account'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -253,6 +255,9 @@ export const createCredentialHelperTrampolineHandler: (
     }
     return undefined
   } catch (e) {
+    if (e instanceof RepositoryAccountUnavailableError) {
+      setTrampolineAuthenticationError(token, e)
+    }
     error(`${firstParameter} failed`, e)
     return undefined
   }

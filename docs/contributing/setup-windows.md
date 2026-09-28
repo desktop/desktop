@@ -143,6 +143,152 @@ of NPM:
 $ npm config set msvs_version 2019
 ```
 
+## Per-repository GitHub accounts in Custom builds
+
+In **File > Options > Accounts**, choose **Add GitHub.com account** to sign in
+without removing accounts already signed in. Choose the intended account in the
+browser; if the browser reuses an existing session, switch its GitHub account
+before authorizing. Signing in again as the same user refreshes that account
+rather than creating a duplicate.
+
+Select a repository, then open **Repository > Repository settings > Remote**.
+Choose its **GitHub account for this repository** and **Save**. GitHub API
+requests and HTTPS fetch, pull, push, and LFS authentication use that selection.
+The GitHub clone dialog also remembers the account chosen for the clone.
+Selections are local to the Custom profile and shared by all local checkouts of
+the same host/owner/repository. They do not change Git's commit name or email.
+
+**Default account for this host** restores the first signed-in account for that
+host. Signing out of an explicitly selected account preserves the selection:
+sign in again or select another account; Desktop will not silently substitute
+another account. Account tokens remain in the operating system credential vault,
+not the repository or the saved selection.
+
+SSH remotes still authenticate using SSH keys. Use an HTTPS remote if fetch and
+push should follow the selected GitHub account. Azure DevOps and other non-GitHub
+hosts continue using their existing credentials. Official builds retain their
+existing single-account-per-host behavior.
+
+## Local custom commands
+
+The **Custom commands** button beside **Fetch origin** opens a menu of commands
+in two groups: **Repository commands**, visible only for the selected checkout,
+and **Global commands**, shared across all repositories on this computer.
+Choose **Configure repository commands...** or **Configure global commands...**
+to add, edit or remove entries in that group. Each entry has a unique name within
+its group and a Windows PowerShell
+command, such as `npm run build`. Choose **Save** to save the list without
+executing it. Then select a command by name from the toolbar menu to run it
+directly in an in-app execution panel, without opening an external console.
+
+The working directory is the selected checkout. The panel streams output and
+errors and reports
+success, a nonzero exit code, or a stopped command. It retains the latest 2,000
+terminal scrollback lines until you close it.
+
+The first run shows an indeterminate progress animation. After a successful run,
+its duration is remembered locally for that command and checkout. Later runs
+show a clearly labeled **estimated** percentage based on that duration. The
+estimate stops at 95% until the process actually succeeds, then shows 100%.
+Longer runs show a waiting message, rather than being marked complete early.
+This is a time estimate, not measured build/task progress. Editing the command
+text or changing checkout requires learning a new duration. Failed or stopped
+runs do not replace the last successful duration.
+
+Choose **Stop command** to stop the command and its child processes. Stop it
+before closing the panel or the app. Windows PowerShell runs hidden, without a
+profile and in non-interactive mode; commands requiring terminal input are not
+supported. PowerShell errors stop execution, and native command exit codes are
+propagated to the panel.
+
+Both groups run in the currently selected checkout. Switching repositories
+changes the repository group but leaves the global group available. Names may
+be reused between the two groups; changing or removing one never changes the
+other. The toolbar button uses the same normal width as the adjacent buttons.
+
+Commands are saved locally, not in repository files, and are
+never run automatically. Remove entries and choose **Save** to forget them.
+Previously saved lists remain in the repository group, and single commands
+appear there as **Custom command**.
+Only run commands you trust: they have your Windows permissions. Do not save
+passwords or other secrets in commands. Use `cmd /c` for commands requiring CMD
+syntax instead of PowerShell syntax.
+
+### Sharing commands
+
+In either command configuration dialog, **Export selected...** saves the selected
+command and **Export all...** saves every command in that group. Exports include
+the current editor contents, even if you have not chosen **Save** yet.
+Choose **Import...** to load a shared `custom-commands.json` file into the
+current repository or global group.
+
+Imports are appended to the editor draft. Existing commands are never replaced;
+name conflicts (ignoring surrounding whitespace and case) get numbered suffixes
+such as `Build (2)`. Each imported command receives a new local identity.
+Review the scripts and choose **Save** to keep them, or **Cancel** to discard the
+draft. Neither importing nor exporting executes commands.
+
+The versioned JSON file contains only command names and full PowerShell script
+text, not local command IDs, repository paths, group assignments or execution
+history. Hard-coded paths and secrets inside the scripts are **not** removed.
+Review files before sharing or running them. Scripts referencing other local
+files still require those files on the recipient's machine. The recipient needs
+a Custom build with this import/export feature; official GitHub Desktop cannot
+import these files. Unsupported formats and invalid entries are rejected without
+changing the draft.
+
+## Local Custom Windows installer
+
+To package this modified checkout, including uncommitted source changes, add a
+**Repository command** named **Package Windows installer** with this command:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\script\package-custom.ps1
+```
+
+The same script can be run from a terminal, or with `yarn package:custom`.
+It uses the repository's vendored Yarn and the Node version in `.nvmrc`. It
+checks the sibling `.tools\node-<version>-win-x64` directory first, then `PATH`.
+Use `-NodePath C:\path\to\node.exe` to select another matching installation.
+The development dependencies and submodules must already be set up as described
+above. The script does not upgrade dependencies, pull, commit, push, install
+the resulting app, or change the system execution policy.
+
+This Windows x64 script performs a production compilation and invokes the
+repository's existing app packager and Squirrel.Windows installer generator.
+It streams both phases into the command panel and stops at the first failure.
+Concurrent packaging of the same checkout is rejected.
+
+Outputs are isolated in the ignored `.custom-build` directory:
+
+- `.custom-build\dist\GitHubDesktopCustomSetup-x64.exe`
+- `.custom-build\dist\GitHubDesktopCustomSetup-x64.msi`
+- `.custom-build\dist\GitHubDesktopCustom-win32-x64\GitHubDesktopCustom.exe`
+  (standalone app; keep the entire directory together)
+
+The app is named **GitHub Desktop Custom**, uses a yellow Windows application,
+installer and About-dialog logo (official icons are unchanged), and has its own Squirrel installation
+identity and Electron user-data directory, and does not require the development
+server. Official app updates and scheduled usage reporting are disabled for
+this build. For an installed-app upgrade, increase the version in
+`app/package.json` before rebuilding and running the new installer: Squirrel
+uses package versions to identify updates. Installer files
+are unsigned, so Windows may show an unknown-publisher/SmartScreen warning.
+No signing credentials are used.
+
+The official app's clone protocols and global `github` CLI are left alone.
+Browser sign-in uses the public development OAuth client and its
+`x-github-desktop-dev-auth` callback; the most recently launched Custom or
+development app owns that callback. Do not use both for browser sign-in at
+the same time. Accounts and custom commands are not automatically migrated
+from another installation.
+
+The existing development app can remain open while packaging. Close any
+standalone Custom app running directly from `.custom-build\dist` before
+rebuilding, since that directory is replaced. Installed copies are unaffected.
+Custom commands that invoke Node, npm or a compiler still require those tools
+on the destination computer.
+
 ## Troubleshooting
 
 If your local copy gets "stuck" try deleting the folder `C:\Users\[Your_User]\AppData\Roaming\GitHub Desktop-dev`.

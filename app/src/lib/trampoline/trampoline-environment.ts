@@ -10,8 +10,15 @@ import { GitError as DugiteError, exec } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { GitError, getDescriptionForError } from '../git/core'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
+import { getRepositoryAccountCredentialOrigins } from '../repository-account'
 
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
+const authenticationErrors = new Map<string, Error>()
+
+/** Retain an account-selection error until the associated Git process exits. */
+export function setTrampolineAuthenticationError(token: string, error: Error) {
+  authenticationErrors.set(token, error)
+}
 
 export const setHasRejectedCredentialsForEndpoint = (
   trampolineToken: string,
@@ -109,6 +116,16 @@ export async function withTrampolineEnv<T>(
 
     const gitEnvConfigPrefix =
       existingGitEnvConfig.length > 0 ? `${existingGitEnvConfig} ` : ''
+    const accountCredentialParameters = getRepositoryAccountCredentialOrigins()
+      .map(
+        origin =>
+          `'credential.${origin.replace(/'/g, "'\\''")}.useHttpPath=true'`
+      )
+      .join(' ')
+    const accountCredentialConfig =
+      accountCredentialParameters.length === 0
+        ? ''
+        : `${accountCredentialParameters} `
 
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
@@ -140,12 +157,16 @@ export async function withTrampolineEnv<T>(
         //
         // See https://github.com/desktop/desktop/issues/18945
         // See https://github.com/git/git/blob/ed155187b429a/config.c#L664
-        GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
+        GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}${accountCredentialConfig}'credential.helper=' 'credential.helper=desktop'`,
 
         GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
     } catch (e) {
+      const authenticationError = authenticationErrors.get(token)
+      if (authenticationError !== undefined) {
+        throw authenticationError
+      }
       if (!getIsBackgroundTaskEnvironment(token)) {
         // If the operation fails with an SSHAuthenticationFailed error, we
         // assume that it's because the last credential we provided via the
@@ -197,6 +218,7 @@ export async function withTrampolineEnv<T>(
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)
+      authenticationErrors.delete(token)
     }
   })
 }

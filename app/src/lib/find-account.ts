@@ -2,6 +2,10 @@ import * as URL from 'url'
 import { getHTMLURL, API } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { Account, isDotComAccount } from '../models/account'
+import {
+  getAccountForRemote,
+  getRepositoryAccountBinding,
+} from './repository-account'
 
 type RepositoryLookupFunc = (
   account: Account,
@@ -40,6 +44,9 @@ export async function findAccountForRemoteURL(
   accounts: ReadonlyArray<Account>,
   canAccessRepository: RepositoryLookupFunc = canAccessRepositoryUsingAPI
 ): Promise<Account | null> {
+  if (getRepositoryAccountBinding(urlOrRepositoryAlias) !== null) {
+    return getAccountForRemote(accounts, urlOrRepositoryAlias)
+  }
   const allAccounts = [...accounts, Account.anonymous()]
 
   // We have a couple of strategies to try to figure out what account we

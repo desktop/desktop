@@ -47,6 +47,10 @@ async function handleUpdated(): Promise<void> {
 }
 
 export async function installWindowsCLI(): Promise<void> {
+  if (__RELEASE_CHANNEL__ === 'custom') {
+    log.info('Custom builds do not register the global github CLI.')
+    return
+  }
   const binPath = getBinPath()
   await mkdir(binPath, { recursive: true })
   await writeBatchScriptCLITrampoline(binPath)
@@ -62,6 +66,10 @@ export async function installWindowsCLI(): Promise<void> {
 }
 
 export async function uninstallWindowsCLI() {
+  if (__RELEASE_CHANNEL__ === 'custom') {
+    log.info('Custom builds leave the global github CLI unchanged.')
+    return
+  }
   try {
     const paths = getPathSegments()
     const binPath = getBinPath()
@@ -159,7 +167,7 @@ async function updateShortcut(): Promise<void> {
     const desktopShortcutPath = Path.join(
       homeDirectory,
       'Desktop',
-      'GitHub Desktop.lnk'
+      `${__APP_NAME__}.lnk`
     )
     const exists = await pathExists(desktopShortcutPath)
     const locations: ShortcutLocations = exists

@@ -9,6 +9,9 @@ interface IRemoteProps {
 
   /** The function to call when the remote URL is changed by the user. */
   readonly onRemoteUrlChanged: (url: string) => void
+
+  /** Additional settings for this remote. */
+  readonly children?: React.ReactNode
 }
 
 /** The Remote component. */
@@ -27,6 +30,7 @@ export class Remote extends React.Component<IRemoteProps, {}> {
           value={remote.url}
           onValueChanged={this.props.onRemoteUrlChanged}
         />
+        {this.props.children}
       </DialogContent>
     )
   }

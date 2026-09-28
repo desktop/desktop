@@ -23,14 +23,25 @@ function isGitHubRepoAssetPath(pathname: string) {
  * Returns a method that can be used to update the list of signed-in accounts
  * which is used to resolve which token to use.
  */
-export function installAuthenticatedImageFilter(
-  orderedWebRequest: OrderedWebRequest
-) {
+export function installAuthenticatedImageFilter(orderedWebRequest: {
+  readonly onBeforeSendHeaders: Pick<
+    OrderedWebRequest['onBeforeSendHeaders'],
+    'addEventListener'
+  >
+}) {
   let originTokens = new Map<string, string>()
+  let repositoryTokens = new Map<string, string>()
 
   orderedWebRequest.onBeforeSendHeaders.addEventListener(async details => {
     const { origin, pathname } = new URL(details.url)
-    const token = originTokens.get(origin)
+    const repositoryPath = pathname
+      .split('/')
+      .slice(0, 3)
+      .join('/')
+      .toLowerCase()
+    const token =
+      repositoryTokens.get(`${origin}${repositoryPath}`) ??
+      originTokens.get(origin)
 
     if (
       token &&
@@ -48,9 +59,23 @@ export function installAuthenticatedImageFilter(
   })
 
   return (accounts: ReadonlyArray<EndpointToken>) => {
-    originTokens = new Map(
-      accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token])
-    )
+    originTokens = new Map()
+    repositoryTokens = new Map()
+    for (const { endpoint, token, repositoryURL } of accounts) {
+      if (repositoryURL !== undefined) {
+        const url = new URL(repositoryURL)
+        repositoryTokens.set(
+          `${url.origin}${url.pathname.toLowerCase()}`,
+          token
+        )
+      } else {
+        const origin = new URL(endpoint).origin
+        // The first account is the host default, or the active repository's account.
+        if (!originTokens.has(origin)) {
+          originTokens.set(origin, token)
+        }
+      }
+    }
 
     // If we have a token for api.github.com, add another entry in our
     // tokens-by-origin map with the same token for github.com. This is

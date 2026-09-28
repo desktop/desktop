@@ -4,6 +4,11 @@ import { getGenericPassword, getGenericUsername } from '../generic-git-auth'
 import { AccountsStore } from '../stores'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { Account } from '../../models/account'
+import {
+  getAccountForRemote,
+  getRepositoryAccountBinding,
+  RepositoryAccountUnavailableError,
+} from '../repository-account'
 
 /**
  * When we're asked for credentials we're typically first asked for the username
@@ -22,6 +27,14 @@ export async function findGitHubTrampolineAccount(
   remoteUrl: string
 ): Promise<Account | undefined> {
   const accounts = await accountsStore.getAll()
+  const binding = getRepositoryAccountBinding(remoteUrl)
+  if (binding !== null) {
+    const account = getAccountForRemote(accounts, remoteUrl)
+    if (account === null) {
+      throw new RepositoryAccountUnavailableError(binding.login)
+    }
+    return account
+  }
   const parsedUrl = new URL(remoteUrl)
   return accounts.find(
     a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin

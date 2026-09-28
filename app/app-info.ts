@@ -1,6 +1,7 @@
 import { getSHA } from './git-info'
 import { getUpdatesURL, getChannel } from '../script/dist-info'
 import { version, productName } from './package.json'
+import { getProductName } from './package-info'
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
@@ -23,7 +24,7 @@ export function getReplacements() {
     __DARWIN__: process.platform === 'darwin',
     __WIN32__: process.platform === 'win32',
     __LINUX__: process.platform === 'linux',
-    __APP_NAME__: s(productName),
+    __APP_NAME__: s(channel === 'custom' ? getProductName() : productName),
     __APP_VERSION__: s(version),
     __DEV__: isDevBuild,
     __DEV_SECRETS__: isDevBuild || !process.env.DESKTOP_OAUTH_CLIENT_SECRET,

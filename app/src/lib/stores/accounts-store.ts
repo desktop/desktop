@@ -6,6 +6,7 @@ import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
+import { supportsRepositoryAccounts } from '../repository-account'
 
 // Ensure that GitHub.com accounts appear first followed by Enterprise
 // accounts, sorted by the order in which they were added.
@@ -114,10 +115,21 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
 
     const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
+      (map, x) =>
+        map.set(
+          supportsRepositoryAccounts()
+            ? JSON.stringify([x.endpoint, x.id])
+            : x.endpoint,
+          x
+        ),
       new Map<string, Account>()
     )
-    accountsByEndpoint.set(account.endpoint, account)
+    accountsByEndpoint.set(
+      supportsRepositoryAccounts()
+        ? JSON.stringify([account.endpoint, account.id])
+        : account.endpoint,
+      account
+    )
 
     this.accounts = sortAccounts([...accountsByEndpoint.values()])
 

@@ -1,4 +1,8 @@
 import { Disposable } from 'event-kit'
+import type {
+  CustomCommandScope,
+  ICustomCommand,
+} from '../../lib/custom-command'
 
 import {
   IAPIOrganization,
@@ -1611,6 +1615,70 @@ export class Dispatcher {
     filePath: string | string[]
   ): Promise<void> {
     return this.appStore._appendIgnoreFile(repository, filePath)
+  }
+
+  /** Bind a remote repository to a signed-in GitHub account on this computer. */
+  public async setRepositoryAccount(
+    repository: Repository | null,
+    remoteURL: string,
+    account: Account | null
+  ): Promise<void> {
+    await this.appStore._setRepositoryAccount(repository, remoteURL, account)
+    this.commitStatusStore.invalidateAccounts()
+  }
+
+  /** Read the repository or global command list saved on this computer. */
+  public getCustomCommands(repository: Repository, scope: CustomCommandScope) {
+    return this.appStore._getCustomCommands(repository, scope)
+  }
+
+  /** Show the command list editor for the selected checkout. */
+  public showCustomCommand(
+    repository: Repository,
+    scope: CustomCommandScope
+  ): Promise<void> {
+    return this.appStore._showCustomCommand(repository, scope)
+  }
+
+  /** Save a command list in its chosen scope without running any commands. */
+  public saveCustomCommands(
+    repository: Repository,
+    commands: ReadonlyArray<ICustomCommand>,
+    scope: CustomCommandScope
+  ): Promise<boolean> {
+    return this.appStore._saveCustomCommands(repository, commands, scope)
+  }
+
+  /** Import a file into an editor draft, without saving or running it. */
+  public importCustomCommands(
+    existing: ReadonlyArray<ICustomCommand>
+  ): Promise<ReadonlyArray<ICustomCommand> | null> {
+    return this.appStore._importCustomCommands(existing)
+  }
+
+  /** Export exactly the supplied draft commands to a user-selected file. */
+  public exportCustomCommands(
+    commands: ReadonlyArray<ICustomCommand>
+  ): Promise<boolean> {
+    return this.appStore._exportCustomCommands(commands)
+  }
+
+  /** Run a previously configured command in the selected checkout. */
+  public runCustomCommand(
+    repository: Repository,
+    id: string,
+    scope: CustomCommandScope
+  ): Promise<void> {
+    return this.appStore._runCustomCommand(repository, id, scope)
+  }
+
+  /** Start the explicitly selected command and stream its output to its dialog. */
+  public executeCustomCommand(
+    repository: Repository,
+    command: ICustomCommand,
+    onOutput: (chunk: Buffer) => void
+  ) {
+    return this.appStore._executeCustomCommand(repository, command, onOutput)
   }
 
   /** Opens a Git-enabled terminal setting the working directory to the repository path */

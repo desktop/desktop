@@ -37,6 +37,8 @@ import {
   getDistRoot,
   getExecutableName,
   getIconDirectory,
+  getOutPath,
+  getWindowsIconPath,
   isPublishable,
 } from './dist-info'
 
@@ -64,7 +66,7 @@ const projectRoot = path.join(__dirname, '..')
 const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
 const entitlementsPath = `${projectRoot}/script/entitlements${entitlementsSuffix}.plist`
 const extendInfoPath = `${projectRoot}/script/info.plist`
-const outRoot = path.join(projectRoot, 'out')
+const outRoot = getOutPath()
 
 console.log(`Building for ${getChannel()}…`)
 
@@ -186,10 +188,15 @@ function packageApp() {
     out: getDistRoot(),
     // Packager probes for a sibling .icon file and requires macOS 26 to compile
     // it. Use a distinct basename so older build hosts use the prebuilt ICNS.
-    icon: join(
-      iconPath,
-      process.platform === 'darwin' ? 'icon-logo-legacy.icns' : 'icon-logo'
-    ),
+    icon:
+      process.platform === 'win32'
+        ? getWindowsIconPath()
+        : join(
+            iconPath,
+            process.platform === 'darwin'
+              ? 'icon-logo-legacy.icns'
+              : 'icon-logo'
+          ),
     extraResource: [assetsCarPath],
     dir: outRoot,
     overwrite: true,
@@ -283,6 +290,19 @@ function copyStaticResources() {
     force: false,
     verbatimSymlinks: true,
   })
+  if (process.platform === 'win32' && getChannel() === 'custom') {
+    cpSync(
+      join(
+        projectRoot,
+        'app',
+        'static',
+        'logos',
+        'custom',
+        'windows-logo-64x64@2x.png'
+      ),
+      join(destination, 'windows-logo-64x64@2x.png')
+    )
+  }
 }
 
 function moveAnalysisFiles() {

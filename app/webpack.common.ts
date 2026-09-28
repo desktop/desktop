@@ -3,10 +3,10 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
 import { getReplacements } from './app-info'
+import { getOutPath } from '../script/dist-info'
 
 export const externals = ['7zip']
 
-const outputDir = 'out'
 export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
@@ -16,7 +16,7 @@ const commonConfig: webpack.Configuration = {
   externals: externals,
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, '..', outputDir),
+    path: getOutPath(),
     library: {
       name: '[name]',
       type: 'commonjs2',

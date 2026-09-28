@@ -46,6 +46,9 @@ import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
+import { CustomCommandDialog } from './custom-command/custom-command-dialog'
+import { CustomCommandRunDialog } from './custom-command/custom-command-run-dialog'
+import { ToolbarButton } from './toolbar/button'
 import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
@@ -176,7 +179,8 @@ import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-ret
 import { PullRequestReview } from './notifications/pull-request-review'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
-import { showContextualMenu } from '../lib/menu-item'
+import { IMenuItem, showContextualMenu } from '../lib/menu-item'
+import { CustomCommandScope } from '../lib/custom-command'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
@@ -389,19 +393,24 @@ export class App extends React.Component<IAppProps, IAppState> {
     // the app. So defer it until we have some breathing space.
     this.props.appStore.loadEmoji()
 
-    this.props.dispatcher.reportStats()
-    setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+    if (__RELEASE_CHANNEL__ !== 'custom') {
+      this.props.dispatcher.reportStats()
+      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+    }
 
     this.props.dispatcher.installGlobalLFSFilters(false)
 
     // We only want to automatically check for updates on beta and prod
     if (
-      __RELEASE_CHANNEL__ !== 'development' &&
-      __RELEASE_CHANNEL__ !== 'test'
+      __RELEASE_CHANNEL__ === 'production' ||
+      __RELEASE_CHANNEL__ === 'beta'
     ) {
       setInterval(() => this.checkForUpdates(true), UpdateCheckInterval)
       this.checkForUpdates(true)
-    } else if (await updateStore.isUpdateShowcase()) {
+    } else if (
+      __RELEASE_CHANNEL__ !== 'custom' &&
+      (await updateStore.isUpdateShowcase())
+    ) {
       // The only purpose of this call is so we can see the showcase on dev/test
       // env. Prod and beta environment will trigger this during automatic check
       // for updates.
@@ -1651,6 +1660,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     const onPopupDismissedFn = this.getOnPopupDismissedFn(popup.id)
 
     switch (popup.type) {
+      case PopupType.RunCustomCommand:
+        return (
+          <CustomCommandRunDialog
+            key={`custom-command-run-${popup.id}`}
+            repository={popup.repository}
+            command={popup.command}
+            expectedDurationMs={popup.expectedDurationMs}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.CustomCommand:
+        return (
+          <CustomCommandDialog
+            key={`custom-command-${popup.repository.id}`}
+            repository={popup.repository}
+            scope={popup.scope}
+            dispatcher={this.props.dispatcher}
+            initialCommands={popup.commands}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       case PopupType.RenameBranch:
         return (
           <RenameBranch
@@ -1850,6 +1881,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -3910,6 +3942,60 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.clearBanner()
   }
 
+  private onCustomCommand = () => {
+    const selection = this.state.selectedState
+    if (selection?.type === SelectionType.Repository) {
+      const repository = selection.repository
+      const getItems = (
+        scope: CustomCommandScope
+      ): ReadonlyArray<IMenuItem> | null => {
+        const commands = this.props.dispatcher.getCustomCommands(
+          repository,
+          scope
+        )
+        if (commands === null) {
+          return null
+        }
+        return [
+          {
+            label:
+              scope === 'global' ? 'Global commands' : 'Repository commands',
+            enabled: false,
+          },
+          ...commands.map(command => ({
+            label: command.name.trim().replaceAll('&', '&&'),
+            action: () =>
+              this.props.dispatcher.runCustomCommand(
+                repository,
+                command.id,
+                scope
+              ),
+          })),
+          ...(commands.length === 0
+            ? [{ label: 'No commands configured', enabled: false }]
+            : []),
+          {
+            label:
+              scope === 'global'
+                ? 'Configure global commands...'
+                : 'Configure repository commands...',
+            action: () =>
+              this.props.dispatcher.showCustomCommand(repository, scope),
+          },
+        ]
+      }
+      const repositoryItems = getItems('repository')
+      const globalItems = getItems('global')
+      if (repositoryItems !== null && globalItems !== null) {
+        showContextualMenu([
+          ...repositoryItems,
+          { type: 'separator' },
+          ...globalItems,
+        ])
+      }
+    }
+  }
+
   private renderToolbar() {
     /**
      * No toolbar if we're in the blank slate view.
@@ -3928,6 +4014,19 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderWorktreeToolbarButton()}
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
+        {__WIN32__ && (
+          <ToolbarButton
+            className="custom-command-button"
+            title="Custom commands"
+            description="Run or configure"
+            ariaHaspopup="menu"
+            icon={octicons.terminal}
+            onClick={this.onCustomCommand}
+            disabled={
+              this.state.selectedState?.type !== SelectionType.Repository
+            }
+          />
+        )}
       </Toolbar>
     )
   }
