@@ -10,8 +10,14 @@ import {
   normalizeGiteaCombinedStatus,
   normalizeGiteaEmails,
   normalizeGiteaPullRequest,
+  normalizeGiteaRepository,
 } from '../../src/lib/gitea'
-import { API, getHTMLURL, IAPIPullRequest } from '../../src/lib/api'
+import {
+  API,
+  getHTMLURL,
+  IAPIFullRepository,
+  IAPIPullRequest,
+} from '../../src/lib/api'
 import { getAbsoluteUrl } from '../../src/lib/http'
 import { matchGitHubRepository } from '../../src/lib/repository-matching'
 import {
@@ -256,6 +262,61 @@ describe('gitea', () => {
     it('defaults a missing body to an empty string', () => {
       const raw = { ...pullRequest(), body: null } as unknown as IAPIPullRequest
       assert.equal(normalizeGiteaPullRequest(raw).body, '')
+    })
+  })
+
+  describe('normalizeGiteaRepository', () => {
+    const proxy = 'https://gitea-proxy.example.workers.dev/api/v1'
+    const apiRepo = (owner: string, name: string) =>
+      ({
+        name,
+        owner: { id: 1, login: owner },
+        html_url: `https://internal.example.com/${owner}/${name}`,
+        clone_url: `https://internal.example.com/${owner}/${name}.git`,
+        ssh_url: `git@internal.example.com:${owner}/${name}.git`,
+      } as unknown as IAPIFullRepository)
+
+    it('points web and clone URLs at the registered server', () => {
+      const repo = normalizeGiteaRepository(apiRepo('HAL', 'Project'), proxy)
+      assert.equal(
+        repo.html_url,
+        'https://gitea-proxy.example.workers.dev/HAL/Project'
+      )
+      assert.equal(
+        repo.clone_url,
+        'https://gitea-proxy.example.workers.dev/HAL/Project.git'
+      )
+      assert.equal(repo.ssh_url, 'git@internal.example.com:HAL/Project.git')
+    })
+
+    it('normalizes the parent of forks', () => {
+      const fork = {
+        ...apiRepo('me', 'Project'),
+        parent: apiRepo('HAL', 'Project'),
+      }
+      const repo = normalizeGiteaRepository(fork, proxy)
+      assert.equal(
+        repo.parent?.html_url,
+        'https://gitea-proxy.example.workers.dev/HAL/Project'
+      )
+    })
+
+    it('normalizes pull request repositories', () => {
+      const pr = normalizeGiteaPullRequest(
+        pullRequest({
+          head: { ref: 'feature', sha: 'abc', repo: apiRepo('me', 'Project') },
+          base: { ref: 'main', sha: 'def', repo: apiRepo('HAL', 'Project') },
+        }),
+        proxy
+      )
+      assert.equal(
+        pr.base.repo?.html_url,
+        'https://gitea-proxy.example.workers.dev/HAL/Project'
+      )
+      assert.equal(
+        pr.head.repo?.clone_url,
+        'https://gitea-proxy.example.workers.dev/me/Project.git'
+      )
     })
   })
 

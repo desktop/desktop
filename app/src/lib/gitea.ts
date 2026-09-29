@@ -2,6 +2,7 @@ import type {
   APIRefState,
   IAPIEmail,
   IAPIPullRequest,
+  IAPIRepository,
   IAPIRefStatus,
   IAPIRefStatusItem,
 } from './api'
@@ -175,13 +176,51 @@ const workInProgressPrefixes = ['wip:', '[wip]']
  * checking for the work in progress title prefix.
  */
 export function normalizeGiteaPullRequest(
-  pr: IAPIPullRequest
+  pr: IAPIPullRequest,
+  endpoint?: string
 ): IAPIPullRequest {
   const title = pr.title.toLowerCase()
   const draft =
     pr.draft ?? workInProgressPrefixes.some(prefix => title.startsWith(prefix))
 
-  return { ...pr, body: pr.body ?? '', draft }
+  const normalizeRepo = <T extends IAPIRepository | null>(repo: T): T =>
+    endpoint !== undefined && repo !== null
+      ? normalizeGiteaRepository(repo, endpoint)
+      : repo
+
+  return {
+    ...pr,
+    body: pr.body ?? '',
+    draft,
+    head: { ...pr.head, repo: normalizeRepo(pr.head.repo) },
+    base: { ...pr.base, repo: normalizeRepo(pr.base.repo) },
+  }
+}
+
+/**
+ * Point the web and HTTPS clone URLs of a repository returned by the Gitea
+ * API at the server address the account was added with.
+ *
+ * Gitea builds these URLs from its own ROOT_URL setting which isn't
+ * necessarily the address the user reaches it at, e.g. when the server is
+ * accessed through a reverse proxy. Gitea always serves repositories at
+ * `<ROOT_URL>/<owner>/<name>` so we can rebuild them from the API endpoint.
+ */
+export function normalizeGiteaRepository<T extends IAPIRepository>(
+  repo: T,
+  endpoint: string
+): T {
+  const base = `${getGiteaHTMLURL(endpoint)}/${repo.owner.login}/${repo.name}`
+  const parent: unknown = (repo as { parent?: unknown }).parent
+
+  return {
+    ...repo,
+    html_url: base,
+    clone_url: `${base}.git`,
+    ...(parent !== undefined && parent !== null
+      ? { parent: normalizeGiteaRepository(parent as IAPIRepository, endpoint) }
+      : {}),
+  }
 }
 
 /** The raw state of a commit status as reported by Gitea. */

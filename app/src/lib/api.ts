@@ -36,6 +36,7 @@ import {
   normalizeGiteaCombinedStatus,
   normalizeGiteaEmails,
   normalizeGiteaPullRequest,
+  normalizeGiteaRepository,
 } from './gitea'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
@@ -876,6 +877,9 @@ export class API {
     this.isGitea = isGiteaEndpoint(endpoint)
   }
 
+  private normalizeGiteaPullRequest = (pr: IAPIPullRequest) =>
+    normalizeGiteaPullRequest(pr, this.endpoint)
+
   /**
    * Retrieves the name of the Alive channel used by Desktop to receive
    * high-signal notifications.
@@ -1006,7 +1010,8 @@ export class API {
         log.warn(`fetchRepository: '${owner}/${name}' returned a 404`)
         return null
       }
-      return await parsedResponse<IAPIFullRepository>(response)
+      const repo = await parsedResponse<IAPIFullRepository>(response)
+      return this.isGitea ? normalizeGiteaRepository(repo, this.endpoint) : repo
     } catch (e) {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
@@ -1048,7 +1053,10 @@ export class API {
       return null
     }
 
-    const repo = await parsedResponse<IAPIRepository>(response)
+    const apiRepo = await parsedResponse<IAPIRepository>(response)
+    const repo = this.isGitea
+      ? normalizeGiteaRepository(apiRepo, this.endpoint)
+      : apiRepo
     return {
       url: protocol === 'ssh' ? repo.ssh_url : repo.clone_url,
       defaultBranch: repo.default_branch,
@@ -1079,7 +1087,12 @@ export class API {
         // sure to exclude any such dangling repository, chances are
         // they won't be cloneable anyway.
         onPage: page => {
-          callback(page.filter(x => x.owner !== null))
+          const repos = page.filter(x => x.owner !== null)
+          callback(
+            this.isGitea
+              ? repos.map(x => normalizeGiteaRepository(x, this.endpoint))
+              : repos
+          )
           options?.onPage?.(page)
         },
       })
@@ -1215,7 +1228,7 @@ export class API {
     })
     try {
       const prs = await this.fetchAll<IAPIPullRequest>(url)
-      return this.isGitea ? prs.map(normalizeGiteaPullRequest) : prs
+      return this.isGitea ? prs.map(this.normalizeGiteaPullRequest) : prs
     } catch (e) {
       log.warn(`failed fetching open PRs for repository ${owner}/${name}`, e)
       throw e
@@ -1287,7 +1300,9 @@ export class API {
         suppressErrors: false,
       })
       const updated = prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
-      return this.isGitea ? updated.map(normalizeGiteaPullRequest) : updated
+      return this.isGitea
+        ? updated.map(this.normalizeGiteaPullRequest)
+        : updated
     } catch (e) {
       log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
       throw e
@@ -1302,7 +1317,7 @@ export class API {
       const path = `/repos/${owner}/${name}/pulls/${prNumber}`
       const response = await this.ghRequest('GET', path)
       const pr = await parsedResponse<IAPIPullRequest>(response)
-      return this.isGitea ? normalizeGiteaPullRequest(pr) : pr
+      return this.isGitea ? this.normalizeGiteaPullRequest(pr) : pr
     } catch (e) {
       log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
       throw e
