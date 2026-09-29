@@ -74,7 +74,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
       >
         <DialogContent>
           <Row className="updating-message">
-            Do not close GitHub Desktop while the update is in progress. Closing
+            Do not close MS2026 Desktop while the update is in progress. Closing
             now may break your installation.
           </Row>
         </DialogContent>

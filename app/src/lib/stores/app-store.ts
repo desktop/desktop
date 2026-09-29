@@ -150,6 +150,7 @@ import {
 import {
   getGiteaAPIEndpoint,
   getGiteaCompareURL,
+  getHostingServiceName,
   getPullRequestURL,
   isGiteaEndpoint,
 } from '../gitea'
@@ -2940,8 +2941,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const askForConfirmationWhenStashingAllChanges =
       changesState.stashEntry !== null
 
+    const gitHubRepository =
+      selectedRepository instanceof Repository
+        ? selectedRepository.gitHubRepository
+        : null
+
     updatePreferredAppMenuItemLabels({
       ...labels,
+      hostingServiceName:
+        gitHubRepository !== null
+          ? getHostingServiceName(gitHubRepository.endpoint)
+          : undefined,
       contributionTargetDefaultBranch,
       isForcePushForCurrentRepository,
       isStashedChangesVisible,
@@ -4925,7 +4935,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If the request fails, we want to preserve the existing GitHub
       // repository info. But if we didn't have a GitHub repository already or
       // the endpoint changed, the skeleton repository is better than nothing.
-      if (endpoint !== repository.gitHubRepository?.endpoint) {
+      if (
+        endpoint !== repository.gitHubRepository?.endpoint ||
+        repository.gitHubRepository.htmlURL === null
+      ) {
         const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
         return repoStore.setGitHubRepository(repository, ghRepo)
       }
@@ -7687,7 +7700,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (match === null) {
           this.emitError(
             new ExternalEditorError(
-              `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+              `No suitable editors installed for MS2026 Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart MS2026 Desktop to try again.`,
               { suggestDefaultEditor: true }
             )
           )
@@ -7764,7 +7777,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
-            `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+            `No suitable editors installed for MS2026 Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart MS2026 Desktop to try again.`,
             { suggestDefaultEditor: true }
           )
         )

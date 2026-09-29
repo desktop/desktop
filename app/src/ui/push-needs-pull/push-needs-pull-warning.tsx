@@ -42,7 +42,7 @@ export class PushNeedsPullWarning extends React.Component<
       >
         <DialogContent>
           <p>
-            GitHub Desktop is unable to push commits to this branch because
+            MS2026 Desktop is unable to push commits to this branch because
             there are commits on the remote that are not present on your local
             branch. Fetch these new commits before pushing in order to reconcile
             them with your local commits.

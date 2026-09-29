@@ -5,6 +5,7 @@ import {
   IDatabaseRepository,
   getOwnerKey,
 } from '../databases/repositories-database'
+import { getGiteaHTMLURL, isGiteaEndpoint } from '../gitea'
 import { Owner } from '../../models/owner'
 import {
   GitHubRepository,
@@ -542,13 +543,24 @@ export class RepositoriesStore extends TypedBaseStore<
           .equals([owner.id, match.name])
           .first()
 
+        // We know where Gitea repositories live on the web even when the API
+        // couldn't tell us, which enables viewing and creating pull requests.
+        const htmlURL = isGiteaEndpoint(account.endpoint)
+          ? `${getGiteaHTMLURL(account.endpoint)}/${match.owner}/${match.name}`
+          : null
+
         if (existingRepo) {
+          if (existingRepo.htmlURL === null && htmlURL !== null) {
+            const updated = { ...existingRepo, htmlURL }
+            await this.db.gitHubRepositories.put(updated)
+            return this.toGitHubRepository(updated, owner)
+          }
           return this.toGitHubRepository(existingRepo, owner)
         }
 
         const skeletonRepo: IDatabaseGitHubRepository = {
           cloneURL: null,
-          htmlURL: null,
+          htmlURL,
           lastPruneDate: null,
           name: match.name,
           ownerID: owner.id,

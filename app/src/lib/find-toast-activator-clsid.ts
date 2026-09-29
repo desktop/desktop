@@ -16,10 +16,11 @@ export function findToastActivatorClsid() {
       'Windows',
       'Start Menu',
       'Programs',
-      'GitHub, Inc',
-      'GitHub Desktop.lnk'
+      // Squirrel names the Start Menu folder after companyName in package.json
+      'HAL2026_MS',
+      `${__APP_NAME__}.lnk`
     ),
-    path.join(os.homedir(), 'Desktop', 'GitHub Desktop.lnk'),
+    path.join(os.homedir(), 'Desktop', `${__APP_NAME__}.lnk`),
   ]
 
   for (const shortcutPath of shortcutPaths) {

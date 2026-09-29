@@ -45,7 +45,7 @@ async function launchEditor(
     )
     throw new ExternalEditorError(
       e && typeof e === 'object' && 'code' in e && e.code === 'EACCES'
-        ? `GitHub Desktop doesn't have the proper permissions to start ${editorName}. Please open ${label} and try another editor.`
+        ? `MS2026 Desktop doesn't have the proper permissions to start ${editorName}. Please open ${label} and try another editor.`
         : `Something went wrong while trying to start ${editorName}. Please open ${label} and try another editor.`,
       { openPreferences: true }
     )

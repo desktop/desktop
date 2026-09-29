@@ -136,8 +136,8 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   private renderTitle() {
     const message =
       this.state.type === 'launch'
-        ? 'GitHub Desktop failed to launch'
-        : 'GitHub Desktop encountered an error'
+        ? 'MS2026 Desktop failed to launch'
+        : 'MS2026 Desktop encountered an error'
 
     return (
       <header>
@@ -151,18 +151,18 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     if (this.state.type === 'launch') {
       return (
         <p>
-          GitHub Desktop encountered a catastrophic error that prevents it from
+          MS2026 Desktop encountered a catastrophic error that prevents it from
           launching. This has been reported to the team, but if you encounter
-          this repeatedly please report this issue to the GitHub Desktop{' '}
+          this repeatedly please report this issue to the MS2026 Desktop{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     } else {
       return (
         <p>
-          GitHub Desktop has encountered an unrecoverable error and will need to
+          MS2026 Desktop has encountered an unrecoverable error and will need to
           restart. This has been reported to the team, but if you encounter this
-          repeatedly please report this issue to the GitHub Desktop{' '}
+          repeatedly please report this issue to the MS2026 Desktop{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )

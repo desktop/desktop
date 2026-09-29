@@ -129,7 +129,7 @@ export class Acknowledgements extends React.Component<
 
           {desktopLicense}
 
-          <p>GitHub Desktop also distributes these libraries:</p>
+          <p>MS2026 Desktop also distributes these libraries:</p>
 
           {licenses ? this.renderLicenses(licenses) : <Loading />}
         </DialogContent>

@@ -109,7 +109,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       if (__DARWIN__ && isKeyChainError(e)) {
         this.emitError(
           new Error(
-            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
+            `MS2026 Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
           )
         )
       } else {

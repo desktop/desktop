@@ -40,8 +40,8 @@ const DefaultTitle = 'Sign in'
 
 const browserSignInInfoContent = (
   <p>
-    Your browser will redirect you back to GitHub Desktop once you've signed in.
-    If your browser asks for your permission to launch GitHub Desktop, please
+    Your browser will redirect you back to MS2026 Desktop once you've signed in.
+    If your browser asks for your permission to launch MS2026 Desktop, please
     allow it.
   </p>
 )

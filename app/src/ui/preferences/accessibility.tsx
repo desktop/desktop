@@ -35,7 +35,7 @@ export class Accessibility extends React.Component<
             id="underline-setting-description"
             className="settings-description"
           >
-            When enabled, GitHub Desktop will underline links in commit
+            When enabled, MS2026 Desktop will underline links in commit
             messages, comments, and other text fields. This can help make links
             easier to distinguish. {this.renderExampleLink()}
           </p>

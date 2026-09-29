@@ -2,6 +2,12 @@ import { Shell } from '../lib/shells'
 
 export type MenuLabelsEvent = {
   /**
+   * The name of the service hosting the selected repository, e.g. 'GitHub'
+   * or 'Gitea', used in labels like "View on GitHub". Defaults to 'GitHub'.
+   */
+  readonly hostingServiceName?: string
+
+  /**
    * Specify the user's selected shell to display in the menu.
    *
    * Specify `null` to indicate that it is not known currently, which will

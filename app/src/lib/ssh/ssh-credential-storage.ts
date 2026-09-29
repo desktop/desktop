@@ -1,6 +1,6 @@
 import { TokenStore } from '../stores'
 
-const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub Desktop'
+const appName = __DEV__ ? `${__APP_NAME__} Dev` : __APP_NAME__
 
 export function getSSHCredentialStoreKey(name: string) {
   return `${appName} - ${name}`

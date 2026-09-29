@@ -16,9 +16,6 @@ import { buildTestMenu } from './build-test-menu'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
-const showPullRequestLabel = __DARWIN__
-  ? 'View Pull Request on GitHub'
-  : 'View &pull request on GitHub'
 const defaultBranchNameValue = __DARWIN__ ? 'Default Branch' : 'default branch'
 const confirmRepositoryRemovalLabel = __DARWIN__ ? 'Remove…' : '&Remove…'
 const repositoryRemovalLabel = __DARWIN__ ? 'Remove' : '&Remove'
@@ -54,7 +51,13 @@ export function buildDefaultMenuTemplate({
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
   isChangesFilterVisible = true,
+  hostingServiceName = 'GitHub',
 }: MenuLabelsEvent): Electron.MenuItemConstructorOptions[] {
+  const host = hostingServiceName
+  const showPullRequestLabel = __DARWIN__
+    ? `View Pull Request on ${host}`
+    : `View &pull request on ${host}`
+
   contributionTargetDefaultBranch = truncateWithEllipsis(
     contributionTargetDefaultBranch,
     25
@@ -345,7 +348,7 @@ export function buildDefaultMenuTemplate({
       separator,
       {
         id: 'view-repository-on-github',
-        label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        label: __DARWIN__ ? `View on ${host}` : `&View on ${host}`,
         accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
       },
@@ -397,8 +400,8 @@ export function buildDefaultMenuTemplate({
       {
         id: 'create-issue-in-repository-on-github',
         label: __DARWIN__
-          ? 'Create Issue on GitHub'
-          : 'Create &issue on GitHub',
+          ? `Create Issue on ${host}`
+          : `Create &issue on ${host}`,
         accelerator: 'CmdOrCtrl+I',
         click: emit('create-issue-in-repository-on-github'),
       },
@@ -492,13 +495,13 @@ export function buildDefaultMenuTemplate({
     },
     separator,
     {
-      label: __DARWIN__ ? 'Compare on GitHub' : 'Compare on &GitHub',
+      label: __DARWIN__ ? `Compare on ${host}` : `Compare on &${host}`,
       id: 'compare-on-github',
       accelerator: 'CmdOrCtrl+Shift+C',
       click: emit('compare-on-github'),
     },
     {
-      label: __DARWIN__ ? 'View Branch on GitHub' : 'View branch on GitHub',
+      label: __DARWIN__ ? `View Branch on ${host}` : `View branch on ${host}`,
       id: 'branch-on-github',
       accelerator: 'CmdOrCtrl+Alt+B',
       click: emit('branch-on-github'),
