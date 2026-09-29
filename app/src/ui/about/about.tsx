@@ -18,6 +18,7 @@ import { encodePathAsUrl } from '../../lib/path'
 import { isOSNoLongerSupportedByElectron } from '../../lib/get-os'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { formatDate } from '../../lib/format-date'
+import { teamName } from '../../lib/team-links'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -268,14 +269,12 @@ export class About extends React.Component<IAboutProps> {
         {this.renderUpdateErrors()}
         <DialogContent>
           <Row className="logo">
-            <img
-              src={DesktopLogo}
-              alt="GitHub Desktop"
-              width="64"
-              height="64"
-            />
+            <img src={DesktopLogo} alt={name} width="64" height="64" />
           </Row>
           <h1 id={titleId}>About {name}</h1>
+          <p className="no-padding team-edition">
+            {teamName} チーム専用エディション 🍵 Gitea 対応
+          </p>
           <p className="no-padding">
             <span className="selectable-text">
               {versionText} ({this.props.applicationArchitecture})

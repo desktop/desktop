@@ -268,3 +268,10 @@ export function normalizeGiteaEmails(
     visibility: null,
   }))
 }
+
+/**
+ * The name of the service hosting a repository with the given API endpoint,
+ * for use in user facing copy.
+ */
+export const getHostingServiceName = (endpoint: string) =>
+  isGiteaEndpoint(endpoint) ? 'Gitea' : 'GitHub'

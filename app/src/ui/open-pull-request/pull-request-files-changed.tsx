@@ -23,6 +23,7 @@ import { writeClipboardText } from '../main-process-proxy'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { isGiteaEndpoint } from '../../lib/gitea'
 import { createCommitURL } from '../../lib/commit-url'
 import { DiffOptions } from '../diff/diff-options'
 
@@ -216,7 +217,10 @@ export class PullRequestFilesChanged extends React.Component<
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
 
     items.push({
-      label: `View on GitHub${isEnterprise ? ' Enterprise' : ''}`,
+      label:
+        gitHubRepository !== null && isGiteaEndpoint(gitHubRepository.endpoint)
+          ? 'View on Gitea'
+          : `View on GitHub${isEnterprise ? ' Enterprise' : ''}`,
       action: () => this.onViewOnGitHub(file),
       enabled: nonLocalCommitSHA !== null && gitHubRepository !== null,
     })

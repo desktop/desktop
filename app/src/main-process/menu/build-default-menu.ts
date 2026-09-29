@@ -72,10 +72,10 @@ export function buildDefaultMenuTemplate({
 
   if (__DARWIN__) {
     template.push({
-      label: 'GitHub Desktop',
+      label: __APP_NAME__,
       submenu: [
         {
-          label: 'About GitHub Desktop',
+          label: `About ${__APP_NAME__}`,
           click: emit('show-about'),
           id: 'about',
         },
@@ -616,7 +616,7 @@ export function buildDefaultMenuTemplate({
         ...helpItems,
         separator,
         {
-          label: '&About GitHub Desktop',
+          label: `&About ${__APP_NAME__}`,
           click: emit('show-about'),
           id: 'about',
         },

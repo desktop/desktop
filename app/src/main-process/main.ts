@@ -53,6 +53,10 @@ import {
 import { initializeDesktopNotifications } from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
+import {
+  killAllIntegratedTerminals,
+  registerIntegratedTerminalHandlers,
+} from './integrated-terminal'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -719,6 +723,9 @@ app.on('ready', () => {
     'is-window-focused',
     async () => mainWindow?.isFocused() ?? false
   )
+
+  registerIntegratedTerminalHandlers()
+  app.on('will-quit', killAllIntegratedTerminals)
 
   /** An event sent by the renderer asking to focus the main window. */
   ipcMain.on('focus-window', () => {

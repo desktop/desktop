@@ -69,6 +69,11 @@ describe('IPC channel contract', () => {
     'show-installing-update',
     'install-windows-cli',
     'uninstall-windows-cli',
+    'integrated-terminal-write',
+    'integrated-terminal-resize',
+    'integrated-terminal-kill',
+    'integrated-terminal-data',
+    'integrated-terminal-exit',
   ] as const
 
   const expectedResponseChannels = [
@@ -100,6 +105,7 @@ describe('IPC channel contract', () => {
     'show-notification',
     'get-notifications-permission',
     'request-notifications-permission',
+    'integrated-terminal-create',
   ] as const
 
   describe('RequestChannels', () => {

@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { getHostingServiceName } from '../../lib/gitea'
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
@@ -277,6 +278,14 @@ export class NoChanges extends React.Component<
   private onShowInFileManagerClicked = () =>
     this.props.dispatcher.incrementMetric('suggestedStepOpenWorkingDirectory')
 
+  /** The name of the hosting service, or 'the remote' if not hosted */
+  private get remoteName() {
+    const { gitHubRepository } = this.props.repository
+    return gitHubRepository === null
+      ? 'the remote'
+      : getHostingServiceName(gitHubRepository.endpoint)
+  }
+
   private renderViewOnGitHub() {
     const isGitHub = this.props.repository.gitHubRepository !== null
 
@@ -286,7 +295,7 @@ export class NoChanges extends React.Component<
 
     return this.renderMenuBackedAction(
       'view-repository-on-github',
-      `Open the repository page on GitHub in your browser`,
+      `Open the repository page on ${this.remoteName} in your browser`,
       undefined,
       this.onViewOnGitHubClicked
     )
@@ -506,8 +515,9 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         The current branch (<Ref>{tip.branch.name}</Ref>) hasn't been published
-        to the remote yet. By publishing it {isGitHub ? 'to GitHub' : ''} you
-        can share it, {isGitHub ? 'open a pull request, ' : ''}
+        to the remote yet. By publishing it{' '}
+        {isGitHub ? `to ${this.remoteName}` : ''} you can share it,{' '}
+        {isGitHub ? 'open a pull request, ' : ''}
         and collaborate with others.
       </>
     )
@@ -550,14 +560,11 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-
     const description = (
       <>
         The current branch (<Ref>{tip.branch.name}</Ref>) has{' '}
-        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on{' '}
-        {isGitHub ? 'GitHub' : 'the remote'} that{' '}
-        {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
+        {aheadBehind.behind === 1 ? 'a commit' : 'commits'} on {this.remoteName}{' '}
+        that {aheadBehind.behind === 1 ? 'does not' : 'do not'} exist on your
         machine.
       </>
     )
@@ -603,8 +610,6 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const isGitHub = this.props.repository.gitHubRepository !== null
-
     const itemsToPushTypes = []
     const itemsToPushDescriptions = []
 
@@ -628,7 +633,7 @@ export class NoChanges extends React.Component<
 
     const description = `You have ${itemsToPushDescriptions.join(
       ' and '
-    )} waiting to be pushed to ${isGitHub ? 'GitHub' : 'the remote'}.`
+    )} waiting to be pushed to ${this.remoteName}.`
 
     const discoverabilityContent = (
       <>
@@ -673,8 +678,8 @@ export class NoChanges extends React.Component<
     const description = (
       <>
         The current branch (<Ref>{tip.branch.name}</Ref>) is already published
-        to GitHub. Create a pull request to propose and collaborate on your
-        changes.
+        to {this.remoteName}. Create a pull request to propose and collaborate
+        on your changes.
       </>
     )
 
@@ -706,8 +711,8 @@ export class NoChanges extends React.Component<
       description: (
         <>
           The current branch (<Ref>{tip.branch.name}</Ref>) is already published
-          to GitHub. Preview the changes this pull request will have before
-          proposing your changes.
+          to {this.remoteName}. Preview the changes this pull request will have
+          before proposing your changes.
         </>
       ),
       id: PullRequestSuggestedNextAction.PreviewPullRequest,

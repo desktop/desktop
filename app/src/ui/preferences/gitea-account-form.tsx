@@ -5,6 +5,7 @@ import { PasswordTextBox } from '../lib/password-text-box'
 import { Row } from '../lib/row'
 import { InputError } from '../lib/input-description/input-error'
 import { CallToAction } from '../lib/call-to-action'
+import { teamGiteaServer } from '../../lib/team-links'
 
 interface IGiteaAccountFormProps {
   /** Whether any Gitea accounts have been added already */
@@ -30,7 +31,7 @@ interface IGiteaAccountFormState {
 
 const initialState: IGiteaAccountFormState = {
   expanded: false,
-  serverAddress: '',
+  serverAddress: teamGiteaServer,
   token: '',
   loading: false,
   error: null,
@@ -82,7 +83,7 @@ export class GiteaAccountForm extends React.Component<
         <Row>
           <TextBox
             label="Server address"
-            placeholder="https://gitea.example.com"
+            placeholder={teamGiteaServer}
             value={serverAddress}
             onValueChanged={this.onServerAddressChanged}
             disabled={loading}

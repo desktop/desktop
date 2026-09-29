@@ -17,6 +17,7 @@ import { DesktopNotificationPermission } from 'desktop-notifications'
 import { NotificationCallback } from 'desktop-notifications'
 import { DesktopAliveEvent } from './stores/alive-store'
 import { CLIAction } from './cli-action'
+import { IIntegratedTerminalOptions } from './integrated-terminal'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -87,6 +88,11 @@ export type RequestChannels = {
   'show-installing-update': () => void
   'install-windows-cli': () => void
   'uninstall-windows-cli': () => void
+  'integrated-terminal-write': (id: number, data: string) => void
+  'integrated-terminal-resize': (id: number, cols: number, rows: number) => void
+  'integrated-terminal-kill': (id: number) => void
+  'integrated-terminal-data': (id: number, data: string) => void
+  'integrated-terminal-exit': (id: number, exitCode: number) => void
 }
 
 /**
@@ -137,4 +143,7 @@ export type RequestResponseChannels = {
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
   'request-notifications-permission': () => Promise<boolean>
+  'integrated-terminal-create': (
+    options: IIntegratedTerminalOptions
+  ) => Promise<number>
 }

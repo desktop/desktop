@@ -1,0 +1,143 @@
+// The HAL2026 MS team bar at the bottom of the window with team links and
+// the integrated terminal toggle, plus the terminal panel shown above it.
+
+#team-bar {
+  --team-accent: #3fa37a;
+
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--spacing-half);
+  height: 26px;
+  padding: 0 var(--spacing-half);
+  border-top: var(--base-border);
+  background: var(--box-alt-background-color);
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  white-space: nowrap;
+
+  .team-badge {
+    flex: 0 0 auto;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--team-accent);
+    color: #fff;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.02em;
+  }
+
+  .team-links {
+    display: flex;
+    flex: 0 1 auto;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .team-link-icon {
+    margin-right: 3px;
+  }
+
+  .team-greeting {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    color: var(--text-secondary-color);
+  }
+
+  .team-terminal-toggle {
+    flex: 0 0 auto;
+    font-family: var(--font-family-monospace);
+
+    &.active,
+    &.active:not([aria-disabled='true']):hover {
+      background: var(--team-accent);
+      color: #fff;
+    }
+  }
+}
+
+#team-bar .team-bar-button,
+.team-terminal-panel .team-bar-button {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: transparent;
+  color: var(--text-color);
+  font: inherit;
+  cursor: pointer;
+
+  &:not([aria-disabled='true']):hover {
+    border-color: transparent;
+    background: var(--box-hover-background-color);
+    color: var(--box-hover-text-color);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width, 2px) solid var(--focus-color);
+  }
+}
+
+.team-terminal-panel {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: 0;
+  border-top: var(--base-border);
+  background: var(--background-color);
+
+  &.hidden {
+    display: none;
+  }
+
+  .team-terminal-resize-handle {
+    padding: 0;
+    border: none;
+    background: transparent;
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: row-resize;
+    z-index: 1;
+  }
+
+  .team-terminal-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--spacing-half);
+    height: 26px;
+    padding: 0 var(--spacing-half);
+    font-size: var(--font-size-sm);
+    border-bottom: var(--base-border);
+  }
+
+  .team-terminal-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .team-terminal-cwd {
+    font-weight: normal;
+    color: var(--text-secondary-color);
+  }
+
+  .integrated-terminal {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 4px 0 0 var(--spacing-half);
+    overflow: hidden;
+  }
+}

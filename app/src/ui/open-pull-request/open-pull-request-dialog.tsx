@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IConstrainedValue, IPullRequestState } from '../../lib/app-state'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { isGiteaEndpoint } from '../../lib/gitea'
 import { Branch } from '../../models/branch'
 import { ImageDiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
@@ -254,9 +255,13 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
       gitHubRepository && gitHubRepository.endpoint !== getDotComAPIEndpoint()
 
     const viewCreate = currentBranchHasPullRequest ? 'View' : ' Create'
-    const buttonTitle = `${viewCreate} pull request on GitHub${
-      isEnterprise ? ' Enterprise' : ''
-    }.`
+    const isGitea =
+      gitHubRepository !== null && isGiteaEndpoint(gitHubRepository.endpoint)
+    const buttonTitle = isGitea
+      ? `${viewCreate} pull request on Gitea.`
+      : `${viewCreate} pull request on GitHub${
+          isEnterprise ? ' Enterprise' : ''
+        }.`
 
     const okButton = (
       <>
