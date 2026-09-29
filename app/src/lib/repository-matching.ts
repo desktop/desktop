@@ -1,12 +1,13 @@
 import * as URL from 'url'
 import * as Path from 'path'
 
-import { Account } from '../models/account'
+import { Account, isGiteaAccount } from '../models/account'
 import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
+import { giteaEndpointMatchesRemoteHost } from './gitea'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -34,6 +35,18 @@ export function matchGitHubRepository(
     const htmlURL = getHTMLURL(account.endpoint)
     const { hostname } = URL.parse(htmlURL)
     const parsedRemote = parseRemote(remote)
+
+    // Gitea servers are frequently hosted on a custom port or below a sub
+    // path both of which end up in the host portion of the parsed remote.
+    if (isGiteaAccount(account)) {
+      if (
+        parsedRemote !== null &&
+        giteaEndpointMatchesRemoteHost(account.endpoint, parsedRemote.hostname)
+      ) {
+        return { name: parsedRemote.name, owner: parsedRemote.owner, account }
+      }
+      continue
+    }
 
     if (parsedRemote !== null && hostname !== null) {
       if (parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {

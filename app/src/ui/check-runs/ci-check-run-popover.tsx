@@ -34,6 +34,7 @@ import { getPullRequestCommitRef } from '../../models/pull-request'
 import { CICheckReRunButton } from './ci-check-re-run-button'
 import groupBy from 'lodash/groupBy'
 import { toSentence } from '../../lib/to_sentence'
+import { getPullRequestURL } from '../../lib/gitea'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -160,9 +161,10 @@ export class CICheckRunPopover extends React.PureComponent<
     // object as they do not have a view in the checks screen. In that case we
     // will just open the PR and they can navigate from there... a little
     // dissatisfying tho more of an edgecase anyways.
+    const { repository, prNumber } = this.props
     const url =
       checkRun.htmlUrl ??
-      `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
+      getPullRequestURL(`${repository.htmlURL}`, repository.endpoint, prNumber)
 
     this.props.dispatcher.openInBrowser(url)
     this.props.dispatcher.incrementMetric('viewsCheckOnline')

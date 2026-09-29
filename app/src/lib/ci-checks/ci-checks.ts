@@ -15,6 +15,7 @@ import {
   formatLongPreciseDuration,
   formatPreciseDuration,
 } from '../format-duration'
+import { getPullRequestURL } from '../gitea'
 
 /**
  * A Desktop-specific model closely related to a GitHub API Check Run.
@@ -582,7 +583,11 @@ export function getCheckRunStepURL(
   const url =
     checkRun.htmlUrl !== null
       ? `${checkRun.htmlUrl}/#step:${step.number}:1`
-      : `${repository.htmlURL}/pull/${pullRequestNumber}`
+      : getPullRequestURL(
+          `${repository.htmlURL}`,
+          repository.endpoint,
+          pullRequestNumber
+        )
 
   return url
 }

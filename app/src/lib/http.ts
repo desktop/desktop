@@ -97,6 +97,13 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
   // that the endpoint ends with a trailing slash.
   const base = endpoint.endsWith('/') ? endpoint : `${endpoint}/`
 
+  // Gitea serves its API from `/api/v1` (optionally below a sub path) and its
+  // pagination links include that path, strip it to avoid duplicating it.
+  const basePath = new URL(base).pathname.substring(1)
+  if (basePath.endsWith('api/v1/') && relativePath.startsWith(basePath)) {
+    relativePath = relativePath.substring(basePath.length)
+  }
+
   return new URL(relativePath, base).toString()
 }
 

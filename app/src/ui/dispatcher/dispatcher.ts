@@ -1255,6 +1255,14 @@ export class Dispatcher {
     return this.appStore._applyCopilotConflictResolutions(repository)
   }
 
+  /**
+   * Add an account for a Gitea server authenticated with a personal access
+   * token. Rejects if the server or token couldn't be verified.
+   */
+  public addGiteaAccount(serverAddress: string, token: string) {
+    return this.appStore._addGiteaAccount(serverAddress, token)
+  }
+
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
     return this.appStore._removeAccount(account)

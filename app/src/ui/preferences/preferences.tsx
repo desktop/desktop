@@ -507,6 +507,9 @@ export class Preferences extends React.Component<
     )
   }
 
+  private onAddGiteaAccount = (serverAddress: string, token: string) =>
+    this.props.dispatcher.addGiteaAccount(serverAddress, token)
+
   private onLogout = (account: Account) => {
     this.props.dispatcher.removeAccount(account)
   }
@@ -549,6 +552,7 @@ export class Preferences extends React.Component<
             accounts={this.props.accounts}
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
+            onAddGiteaAccount={this.onAddGiteaAccount}
             onLogout={this.onLogout}
           />
         )

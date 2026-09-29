@@ -145,7 +145,14 @@ import {
   IAPIRepoRuleset,
   deleteToken,
   IAPICreatePushProtectionBypassResponse,
+  fetchGiteaUser,
 } from '../api'
+import {
+  getGiteaAPIEndpoint,
+  getGiteaCompareURL,
+  getPullRequestURL,
+  isGiteaEndpoint,
+} from '../gitea'
 import { shell } from '../app-shell'
 import {
   CompareAction,
@@ -8145,6 +8152,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await deleteToken(account)
   }
 
+  /**
+   * Add an account for a Gitea server authenticated with a personal access
+   * token. Throws if the server address is invalid, the server isn't a Gitea
+   * server or the token is rejected.
+   */
+  public async _addGiteaAccount(
+    serverAddress: string,
+    token: string
+  ): Promise<Account> {
+    const endpoint = getGiteaAPIEndpoint(serverAddress)
+
+    if (endpoint === null) {
+      throw new Error(`'${serverAddress}' is not a valid server address.`)
+    }
+
+    const account = await fetchGiteaUser(endpoint, token.trim())
+    await this._addAccount(account)
+    return account
+  }
+
   private async _addAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
@@ -8577,13 +8604,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _showPullRequestByPR(pr: PullRequest): Promise<void> {
-    const { htmlURL: baseRepoUrl } = pr.base.gitHubRepository
+    const { htmlURL: baseRepoUrl, endpoint } = pr.base.gitHubRepository
 
     if (baseRepoUrl === null) {
       return
     }
 
-    const showPrUrl = `${baseRepoUrl}/pull/${pr.pullRequestNumber}`
+    const showPrUrl = getPullRequestURL(
+      baseRepoUrl,
+      endpoint,
+      pr.pullRequestNumber
+    )
 
     await this._openInBrowser(showPrUrl)
   }
@@ -8662,6 +8693,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { parent, owner, name, htmlURL } = gitHubRepository
     const isForkContributingToParent =
       isForkedRepositoryContributingToParent(repository)
+
+    if (isGiteaEndpoint(gitHubRepository.endpoint)) {
+      const baseRepoURL =
+        isForkContributingToParent && parent !== null ? parent.htmlURL : htmlURL
+
+      if (baseRepoURL === null) {
+        return
+      }
+
+      const compareURL = getGiteaCompareURL(
+        baseRepoURL,
+        compareBranch.upstreamWithoutRemote ?? compareBranch.nameWithoutRemote,
+        baseBranch?.nameWithoutRemote,
+        isForkContributingToParent ? owner.login : undefined
+      )
+
+      await this._openInBrowser(compareURL)
+      return
+    }
 
     const baseForkPreface =
       isForkContributingToParent && parent !== null

@@ -1,7 +1,12 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
-import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
+import { Account, isDotComAccount, isGiteaAccount } from '../../models/account'
+import {
+  fetchUser,
+  fetchGiteaUser,
+  EmailVisibility,
+  getEnterpriseAPIURL,
+} from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
@@ -265,5 +270,7 @@ async function updatedAccount(account: Account): Promise<Account> {
     )
   }
 
-  return fetchUser(account.endpoint, account.token)
+  return isGiteaAccount(account)
+    ? fetchGiteaUser(account.endpoint, account.token)
+    : fetchUser(account.endpoint, account.token)
 }

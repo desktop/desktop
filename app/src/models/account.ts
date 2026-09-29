@@ -1,4 +1,5 @@
 import { getDotComAPIEndpoint, getHTMLURL, IAPIEmail } from '../lib/api'
+import { isGiteaEndpoint } from '../lib/gitea'
 
 export const CopilotLicenseTypeNoAccess = 'NO_ACCESS'
 
@@ -107,8 +108,15 @@ export const isDotComAccount = (account: Account) =>
   account.endpoint === getDotComAPIEndpoint()
 
 /**
+ * Whether or not the given account is an account on a Gitea server (as opposed
+ * to a GitHub.com or GitHub Enterprise account)
+ */
+export const isGiteaAccount = (account: Account) =>
+  isGiteaEndpoint(account.endpoint)
+
+/**
  * Whether or not the given account is a GitHub Enterprise account (as opposed to
- * a GitHub.com account)
+ * a GitHub.com or Gitea account)
  */
 export const isEnterpriseAccount = (account: Account) =>
-  !isDotComAccount(account)
+  !isDotComAccount(account) && !isGiteaAccount(account)

@@ -124,6 +124,17 @@
         margin-left: 0;
       }
     }
+
+    .gitea-account-form {
+      .gitea-token-hint {
+        color: var(--text-secondary-color);
+        margin: 0 0 var(--spacing);
+      }
+
+      .button-component + .button-component {
+        margin-left: var(--spacing-half);
+      }
+    }
   }
 
   .no-options-found {

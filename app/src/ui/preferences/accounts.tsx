@@ -3,6 +3,7 @@ import {
   Account,
   isDotComAccount,
   isEnterpriseAccount,
+  isGiteaAccount,
 } from '../../models/account'
 import { IAvatarUser } from '../../models/avatar'
 import { lookupPreferredEmail } from '../../lib/email'
@@ -13,18 +14,24 @@ import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
 import { getHTMLURL } from '../../lib/api'
+import { GiteaAccountForm } from './gitea-account-form'
 
 interface IAccountsProps {
   readonly accounts: ReadonlyArray<Account>
 
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
+  readonly onAddGiteaAccount: (
+    serverAddress: string,
+    token: string
+  ) => Promise<unknown>
   readonly onLogout: (account: Account) => void
 }
 
 enum SignInType {
   DotCom,
   Enterprise,
+  Gitea,
 }
 
 export class Accounts extends React.Component<IAccountsProps, {}> {
@@ -41,6 +48,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
 
         <h2>GitHub Enterprise</h2>
         {this.renderMultipleEnterpriseAccounts()}
+
+        <h2>Gitea</h2>
+        {this.renderGiteaAccounts()}
       </DialogContent>
     )
   }
@@ -64,6 +74,22 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     )
   }
 
+  private renderGiteaAccounts() {
+    const giteaAccounts = this.props.accounts.filter(isGiteaAccount)
+
+    return (
+      <>
+        {giteaAccounts.map(account =>
+          this.renderAccount(account, SignInType.Gitea)
+        )}
+        <GiteaAccountForm
+          hasGiteaAccounts={giteaAccounts.length > 0}
+          onAddGiteaAccount={this.props.onAddGiteaAccount}
+        />
+      </>
+    )
+  }
+
   private renderAccount(account: Account, type: SignInType) {
     const avatarUser: IAvatarUser = {
       name: account.name,
@@ -82,7 +108,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         <div className="user-info-container">
           <Avatar accounts={this.props.accounts} user={avatarUser} />
           <div className="user-info">
-            {isEnterpriseAccount(account) ? (
+            {!isDotComAccount(account) ? (
               <>
                 <div className="account-title">
                   {account.name === account.login
@@ -144,6 +170,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             </div>
           </CallToAction>
         )
+      case SignInType.Gitea:
+        // Gitea accounts are added through the GiteaAccountForm
+        return null
       default:
         return assertNever(type, `Unknown sign in type: ${type}`)
     }

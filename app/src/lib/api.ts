@@ -28,6 +28,15 @@ import {
 import { HttpStatusCode } from './http-status-code'
 import { CopilotError, parseCopilotPaymentRequiredError } from './copilot-error'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
+import {
+  getGiteaHTMLURL,
+  IGiteaCombinedStatus,
+  IGiteaEmail,
+  isGiteaEndpoint,
+  normalizeGiteaCombinedStatus,
+  normalizeGiteaEmails,
+  normalizeGiteaPullRequest,
+} from './gitea'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -847,6 +856,14 @@ export class API {
   private token: string
   private copilotEndpoint?: string
 
+  /**
+   * Whether the endpoint is a Gitea server. Gitea's REST API is largely
+   * compatible with GitHub's but some responses need to be normalized and
+   * GitHub specific features (checks, Actions, rulesets, etc) aren't
+   * available.
+   */
+  private readonly isGitea: boolean
+
   /** Create a new API client for the endpoint, authenticated with the token. */
   public constructor(
     endpoint: string,
@@ -856,6 +873,7 @@ export class API {
     this.endpoint = endpoint
     this.token = token
     this.copilotEndpoint = copilotEndpoint
+    this.isGitea = isGiteaEndpoint(endpoint)
   }
 
   /**
@@ -863,6 +881,10 @@ export class API {
    * high-signal notifications.
    */
   public async getAliveDesktopChannel(): Promise<IAPIAliveSignedChannel | null> {
+    if (this.isGitea) {
+      return null
+    }
+
     try {
       const res = await this.ghRequest('GET', '/desktop_internal/alive-channel')
       const signedChannel = await parsedResponse<IAPIAliveSignedChannel>(res)
@@ -883,6 +905,10 @@ export class API {
    * it from hitting the endpoint many times if it's disabled.
    */
   public async getAliveWebSocketURL(): Promise<string | null> {
+    if (this.isGitea) {
+      return null
+    }
+
     try {
       const res = await this.ghRequest('GET', '/alive_internal/websocket-url')
       if (res.status === HttpStatusCode.NotFound) {
@@ -1188,7 +1214,8 @@ export class API {
       state: 'open',
     })
     try {
-      return await this.fetchAll<IAPIPullRequest>(url)
+      const prs = await this.fetchAll<IAPIPullRequest>(url)
+      return this.isGitea ? prs.map(normalizeGiteaPullRequest) : prs
     } catch (e) {
       log.warn(`failed fetching open PRs for repository ${owner}/${name}`, e)
       throw e
@@ -1222,7 +1249,9 @@ export class API {
     const sinceTime = since.getTime()
     const url = urlWithQueryString(`repos/${owner}/${name}/pulls`, {
       state: 'all',
-      sort: 'updated',
+      // Gitea doesn't support the `direction` parameter and uses its own
+      // name for sorting by most recently updated.
+      sort: this.isGitea ? 'recentupdate' : 'updated',
       direction: 'desc',
     })
 
@@ -1257,7 +1286,8 @@ export class API {
         // store an incorrect lastUpdated field in the database.
         suppressErrors: false,
       })
-      return prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
+      const updated = prs.filter(pr => Date.parse(pr.updated_at) >= sinceTime)
+      return this.isGitea ? updated.map(normalizeGiteaPullRequest) : updated
     } catch (e) {
       log.warn(`failed fetching updated PRs for repository ${owner}/${name}`, e)
       throw e
@@ -1271,7 +1301,8 @@ export class API {
     try {
       const path = `/repos/${owner}/${name}/pulls/${prNumber}`
       const response = await this.ghRequest('GET', path)
-      return await parsedResponse<IAPIPullRequest>(response)
+      const pr = await parsedResponse<IAPIPullRequest>(response)
+      return this.isGitea ? normalizeGiteaPullRequest(pr) : pr
     } catch (e) {
       log.warn(`failed fetching PR for ${owner}/${name}/pulls/${prNumber}`, e)
       throw e
@@ -1393,7 +1424,11 @@ export class API {
     })
 
     try {
-      return await parsedResponse<IAPIRefStatus>(response)
+      return this.isGitea
+        ? normalizeGiteaCombinedStatus(
+            await parsedResponse<IGiteaCombinedStatus>(response)
+          )
+        : await parsedResponse<IAPIRefStatus>(response)
     } catch (err) {
       log.debug(
         `Failed fetching check runs for ref ${ref} (${owner}/${name})`,
@@ -1412,6 +1447,11 @@ export class API {
     ref: string,
     reloadCache: boolean = false
   ): Promise<IAPIRefCheckRuns | null> {
+    // Gitea doesn't support check runs, Gitea Actions report commit statuses
+    if (this.isGitea) {
+      return null
+    }
+
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs?per_page=100`
     const headers = {
@@ -1443,6 +1483,10 @@ export class API {
     name: string,
     branchName: string
   ): Promise<IAPIWorkflowRuns | null> {
+    if (this.isGitea) {
+      return null
+    }
+
     const path = `repos/${owner}/${name}/actions/runs?event=pull_request&branch=${encodeURIComponent(
       branchName
     )}`
@@ -1478,6 +1522,10 @@ export class API {
     name: string,
     checkSuiteId: number
   ): Promise<IAPIWorkflowRun | null> {
+    if (this.isGitea) {
+      return null
+    }
+
     const path = `repos/${owner}/${name}/actions/runs?event=pull_request&check_suite_id=${checkSuiteId}`
     const customHeaders = {
       Accept: 'application/vnd.github.antiope-preview+json',
@@ -1680,7 +1728,9 @@ export class API {
     const path = `repos/${owner}/${name}/branches?protected=true`
     try {
       const response = await this.ghRequest('GET', path)
-      return await parsedResponse<IAPIBranch[]>(response)
+      const branches = await parsedResponse<IAPIBranch[]>(response)
+      // Gitea ignores the `protected` filter and returns all branches
+      return this.isGitea ? branches.filter(b => b.protected) : branches
     } catch (err) {
       log.info(
         `[fetchProtectedBranches] unable to list protected branches`,
@@ -1698,6 +1748,10 @@ export class API {
     name: string,
     branch: string
   ): Promise<ReadonlyArray<IAPIRepoRule>> {
+    if (this.isGitea) {
+      return new Array<IAPIRepoRule>()
+    }
+
     const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(
       branch
     )}`
@@ -1727,6 +1781,10 @@ export class API {
     owner: string,
     name: string
   ): Promise<ReadonlyArray<IAPISlimRepoRuleset> | null> {
+    if (this.isGitea) {
+      return null
+    }
+
     const path = `repos/${owner}/${name}/rulesets`
     try {
       const response = await this.ghRequest('GET', path)
@@ -1778,7 +1836,10 @@ export class API {
   private async fetchAll<T>(path: string, options?: IFetchAllOptions<T>) {
     const buf = new Array<T>()
     const opts: IFetchAllOptions<T> = { perPage: 100, ...options }
-    const params = { per_page: `${opts.perPage}` }
+    // Gitea uses `limit` rather than `per_page` for the page size
+    const params: Record<string, string> = this.isGitea
+      ? { limit: `${opts.perPage}` }
+      : { per_page: `${opts.perPage}` }
 
     let nextPath: string | null = urlWithQueryString(path, params)
     let page: ReadonlyArray<T> = []
@@ -2102,6 +2163,10 @@ export class API {
    * @returns An array of strings with the feature flags enabled for the user.
    */
   public async fetchFeatureFlags(): Promise<ReadonlyArray<string> | undefined> {
+    if (this.isGitea) {
+      return undefined
+    }
+
     try {
       const response = await this.ghRequest('GET', '/desktop_internal/features')
       const featuresResponse = await parsedResponse<IUserFeaturesResponse>(
@@ -2120,8 +2185,8 @@ export class API {
    * @returns Copilot license and API endpoint.
    */
   public async fetchUserCopilotInfo(): Promise<UserCopilotInfo | undefined> {
-    // Copilot is not available on GHES
-    if (isGHES(this.endpoint)) {
+    // Copilot is not available on GHES or Gitea
+    if (isGHES(this.endpoint) || this.isGitea) {
       return undefined
     }
 
@@ -2212,6 +2277,12 @@ export class API {
 }
 
 export async function deleteToken(account: Account) {
+  // Gitea personal access tokens weren't created through our OAuth app so
+  // there's nothing for us to revoke, the user manages them in Gitea.
+  if (isGiteaEndpoint(account.endpoint)) {
+    return false
+  }
+
   try {
     const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
     const response = await request(
@@ -2264,6 +2335,60 @@ export async function fetchUser(
   }
 }
 
+/** The authenticated user as returned by the Gitea API. */
+interface IGiteaUser {
+  readonly id: number
+  readonly login: string
+  readonly full_name: string
+  readonly avatar_url: string
+}
+
+/**
+ * Fetch the Gitea user authenticated by the (personal access) token.
+ *
+ * Verifies that the endpoint actually is a Gitea server by requesting its
+ * version before looking up the user.
+ */
+export async function fetchGiteaUser(
+  endpoint: string,
+  token: string
+): Promise<Account> {
+  try {
+    const versionResponse = await request(endpoint, token, 'GET', 'version')
+    const { version } = await parsedResponse<{ version?: string }>(
+      versionResponse
+    )
+
+    if (typeof version !== 'string') {
+      throw new Error(`${getHTMLURL(endpoint)} doesn't appear to be Gitea`)
+    }
+
+    const userResponse = await request(endpoint, token, 'GET', 'user')
+    const user = await parsedResponse<IGiteaUser>(userResponse)
+
+    const emails = await request(endpoint, token, 'GET', 'user/emails')
+      .then(r => parsedResponse<ReadonlyArray<IGiteaEmail>>(r))
+      .then(e => (Array.isArray(e) ? normalizeGiteaEmails(e) : []))
+      .catch(e => {
+        log.warn(`fetchGiteaUser: failed fetching emails for ${endpoint}`, e)
+        return []
+      })
+
+    return new Account(
+      user.login,
+      endpoint,
+      token,
+      emails,
+      user.avatar_url,
+      user.id,
+      user.full_name || user.login
+    )
+  } catch (e) {
+    log.warn(`fetchGiteaUser: failed with endpoint ${endpoint}`, e)
+    throw e
+  }
+}
+
 /**
  * Map a repository's URL to the endpoint associated with it. For example:
  *
@@ -2300,6 +2425,8 @@ export function getHTMLURL(endpoint: string): string {
   // We need to normalize them.
   if (endpoint === getDotComAPIEndpoint() && !envEndpoint) {
     return 'https://github.com'
+  } else if (isGiteaEndpoint(endpoint)) {
+    return getGiteaHTMLURL(endpoint)
   } else {
     if (isGHE(endpoint)) {
       const url = new window.URL(endpoint)
