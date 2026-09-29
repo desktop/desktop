@@ -89,7 +89,11 @@ const usesDevelopmentOAuthApp =
 const shouldSkipPackaging = process.env.DESKTOP_SKIP_PACKAGE === '1'
 
 const projectRoot = path.join(__dirname, '..')
-const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
+// Ad-hoc signed apps have no Team ID, so the hardened runtime's library
+// validation would refuse to load Electron Framework (and other bundled
+// libraries) into the process. The dev entitlements disable library
+// validation which is what ad-hoc signed builds need to launch.
+const entitlementsSuffix = isAdHocSignedBuild ? '-dev' : ''
 const entitlementsPath = `${projectRoot}/script/entitlements${entitlementsSuffix}.plist`
 const extendInfoPath = `${projectRoot}/script/info.plist`
 const outRoot = path.join(projectRoot, 'out')
