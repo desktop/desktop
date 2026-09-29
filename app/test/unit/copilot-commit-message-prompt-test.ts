@@ -38,6 +38,15 @@ const fixedTags: ICommitMessagePromptTags = {
 }
 
 describe('buildCommitMessageSystemPrompt', () => {
+  it('instructs Copilot not to add itself as a co-author with or without repo rules', () => {
+    for (const prompt of [
+      buildCommitMessageSystemPrompt(),
+      buildCommitMessageSystemPrompt(true, fixedTags),
+    ]) {
+      assert.match(prompt, /Do not add a Co-authored-by: Copilot trailer/)
+    }
+  })
+
   it('returns the base system prompt unchanged when there are no rules', () => {
     const base = buildCommitMessageSystemPrompt()
     const withFalse = buildCommitMessageSystemPrompt(false, fixedTags)

@@ -256,6 +256,9 @@ information. The commit description is optional, so you can omit it if the
 changeset is small enough that it can be described in the commit title or if you
 don't have enough context.
 
+Do not add a Co-authored-by: Copilot trailer or otherwise attribute the commit
+to Copilot. Commit authorship belongs to the developer.
+
 Be brief and concise.
 
 Do NOT include a description of changes in "lock" files from dependency managers
