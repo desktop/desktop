@@ -10,12 +10,21 @@ import { getGiteaAPIEndpoint, getHostingServiceName } from '../../src/lib/gitea'
 const at = (hour: number) => new Date(2026, 3, 1, hour, 30)
 
 describe('team-links', () => {
-  it('only contains https links with a label and icon', () => {
+  it('only contains https links with a label', () => {
     assert(teamLinks.length > 0)
     for (const link of teamLinks) {
       assert.equal(new URL(link.url).protocol, 'https:', link.url)
       assert(link.label.length > 0)
-      assert(link.icon.length > 0)
+    }
+  })
+
+  it('does not use emoji', () => {
+    const emoji = /\p{Extended_Pictographic}/u
+    for (const link of teamLinks) {
+      assert(!emoji.test(link.label + link.description), link.label)
+    }
+    for (const hour of [2, 8, 12, 15, 20]) {
+      assert(!emoji.test(getTeamGreeting(at(hour))))
     }
   })
 

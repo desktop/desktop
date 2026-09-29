@@ -3,11 +3,22 @@ import classNames from 'classnames'
 import {
   getTeamGreeting,
   ITeamLink,
+  TeamLinkIcon,
   teamLinks,
   teamName,
 } from '../../lib/team-links'
 import { IntegratedTerminal } from './integrated-terminal'
 import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
+
+const teamLinkIcons: Record<TeamLinkIcon, OcticonSymbol> = {
+  folder: octicons.fileDirectory,
+  build: octicons.archive,
+  calendar: octicons.calendar,
+  repo: octicons.repo,
+  document: octicons.book,
+}
 
 interface ITeamBarProps {
   /**
@@ -78,9 +89,7 @@ class TeamLinkButton extends React.Component<ITeamLinkButtonProps> {
         onClick={this.onClick}
         tooltip={`${link.description}\n${link.url}`}
       >
-        <span className="team-link-icon" aria-hidden="true">
-          {link.icon}
-        </span>
+        <Octicon className="team-link-icon" symbol={teamLinkIcons[link.icon]} />
         {link.label}
       </Button>
     )
@@ -217,7 +226,7 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
           <span className="team-terminal-title">
             {shellName}
             {sessionCwd !== null && (
-              <span className="team-terminal-cwd"> — {sessionCwd}</span>
+              <span className="team-terminal-cwd">{sessionCwd}</span>
             )}
           </span>
           <Button
@@ -225,7 +234,8 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
             onClick={this.restartTerminal}
             tooltip="選択中のリポジトリで新しいセッションを開始"
           >
-            ↻ 新しいセッション
+            <Octicon symbol={octicons.sync} />
+            新しいセッション
           </Button>
           <Button
             className="team-bar-button"
@@ -233,7 +243,7 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
             tooltip="ターミナルを隠す (Ctrl+`)"
             ariaLabel="ターミナルを隠す"
           >
-            ✕
+            <Octicon symbol={octicons.x} />
           </Button>
         </div>
         <IntegratedTerminal
@@ -272,7 +282,8 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
             tooltip="ターミナルを開く / 閉じる (Ctrl+`)"
             ariaPressed={terminalOpen}
           >
-            <span aria-hidden="true">{'>_'}</span> ターミナル
+            <Octicon symbol={octicons.terminal} />
+            ターミナル
           </Button>
         </div>
       </>

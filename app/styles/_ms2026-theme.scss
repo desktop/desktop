@@ -1,0 +1,160 @@
+// MS2026 Desktop theme
+//
+// A calm, flat look in the spirit of classic macOS: a light toolbar instead
+// of the dark GitHub header, hairline borders, the system blue accent and the
+// platform's native UI fonts. Everything is expressed as overrides of the
+// design tokens defined in _variables.scss and themes/_dark.scss so that the
+// rest of the stylesheets pick it up automatically. Imported last.
+
+$ms-blue: #007aff;
+$ms-blue-dark: #0a84ff;
+
+:root {
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI Variable Text', 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI',
+    'Meiryo UI', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+
+  --ms-accent: #{$ms-blue};
+  --ms-accent-subtle: #{rgba($ms-blue, 0.1)};
+
+  // Text and surfaces
+  --text-color: #1d1d1f;
+  --text-secondary-color: #6e6e73;
+  --background-color: #ffffff;
+  --box-alt-background-color: #f5f5f7;
+  --box-border-color: #e5e5ea;
+  --box-border-contrast-color: #c7c7cc;
+  --box-hover-background-color: #f2f2f5;
+  --list-item-hover-background-color: #f2f2f5;
+  --box-selected-background-color: #e8e8ed;
+  --box-selected-active-background-color: var(--ms-accent);
+
+  // Controls
+  --border-radius: 8px;
+  --button-border-radius: 6px;
+  --button-background: var(--ms-accent);
+  --button-hover-background: #{lighten($ms-blue, 6%)};
+  --link-button-color: #0066cc;
+  --link-button-hover-color: #004f9e;
+  --secondary-button-background: #ffffff;
+  --secondary-button-hover-background: #f5f5f7;
+  --focus-color: var(--ms-accent);
+
+  --tab-bar-active-color: var(--ms-accent);
+  --tab-bar-hover-background-color: #f5f5f7;
+  --tab-bar-count-background-color: #e5e5ea;
+
+  // A light, flat toolbar and title bar
+  --toolbar-background-color: #f6f6f6;
+  --toolbar-border-color: #dcdcdc;
+  --toolbar-text-color: #1d1d1f;
+  --toolbar-text-secondary-color: #6e6e73;
+  --toolbar-button-border-color: #e3e3e3;
+  --toolbar-button-hover-color: #1d1d1f;
+  --toolbar-button-hover-background-color: #ebebed;
+  --toolbar-button-focus-background-color: #ebebed;
+  --toolbar-button-active-color: var(--text-color);
+  --toolbar-button-active-background-color: #ffffff;
+  --toolbar-button-active-border-color: #ffffff;
+  --toolbar-button-progress-color: #e5e5ea;
+  --toolbar-button-focus-progress-color: #dcdce1;
+  --toolbar-button-hover-progress-color: #dcdce1;
+  --toolbar-dropdown-open-progress-color: #e5e5ea;
+  --toolbar-badge-background-color: #e3e3e8;
+  --toolbar-badge-active-background-color: #e5e5ea;
+  --toolbar-tooltip-background-color: #1d1d1f;
+
+  --app-menu-pane-background-color: #ffffff;
+
+  --win32-title-bar-background-color: var(--toolbar-background-color);
+  --ms-window-control-hover-background-color: rgba(0, 0, 0, 0.06);
+  --ms-window-control-active-background-color: rgba(0, 0, 0, 0.12);
+}
+
+body.theme-dark {
+  --ms-accent: #{$ms-blue-dark};
+  --ms-accent-subtle: #{rgba($ms-blue-dark, 0.18)};
+
+  --text-color: #f5f5f7;
+  --text-secondary-color: #98989d;
+  --background-color: #1e1e1e;
+  --box-background-color: #1e1e1e;
+  --box-alt-background-color: #252527;
+  --box-border-color: #333336;
+  --box-border-contrast-color: #48484a;
+  --box-hover-background-color: #2c2c2e;
+  --list-item-hover-background-color: #2c2c2e;
+  --box-selected-background-color: #3a3a3c;
+  --box-selected-active-background-color: var(--ms-accent);
+
+  --button-background: var(--ms-accent);
+  --button-hover-background: #{lighten($ms-blue-dark, 8%)};
+  --link-button-color: #409cff;
+  --link-button-hover-color: #70b4ff;
+  --secondary-button-background: #3a3a3c;
+  --secondary-button-hover-background: #48484a;
+  --focus-color: var(--ms-accent);
+
+  --tab-bar-active-color: var(--ms-accent);
+  --tab-bar-hover-background-color: #2c2c2e;
+  --tab-bar-count-background-color: #3a3a3c;
+
+  --toolbar-background-color: #2a2a2c;
+  --toolbar-border-color: #3a3a3c;
+  --toolbar-text-color: #f5f5f7;
+  --toolbar-text-secondary-color: #98989d;
+  --toolbar-button-border-color: #3a3a3c;
+  --toolbar-button-hover-color: #ffffff;
+  --toolbar-button-hover-background-color: #37373a;
+  --toolbar-button-focus-background-color: #37373a;
+  --toolbar-button-active-color: var(--text-color);
+  --toolbar-button-active-background-color: var(--background-color);
+  --toolbar-button-active-border-color: var(--background-color);
+  --toolbar-button-progress-color: #37373a;
+  --toolbar-button-focus-progress-color: #444447;
+  --toolbar-button-hover-progress-color: #444447;
+  --toolbar-badge-background-color: #444447;
+  --toolbar-badge-active-background-color: #444447;
+  --toolbar-tooltip-background-color: #3a3a3c;
+
+  --app-menu-button-active-background-color: #2c2c2e;
+  --app-menu-pane-background-color: #2c2c2e;
+  --app-menu-divider-color: #3a3a3c;
+
+  --win32-title-bar-background-color: var(--toolbar-background-color);
+  --ms-window-control-hover-background-color: rgba(255, 255, 255, 0.08);
+  --ms-window-control-active-background-color: rgba(255, 255, 255, 0.14);
+}
+
+// The title bar blends into the toolbar below it
+#desktop-app-title-bar {
+  @include darwin {
+    background: var(--toolbar-background-color);
+    border-bottom: none;
+  }
+
+  @include win32 {
+    border-bottom: none;
+  }
+
+  .window-controls button {
+    color: var(--toolbar-text-secondary-color);
+
+    &:hover {
+      background-color: var(--ms-window-control-hover-background-color);
+      color: var(--toolbar-text-color);
+
+      &:active {
+        background-color: var(--ms-window-control-active-background-color);
+      }
+    }
+
+    &.close:hover {
+      background-color: #e81123;
+      color: #fff;
+
+      &:active {
+        background-color: #bf0f1d;
+      }
+    }
+  }
+}

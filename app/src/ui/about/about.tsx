@@ -282,7 +282,7 @@ export class About extends React.Component<IAboutProps> {
           </Row>
           <h1 id={titleId}>About {name}</h1>
           <p className="no-padding team-edition">
-            {teamName} チーム専用エディション 🍵 Gitea 対応
+            {teamName} チーム専用エディション · Gitea 対応
           </p>
           <p className="no-padding">
             <span className="selectable-text">
