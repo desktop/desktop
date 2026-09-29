@@ -53,6 +53,7 @@ import {
 } from './dist-info'
 
 import {
+  chmodSync,
   cpSync,
   existsSync,
   mkdirSync,
@@ -381,6 +382,19 @@ function copyDependencies() {
 
   console.log('  Installing dependencies via yarn…')
   cp.execSync('yarn install', { cwd: outRoot, env: process.env })
+
+  // node-pty's published package ships its macOS spawn-helper without the
+  // executable bit, which makes spawning a shell fail with "posix_spawnp
+  // failed". Fix it before the app is signed.
+  const nodePtyPrebuilds = path.join(outRoot, 'node_modules/node-pty/prebuilds')
+  if (existsSync(nodePtyPrebuilds)) {
+    for (const dir of readdirSync(nodePtyPrebuilds)) {
+      const helper = path.join(nodePtyPrebuilds, dir, 'spawn-helper')
+      if (existsSync(helper)) {
+        chmodSync(helper, 0o755)
+      }
+    }
+  }
 
   console.log('  Copying desktop-askpass-trampoline…')
   const trampolineSource = path.resolve(

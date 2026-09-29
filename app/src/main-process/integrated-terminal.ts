@@ -1,5 +1,7 @@
 import * as Fs from 'fs'
 import * as Os from 'os'
+import * as Path from 'path'
+import { app } from 'electron'
 import type { IPty } from 'node-pty'
 import type { WebContents } from 'electron'
 import * as ipcMain from './ipc-main'
@@ -31,6 +33,37 @@ function getShell(): { file: string; args: string[] } {
   }
 
   return { file: shell || '/bin/bash', args: [] }
+}
+
+/**
+ * node-pty's published package ships its macOS spawn-helper without the
+ * executable bit which makes spawning fail with "posix_spawnp failed". The
+ * build fixes the permissions but make sure here too, e.g. for builds made
+ * before that fix.
+ */
+async function ensureSpawnHelperIsExecutable() {
+  if (process.platform !== 'darwin') {
+    return
+  }
+
+  const helper = Path.join(
+    app.getAppPath(),
+    'node_modules',
+    'node-pty',
+    'prebuilds',
+    `${process.platform}-${process.arch}`,
+    'spawn-helper'
+  )
+
+  try {
+    await Fs.promises.access(helper, Fs.constants.X_OK)
+  } catch {
+    try {
+      await Fs.promises.chmod(helper, 0o755)
+    } catch (e) {
+      log.warn(`Unable to make ${helper} executable`, e)
+    }
+  }
 }
 
 async function getWorkingDirectory(cwd: string | null) {
@@ -95,6 +128,7 @@ export function registerIntegratedTerminalHandlers() {
       // Loaded lazily so that a missing or broken native module only breaks
       // the integrated terminal rather than the whole app.
       const { spawn } = await import('node-pty')
+      await ensureSpawnHelperIsExecutable()
 
       const { file, args } = getShell()
       const pty = spawn(file, args, {
