@@ -2,7 +2,7 @@
   "name": "desktop",
   "productName": "MS2026 Desktop",
   "bundleID": "jp.hal2026ms.desktop",
-  "companyName": "GitHub, Inc.",
+  "companyName": "HAL2026_MS",
   "version": "3.6.7-beta2",
   "main": "./main.js",
   "repository": {

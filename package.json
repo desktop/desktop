@@ -28,6 +28,7 @@
     "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=4096' webpack --config app/webpack.production.ts",
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
+    "build:team": "cross-env RELEASE_CHANNEL=production yarn build:prod && cross-env RELEASE_CHANNEL=production yarn package",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
     "generate-octicons": "ts-node -P script/tsconfig.json script/generate-octicons.ts",
     "generate-example-usage-data": "cross-env TEST_ENV=1 node --disable-warning=ExperimentalWarning --experimental-test-module-mocks --conditions=import --import tsx --import ./app/test/globals.mts script/generate-example-usage-data.mjs",

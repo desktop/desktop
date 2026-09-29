@@ -62,6 +62,9 @@ type PullRequestReviewStatField =
 
 const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
+/** Whether usage stats are submitted to GitHub, see defaultPostImplementation */
+const sendUsageStatsToGitHub = false
+
 const StatsEndpoint =
   'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
 
@@ -622,6 +625,13 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
 }
 
 const defaultPostImplementation = (body: StatsPayload) => {
+  // This team build never sends usage data to GitHub, it isn't an official
+  // GitHub Desktop build. Pretend the submission succeeded so the local stats
+  // are cleared as usual.
+  if (!sendUsageStatsToGitHub) {
+    return Promise.resolve(new Response(null, { status: 204 }))
+  }
+
   if (enableNewStatsEndpoint()) {
     return fetch(StatsEndpoint, {
       method: 'POST',

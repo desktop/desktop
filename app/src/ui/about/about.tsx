@@ -90,6 +90,10 @@ class UpdateInfo extends React.Component<IUpdateInfoProps> {
  */
 export class About extends React.Component<IAboutProps> {
   private get canCheckForUpdates() {
+    if (__UPDATES_URL__ === '' && this.props.allowDevelopment !== true) {
+      return false
+    }
+
     return (
       __RELEASE_CHANNEL__ !== 'development' ||
       this.props.allowDevelopment === true
@@ -148,10 +152,14 @@ export class About extends React.Component<IAboutProps> {
     }
 
     if (!this.canCheckForUpdates) {
-      return (
+      return __RELEASE_CHANNEL__ === 'development' ? (
         <p>
           The application is currently running in development and will not
           receive any updates.
+        </p>
+      ) : (
+        <p>
+          このビルドは自動更新されません。新しいバージョンはチームのビルドフォルダから入手してください。
         </p>
       )
     }
@@ -232,7 +240,8 @@ export class About extends React.Component<IAboutProps> {
   }
 
   private renderBetaLink() {
-    if (__RELEASE_CHANNEL__ === 'beta') {
+    // The beta channel is for the official app
+    if (__RELEASE_CHANNEL__ === 'beta' || __UPDATES_URL__ === '') {
       return
     }
 

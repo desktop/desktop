@@ -7,7 +7,9 @@ export function getKeyForAccount(account: Account): string {
 
 /** Get the auth key for the endpoint. */
 export function getKeyForEndpoint(endpoint: string): string {
-  const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub'
+  // Namespaced by the app name so that this build doesn't read, overwrite or
+  // delete the credentials of an installed official GitHub Desktop.
+  const appName = __DEV__ ? `${__APP_NAME__} Dev` : __APP_NAME__
 
   return `${appName} - ${endpoint}`
 }

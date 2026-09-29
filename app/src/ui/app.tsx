@@ -661,7 +661,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     inBackground: boolean,
     skipGuidCheck: boolean = false
   ) {
-    if (__LINUX__ || __RELEASE_CHANNEL__ === 'development') {
+    // Updates are disabled unless the build was given an update server, see
+    // getUpdatesURL in script/dist-info.ts
+    if (
+      __LINUX__ ||
+      __RELEASE_CHANNEL__ === 'development' ||
+      __UPDATES_URL__ === ''
+    ) {
       return
     }
 

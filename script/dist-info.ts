@@ -95,7 +95,9 @@ export function getWindowsDeltaNugetPackagePath() {
 }
 
 export function getWindowsIdentifierName() {
-  return 'GitHubDesktop'
+  // Distinct from the official app ('GitHubDesktop') so that installing this
+  // build on Windows doesn't replace or conflict with GitHub Desktop.
+  return 'MS2026Desktop'
 }
 
 export function getBundleSizes() {
@@ -135,19 +137,22 @@ export function getDistArchitecture(): 'arm64' | 'x64' {
   return 'x64'
 }
 
+/**
+ * The URL the app checks for updates, or an empty string to disable updates.
+ *
+ * This team build must never use GitHub's update server since that would
+ * replace it with the official GitHub Desktop. Updates are disabled unless
+ * DESKTOP_UPDATES_URL points at a compatible update server of our own; new
+ * versions are distributed manually instead.
+ */
 export function getUpdatesURL() {
-  // It is also possible to use a `x64/` path, but for now we'll leave the
-  // original URL without architecture in it (which will still work for
-  // compatibility reasons) in case anything goes wrong until we have everything
-  // sorted out.
-  const architecturePath = getDistArchitecture() === 'arm64' ? 'arm64/' : ''
-  return `https://central.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
+  return process.env.DESKTOP_UPDATES_URL ?? ''
 }
 
 export function shouldMakeDelta() {
   // Only production and beta channels include deltas. Test releases aren't
   // necessarily sequential so deltas wouldn't make sense.
-  return ['production', 'beta'].includes(getChannel())
+  return ['production', 'beta'].includes(getChannel()) && getUpdatesURL() !== ''
 }
 
 /**
