@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { getHostingServiceName } from '../../lib/gitea'
-import { encodePathAsUrl } from '../../lib/path'
+import { HomeHeader } from './home-header'
 import { Repository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
 import { MenuIDs } from '../../models/menu-ids'
@@ -51,8 +51,6 @@ function formatParentMenuLabel(menuItem: IMenuItemInfo) {
   const parentMenusText = menuItem.parentMenuLabels.join(' -> ')
   return formatMenuItemLabel(parentMenusText)
 }
-
-const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
   readonly dispatcher: Dispatcher
@@ -772,16 +770,7 @@ export class NoChanges extends React.Component<
     return (
       <div className="changes-interstitial">
         <div className="content">
-          <div className="interstitial-header">
-            <div className="text">
-              <h1>No local changes</h1>
-              <p>
-                There are no uncommitted changes in this repository. Here are
-                some friendly suggestions for what to do next.
-              </p>
-            </div>
-            <img src={PaperStackImage} className="blankslate-image" alt="" />
-          </div>
+          <HomeHeader />
           {this.renderActions()}
         </div>
       </div>

@@ -6,7 +6,14 @@
  */
 
 /** The icons available for team links, see TeamBar */
-export type TeamLinkIcon = 'folder' | 'build' | 'calendar' | 'repo' | 'document'
+export type TeamLinkIcon =
+  | 'folder'
+  | 'build'
+  | 'calendar'
+  | 'repo'
+  | 'document'
+  | 'docs'
+  | 'chat'
 
 export interface ITeamLink {
   /** Short label shown in the bar */
@@ -55,9 +62,21 @@ export const teamLinks: ReadonlyArray<ITeamLink> = [
     description: '仕様書のフォルダを開く',
     url: 'https://drive.google.com/drive/folders/1ygi4C8uLXuME0-aEfENOlbbKpjdrnGeG?usp=drive_link',
   },
+  {
+    label: 'ドキュメント',
+    icon: 'docs',
+    description: 'チームのドキュメントを開く',
+    url: 'https://msdocs.m1r4i.com/docs/Documents/README.md?b=develop',
+  },
+  {
+    label: 'Discord',
+    icon: 'chat',
+    description: 'チームの Discord を開く',
+    url: 'https://discord.com/channels/1539970951481921657/1539970953046528115',
+  },
 ]
 
-/** A greeting which changes with the time of day, shown in the team bar. */
+/** A greeting which changes with the time of day, shown on the home screen. */
 export function getTeamGreeting(date: Date = new Date()): string {
   const hour = date.getHours()
 

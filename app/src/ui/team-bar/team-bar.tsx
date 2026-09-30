@@ -1,7 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
 import {
-  getTeamGreeting,
   ITeamLink,
   TeamLinkIcon,
   teamLinks,
@@ -18,6 +17,8 @@ const teamLinkIcons: Record<TeamLinkIcon, OcticonSymbol> = {
   calendar: octicons.calendar,
   repo: octicons.repo,
   document: octicons.book,
+  docs: octicons.note,
+  chat: octicons.commentDiscussion,
 }
 
 interface ITeamBarProps {
@@ -48,7 +49,6 @@ interface ITeamBarState {
   readonly sessionCwd: string | null
 
   readonly terminalHeight: number
-  readonly greeting: string
 }
 
 const terminalHeightKey = 'team-bar-terminal-height'
@@ -103,7 +103,6 @@ class TeamLinkButton extends React.Component<ITeamLinkButtonProps> {
  */
 export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
   private readonly terminalRef = React.createRef<IntegratedTerminal>()
-  private greetingTimer: number | null = null
   private dragStart: { y: number; height: number } | null = null
 
   public constructor(props: ITeamBarProps) {
@@ -114,25 +113,17 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
       sessionKey: 0,
       sessionCwd: props.terminalCwd,
       terminalHeight: loadTerminalHeight(),
-      greeting: getTeamGreeting(),
     }
   }
 
   public componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown)
-    this.greetingTimer = window.setInterval(
-      () => this.setState({ greeting: getTeamGreeting() }),
-      5 * 60 * 1000
-    )
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('mousemove', this.onDragMove)
     window.removeEventListener('mouseup', this.onDragEnd)
-    if (this.greetingTimer !== null) {
-      window.clearInterval(this.greetingTimer)
-    }
   }
 
   private onKeyDown = (e: KeyboardEvent) => {
@@ -273,7 +264,7 @@ export class TeamBar extends React.Component<ITeamBarProps, ITeamBarState> {
         <div id="team-bar" role="toolbar" aria-label="チームリンク">
           <span className="team-badge">{teamName}</span>
           <nav className="team-links">{teamLinks.map(this.renderLink)}</nav>
-          <span className="team-greeting">{this.state.greeting}</span>
+          <span className="team-bar-spacer" />
           <Button
             className={classNames('team-bar-button', 'team-terminal-toggle', {
               active: terminalOpen,

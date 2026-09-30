@@ -31,14 +31,8 @@
     overflow: hidden;
   }
 
-  .team-greeting {
+  .team-bar-spacer {
     flex: 1 1 auto;
-    min-width: 0;
-    padding: 0 var(--spacing);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: right;
-    color: var(--text-secondary-color);
   }
 
   .team-terminal-toggle.active {
