@@ -18,6 +18,8 @@ If you opt in to usage reporting, the payload contains a pseudonymous `guid` ide
 
 GitHub Desktop sends requests in the format shown in our [generated example usage data](./usage-data.json). The field names, value types, and request structure match the application's current implementation. Values such as `1` and `"example"` are synthetic and do not represent data from a real user or device.
 
+Notification metrics distinguish the in-app preference (`notificationsEnabled`) from OS permission (`notificationsPermission`). Permission is reported as `granted`, `denied`, or `default` (no explicit choice), or `null` when notifications are unavailable. On Windows, `default` permits notifications.
+
 Copilot-based features track their own metrics separately. GitHub Desktop relies on the [GitHub Copilot SDK](https://docs.github.com/en/copilot/responsible-use/copilot-cli) for those features. You can learn more in the [GitHub Copilot Trust Center](https://copilot.github.trust.page/).
 
 ## Enable or disable usage reporting

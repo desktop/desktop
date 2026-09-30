@@ -16,6 +16,7 @@
         "dotComAccount": "true",
         "enterpriseAccount": "true",
         "notificationsEnabled": "true",
+        "notificationsPermission": "null",
         "launchedFromApplicationsFolder": "null",
         "linkUnderlinesVisible": "true",
         "diffCheckMarksVisible": "true",

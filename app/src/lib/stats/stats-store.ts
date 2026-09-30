@@ -46,6 +46,8 @@ import { getHooksEnvEnabled } from '../hooks/config'
 import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
+import { DesktopNotificationPermission } from 'desktop-notifications'
+import { getSystemNotificationsPermission } from '../notifications/notification-permission'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -438,6 +440,9 @@ interface ICalculatedStats {
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
 
+  /** OS permission to display notifications, or null when unavailable. */
+  readonly notificationsPermission: DesktopNotificationPermission | null
+
   /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean
 
@@ -545,6 +550,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     dotComAccount,
     enterpriseAccount,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -582,6 +588,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     dotComAccount,
     enterpriseAccount,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -838,6 +845,7 @@ export class StatsStore implements IStatsStore {
       selectedTerminalEmulator,
       selectedTextEditor,
       notificationsEnabled: getNotificationsEnabled(),
+      notificationsPermission: await getSystemNotificationsPermission(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,

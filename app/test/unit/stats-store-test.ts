@@ -1,5 +1,6 @@
-import { afterEach, describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 import assert from 'node:assert'
+import { ipcRenderer } from 'electron'
 import { TestStatsDatabase } from '../helpers/databases'
 
 import { StatsStore } from '../../src/lib/stats'
@@ -14,7 +15,20 @@ describe('StatsStore', () => {
   }
   let statsDb: TestStatsDatabase
 
+  beforeEach(() => {
+    const invoke = ipcRenderer.invoke
+    mock.method(
+      ipcRenderer,
+      'invoke',
+      async (channel: string, ...args: unknown[]) =>
+        channel === 'get-notifications-permission'
+          ? 'granted'
+          : invoke(channel, ...args)
+    )
+  })
+
   afterEach(() => {
+    mock.restoreAll()
     statsDb.close()
     localStorage.removeItem('has-sent-stats-opt-in-ping')
     localStorage.removeItem('last-daily-stats-report')
@@ -134,6 +148,10 @@ describe('StatsStore', () => {
     const payload = JSON.parse(requestBody ?? '')
     assert.strictEqual(payload.eventType, 'usage')
     assert.strictEqual(payload.commits, 1)
+    assert.strictEqual(
+      payload.notificationsPermission,
+      __DARWIN__ || __WIN32__ ? 'granted' : null
+    )
     assert.strictEqual(payload.mainReadyTime, 112.29)
     assert.strictEqual('events' in payload, false)
     assert.strictEqual('dimensions' in payload, false)
@@ -189,6 +207,14 @@ describe('StatsStore', () => {
     assert.strictEqual(payload.events[0].measures.loadTime, 15482)
     assert.strictEqual(payload.events[0].measures.rendererReadyTime, 7216)
     assert.strictEqual(payload.events[0].dimensions.version, 'dev')
+    assert.strictEqual(
+      payload.events[0].dimensions.notificationsPermission,
+      __DARWIN__ || __WIN32__ ? 'granted' : 'null'
+    )
+    assert.strictEqual(
+      'notificationsPermission' in payload.events[0].measures,
+      false
+    )
     assert.strictEqual(
       typeof payload.events[0].dimensions.gitHooksEnvEnabled,
       'string'
