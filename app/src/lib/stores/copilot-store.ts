@@ -1111,6 +1111,7 @@ export class CopilotStore extends BaseStore {
             mode: 'append',
             content: buildCommitMessageSystemPrompt(hasRules, tags),
           },
+          coauthorEnabled: false,
           availableTools: [],
           enableSessionStore: false,
           createSessionFsProvider: createCopilotInMemorySessionFsProvider,
