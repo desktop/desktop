@@ -84,17 +84,24 @@ describe('showNotification', () => {
     )
   })
 
-  it('propagates permission lookup failures after native submission', async t => {
+  it('does not count native submission with unknown permission', async t => {
     const ipc = new MockIPC()
     ipc.onInvoke('show-notification', async () => 'notification-id')
     ipc.onInvoke('get-notifications-permission', async () => {
       throw new Error('Permission lookup failed')
     })
     t.mock.method(ipcRenderer, 'invoke', ipc.invoke.bind(ipc))
-    await assert.rejects(
-      showNotification({ title: 'Title', body: 'Body', onClick: () => {} }),
-      /Permission lookup failed/
+    const warn = t.mock.method(log, 'warn')
+    assert.strictEqual(
+      await showNotification({
+        title: 'Title',
+        body: 'Body',
+        onClick: () => {},
+      }),
+      false
     )
+    assert.strictEqual(warn.mock.callCount(), 1)
+    assert.strictEqual(notificationCallbacks.size, 1)
   })
 
   it('does not count notifications when neither API is available', async t => {

@@ -63,14 +63,35 @@ describe('system notification permission', () => {
     assert.strictEqual(await getSystemNotificationsPermission(), null)
   })
 
-  it('propagates permission lookup failures', async t => {
+  it('reports unknown and logs native permission lookup failures', async t => {
     nativeNotificationsSupported = true
+    const error = new Error('Permission lookup failed')
     t.mock.method(ipcRenderer, 'invoke', async () => {
-      throw new Error('Permission lookup failed')
+      throw error
     })
-    await assert.rejects(
-      getSystemNotificationsPermission(),
-      /Permission lookup failed/
-    )
+    const warn = t.mock.method(log, 'warn')
+
+    assert.strictEqual(await getSystemNotificationsPermission(), 'unknown')
+    assert.deepStrictEqual(warn.mock.calls[0].arguments, [
+      'Failed to read system notification permission',
+      error,
+    ])
+  })
+
+  it('reports unknown and logs HTML5 permission lookup failures', async t => {
+    nativeNotificationsSupported = false
+    const error = new Error('Permission lookup failed')
+    mockNotification(t, {
+      get permission() {
+        throw error
+      },
+    })
+    const warn = t.mock.method(log, 'warn')
+
+    assert.strictEqual(await getSystemNotificationsPermission(), 'unknown')
+    assert.deepStrictEqual(warn.mock.calls[0].arguments, [
+      'Failed to read system notification permission',
+      error,
+    ])
   })
 })

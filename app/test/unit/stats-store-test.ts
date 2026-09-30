@@ -155,6 +155,90 @@ describe('StatsStore', () => {
     assert.strictEqual(await statsDb.dailyMeasures.count(), 1)
   })
 
+  for (const newEndpoint of [false, true]) {
+    it(`reports unknown permission to the ${
+      newEndpoint ? 'new' : 'legacy'
+    } endpoint after lookup failure`, async t => {
+      statsDb = await createStatsDb()
+      localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+      const previousPreviewFeatures =
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      if (newEndpoint) {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+      } else {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        'Notification'
+      )
+      Object.defineProperty(globalThis, 'Notification', {
+        configurable: true,
+        value: {
+          get permission() {
+            throw new Error('Permission lookup failed')
+          },
+        },
+      })
+      t.after(() => {
+        if (previousPreviewFeatures === undefined) {
+          delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+        } else {
+          process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
+        }
+        if (descriptor === undefined) {
+          Reflect.deleteProperty(globalThis, 'Notification')
+        } else {
+          Object.defineProperty(globalThis, 'Notification', descriptor)
+        }
+      })
+      const invoke = ipcRenderer.invoke
+      t.mock.method(
+        ipcRenderer,
+        'invoke',
+        async (channel: string, ...args: unknown[]) => {
+          if (channel === 'get-notifications-permission') {
+            throw new Error('Permission lookup failed')
+          }
+          return invoke(channel, ...args)
+        }
+      )
+      const warn = t.mock.method(log, 'warn')
+      let requestBody: string | undefined
+      t.mock.method(
+        globalThis,
+        'fetch',
+        async (_input: string | URL | Request, init?: RequestInit) => {
+          requestBody = typeof init?.body === 'string' ? init.body : undefined
+          return new Response(null, { status: 200 })
+        }
+      )
+      const store = new StatsStore(statsDb, new TestActivityMonitor())
+      await store.increment('commits')
+
+      assert.strictEqual(await store.sendStats([], []), true)
+      assert.strictEqual(warn.mock.callCount(), 1)
+      assert.ok(requestBody)
+      const payload = JSON.parse(requestBody)
+      assert.strictEqual(
+        newEndpoint
+          ? payload.events[0].dimensions.notificationsPermission
+          : payload.notificationsPermission,
+        'unknown'
+      )
+      assert.strictEqual(
+        newEndpoint ? payload.events[0].measures.commits : payload.commits,
+        1
+      )
+      if (newEndpoint) {
+        assert.strictEqual(
+          'notificationsPermission' in payload.events[0].measures,
+          false
+        )
+      }
+    })
+  }
+
   it('posts flat stats to the legacy endpoint', async t => {
     statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()

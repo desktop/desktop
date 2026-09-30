@@ -4,11 +4,22 @@ import {
 } from 'desktop-notifications'
 import { getNotificationsPermission } from '../../ui/main-process-proxy'
 
-/** Gets OS notification permission, or null when notifications are unavailable. */
-export async function getSystemNotificationsPermission(): Promise<DesktopNotificationPermission | null> {
-  if (supportsNotifications()) {
-    return getNotificationsPermission()
-  }
+/** OS permission, unknown on lookup failure, or null when no API is available. */
+export type SystemNotificationsPermission =
+  | DesktopNotificationPermission
+  | 'unknown'
+  | null
 
-  return typeof Notification === 'undefined' ? null : Notification.permission
+/** Gets OS notification permission without interrupting reporting on failure. */
+export async function getSystemNotificationsPermission(): Promise<SystemNotificationsPermission> {
+  try {
+    if (supportsNotifications()) {
+      return await getNotificationsPermission()
+    }
+
+    return typeof Notification === 'undefined' ? null : Notification.permission
+  } catch (error) {
+    log.warn('Failed to read system notification permission', error)
+    return 'unknown'
+  }
 }
