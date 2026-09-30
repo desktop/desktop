@@ -66,6 +66,5 @@ export async function showNotification(
 
   notificationCallbacks.set(notificationID, options.onClick)
   // Native macOS notifications may request permission while being shown.
-  const permission = await getSystemNotificationsPermission()
-  return permission === 'granted' || (__WIN32__ && permission === 'default')
+  return (await getSystemNotificationsPermission()) === true
 }

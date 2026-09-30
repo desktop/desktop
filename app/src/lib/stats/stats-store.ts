@@ -46,10 +46,7 @@ import { getHooksEnvEnabled } from '../hooks/config'
 import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
-import {
-  getSystemNotificationsPermission,
-  SystemNotificationsPermission,
-} from '../notifications/notification-permission'
+import { getSystemNotificationsPermission } from '../notifications/notification-permission'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -448,8 +445,8 @@ interface ICalculatedStats {
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
 
-  /** OS permission, unknown on lookup failure, or null when unavailable. */
-  readonly notificationsPermission: SystemNotificationsPermission
+  /** Whether OS permission allows notifications, or null if unavailable or unknown. */
+  readonly notificationsPermission: boolean | null
 
   /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean

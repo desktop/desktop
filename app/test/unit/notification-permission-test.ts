@@ -34,25 +34,38 @@ function mockNotification(t: TestContext, value: unknown) {
 
 describe('system notification permission', () => {
   for (const permission of ['granted', 'denied', 'default'] as const) {
-    it(`reads native ${permission} permission without requesting it`, async t => {
-      nativeNotificationsSupported = true
-      const ipc = new MockIPC()
-      ipc.onInvoke('get-notifications-permission', async () => permission)
-      t.mock.method(ipcRenderer, 'invoke', ipc.invoke.bind(ipc))
+    for (const windows of [false, true]) {
+      it(`normalizes native ${permission} permission on ${
+        windows ? 'Windows' : 'macOS'
+      } without requesting it`, async t => {
+        const previousWindows = __WIN32__
+        Object.assign(globalThis, { __WIN32__: windows })
+        t.after(() => Object.assign(globalThis, { __WIN32__: previousWindows }))
+        nativeNotificationsSupported = true
+        const ipc = new MockIPC()
+        ipc.onInvoke('get-notifications-permission', async () => permission)
+        t.mock.method(ipcRenderer, 'invoke', ipc.invoke.bind(ipc))
 
-      assert.strictEqual(await getSystemNotificationsPermission(), permission)
-      assert.deepStrictEqual(
-        ipc.invokes.map(call => call.channel),
-        ['get-notifications-permission']
-      )
-    })
+        assert.strictEqual(
+          await getSystemNotificationsPermission(),
+          permission === 'granted' || (windows && permission === 'default')
+        )
+        assert.deepStrictEqual(
+          ipc.invokes.map(call => call.channel),
+          ['get-notifications-permission']
+        )
+      })
+    }
 
     it(`reads HTML5 ${permission} permission without native IPC`, async t => {
       nativeNotificationsSupported = false
       mockNotification(t, { permission })
       const invoke = t.mock.method(ipcRenderer, 'invoke')
 
-      assert.strictEqual(await getSystemNotificationsPermission(), permission)
+      assert.strictEqual(
+        await getSystemNotificationsPermission(),
+        permission === 'granted'
+      )
       assert.strictEqual(invoke.mock.callCount(), 0)
     })
   }
@@ -63,7 +76,7 @@ describe('system notification permission', () => {
     assert.strictEqual(await getSystemNotificationsPermission(), null)
   })
 
-  it('reports unknown and logs native permission lookup failures', async t => {
+  it('reports null and logs native permission lookup failures', async t => {
     nativeNotificationsSupported = true
     const error = new Error('Permission lookup failed')
     t.mock.method(ipcRenderer, 'invoke', async () => {
@@ -71,14 +84,14 @@ describe('system notification permission', () => {
     })
     const warn = t.mock.method(log, 'warn')
 
-    assert.strictEqual(await getSystemNotificationsPermission(), 'unknown')
+    assert.strictEqual(await getSystemNotificationsPermission(), null)
     assert.deepStrictEqual(warn.mock.calls[0].arguments, [
       'Failed to read system notification permission',
       error,
     ])
   })
 
-  it('reports unknown and logs HTML5 permission lookup failures', async t => {
+  it('reports null and logs HTML5 permission lookup failures', async t => {
     nativeNotificationsSupported = false
     const error = new Error('Permission lookup failed')
     mockNotification(t, {
@@ -88,7 +101,7 @@ describe('system notification permission', () => {
     })
     const warn = t.mock.method(log, 'warn')
 
-    assert.strictEqual(await getSystemNotificationsPermission(), 'unknown')
+    assert.strictEqual(await getSystemNotificationsPermission(), null)
     assert.deepStrictEqual(warn.mock.calls[0].arguments, [
       'Failed to read system notification permission',
       error,
