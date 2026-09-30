@@ -38,14 +38,29 @@ const fixedTags: ICommitMessagePromptTags = {
 }
 
 describe('buildCommitMessageSystemPrompt', () => {
-  it('instructs Copilot not to add itself as a co-author with or without repo rules', () => {
-    for (const prompt of [
-      buildCommitMessageSystemPrompt(),
-      buildCommitMessageSystemPrompt(true, fixedTags),
-    ]) {
-      assert.match(prompt, /Do not add a Co-authored-by: Copilot trailer/)
+  it(
+    'defaults to no Copilot attribution but defers to custom instructions',
+    () => {
+      const base = buildCommitMessageSystemPrompt()
+      const withRules = buildCommitMessageSystemPrompt(true, fixedTags)
+
+      for (const prompt of [base, withRules]) {
+        assert.match(
+          prompt,
+          /By default, do not add a Co-authored-by: Copilot trailer/
+        )
+        assert.match(
+          prompt,
+          /If custom instructions or explicit commit-message rules\s+require Copilot attribution, follow those instructions instead/
+        )
+      }
+
+      assert.match(
+        withRules,
+        /constraints may override default commit-message preferences, including the\s+default Copilot-attribution guidance/
+      )
     }
-  })
+  )
 
   it('returns the base system prompt unchanged when there are no rules', () => {
     const base = buildCommitMessageSystemPrompt()
