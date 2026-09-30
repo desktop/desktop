@@ -56,6 +56,7 @@ type PullRequestReviewStatFieldInfix =
 
 type PullRequestReviewStatFieldSuffix =
   | 'NotificationCount'
+  | 'NotificationShownCount'
   | 'NotificationClicked'
   | 'DialogSwitchToPullRequestCount'
 
@@ -221,6 +222,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationShownCount: 0,
   checksFailedNotificationFromRecentRepoCount: 0,
   checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
@@ -230,15 +232,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewNotificationFromRecentRepoCount: 0,
   pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationShownCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationShownCount: 0,
   pullRequestReviewCommentedNotificationClicked: 0,
   pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationShownCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
   pullRequestCommentNotificationCount: 0,
+  pullRequestCommentNotificationShownCount: 0,
   pullRequestCommentNotificationClicked: 0,
   pullRequestCommentNotificationFromRecentRepoCount: 0,
   pullRequestCommentNotificationFromNonRecentRepoCount: 0,
@@ -1367,10 +1373,21 @@ export class StatsStore implements IStatsStore {
     return this.increment(statField)
   }
 
-  public recordPullRequestReviewNotificationShown(
+  /** Records a PR review Alive event eligible for a notification. */
+  public recordPullRequestReviewNotification(
     reviewType: ValidNotificationPullRequestReviewState
   ): Promise<void> {
     return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  /** Records a PR review notification accepted with OS permission. */
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'NotificationShownCount'
+    )
   }
 
   public recordPullRequestReviewNotificationClicked(

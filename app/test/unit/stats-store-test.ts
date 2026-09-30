@@ -85,6 +85,55 @@ describe('StatsStore', () => {
     assert.strictEqual(statsEntry?.openInCopilotAppCount, 1)
   })
 
+  it('persists eligible and shown notification counts separately', async () => {
+    statsDb = await createStatsDb()
+    const store = new StatsStore(statsDb, new TestActivityMonitor(), fakePost)
+
+    await store.increment('checksFailedNotificationCount', 2)
+    await store.increment('checksFailedNotificationShownCount')
+    await store.increment('pullRequestCommentNotificationCount', 2)
+    await store.increment('pullRequestCommentNotificationShownCount')
+    for (const state of [
+      'APPROVED',
+      'COMMENTED',
+      'CHANGES_REQUESTED',
+    ] as const) {
+      await store.recordPullRequestReviewNotification(state)
+      await store.recordPullRequestReviewNotification(state)
+      await store.recordPullRequestReviewNotificationShown(state)
+    }
+
+    const statsEntry = await statsDb.dailyMeasures.limit(1).first()
+    assert.strictEqual(statsEntry?.checksFailedNotificationCount, 2)
+    assert.strictEqual(statsEntry?.checksFailedNotificationShownCount, 1)
+    assert.strictEqual(statsEntry?.pullRequestCommentNotificationCount, 2)
+    assert.strictEqual(statsEntry?.pullRequestCommentNotificationShownCount, 1)
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewApprovedNotificationCount,
+      2
+    )
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewApprovedNotificationShownCount,
+      1
+    )
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewCommentedNotificationCount,
+      2
+    )
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewCommentedNotificationShownCount,
+      1
+    )
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewChangesRequestedNotificationCount,
+      2
+    )
+    assert.strictEqual(
+      statsEntry?.pullRequestReviewChangesRequestedNotificationShownCount,
+      1
+    )
+  })
+
   it('reports stats on demand in a test environment', async () => {
     statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
@@ -132,6 +181,7 @@ describe('StatsStore', () => {
 
     const store = new StatsStore(statsDb, activityMonitor)
     await store.increment('commits')
+    await store.increment('checksFailedNotificationShownCount')
     await store.recordLaunchStats({
       mainReadyTime: 112.29,
       loadTime: 15481.89,
@@ -148,6 +198,7 @@ describe('StatsStore', () => {
     const payload = JSON.parse(requestBody ?? '')
     assert.strictEqual(payload.eventType, 'usage')
     assert.strictEqual(payload.commits, 1)
+    assert.strictEqual(payload.checksFailedNotificationShownCount, 1)
     assert.strictEqual(
       payload.notificationsPermission,
       __DARWIN__ || __WIN32__ ? 'granted' : null
@@ -186,6 +237,7 @@ describe('StatsStore', () => {
 
     const store = new StatsStore(statsDb, activityMonitor)
     await store.increment('commits')
+    await store.increment('checksFailedNotificationShownCount')
     await store.recordLaunchStats({
       mainReadyTime: 112.29,
       loadTime: 15481.89,
@@ -203,6 +255,10 @@ describe('StatsStore', () => {
     assert.strictEqual(payload.events[0].app, 'desktop')
     assert.strictEqual(payload.events[0].event_type, 'usage')
     assert.strictEqual(payload.events[0].measures.commits, 1)
+    assert.strictEqual(
+      payload.events[0].measures.checksFailedNotificationShownCount,
+      1
+    )
     assert.strictEqual(payload.events[0].measures.mainReadyTime, 112)
     assert.strictEqual(payload.events[0].measures.loadTime, 15482)
     assert.strictEqual(payload.events[0].measures.rendererReadyTime, 7216)

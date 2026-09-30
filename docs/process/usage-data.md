@@ -20,6 +20,8 @@ GitHub Desktop sends requests in the format shown in our [generated example usag
 
 Notification metrics distinguish the in-app preference (`notificationsEnabled`) from OS permission (`notificationsPermission`). Permission is reported as `granted`, `denied`, or `default` (no explicit choice), or `null` when notifications are unavailable. On Windows, `default` permits notifications.
 
+For checks failed, PR reviews, and PR comments, existing `NotificationCount` measures count eligible Alive events. Corresponding `NotificationShownCount` measures count notifications successfully accepted with OS permission (or confirmed by the HTML5 `show` event). Native notification APIs do not confirm that a banner was visible; OS settings such as Focus mode can still suppress it. Clicks and events for other repositories do not increment these shown counts.
+
 Copilot-based features track their own metrics separately. GitHub Desktop relies on the [GitHub Copilot SDK](https://docs.github.com/en/copilot/responsible-use/copilot-cli) for those features. You can learn more in the [GitHub Copilot Trust Center](https://copilot.github.trust.page/).
 
 ## Enable or disable usage reporting
