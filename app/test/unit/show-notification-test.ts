@@ -133,6 +133,45 @@ describe('showNotification', () => {
     assert.strictEqual(warn.mock.callCount(), 1)
   })
 
+  it('logs synchronous HTML5 creation failures and returns false', async t => {
+    nativeNotificationsSupported = false
+    const error = new DOMException(
+      'Notifications are not allowed',
+      'NotAllowedError'
+    )
+    const descriptor = Object.getOwnPropertyDescriptor(
+      globalThis,
+      'Notification'
+    )
+    function Notification() {
+      throw error
+    }
+    Object.defineProperty(globalThis, 'Notification', {
+      configurable: true,
+      value: Notification,
+    })
+    t.after(() => {
+      if (descriptor === undefined) {
+        Reflect.deleteProperty(globalThis, 'Notification')
+      } else {
+        Object.defineProperty(globalThis, 'Notification', descriptor)
+      }
+    })
+    const warn = t.mock.method(log, 'warn')
+    const onClick = t.mock.fn()
+
+    assert.strictEqual(
+      await showNotification({ title: 'Title', body: 'Body', onClick }),
+      false
+    )
+    assert.strictEqual(onClick.mock.callCount(), 0)
+    assert.strictEqual(notificationCallbacks.size, 0)
+    assert.deepStrictEqual(warn.mock.calls[0].arguments, [
+      'Failed to create system notification',
+      error,
+    ])
+  })
+
   for (const event of ['show', 'error'] as const) {
     it(`waits for the HTML5 ${event} event`, async t => {
       nativeNotificationsSupported = false

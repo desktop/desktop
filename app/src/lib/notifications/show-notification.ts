@@ -31,9 +31,15 @@ export async function showNotification(
       return false
     }
 
-    const notification = new Notification(options.title, {
-      body: options.body,
-    })
+    let notification: Notification
+    try {
+      notification = new Notification(options.title, {
+        body: options.body,
+      })
+    } catch (error) {
+      log.warn('Failed to create system notification', error)
+      return false
+    }
 
     notification.onclick = () => {
       focusWindow()
