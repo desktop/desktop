@@ -257,9 +257,8 @@ changeset is small enough that it can be described in the commit title or if you
 don't have enough context.
 
 By default, do not add a Co-authored-by: Copilot trailer or otherwise attribute
-the commit to Copilot. If custom instructions or explicit commit-message rules
-require Copilot attribution, follow those instructions instead. Commit authorship
-belongs to the developer unless those instructions say otherwise.
+the commit to Copilot, unless other instructions otherwise indicated directly this should happen. Commit authorship
+belongs to the developer unless other instructions say otherwise.
 
 Be brief and concise.
 

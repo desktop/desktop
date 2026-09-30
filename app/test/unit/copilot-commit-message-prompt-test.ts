@@ -38,7 +38,7 @@ const fixedTags: ICommitMessagePromptTags = {
 }
 
 describe('buildCommitMessageSystemPrompt', () => {
-  it('defaults to no Copilot attribution but defers to custom instructions', () => {
+  it('defaults to no Copilot attribution unless other instructions directly require it', () => {
     const base = buildCommitMessageSystemPrompt()
     const withRules = buildCommitMessageSystemPrompt(true, fixedTags)
 
@@ -49,7 +49,11 @@ describe('buildCommitMessageSystemPrompt', () => {
       )
       assert.match(
         prompt,
-        /If custom instructions or explicit commit-message rules\s+require Copilot attribution, follow those instructions instead/
+        /unless other instructions otherwise indicated directly this should happen/
+      )
+      assert.match(
+        prompt,
+        /Commit authorship\s+belongs to the developer unless other instructions say otherwise/
       )
     }
 
