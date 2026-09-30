@@ -170,7 +170,9 @@ export async function showFolderContents(
 
   if (!stats.isDirectory()) {
     log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
-    await dependencies.revealItem(path)
+    await dependencies
+      .revealItem(path)
+      .catch(err => log.error(`Unable to reveal folder '${path}'`, err))
     return
   }
 
