@@ -4,6 +4,8 @@ import * as React from 'react'
 
 import { Account } from '../../../src/models/account'
 import { DefaultCommitMessage } from '../../../src/models/commit-message'
+import { Commit } from '../../../src/models/commit'
+import { CommitIdentity } from '../../../src/models/commit-identity'
 import { DiffSelection, DiffSelectionType } from '../../../src/models/diff'
 import { GitHubRepository } from '../../../src/models/github-repository'
 import { Owner } from '../../../src/models/owner'
@@ -14,6 +16,7 @@ import {
   WorkingDirectoryFileChange,
 } from '../../../src/models/status'
 import { CommitMessage } from '../../../src/ui/changes/commit-message'
+import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 const PreviewFeaturesEnv = 'GITHUB_DESKTOP_PREVIEW_FEATURES'
 const previousPreviewFeatures = process.env[PreviewFeaturesEnv]
@@ -169,6 +172,8 @@ async function clickCopilotButton(component: CommitMessageTestInstance) {
 }
 
 afterEach(() => {
+  localStorage.removeItem('commit-mode')
+
   if (previousPreviewFeatures === undefined) {
     delete process.env[PreviewFeaturesEnv]
   } else {
@@ -223,5 +228,195 @@ describe('CommitMessage', () => {
     await clickCopilotButton(component)
 
     assert.equal(cancelCount, 1)
+  })
+
+  describe('commit modes', () => {
+    /**
+     * Rendering the component reads the repository's Git config, so it must
+     * point to an existing Git repository. The working directory of the test
+     * runner is the Desktop repository itself, which is only read from.
+     */
+    function createMountableRepository() {
+      const { gitHubRepository } = createRepository()
+      return new Repository(process.cwd(), 123, gitHubRepository, false)
+    }
+
+    function renderWithCommitModes(
+      overrides: Partial<CommitMessageProps> = {}
+    ) {
+      process.env[PreviewFeaturesEnv] = '1'
+      const requests = new Array<ReadonlyArray<WorkingDirectoryFileChange>>()
+      const props = createProps({
+        isGeneratingCommitMessage: false,
+        onCreateCopilotAssistedCommits: files => requests.push(files),
+        repository: createMountableRepository(),
+        ...overrides,
+      })
+      const view = render(<CommitMessage {...props} />)
+      return { view, props, requests }
+    }
+
+    function createCommit() {
+      const author = new CommitIdentity(
+        'Mona Lisa',
+        'mona@example.com',
+        new Date()
+      )
+      return new Commit(
+        'abc1234',
+        'abc1234',
+        'Summary',
+        '',
+        author,
+        author,
+        [],
+        [],
+        []
+      )
+    }
+
+    function getManualFields(container: HTMLElement) {
+      const fields = container.querySelector('.manual-commit-fields')
+      assert.ok(fields)
+      return fields
+    }
+
+    function switchToCopilotMode() {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Choose how to commit' })
+      )
+      fireEvent.click(screen.getByText('Commit with Copilot'))
+    }
+
+    it('does not offer commit modes when Copilot-assisted commits are unavailable', () => {
+      process.env[PreviewFeaturesEnv] = '1'
+      render(
+        <CommitMessage
+          {...createProps({
+            isGeneratingCommitMessage: false,
+            repository: createMountableRepository(),
+          })}
+        />
+      )
+
+      assert.equal(
+        screen.queryByRole('button', { name: 'Choose how to commit' }),
+        null
+      )
+    })
+
+    it('does not offer commit modes when the feature is disabled', () => {
+      const { view } = renderWithCommitModes()
+      view.unmount()
+      delete process.env[PreviewFeaturesEnv]
+
+      render(
+        <CommitMessage
+          {...createProps({
+            isGeneratingCommitMessage: false,
+            onCreateCopilotAssistedCommits: () => {},
+            repository: createMountableRepository(),
+          })}
+        />
+      )
+
+      assert.equal(
+        screen.queryByRole('button', { name: 'Choose how to commit' }),
+        null
+      )
+    })
+
+    it('does not offer commit modes when amending', () => {
+      renderWithCommitModes({
+        commitToAmend: createCommit(),
+      })
+
+      assert.equal(
+        screen.queryByRole('button', { name: 'Choose how to commit' }),
+        null
+      )
+    })
+
+    it('defaults to the manual commit mode', () => {
+      const { view } = renderWithCommitModes()
+
+      assert.ok(screen.getByRole('button', { name: 'Choose how to commit' }))
+      assert.equal(
+        getManualFields(view.container).getAttribute('aria-hidden'),
+        null
+      )
+      assert.equal(view.container.querySelector('.copilot-commit-panel'), null)
+    })
+
+    it('replaces the commit message fields with Copilot when switching to the Copilot mode', () => {
+      const { view } = renderWithCommitModes()
+
+      switchToCopilotMode()
+
+      const root = view.container.querySelector('.commit-message-component')
+      assert.ok(root?.classList.contains('copilot-commit-mode'))
+      assert.equal(
+        getManualFields(view.container).getAttribute('aria-hidden'),
+        'true'
+      )
+      assert.ok(view.container.querySelector('.copilot-commit-panel'))
+      assert.ok(screen.getByText('Let Copilot write your commits'))
+      assert.equal(localStorage.getItem('commit-mode'), 'copilot')
+    })
+
+    it('lets Copilot commit the selected files', () => {
+      const { requests, props } = renderWithCommitModes()
+
+      switchToCopilotMode()
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Commit 1 file to main with Copilot',
+        })
+      )
+
+      assert.equal(requests.length, 1)
+      assert.deepEqual(requests[0], props.filesSelected)
+    })
+
+    it('does not need a commit summary to commit with Copilot', () => {
+      renderWithCommitModes()
+
+      const button = screen.getByRole('button', {
+        name: 'Commit 1 file to main',
+      })
+      assert.equal(button.getAttribute('aria-disabled'), 'true')
+
+      switchToCopilotMode()
+
+      const copilotButton = screen.getByRole('button', {
+        name: 'Commit 1 file to main with Copilot',
+      })
+      assert.equal(copilotButton.getAttribute('aria-disabled'), null)
+    })
+
+    it('needs selected files to commit with Copilot', () => {
+      localStorage.setItem('commit-mode', 'copilot')
+      renderWithCommitModes({
+        anyFilesSelected: false,
+        filesSelected: [],
+        filesToBeCommittedCount: 0,
+      })
+
+      const button = screen.getByRole('button', {
+        name: 'Commit to main with Copilot',
+      })
+      assert.equal(button.getAttribute('aria-disabled'), 'true')
+    })
+
+    it('remembers the commit mode', () => {
+      localStorage.setItem('commit-mode', 'copilot')
+      const { view } = renderWithCommitModes()
+
+      assert.equal(
+        getManualFields(view.container).getAttribute('aria-hidden'),
+        'true'
+      )
+      assert.ok(view.container.querySelector('.copilot-commit-panel'))
+    })
   })
 })
