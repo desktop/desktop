@@ -64,6 +64,7 @@ import { isDotCom } from '../../lib/endpoint-capabilities'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import {
   enableCommitMessageGeneration,
+  enableCopilotAssistedCommit,
   enableCopilotSdkCommitMessageGeneration,
   enableHooksEnvironment,
 } from '../../lib/feature-flag'
@@ -71,6 +72,48 @@ import { getAccountForCommitMessageGeneration } from '../../lib/get-account-for-
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { HookProgress } from '../../lib/git'
 import { assertNever } from '../../lib/fatal-error'
+import {
+  DropdownSelectButton,
+  IDropdownSelectButtonOption,
+} from '../dropdown-select-button'
+import { CSSTransition } from 'react-transition-group'
+import { CopilotCommitPanel } from './copilot-commit-panel'
+
+/**
+ * How the user wants to create commits.
+ *
+ * - `manual`: the user writes the commit summary and description.
+ * - `copilot`: Copilot splits the selected changes into commits and writes
+ *   their messages.
+ */
+export type CommitMode = 'manual' | 'copilot'
+
+const CommitModeKey = 'commit-mode'
+
+/** Duration (in milliseconds) of the transition between commit modes */
+const CommitModeTransitionDuration = 300
+
+const commitModeOptions: ReadonlyArray<
+  IDropdownSelectButtonOption & { readonly id: CommitMode }
+> = [
+  {
+    id: 'manual',
+    label: 'Commit',
+    description: 'Write the commit summary and description yourself.',
+  },
+  {
+    id: 'copilot',
+    label: 'Commit with Copilot',
+    description:
+      'Copilot splits the selected changes into commits and writes their messages.',
+  },
+]
+
+function getStoredCommitMode(): CommitMode {
+  return localStorage.getItem(CommitModeKey) === 'copilot'
+    ? 'copilot'
+    : 'manual'
+}
 
 const addAuthorIcon: OcticonSymbolVariant = {
   w: 18,
@@ -238,6 +281,15 @@ interface ICommitMessageProps {
     repository: Repository,
     options: Partial<CommitOptions>
   ) => void
+
+  /**
+   * Callback to let Copilot split the selected files into commits and write
+   * their messages. The Copilot-assisted commit mode is only offered when
+   * this callback is provided.
+   */
+  readonly onCreateCopilotAssistedCommits?: (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => void
 }
 
 interface ICommitMessageState {
@@ -264,6 +316,12 @@ interface ICommitMessageState {
   readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
   readonly repoRuleCommitAuthorFailures: RepoRulesMetadataFailures
   readonly repoRuleBranchNameFailures: RepoRulesMetadataFailures
+
+  /**
+   * The commit mode chosen by the user. Note that it might not be the
+   * effective mode, see `isCopilotCommitMode`.
+   */
+  readonly commitMode: CommitMode
 }
 
 function findCommitMessageAutoCompleteProvider(
@@ -321,6 +379,7 @@ export class CommitMessage extends React.Component<
       repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
       repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
       repoRuleBranchNameFailures: new RepoRulesMetadataFailures(),
+      commitMode: getStoredCommitMode(),
     }
   }
 
@@ -571,7 +630,69 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    this.createCommit()
+    if (this.isCopilotCommitMode) {
+      this.createCopilotAssistedCommits()
+    } else {
+      this.createCommit()
+    }
+  }
+
+  private onCommitModeSubmit = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    option: IDropdownSelectButtonOption
+  ) => {
+    this.onSubmit()
+  }
+
+  private onCommitModeChanged = (option: IDropdownSelectButtonOption) => {
+    const commitMode: CommitMode =
+      option.id === 'copilot' ? 'copilot' : 'manual'
+    localStorage.setItem(CommitModeKey, commitMode)
+    this.setState({ commitMode })
+  }
+
+  /**
+   * Whether the user can choose to let Copilot split their changes into
+   * commits and write the commit messages.
+   */
+  private get isCopilotAssistedCommitAvailable() {
+    const { accounts, commitToAmend, onCreateCopilotAssistedCommits } =
+      this.props
+
+    return (
+      enableCopilotAssistedCommit() &&
+      onCreateCopilotAssistedCommits !== undefined &&
+      commitToAmend === null &&
+      accounts.some(enableCommitMessageGeneration)
+    )
+  }
+
+  /** Whether Copilot will be creating the commits. */
+  private get isCopilotCommitMode() {
+    return (
+      this.isCopilotAssistedCommitAvailable &&
+      this.state.commitMode === 'copilot'
+    )
+  }
+
+  private canCreateCopilotAssistedCommits() {
+    const { anyFilesSelected, isCommitting, isGeneratingCommitMessage } =
+      this.props
+
+    return (
+      this.isCopilotCommitMode &&
+      anyFilesSelected &&
+      isCommitting !== true &&
+      isGeneratingCommitMessage !== true
+    )
+  }
+
+  private createCopilotAssistedCommits() {
+    if (!this.canCreateCopilotAssistedCommits()) {
+      return
+    }
+
+    this.props.onCreateCopilotAssistedCommits?.(this.props.filesSelected)
   }
 
   private getCoAuthorTrailers() {
@@ -715,11 +836,19 @@ export class CommitMessage extends React.Component<
 
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (
-      isShortcutKey &&
-      event.key === 'Enter' &&
-      (this.canCommit() || this.canAmend()) &&
-      this.canExcecuteCommitShortcut(event)
+      !isShortcutKey ||
+      event.key !== 'Enter' ||
+      !this.canExcecuteCommitShortcut(event)
     ) {
+      return
+    }
+
+    if (this.isCopilotCommitMode) {
+      if (this.canCreateCopilotAssistedCommits()) {
+        this.createCopilotAssistedCommits()
+        event.preventDefault()
+      }
+    } else if (this.canCommit() || this.canAmend()) {
       this.createCommit()
       event.preventDefault()
     }
@@ -911,7 +1040,8 @@ export class CommitMessage extends React.Component<
   private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
     if (
       event.target instanceof HTMLTextAreaElement ||
-      event.target instanceof HTMLInputElement
+      event.target instanceof HTMLInputElement ||
+      this.isCopilotCommitMode
     ) {
       return
     }
@@ -1597,22 +1727,101 @@ export class CommitMessage extends React.Component<
     return undefined
   }
 
-  private renderSubmitButton() {
+  private renderCopilotCommitButtonContent = () => {
+    const { isCommitting } = this.props
+
+    return (
+      <>
+        {isCommitting ? (
+          <Loading />
+        ) : (
+          <Octicon className="copilot-icon" symbol={octicons.copilot} />
+        )}
+        {this.getCommittingButtonText()}
+        <span className="sr-only"> with Copilot</span>
+      </>
+    )
+  }
+
+  private renderManualCommitButtonContent = () => {
+    const { isCommitting, isGeneratingCommitMessage } = this.props
+    const loading =
+      isCommitting || isGeneratingCommitMessage ? <Loading /> : undefined
+
+    return (
+      <>
+        {loading}
+        {isGeneratingCommitMessage
+          ? 'Generating commit details…'
+          : this.getButtonText()}
+      </>
+    )
+  }
+
+  private renderCommitModeButton() {
+    const { isCommitting, isGeneratingCommitMessage, anyFilesSelected } =
+      this.props
+    const isCopilotCommitMode = this.isCopilotCommitMode
+    const isBusy = isCommitting === true || isGeneratingCommitMessage === true
+
+    const buttonEnabled = isCopilotCommitMode
+      ? this.canCreateCopilotAssistedCommits()
+      : this.isManualCommitButtonEnabled()
+
+    const tooltip = isCopilotCommitMode
+      ? buttonEnabled
+        ? `${this.getButtonTitle()} with Copilot`
+        : anyFilesSelected
+        ? undefined
+        : 'Select one or more files to commit'
+      : isGeneratingCommitMessage
+      ? 'Generating commit details…'
+      : this.getButtonTooltip(buttonEnabled)
+
+    return (
+      <DropdownSelectButton
+        className="commit-button-dropdown"
+        options={commitModeOptions}
+        checkedOption={isCopilotCommitMode ? 'copilot' : 'manual'}
+        disabled={!buttonEnabled}
+        dropdownDisabled={isBusy}
+        tooltip={tooltip}
+        tooltipDismissable={false}
+        onlyShowTooltipWhenOverflowed={buttonEnabled}
+        ariaDescribedBy={this.props.submitButtonAriaDescribedBy}
+        dropdownAriaLabel="Choose how to commit"
+        onCheckedOptionChange={this.onCommitModeChanged}
+        onSubmit={this.onCommitModeSubmit}
+        renderInvokeButtonContent={
+          isCopilotCommitMode
+            ? this.renderCopilotCommitButtonContent
+            : this.renderManualCommitButtonContent
+        }
+      />
+    )
+  }
+
+  private isManualCommitButtonEnabled() {
     const { isCommitting, isGeneratingCommitMessage } = this.props
     const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
-    const buttonEnabled =
+    return (
       (this.canCommit() || this.canAmend()) &&
       !isCommitting &&
       !isSummaryBlank &&
       !isGeneratingCommitMessage
-    const loading =
-      isCommitting || isGeneratingCommitMessage ? <Loading /> : undefined
-    const generatingCommitDetailsMessage = isGeneratingCommitMessage
+    )
+  }
+
+  private renderSubmitButton() {
+    if (this.isCopilotAssistedCommitAvailable) {
+      return this.renderCommitModeButton()
+    }
+
+    const { isGeneratingCommitMessage } = this.props
+    const buttonEnabled = this.isManualCommitButtonEnabled()
+    const tooltip = isGeneratingCommitMessage
       ? 'Generating commit details…'
-      : null
-    const tooltip =
-      generatingCommitDetailsMessage ?? this.getButtonTooltip(buttonEnabled)
-    const commitButton = generatingCommitDetailsMessage ?? this.getButtonText()
+      : this.getButtonTooltip(buttonEnabled)
 
     return (
       <Button
@@ -1625,10 +1834,7 @@ export class CommitMessage extends React.Component<
         onlyShowTooltipWhenOverflowed={buttonEnabled}
         ariaDescribedBy={this.props.submitButtonAriaDescribedBy}
       >
-        <>
-          {loading}
-          {commitButton}
-        </>
+        {this.renderManualCommitButtonContent()}
       </Button>
     )
   }
@@ -1730,10 +1936,36 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private renderCopilotCommitPanel(isCopilotCommitMode: boolean) {
+    const { filesSelected, isCommitting, isGeneratingCommitMessage } =
+      this.props
+
+    return (
+      <CSSTransition
+        in={isCopilotCommitMode}
+        timeout={CommitModeTransitionDuration}
+        classNames="copilot-commit-panel-transition"
+        mountOnEnter={true}
+        unmountOnExit={true}
+      >
+        <div className="copilot-commit-panel-container">
+          <CopilotCommitPanel
+            filesSelectedCount={filesSelected.length}
+            isWorking={
+              isCommitting === true || isGeneratingCommitMessage === true
+            }
+          />
+        </div>
+      </CSSTransition>
+    )
+  }
+
   public render() {
+    const isCopilotCommitMode = this.isCopilotCommitMode
     const className = classNames('commit-message-component', {
       'with-action-bar': true,
       'with-co-authors': this.isCoAuthorInputVisible,
+      'copilot-commit-mode': isCopilotCommitMode,
     })
 
     const descriptionClassName = classNames('description-field', {
@@ -1776,69 +2008,81 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         ref={this.wrapperRef}
       >
-        <div className={summaryClassName} ref={this.summaryGroupRef}>
-          {this.renderAvatar()}
+        <div className="commit-mode-stage">
+          <div
+            className="manual-commit-fields"
+            aria-hidden={isCopilotCommitMode ? true : undefined}
+          >
+            <div className={summaryClassName} ref={this.summaryGroupRef}>
+              {this.renderAvatar()}
 
-          <AutocompletingInput
-            required={true}
-            label={this.props.showInputLabels === true ? 'Summary' : undefined}
-            screenReaderLabel="Commit summary"
-            className={summaryInputClassName}
-            placeholder={placeholder}
-            value={this.state.commitMessage.summary}
-            onValueChanged={this.onSummaryChanged}
-            onElementRef={this.onSummaryInputRef}
-            autocompletionProviders={
-              this.state.commitMessageAutocompletionProviders
-            }
-            aria-describedby={ariaDescribedBy}
-            onContextMenu={this.onAutocompletingInputContextMenu}
-            readOnly={
-              isCommitting === true || isGeneratingCommitMessage === true
-            }
-            spellcheck={commitSpellcheckEnabled}
-          />
-          {showRepoRuleCommitMessageFailureHint &&
-            this.renderRepoRuleCommitMessageFailureHint()}
-          {showSummaryLengthHint && this.renderSummaryLengthHint()}
+              <AutocompletingInput
+                required={true}
+                label={
+                  this.props.showInputLabels === true ? 'Summary' : undefined
+                }
+                screenReaderLabel="Commit summary"
+                className={summaryInputClassName}
+                placeholder={placeholder}
+                value={this.state.commitMessage.summary}
+                onValueChanged={this.onSummaryChanged}
+                onElementRef={this.onSummaryInputRef}
+                autocompletionProviders={
+                  this.state.commitMessageAutocompletionProviders
+                }
+                aria-describedby={ariaDescribedBy}
+                onContextMenu={this.onAutocompletingInputContextMenu}
+                readOnly={
+                  isCommitting === true || isGeneratingCommitMessage === true
+                }
+                spellcheck={commitSpellcheckEnabled}
+              />
+              {showRepoRuleCommitMessageFailureHint &&
+                this.renderRepoRuleCommitMessageFailureHint()}
+              {showSummaryLengthHint && this.renderSummaryLengthHint()}
+            </div>
+
+            {this.state.isRuleFailurePopoverOpen &&
+              !isCopilotCommitMode &&
+              this.renderRuleFailurePopover()}
+
+            {this.props.showInputLabels === true && (
+              <label htmlFor="commit-message-description">Description</label>
+            )}
+            <FocusContainer
+              className="description-focus-container"
+              onClick={this.onFocusContainerClick}
+            >
+              <AutocompletingTextArea
+                inputId="commit-message-description"
+                className={descriptionClassName}
+                screenReaderLabel={
+                  this.props.showInputLabels !== true
+                    ? 'Commit description'
+                    : undefined
+                }
+                placeholder="Description"
+                value={this.state.commitMessage.description || ''}
+                onValueChanged={this.onDescriptionChanged}
+                autocompletionProviders={
+                  this.state.commitMessageAutocompletionProviders
+                }
+                aria-describedby={ariaDescribedBy}
+                ref={this.onDescriptionFieldRef}
+                onElementRef={this.onDescriptionTextAreaRef}
+                onContextMenu={this.onAutocompletingInputContextMenu}
+                readOnly={
+                  isCommitting === true || isGeneratingCommitMessage === true
+                }
+                spellcheck={commitSpellcheckEnabled}
+              />
+              {this.renderActionBar()}
+            </FocusContainer>
+
+            {this.renderCoAuthorInput()}
+          </div>
+          {this.renderCopilotCommitPanel(isCopilotCommitMode)}
         </div>
-
-        {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
-
-        {this.props.showInputLabels === true && (
-          <label htmlFor="commit-message-description">Description</label>
-        )}
-        <FocusContainer
-          className="description-focus-container"
-          onClick={this.onFocusContainerClick}
-        >
-          <AutocompletingTextArea
-            inputId="commit-message-description"
-            className={descriptionClassName}
-            screenReaderLabel={
-              this.props.showInputLabels !== true
-                ? 'Commit description'
-                : undefined
-            }
-            placeholder="Description"
-            value={this.state.commitMessage.description || ''}
-            onValueChanged={this.onDescriptionChanged}
-            autocompletionProviders={
-              this.state.commitMessageAutocompletionProviders
-            }
-            aria-describedby={ariaDescribedBy}
-            ref={this.onDescriptionFieldRef}
-            onElementRef={this.onDescriptionTextAreaRef}
-            onContextMenu={this.onAutocompletingInputContextMenu}
-            readOnly={
-              isCommitting === true || isGeneratingCommitMessage === true
-            }
-            spellcheck={commitSpellcheckEnabled}
-          />
-          {this.renderActionBar()}
-        </FocusContainer>
-
-        {this.renderCoAuthorInput()}
 
         {this.renderAmendCommitNotice()}
         {this.renderBranchProtectionsRepoRulesCommitWarning()}

@@ -28,8 +28,31 @@ interface IDropdownSelectButtonProps {
   /** Whether or not the button is enabled */
   readonly disabled?: boolean
 
+  /**
+   * Whether or not the dropdown toggle is disabled. When not provided the
+   * toggle is only styled as disabled when `disabled` is true.
+   */
+  readonly dropdownDisabled?: boolean
+
   /** tooltip for the button */
   readonly tooltip?: string
+
+  /** Whether the tooltip should only be shown when the button text overflows */
+  readonly onlyShowTooltipWhenOverflowed?: boolean
+
+  /** Whether the tooltip can be dismissed by the user */
+  readonly tooltipDismissable?: boolean
+
+  /** An optional class name for the component's container */
+  readonly className?: string
+
+  /**
+   * Optional content to render inside the invoke button. When not provided the
+   * label of the checked option is used.
+   */
+  readonly renderInvokeButtonContent?: (
+    checkedOption: IDropdownSelectButtonOption
+  ) => React.ReactNode
 
   /** aria-describedby for the button */
   readonly ariaDescribedBy?: string
@@ -339,7 +362,13 @@ export class DropdownSelectButton extends React.Component<
   }
 
   public render() {
-    const { options, disabled, dropdownAriaLabel } = this.props
+    const {
+      options,
+      disabled,
+      dropdownDisabled,
+      dropdownAriaLabel,
+      renderInvokeButtonContent,
+    } = this.props
     const {
       checkedOption: selectedOption,
       optionsPositionBottom,
@@ -353,10 +382,13 @@ export class DropdownSelectButton extends React.Component<
       optionsPositionBottom !== undefined ? 'open-top' : 'open-bottom'
     const containerClasses = classNames(
       'dropdown-select-button',
+      this.props.className,
       showButtonOptions ? openClass : null
     )
 
-    const dropdownClasses = classNames('dropdown-button', { disabled })
+    const dropdownClasses = classNames('dropdown-button', {
+      disabled: dropdownDisabled ?? disabled,
+    })
     // The button is type of submit so that it will trigger a form's onSubmit
     // method.
     return (
@@ -368,16 +400,23 @@ export class DropdownSelectButton extends React.Component<
             type="submit"
             ariaDescribedBy={this.props.ariaDescribedBy}
             tooltip={this.props.tooltip}
+            onlyShowTooltipWhenOverflowed={
+              this.props.onlyShowTooltipWhenOverflowed
+            }
+            tooltipDismissable={this.props.tooltipDismissable}
             onButtonRef={this.onInvokeButtonRef}
             onClick={this.onSubmit}
           >
-            {selectedOption.label}
+            {renderInvokeButtonContent !== undefined
+              ? renderInvokeButtonContent(selectedOption)
+              : selectedOption.label}
           </Button>
           <Button
             className={dropdownClasses}
             onClick={this.openSplitButtonDropdown}
             onKeyDown={this.onDropdownButtonKeyDown}
             onButtonRef={this.onDropdownButtonRef}
+            disabled={dropdownDisabled}
             type="button"
             ariaExpanded={showButtonOptions}
             ariaHaspopup={true}

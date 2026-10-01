@@ -1,0 +1,312 @@
+// Sprite-strip animations for the animated Copilot mascot. Each sprite is a
+// vertical strip of 32x32 frames which is translated upwards to animate it.
+// See app/src/ui/copilot-animation/copilot-animation.tsx
+//
+// Ported from the GitHub Copilot app (github/github-app).
+
+.copilot-animation {
+  width: calc(32px * var(--copilot-animation-scale, 1));
+  height: calc(32px * var(--copilot-animation-scale, 1));
+  overflow: hidden;
+  flex-shrink: 0;
+
+  .copilot-sprite {
+    display: block;
+  }
+}
+
+// static
+.copilot-sprite-static[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+// idle
+@keyframes copilot-idle-run {
+  0% {
+    transform: translateY(calc(0 * var(--copilot-animation-scale, 1)));
+  } // Frame 1
+  59.4796% {
+    transform: translateY(calc(-32px * var(--copilot-animation-scale, 1)));
+  } // Frame 2
+  59.7249% {
+    transform: translateY(calc(-64px * var(--copilot-animation-scale, 1)));
+  } // Frame 3
+  60.2156% {
+    transform: translateY(calc(-96px * var(--copilot-animation-scale, 1)));
+  } // Frame 4
+  60.4610% {
+    transform: translateY(calc(-128px * var(--copilot-animation-scale, 1)));
+  } // Frame 5
+  64.1784% {
+    transform: translateY(calc(-160px * var(--copilot-animation-scale, 1)));
+  } // Frame 6
+  64.4238% {
+    transform: translateY(calc(-192px * var(--copilot-animation-scale, 1)));
+  } // Frame 7
+  64.6691% {
+    transform: translateY(calc(-224px * var(--copilot-animation-scale, 1)));
+  } // Frame 8
+  64.9145% {
+    transform: translateY(calc(-256px * var(--copilot-animation-scale, 1)));
+  } // Frame 9
+  65.1599% {
+    transform: translateY(calc(-288px * var(--copilot-animation-scale, 1)));
+  } // Frame 10
+  65.4052% {
+    transform: translateY(calc(-320px * var(--copilot-animation-scale, 1)));
+  } // Frame 11
+  65.6506% {
+    transform: translateY(calc(-352px * var(--copilot-animation-scale, 1)));
+  } // Frame 12
+  65.8959% {
+    transform: translateY(calc(-384px * var(--copilot-animation-scale, 1)));
+  } // Frame 13
+  66.1413% {
+    transform: translateY(calc(-416px * var(--copilot-animation-scale, 1)));
+  } // Frame 14
+  66.3866% {
+    transform: translateY(calc(-448px * var(--copilot-animation-scale, 1)));
+  } // Frame 15
+  66.6320% {
+    transform: translateY(calc(-480px * var(--copilot-animation-scale, 1)));
+  } // Frame 16
+  66.8773% {
+    transform: translateY(calc(-512px * var(--copilot-animation-scale, 1)));
+  } // Frame 17
+  67.1227% {
+    transform: translateY(calc(-544px * var(--copilot-animation-scale, 1)));
+  } // Frame 18
+  67.3680% {
+    transform: translateY(calc(-576px * var(--copilot-animation-scale, 1)));
+  } // Frame 19
+  67.6134% {
+    transform: translateY(calc(-608px * var(--copilot-animation-scale, 1)));
+  } // Frame 20
+  78.7658% {
+    transform: translateY(calc(-640px * var(--copilot-animation-scale, 1)));
+  } // Frame 21
+  79.0112% {
+    transform: translateY(calc(-672px * var(--copilot-animation-scale, 1)));
+  } // Frame 22
+  79.2565% {
+    transform: translateY(calc(-704px * var(--copilot-animation-scale, 1)));
+  } // Frame 23
+  79.5019% {
+    transform: translateY(calc(-736px * var(--copilot-animation-scale, 1)));
+  } // Frame 24
+  79.7472% {
+    transform: translateY(calc(-768px * var(--copilot-animation-scale, 1)));
+  } // Frame 25
+  79.9926% {
+    transform: translateY(calc(-800px * var(--copilot-animation-scale, 1)));
+  } // Frame 26
+  80.2379% {
+    transform: translateY(calc(-832px * var(--copilot-animation-scale, 1)));
+  } // Frame 27
+  80.4833% {
+    transform: translateY(calc(-864px * var(--copilot-animation-scale, 1)));
+  } // Frame 28
+  80.7286% {
+    transform: translateY(calc(-896px * var(--copilot-animation-scale, 1)));
+  } // Frame 29
+  80.9740% {
+    transform: translateY(calc(-928px * var(--copilot-animation-scale, 1)));
+  } // Frame 30
+  81.2193% {
+    transform: translateY(calc(-960px * var(--copilot-animation-scale, 1)));
+  } // Frame 31
+  81.4647% {
+    transform: translateY(calc(-992px * var(--copilot-animation-scale, 1)));
+  } // Frame 32
+  81.7100% {
+    transform: translateY(calc(-1024px * var(--copilot-animation-scale, 1)));
+  } // Frame 33
+  81.9554% {
+    transform: translateY(calc(-1056px * var(--copilot-animation-scale, 1)));
+  } // Frame 34
+  82.2007% {
+    transform: translateY(calc(-1088px * var(--copilot-animation-scale, 1)));
+  } // Frame 35
+  89.6357% {
+    transform: translateY(calc(-1120px * var(--copilot-animation-scale, 1)));
+  } // Frame 36
+  89.8810% {
+    transform: translateY(calc(-1152px * var(--copilot-animation-scale, 1)));
+  } // Frame 37
+  90.1264% {
+    transform: translateY(calc(-1184px * var(--copilot-animation-scale, 1)));
+  } // Frame 38
+  90.3717% {
+    transform: translateY(calc(-1216px * var(--copilot-animation-scale, 1)));
+  } // Frame 39
+  90.6171% {
+    transform: translateY(calc(-1248px * var(--copilot-animation-scale, 1)));
+  } // Frame 40
+  90.8625% {
+    transform: translateY(calc(-1280px * var(--copilot-animation-scale, 1)));
+  } // Frame 41
+  91.1078% {
+    transform: translateY(calc(-1312px * var(--copilot-animation-scale, 1)));
+  } // Frame 42
+  91.3532% {
+    transform: translateY(calc(-1344px * var(--copilot-animation-scale, 1)));
+  } // Frame 43
+  91.5985% {
+    transform: translateY(calc(-1376px * var(--copilot-animation-scale, 1)));
+  } // Frame 44
+  91.8439% {
+    transform: translateY(calc(-1408px * var(--copilot-animation-scale, 1)));
+  } // Frame 45
+  92.0892% {
+    transform: translateY(calc(-1440px * var(--copilot-animation-scale, 1)));
+  } // Frame 46
+  92.3346% {
+    transform: translateY(calc(-1472px * var(--copilot-animation-scale, 1)));
+  } // Frame 47
+  92.5799% {
+    transform: translateY(calc(-1504px * var(--copilot-animation-scale, 1)));
+  } // Frame 48
+  92.8253% {
+    transform: translateY(calc(-1536px * var(--copilot-animation-scale, 1)));
+  } // Frame 49
+  93.0706% {
+    transform: translateY(calc(-1568px * var(--copilot-animation-scale, 1)));
+  } // Frame 50
+  99.0186% {
+    transform: translateY(calc(-1600px * var(--copilot-animation-scale, 1)));
+  } // Frame 51
+  99.2639% {
+    transform: translateY(calc(-1632px * var(--copilot-animation-scale, 1)));
+  } // Frame 52
+  99.7546% {
+    transform: translateY(calc(-1664px * var(--copilot-animation-scale, 1)));
+  } // Frame 53
+  100% {
+    transform: translateY(calc(-1696px * var(--copilot-animation-scale, 1)));
+  } // Frame 54
+}
+
+.copilot-sprite-idle[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copilot-sprite-idle[data-animation-state='running'] {
+    animation: copilot-idle-run 13.483s steps(1) infinite;
+  }
+}
+
+// tickle
+@keyframes copilot-tickle-run {
+  0% {
+    transform: translateY(calc(-32px * var(--copilot-animation-scale, 1)));
+  }
+  100% {
+    transform: translateY(calc(-1184px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+.copilot-sprite-tickle[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copilot-sprite-tickle[data-animation-state='running'] {
+    animation: copilot-tickle-run 1.188s steps(36) 1;
+  }
+}
+
+// jump-wiggle
+@keyframes copilot-jump-wiggle-run {
+  0% {
+    transform: translateY(calc(-32px * var(--copilot-animation-scale, 1)));
+  }
+  100% {
+    transform: translateY(calc(-1248px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+.copilot-sprite-jump-wiggle[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copilot-sprite-jump-wiggle[data-animation-state='running'] {
+    animation: copilot-jump-wiggle-run 1.254s steps(38) 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copilot-sprite-jump-wiggle[data-animation-state='running'] {
+    transform: translateY(calc(-608px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+// celebrate
+@keyframes copilot-celebrate-run {
+  0% {
+    transform: translateY(calc(-32px * var(--copilot-animation-scale, 1)));
+  }
+
+  100% {
+    transform: translateY(calc(-1056px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+.copilot-sprite-celebrate[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copilot-sprite-celebrate[data-animation-state='running'] {
+    animation: copilot-celebrate-run 1.056s steps(32) 1;
+  }
+}
+
+// thinking
+@keyframes copilot-thinking-start {
+  100% {
+    transform: translateY(calc(-384px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+@keyframes copilot-thinking-run {
+  0% {
+    transform: translateY(calc(-416px * var(--copilot-animation-scale, 1)));
+  }
+
+  100% {
+    transform: translateY(calc(-1728px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+@keyframes copilot-thinking-end {
+  0% {
+    transform: translateY(calc(-1792px * var(--copilot-animation-scale, 1)));
+  }
+
+  100% {
+    transform: translateY(calc(-2208px * var(--copilot-animation-scale, 1)));
+  }
+}
+
+.copilot-sprite-thinking[data-animation-state='idle'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copilot-sprite-thinking[data-animation-state='starting'] {
+    /* 0.033s * 12 = 0.429s */
+    animation: copilot-thinking-start 0.429s steps(12) 1;
+  }
+
+  .copilot-sprite-thinking[data-animation-state='running'] {
+    /* 0.033s * 41 = 1.353s */
+    animation: copilot-thinking-run 1.353s steps(41) infinite;
+  }
+
+  .copilot-sprite-thinking[data-animation-state='ending'] {
+    /* 0.033s * 13 = 0.429s */
+    animation: copilot-thinking-end 0.429s steps(13) 1;
+  }
+}
