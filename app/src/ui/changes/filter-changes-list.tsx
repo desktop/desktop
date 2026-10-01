@@ -1017,6 +1017,7 @@ export class FilterChangesList extends React.Component<
         allowEmptyCommit={this.props.allowEmptyCommit}
         showAllowEmptyCommitOption={true}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onCreateCopilotAssistedCommits={this.onCreateCopilotAssistedCommits}
       />
     )
   }
@@ -1071,6 +1072,16 @@ export class FilterChangesList extends React.Component<
 
   private onCancelGenerateCommitMessage = () => {
     this.props.dispatcher.cancelGenerateCommitMessage(this.props.repository)
+  }
+
+  private onCreateCopilotAssistedCommits = (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => {
+    // TODO: Let Copilot split the changes into commits once the backend for
+    // Copilot-assisted commits is in place. For now only the UI exists.
+    log.info(
+      `[CopilotAssistedCommit] Requested Copilot-assisted commits for ${files.length} file(s)`
+    )
   }
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)

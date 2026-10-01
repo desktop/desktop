@@ -318,6 +318,102 @@
     }
   }
 
+  // The manual commit fields and the Copilot commit panel are stacked on top
+  // of each other so that switching between commit modes doesn't change the
+  // height of the component.
+  .commit-mode-stage {
+    display: grid;
+
+    > * {
+      grid-area: 1 / 1;
+      min-width: 0;
+    }
+  }
+
+  .manual-commit-fields {
+    display: flex;
+    flex-direction: column;
+    transition: opacity 200ms ease-out, transform 250ms ease-out, filter 200ms ease-out, visibility 0s;
+  }
+
+  &.copilot-commit-mode .manual-commit-fields {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 200ms ease-in, transform 200ms ease-in, filter 200ms ease-in, visibility 0s linear 200ms;
+  }
+
+  .copilot-commit-panel-container {
+    display: flex;
+  }
+
+  .copilot-commit-panel-transition-enter {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+
+  .copilot-commit-panel-transition-enter-active {
+    opacity: 1;
+    transform: none;
+    transition: opacity 200ms ease-out 100ms, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1) 100ms;
+  }
+
+  .copilot-commit-panel-transition-exit {
+    opacity: 1;
+  }
+
+  .copilot-commit-panel-transition-exit-active {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+    transition: opacity 200ms ease-in, transform 200ms ease-in, filter 200ms ease-in;
+  }
+
+  @media (prefers-reduced-motion) {
+    .manual-commit-fields,
+    &.copilot-commit-mode .manual-commit-fields,
+    .copilot-commit-panel-transition-enter,
+    .copilot-commit-panel-transition-enter-active,
+    .copilot-commit-panel-transition-exit-active {
+      transform: none;
+      filter: none;
+    }
+  }
+
+  .commit-button-dropdown {
+    margin-top: var(--spacing);
+
+    .invoke-button,
+    .dropdown-button {
+      height: var(--button-height);
+    }
+
+    .invoke-button {
+      display: block;
+      min-width: 0;
+      @include ellipsis;
+
+      .octicon {
+        flex-shrink: 0;
+        flex-grow: 0;
+        margin-right: var(--spacing-half);
+        height: 12px;
+        // In order to center it vertically in the button
+        margin-bottom: 1px;
+      }
+
+      .copilot-icon {
+        animation: copilot-commit-icon-pop 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+        @media (prefers-reduced-motion) {
+          animation: none;
+        }
+      }
+    }
+  }
+
   .commit-button {
     max-width: 100%;
     margin-top: var(--spacing);
@@ -332,5 +428,15 @@
       // In order to center it vertically in the button
       margin-bottom: 1px;
     }
+  }
+}
+
+@keyframes copilot-commit-icon-pop {
+  0% {
+    transform: scale(0) rotate(-30deg);
+  }
+
+  100% {
+    transform: none;
   }
 }
