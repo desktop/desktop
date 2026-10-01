@@ -61,6 +61,10 @@ body.theme-dark {
   // (e.g. co-authors and Copilot buttons)
   --commit-message-action-button-separator-color: var(--box-border-contrast-color);
 
+  // Colors used by the Copilot-assisted commit panel
+  --copilot-commit-glow-color: #{rgba($purple-300, 0.16)};
+  --copilot-commit-accent-color: #{$purple-300};
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
