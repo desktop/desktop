@@ -33,7 +33,8 @@ export class OAuthRefreshRejectedError extends Error {
   }
 }
 
-function isToken(value: unknown): value is string {
+/** Whether a value can be sent as an OAuth token: non-empty, no whitespace. */
+export function isToken(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && !/\s/.test(value)
 }
 

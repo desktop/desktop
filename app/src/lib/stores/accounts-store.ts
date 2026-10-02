@@ -12,6 +12,10 @@ import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
 import { Disposable } from 'event-kit'
+import {
+  deserializeAccountCredential,
+  serializeAccountCredential,
+} from '../account-credential'
 
 // Ensure that GitHub.com accounts appear first followed by Enterprise
 // accounts, sorted by the order in which they were added.
@@ -138,7 +142,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     try {
       const key = getKeyForAccount(account)
-      await this.secureStore.setItem(key, account.login, account.token)
+      await this.secureStore.setItem(
+        key,
+        account.login,
+        serializeAccountCredential({ accessToken: account.token })
+      )
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
@@ -257,6 +265,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const rawAccounts = migratedAccounts ?? parsedAccounts
 
     const accountsWithTokens = []
+    let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
         account.login,
@@ -271,8 +280,23 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const token = await this.secureStore.getItem(key, account.login)
-        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+        const stored = await this.secureStore.getItem(key, account.login)
+        const credential = deserializeAccountCredential(stored)
+        if (credential === null && stored !== null) {
+          removedInvalidAccounts = true
+          try {
+            await this.secureStore.deleteItem(key, account.login)
+          } catch {
+            log.error('Unable to remove unusable GitHub credentials.')
+            this.emitError(
+              new Error('Unable to remove unusable GitHub credentials.')
+            )
+          }
+          continue
+        }
+        accountsWithTokens.push(
+          accountWithoutToken.withToken(credential?.accessToken ?? '')
+        )
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 
@@ -282,7 +306,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     this.accounts = sortAccounts(accountsWithTokens)
     // If any account was migrated, make sure to persist the new value
-    if (migratedAccounts !== null) {
+    if (migratedAccounts !== null || removedInvalidAccounts) {
       this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
