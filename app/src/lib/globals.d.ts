@@ -146,7 +146,7 @@ declare namespace NodeJS {
       error: Error,
       context?: { [key: string]: string }
     ): this
-    removeListener(event: 'exit', listener: Function): this
+    removeListener(event: 'exit', listener: (code: number) => void): this
   }
 }
 

@@ -1452,7 +1452,7 @@ export class API {
     const response = await this.ghRequest('GET', path, { customHeaders })
     try {
       return await parsedResponse<IAPIWorkflowRuns>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
       )
@@ -1489,7 +1489,7 @@ export class API {
       if (apiWorkflowRuns.workflow_runs.length > 0) {
         return apiWorkflowRuns.workflow_runs[0]
       }
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
       )
@@ -1514,7 +1514,7 @@ export class API {
     })
     try {
       return await parsedResponse<IAPIWorkflowJobs>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
       )
@@ -1617,7 +1617,7 @@ export class API {
 
     try {
       return await parsedResponse<IAPICheckSuite>(response)
-    } catch (_) {
+    } catch {
       log.debug(
         `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
       )
@@ -1809,8 +1809,8 @@ export class API {
     method: HTTPMethod,
     path: string,
     options: {
-      body?: Object
-      customHeaders?: Object
+      body?: object
+      customHeaders?: object
       reloadCache?: boolean
     } = {}
   ): Promise<Response> {
@@ -1833,8 +1833,8 @@ export class API {
     method: HTTPMethod,
     path: string,
     options: {
-      body?: Object
-      customHeaders?: Object
+      body?: object
+      customHeaders?: object
       reloadCache?: boolean
     } = {}
   ): Promise<Response> {

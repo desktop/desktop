@@ -517,7 +517,7 @@ const trySetUpdaterGuid = async (url: string) => {
     const parsed = new URL(url)
     parsed.searchParams.set('guid', id)
     return parsed.toString()
-  } catch (e) {
+  } catch {
     return url
   }
 }
