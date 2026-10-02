@@ -83,6 +83,7 @@ export class PullRequestBadge extends React.Component<
     const ref = getPullRequestCommitRef(this.props.number)
     return (
       <Button
+        id="pr-badge"
         className="pr-badge"
         onClick={this.onBadgeClick}
         onButtonRef={this.onRef}
