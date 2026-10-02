@@ -29,6 +29,16 @@ const creationBypassPullRequestsOnlyRule: IAPIRepoRule = {
   type: APIRepoRuleType.Creation,
 }
 
+const creationBypassExemptRule: IAPIRepoRule = {
+  ruleset_id: 4,
+  type: APIRepoRuleType.Creation,
+}
+
+const pullRequestBypassExemptRule: IAPIRepoRule = {
+  ruleset_id: 4,
+  type: APIRepoRuleType.PullRequest,
+}
+
 const commitMessagePatternStartsWithRule: IAPIRepoRule = {
   ruleset_id: 1,
   type: APIRepoRuleType.CommitMessagePattern,
@@ -132,6 +142,20 @@ const rulesets: ReadonlyMap<number, IAPIRepoRuleset> = new Map([
       current_user_can_bypass: 'always',
     },
   ],
+  [
+    3,
+    {
+      id: 3,
+      current_user_can_bypass: 'pull_requests_only',
+    },
+  ],
+  [
+    4,
+    {
+      id: 4,
+      current_user_can_bypass: 'exempt',
+    },
+  ],
 ])
 
 function validateMetadataRules(
@@ -160,6 +184,13 @@ describe('await parseRepoRules', () => {
     const rules = [creationBypassAlwaysRule]
     const result = await parseRepoRules(rules, rulesets, repo)
     assert.equal(result.creationRestricted, 'bypass')
+  })
+
+  it('can bypass when bypass is "exempt"', async () => {
+    const rules = [creationBypassExemptRule, pullRequestBypassExemptRule]
+    const result = await parseRepoRules(rules, rulesets, repo)
+    assert.equal(result.creationRestricted, 'bypass')
+    assert.equal(result.pullRequestRequired, 'bypass')
   })
 
   it('cannot bypass when at least one bypass mode is "never" or "pull_requests_only"', async () => {

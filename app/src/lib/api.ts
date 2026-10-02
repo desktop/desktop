@@ -581,7 +581,11 @@ export interface IAPIRepoRuleset extends IAPISlimRepoRuleset {
   /**
    * Whether the user making the API request can bypass the ruleset.
    */
-  readonly current_user_can_bypass: 'always' | 'pull_requests_only' | 'never'
+  readonly current_user_can_bypass:
+    | 'always'
+    | 'pull_requests_only'
+    | 'never'
+    | 'exempt'
 }
 
 /**
