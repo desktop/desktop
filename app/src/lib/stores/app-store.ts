@@ -8117,8 +8117,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    await this.accountsStore.removeAccount(account)
-    await deleteToken(account)
+    const current = await this.accountsStore.removeAccount(account)
+    if (current?.token) {
+      await deleteToken(current)
+    }
   }
 
   private async _addAccount(account: Account): Promise<void> {
