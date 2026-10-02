@@ -1,5 +1,7 @@
 import * as Path from 'path'
 import { shortenSHA } from './commit'
+import { Branch } from './branch'
+import { UncommittedChangesStrategy } from './uncommitted-changes-strategy'
 
 export type WorktreeType = 'main' | 'linked'
 
@@ -12,6 +14,23 @@ export type WorktreeEntry = {
   readonly type: WorktreeType
   readonly isLocked: boolean
   readonly isPrunable: boolean
+}
+
+/** A checkout to run once the worktree holding its branch has been removed. */
+export interface IDeferredCheckout {
+  readonly branch: Branch
+  readonly strategy?: UncommittedChangesStrategy
+}
+
+/**
+ * How a worktree is to be removed. Carried through the confirmation and
+ * failure dialogs so a retry keeps it.
+ */
+export interface IDeleteWorktreeOptions {
+  readonly force?: boolean
+  /** The worktree's folder was gone when removal was offered. */
+  readonly isMissing?: boolean
+  readonly checkout?: IDeferredCheckout
 }
 
 /** The display name for a worktree (the basename of its path). */
@@ -27,4 +46,12 @@ export function getWorktreeDescription(worktree: WorktreeEntry): string {
   return worktree.branch
     ? worktree.branch.replace(/^refs\/heads\//, '')
     : shortenSHA(worktree.head)
+}
+
+/** The accessible name for a worktree list row. */
+export function getWorktreeAriaLabel(worktree: WorktreeEntry): string {
+  const missing = worktree.isPrunable ? ', missing' : ''
+  return `${getWorktreeDisplayName(
+    worktree
+  )}${missing}, ${getWorktreeDescription(worktree)}`
 }
