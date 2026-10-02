@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Repository } from '../models/repository'
 import { Commit, CommitOneLine } from '../models/commit'
-import { TipState } from '../models/tip'
+import { TipState, Tip } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { NoChanges } from './changes/no-changes'
@@ -672,16 +672,37 @@ export class RepositoryView extends React.Component<
     window.removeEventListener('keydown', this.onGlobalKeyDown)
   }
 
-  public componentDidUpdate(): void {
+  public componentDidUpdate(prevProps: IRepositoryViewProps): void {
     if (this.focusChangesNeeded) {
       this.focusChangesNeeded = false
       this.changesSidebarRef.current?.focus()
+    }
+
+    if (
+      this.isSwitchedToNewBranch(
+        prevProps.state.branchesState.tip,
+        this.props.state.branchesState.tip
+      )
+    ) {
+      this.scrollCompareListToTop()
     }
 
     if (this.focusHistoryNeeded) {
       this.focusHistoryNeeded = false
       this.compareSidebarRef.current?.focusHistory()
     }
+  }
+
+  private isSwitchedToNewBranch(oldTip: Tip, newTip: Tip): boolean {
+    const switchedBetweenValidBranches =
+      oldTip.kind === TipState.Valid &&
+      newTip.kind === TipState.Valid &&
+      newTip.branch.name !== oldTip.branch.name
+
+    const switchedFromOtherToValid =
+      oldTip.kind !== TipState.Valid && newTip.kind === TipState.Valid
+
+    return switchedBetweenValidBranches || switchedFromOtherToValid
   }
 
   private onGlobalKeyDown = (event: KeyboardEvent) => {
