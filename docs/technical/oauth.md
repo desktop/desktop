@@ -102,6 +102,10 @@ the server omits it.
   nonblocking cleanup of unpublished credentials. Once handed over, credentials
   are owned by `AccountsStore` and are not revoked merely because the sign-in UI
   is dismissed, even while they are still being saved.
+- Overlapping sign-ins for the same host are saved one at a time, and each is
+  signed in as soon as its save succeeds. The last successful save wins, both
+  in memory and after relaunch; a failed save leaves the current account
+  signed in. Signing out does not cancel a sign-in that is still saving.
 - OAuth exchanges have a 30-second deadline, including response parsing. They
   reject redirects and are never automatically replayed. Errors and lifecycle
   logs do not include token values or server-provided error descriptions.
