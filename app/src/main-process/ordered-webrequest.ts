@@ -166,7 +166,7 @@ export class OrderedWebRequest {
         for (const listener of listeners) {
           response = await listener(details)
           if (response.cancel === true) {
-            break
+            return response
           }
 
           if (response.requestHeaders !== undefined) {
