@@ -7,6 +7,7 @@ import { getHTMLURL } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
+import { IAccountIdentity } from '../models/repository'
 
 export interface IMatchedGitHubRepository {
   /**
@@ -28,21 +29,33 @@ export interface IMatchedGitHubRepository {
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(
   accounts: ReadonlyArray<Account>,
-  remote: string
+  remote: string,
+  identity?: IAccountIdentity | null
 ): IMatchedGitHubRepository | null {
-  for (const account of accounts) {
-    const htmlURL = getHTMLURL(account.endpoint)
-    const { hostname } = URL.parse(htmlURL)
-    const parsedRemote = parseRemote(remote)
-
-    if (parsedRemote !== null && hostname !== null) {
-      if (parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {
-        return { name: parsedRemote.name, owner: parsedRemote.owner, account }
-      }
-    }
+  if (identity === null) {
+    return null
   }
 
-  return null
+  const parsedRemote = parseRemote(remote)
+  if (parsedRemote === null) {
+    return null
+  }
+
+  const matches = accounts.filter(account => {
+    const htmlURL = getHTMLURL(account.endpoint)
+    const { hostname } = URL.parse(htmlURL)
+    return (
+      hostname !== null &&
+      parsedRemote.hostname.toLowerCase() === hostname.toLowerCase() &&
+      (identity === undefined ||
+        (account.endpoint === identity.endpoint && account.id === identity.id))
+    )
+  })
+
+  const account = matches.length === 1 ? matches[0] : undefined
+  return account === undefined
+    ? null
+    : { name: parsedRemote.name, owner: parsedRemote.owner, account }
 }
 
 /**

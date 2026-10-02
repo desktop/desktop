@@ -44,6 +44,8 @@ export enum PopupType {
   About = 'About',
   InstallGit = 'InstallGit',
   PublishRepository = 'PublishRepository',
+  ChooseRepositoryAccount = 'ChooseRepositoryAccount',
+  ManageAccountRepositories = 'ManageAccountRepositories',
   Acknowledgements = 'Acknowledgements',
   UntrustedCertificate = 'UntrustedCertificate',
   RemoveRepository = 'RemoveRepository',
@@ -200,10 +202,19 @@ export type PopupDetail =
       type: PopupType.SignIn
       isCredentialHelperSignIn?: boolean
       credentialHelperUrl?: string
+      credentialHelperLogin?: string
     }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }
+  | { type: PopupType.ManageAccountRepositories; account: Account }
+  | {
+      type: PopupType.ChooseRepositoryAccount
+      repository: Repository
+      accounts: ReadonlyArray<Account>
+      onSelected: (account: Account) => Promise<void> | void
+      onDismiss?: () => void
+    }
   | { type: PopupType.Acknowledgements }
   | {
       type: PopupType.UntrustedCertificate

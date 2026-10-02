@@ -13,18 +13,28 @@ import { IAheadBehind } from '../../models/branch'
 import { assertNever } from '../../lib/fatal-error'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { Owner } from '../../models/owner'
+import { Account } from '../../models/account'
 
 export type RepositoryListGroup =
   | {
-      kind: 'recent' | 'other'
+      kind: 'recent'
+    }
+  | {
+      kind: 'other'
+      accountKey?: string
+      accountLabel?: string
     }
   | {
       kind: 'dotcom'
       owner: Owner
+      accountKey?: string
+      accountLabel?: string
     }
   | {
       kind: 'enterprise'
       host: string
+      accountKey?: string
+      accountLabel?: string
     }
 
 /**
@@ -38,11 +48,11 @@ export const getGroupKey = (group: RepositoryListGroup) => {
     case 'recent':
       return `0:recent`
     case 'dotcom':
-      return `1:dotcom:${group.owner.login}`
+      return `1:dotcom:${group.owner.login}${group.accountKey ?? ''}`
     case 'enterprise':
-      return `2:enterprise:${group.host}`
+      return `2:enterprise:${group.host}${group.accountKey ?? ''}`
     case 'other':
-      return `3:other`
+      return `3:other${group.accountKey ?? ''}`
     default:
       assertNever(group, `Unknown repository group kind ${kind}`)
   }
@@ -63,11 +73,48 @@ const recentRepositoriesThreshold = 7
 const getHostForRepository = (repo: RepositoryWithGitHubRepository) =>
   new URL(getHTMLURL(repo.gitHubRepository.endpoint)).host
 
-const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
+const getGroupForRepository = (
+  repo: Repositoryish,
+  knownAccounts: ReadonlyArray<Account>
+): RepositoryListGroup => {
   if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
+    const { endpoint } = repo.gitHubRepository
+    const hostAccounts = knownAccounts.filter(
+      account => account.endpoint === endpoint
+    )
+    const account = hostAccounts.find(
+      candidate =>
+        repo.accountIdentity?.endpoint === candidate.endpoint &&
+        repo.accountIdentity.id === candidate.id
+    )
+    const label =
+      hostAccounts.length > 1 ? account?.login ?? 'Unassociated' : undefined
+    const accountGroup =
+      label === undefined
+        ? {}
+        : {
+            accountKey: `:${account?.id ?? 'unassociated'}`,
+            accountLabel: label,
+          }
+
     return isDotCom(repo.gitHubRepository.endpoint)
-      ? { kind: 'dotcom', owner: repo.gitHubRepository.owner }
-      : { kind: 'enterprise', host: getHostForRepository(repo) }
+      ? { kind: 'dotcom', owner: repo.gitHubRepository.owner, ...accountGroup }
+      : {
+          kind: 'enterprise',
+          host: getHostForRepository(repo),
+          ...accountGroup,
+        }
+  }
+  if (repo instanceof Repository && repo.accountIdentity != null) {
+    const { endpoint, id } = repo.accountIdentity
+    const account = knownAccounts.find(
+      candidate => candidate.endpoint === endpoint && candidate.id === id
+    )
+    return {
+      kind: 'other',
+      accountKey: `:${endpoint}:${id}`,
+      accountLabel: account?.login,
+    }
   }
   return { kind: 'other' }
 }
@@ -77,7 +124,8 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  knownAccounts: ReadonlyArray<Account> = []
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -99,7 +147,7 @@ export function groupRepositories(
       addToGroup({ kind: 'recent' }, repo)
     }
 
-    addToGroup(getGroupForRepository(repo), repo)
+    addToGroup(getGroupForRepository(repo, knownAccounts), repo)
   }
 
   return Array.from(groups)

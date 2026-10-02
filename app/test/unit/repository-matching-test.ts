@@ -118,6 +118,41 @@ describe('repository-matching', () => {
       )
       assert(repo === null)
     })
+
+    it('matches the associated identity rather than the first account on a host', () => {
+      const first = new Account(
+        'joan',
+        'https://api.github.com',
+        'one',
+        [],
+        '',
+        1,
+        ''
+      )
+      const second = new Account(
+        'alex',
+        'https://api.github.com',
+        'two',
+        [],
+        '',
+        2,
+        ''
+      )
+      const remote = 'https://github.com/team/repo.git'
+
+      assert.strictEqual(
+        matchGitHubRepository([first, second], remote, {
+          endpoint: second.endpoint,
+          id: second.id,
+        })?.account,
+        second
+      )
+      assert.strictEqual(matchGitHubRepository([first, second], remote), null)
+      assert.strictEqual(
+        matchGitHubRepository([first, second], remote, null),
+        null
+      )
+    })
   })
 
   describe('urlMatchesRemote', () => {

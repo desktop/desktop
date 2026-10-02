@@ -24,6 +24,49 @@ describe('AccountsStore', () => {
       const users = await accountsStore.getAll()
       assert.equal(users[0].login, newAccountLogin)
     })
+
+    it('retains two accounts on the same host', async () => {
+      const endpoint = 'https://api.github.com'
+      await accountsStore.addAccount(
+        new Account('joan', endpoint, 'first-token', [], '', 1, '', 'free')
+      )
+      await accountsStore.addAccount(
+        new Account('alex', endpoint, 'second-token', [], '', 2, '', 'free')
+      )
+
+      const accounts = await accountsStore.getAll()
+      assert.deepStrictEqual(
+        accounts.map(account => account.login),
+        ['joan', 'alex']
+      )
+      assert.deepStrictEqual(
+        accounts.map(account => account.token),
+        ['first-token', 'second-token']
+      )
+    })
+
+    it('replaces the credentials of a known account without removing another', async () => {
+      const endpoint = 'https://api.github.com'
+      await accountsStore.addAccount(
+        new Account('joan', endpoint, 'old-token', [], '', 1, '', 'free')
+      )
+      await accountsStore.addAccount(
+        new Account('alex', endpoint, 'other-token', [], '', 2, '', 'free')
+      )
+
+      await accountsStore.addAccount(
+        new Account('joan', endpoint, 'new-token', [], '', 1, '', 'free')
+      )
+
+      const accounts = await accountsStore.getAll()
+      assert.deepStrictEqual(
+        accounts.map(account => [account.login, account.token]),
+        [
+          ['joan', 'new-token'],
+          ['alex', 'other-token'],
+        ]
+      )
+    })
   })
 
   describe('loading persisted users', () => {
@@ -46,7 +89,7 @@ describe('AccountsStore', () => {
       )
       accountsStore = new AccountsStore(dataStore, new AsyncInMemoryStore())
 
-      const users = await accountsStore.getAll()
+      const users = await accountsStore.getKnownAccounts()
       assert.equal(users[0].login, 'joan')
       assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com/')
 
@@ -74,7 +117,7 @@ describe('AccountsStore', () => {
       )
       accountsStore = new AccountsStore(dataStore, new AsyncInMemoryStore())
 
-      const users = await accountsStore.getAll()
+      const users = await accountsStore.getKnownAccounts()
       assert.equal(users[0].login, 'joan')
       assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com/')
 
@@ -102,7 +145,7 @@ describe('AccountsStore', () => {
       )
       accountsStore = new AccountsStore(dataStore, new AsyncInMemoryStore())
 
-      const users = await accountsStore.getAll()
+      const users = await accountsStore.getKnownAccounts()
       assert.equal(users[0].login, 'joan')
       assert.equal(users[0].endpoint, 'https://my-company-repos.com/api/v3')
 
@@ -111,6 +154,41 @@ describe('AccountsStore', () => {
       assert.equal(
         persistedUsers[0].endpoint,
         'https://my-company-repos.com/api/v3'
+      )
+    })
+  })
+
+  describe('signing out', () => {
+    it('retains the account identity without keeping it signed in', async () => {
+      const dataStore = new InMemoryStore()
+      const secureStore = new AsyncInMemoryStore()
+      accountsStore = new AccountsStore(dataStore, secureStore)
+      const account = new Account(
+        'joan',
+        'https://api.github.com',
+        'token',
+        [],
+        '',
+        1,
+        'Joan'
+      )
+      await accountsStore.addAccount(account)
+
+      await accountsStore.removeAccount(account)
+
+      assert.deepStrictEqual(await accountsStore.getAll(), [])
+      assert.deepStrictEqual(
+        (await accountsStore.getKnownAccounts()).map(known => [
+          known.login,
+          known.token,
+        ]),
+        [['joan', '']]
+      )
+      assert.deepStrictEqual(
+        (
+          await new AccountsStore(dataStore, secureStore).getKnownAccounts()
+        ).map(known => known.login),
+        ['joan']
       )
     })
   })

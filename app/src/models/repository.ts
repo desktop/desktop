@@ -21,6 +21,12 @@ function getBaseName(path: string): string {
   return baseName
 }
 
+/** A GitHub account identity retained independently of its credentials. */
+export interface IAccountIdentity {
+  readonly endpoint: string
+  readonly id: number
+}
+
 /** A local repository. */
 export class Repository {
   public readonly name: string
@@ -65,7 +71,12 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    /** Undefined for repositories created before account associations existed. */
+    public readonly accountIdentity:
+      | IAccountIdentity
+      | null
+      | undefined = undefined
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +87,12 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.accountIdentity === undefined
+        ? 'legacy'
+        : this.accountIdentity === null
+        ? 'unassociated'
+        : `${this.accountIdentity.endpoint}:${this.accountIdentity.id}`
     )
   }
 

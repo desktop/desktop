@@ -5,6 +5,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import type { IAuthor } from './account-authorship'
 
 /**
  * @param repository repository to execute merge in
@@ -21,6 +22,7 @@ export async function createCommit(
     noVerify?: boolean
     signOff?: boolean
     allowEmpty?: boolean
+    author?: IAuthor | null
   } & HookCallbackOptions
 ): Promise<string> {
   // Clear the staging area, our diffs reflect the difference between the
@@ -66,6 +68,15 @@ export async function createCommit(
       onHookProgress: options?.onHookProgress,
       onHookFailure: options?.onHookFailure,
       onTerminalOutputAvailable: options?.onTerminalOutputAvailable,
+      env:
+        options?.author === undefined || options.author === null
+          ? undefined
+          : {
+              GIT_AUTHOR_NAME: options.author.name,
+              GIT_AUTHOR_EMAIL: options.author.email,
+              GIT_COMMITTER_NAME: options.author.name,
+              GIT_COMMITTER_EMAIL: options.author.email,
+            },
     }
   )
   return parseCommitSHA(result)

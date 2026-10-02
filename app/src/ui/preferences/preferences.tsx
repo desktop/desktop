@@ -6,6 +6,16 @@ import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
 import { Git } from './git'
+import { getAuthorAccountKey } from './git'
+import {
+  getAuthoringMode,
+  getManageExternalAppAuthors,
+  getManagedAuthor,
+  setAuthoringMode,
+  setManageExternalAppAuthors,
+  saveManagedAuthorEdits,
+  IAuthor,
+} from '../../lib/git/account-authorship'
 import { assertNever } from '../../lib/fatal-error'
 import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
@@ -133,6 +143,10 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly authoringMode: 'desktop' | 'git'
+  readonly manageExternalAppAuthors: boolean
+  readonly managedAuthors: ReadonlyMap<string, IAuthor>
+  readonly originalManagedAuthors: ReadonlyMap<string, IAuthor>
   readonly defaultBranch: string
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
@@ -222,6 +236,10 @@ export class Preferences extends React.Component<
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      authoringMode: getAuthoringMode(),
+      manageExternalAppAuthors: getManageExternalAppAuthors(),
+      managedAuthors: new Map(),
+      originalManagedAuthors: new Map(),
       defaultBranch: '',
       initialCommitterName: null,
       initialCommitterEmail: null,
@@ -511,6 +529,13 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
+  private onManageRepositories = (account: Account) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ManageAccountRepositories,
+      account,
+    })
+  }
+
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -550,6 +575,7 @@ export class Preferences extends React.Component<
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
             onLogout={this.onLogout}
+            onManageRepositories={this.onManageRepositories}
           />
         )
         break
@@ -625,6 +651,14 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               accounts={this.props.accounts}
+              authoringMode={this.state.authoringMode}
+              manageExternalAppAuthors={this.state.manageExternalAppAuthors}
+              managedAuthors={this.state.managedAuthors}
+              onAuthoringModeChanged={this.onAuthoringModeChanged}
+              onManageExternalAppAuthorsChanged={
+                this.onManageExternalAppAuthorsChanged
+              }
+              onManagedAuthorChanged={this.onManagedAuthorChanged}
               defaultBranch={this.state.defaultBranch}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
@@ -876,6 +910,27 @@ export class Preferences extends React.Component<
     this.setState({ committerEmail })
   }
 
+  private onAuthoringModeChanged = (authoringMode: 'desktop' | 'git') => {
+    this.setState({ authoringMode })
+  }
+
+  private onManageExternalAppAuthorsChanged = (
+    manageExternalAppAuthors: boolean
+  ) => {
+    this.setState({ manageExternalAppAuthors })
+  }
+
+  private onManagedAuthorChanged = (account: Account, author: IAuthor) => {
+    const key = getAuthorAccountKey(account)
+    const managedAuthors = new Map(this.state.managedAuthors)
+    const originalManagedAuthors = new Map(this.state.originalManagedAuthors)
+    if (!originalManagedAuthors.has(key)) {
+      originalManagedAuthors.set(key, getManagedAuthor(account))
+    }
+    managedAuthors.set(key, author)
+    this.setState({ managedAuthors, originalManagedAuthors })
+  }
+
   private onDefaultBranchChanged = (defaultBranch: string) => {
     this.setState({ defaultBranch })
   }
@@ -1037,17 +1092,41 @@ export class Preferences extends React.Component<
     try {
       let shouldRefreshAuthor = false
 
-      if (this.state.committerName !== this.state.initialCommitterName) {
+      if (
+        this.state.authoringMode === 'git' &&
+        this.state.committerName !== this.state.initialCommitterName
+      ) {
         await setGlobalConfigValue('user.name', this.state.committerName)
         shouldRefreshAuthor = true
       }
 
-      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+      if (
+        this.state.authoringMode === 'git' &&
+        this.state.committerEmail !== this.state.initialCommitterEmail
+      ) {
         await setGlobalConfigValue('user.email', this.state.committerEmail)
         shouldRefreshAuthor = true
       }
 
       if (this.props.repository !== null && shouldRefreshAuthor) {
+        dispatcher.refreshAuthor(this.props.repository)
+      }
+
+      for (const account of this.props.accounts) {
+        const author = this.state.managedAuthors.get(
+          getAuthorAccountKey(account)
+        )
+        const original = this.state.originalManagedAuthors.get(
+          getAuthorAccountKey(account)
+        )
+        if (author !== undefined && original !== undefined) {
+          saveManagedAuthorEdits(account, original, author)
+        }
+      }
+      setAuthoringMode(this.state.authoringMode)
+      setManageExternalAppAuthors(this.state.manageExternalAppAuthors)
+      await dispatcher.synchronizeExternalAppAuthors()
+      if (this.props.repository !== null) {
         dispatcher.refreshAuthor(this.props.repository)
       }
 

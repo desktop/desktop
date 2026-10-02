@@ -31,9 +31,10 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          Your account token has been invalidated and you have been signed out
-          from your <Ref>{account.friendlyEndpoint}</Ref> account. Do you want
-          to sign in again?
+          Your token for @{account.login} on{' '}
+          <Ref>{account.friendlyEndpoint}</Ref> has been invalidated and that
+          account has been signed out. Do you want to sign in again as @
+          {account.login}?
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup okButtonText="Yes" cancelButtonText="No" />
@@ -49,10 +50,12 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
 
     if (isEnterpriseAccount(account)) {
       dispatcher.showEnterpriseSignInDialog(
-        getHTMLURL(this.props.account.endpoint)
+        getHTMLURL(this.props.account.endpoint),
+        undefined,
+        account.login
       )
     } else {
-      dispatcher.showDotComSignInDialog()
+      dispatcher.showDotComSignInDialog(undefined, account.login)
     }
   }
 }

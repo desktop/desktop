@@ -5,7 +5,6 @@ import {
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
-  IExistingAccountWarning,
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Row } from '../lib/row'
@@ -14,7 +13,6 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
-import { getHTMLURL } from '../../lib/api'
 import {
   EnterpriseServerConfirmation,
   enterpriseServerConfirmationDescriptionId,
@@ -26,6 +24,7 @@ interface ISignInProps {
   readonly onDismissed: () => void
   readonly isCredentialHelperSignIn?: boolean
   readonly credentialHelperUrl?: string
+  readonly credentialHelperLogin?: string
 }
 
 interface ISignInState {
@@ -93,11 +92,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
-      case SignInStep.ExistingAccountWarning:
-        this.props.dispatcher
-          .removeAccount(state.existingAccount)
-          .then(() => this.props.dispatcher.setSignInEndpoint(state.endpoint))
-        break
       case SignInStep.Authentication:
         this.props.dispatcher.requestBrowserAuthentication()
         break
@@ -133,9 +127,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
         break
-      case SignInStep.ExistingAccountWarning:
-        primaryButtonText = continueWithBrowserLabel
-        break
       case SignInStep.Authentication:
         primaryButtonText = continueWithBrowserLabel
         break
@@ -152,20 +143,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
-    )
-  }
-
-  private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
-    return (
-      <DialogContent>
-        <p className="existing-account-warning">
-          You're already signed in to{' '}
-          <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. If you continue, you will
-          first be signed out.
-        </p>
-        {browserSignInInfoContent}
-      </DialogContent>
     )
   }
 
@@ -189,18 +166,32 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return (
         <DialogContent>
           <EnterpriseServerConfirmation endpoint={state.endpoint} />
+          {this.props.credentialHelperLogin && (
+            <p>Sign in as @{this.props.credentialHelperLogin}.</p>
+          )}
           {browserSignInInfoContent}
         </DialogContent>
       )
     }
 
-    const credentialHelperInfo =
-      this.props.isCredentialHelperSignIn && this.props.credentialHelperUrl ? (
-        <p>
-          Git requesting credentials to access{' '}
-          <Ref>{this.props.credentialHelperUrl}</Ref>.
-        </p>
-      ) : undefined
+    const credentialHelperInfo = this.props.credentialHelperLogin ? (
+      <p>
+        Sign in as @{this.props.credentialHelperLogin}
+        {this.props.credentialHelperUrl && (
+          <>
+            {' '}
+            to access <Ref>{this.props.credentialHelperUrl}</Ref>
+          </>
+        )}
+        .
+      </p>
+    ) : this.props.isCredentialHelperSignIn &&
+      this.props.credentialHelperUrl ? (
+      <p>
+        Git requesting credentials to access{' '}
+        <Ref>{this.props.credentialHelperUrl}</Ref>.
+      </p>
+    ) : undefined
 
     return (
       <DialogContent>
@@ -222,8 +213,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
-      case SignInStep.ExistingAccountWarning:
-        return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
         return this.renderAuthenticationStep(state)
       case SignInStep.Success:

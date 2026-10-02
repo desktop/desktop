@@ -7,9 +7,13 @@ import {
   DefaultEditorLabel,
   DefaultShellLabel,
 } from '../lib/context-menu'
+import { Account } from '../../models/account'
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
+  knownAccounts: ReadonlyArray<Account>
+  accounts: ReadonlyArray<Account>
+  onSelectedAccount: (account: Account) => void
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
@@ -41,6 +45,7 @@ export const generateRepositoryListContextMenu = (
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
+    ...buildAccountMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => writeClipboardText(repository.name),
@@ -78,6 +83,56 @@ export const generateRepositoryListContextMenu = (
   ]
 
   return items
+}
+
+const buildAccountMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository, knownAccounts, accounts, onSelectedAccount } = config
+  if (!(repository instanceof Repository)) {
+    return []
+  }
+
+  const endpoint =
+    repository.gitHubRepository?.endpoint ??
+    repository.accountIdentity?.endpoint
+  if (endpoint === undefined) {
+    return []
+  }
+
+  const retained = knownAccounts.filter(
+    account => account.endpoint === endpoint
+  )
+  const signedIn = accounts.filter(account => account.endpoint === endpoint)
+  if (retained.length < 2 || signedIn.length === 0) {
+    return []
+  }
+
+  const submenu: ReadonlyArray<IMenuItem> = retained.flatMap(account => {
+    const active = signedIn.some(
+      candidate =>
+        candidate.id === account.id && candidate.endpoint === account.endpoint
+    )
+    const current =
+      repository.accountIdentity?.endpoint === account.endpoint &&
+      repository.accountIdentity.id === account.id
+
+    if (!active && !current) {
+      return []
+    }
+
+    return [
+      {
+        label: active ? account.login : `${account.login} (Signed out)`,
+        type: 'checkbox',
+        checked: current,
+        enabled: active,
+        action: () => onSelectedAccount(account),
+      },
+    ]
+  })
+
+  return [{ label: 'Accounts', submenu }]
 }
 
 const buildAliasMenuItems = (

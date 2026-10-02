@@ -92,6 +92,8 @@ import { EditorError } from './editor'
 import { CopilotAppNotFoundDialog } from './copilot-app/copilot-app-not-found-dialog'
 import { About } from './about'
 import { Publish } from './publish-repository'
+import { RepositoryAccountChoice } from './repository-account-choice'
+import { ManageAccountRepositories } from './manage-account-repositories'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { NoRepositoriesView } from './no-repositories'
@@ -297,6 +299,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   private getOnPopupDismissedFn = memoizeOne((popupId: number) => {
     return () => this.onPopupDismissed(popupId)
   })
+
+  private getOnRepositoryAccountChoiceDismissedFn = memoizeOne(
+    (popup: Extract<Popup, { type: PopupType.ChooseRepositoryAccount }>) =>
+      () => {
+        popup.onDismiss?.()
+        if (popup.id !== undefined) {
+          this.onPopupDismissed(popup.id)
+        }
+      }
+  )
 
   public constructor(props: IAppProps) {
     super(props)
@@ -1636,6 +1648,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private onAssignManagedRepository = async (
+    repository: Repository,
+    account: Account
+  ) => {
+    await this.props.dispatcher.setRepositoryAccount(repository, account)
+  }
+
   private popupContent(popup: Popup, isTopMost: boolean): JSX.Element | null {
     if (popup.id === undefined) {
       // Should not be possible... but if it does we want to know about it.
@@ -1849,6 +1868,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1862,6 +1882,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             isCredentialHelperSignIn={popup.isCredentialHelperSignIn}
             credentialHelperUrl={popup.credentialHelperUrl}
+            credentialHelperLogin={popup.credentialHelperLogin}
           />
         )
       case PopupType.AddRepository:
@@ -1879,6 +1900,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="create-repository"
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
+            accounts={this.state.accounts}
             initialPath={popup.path}
             isTopMost={isTopMost}
           />
@@ -2000,6 +2022,40 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      case PopupType.ChooseRepositoryAccount:
+        return (
+          <RepositoryAccountChoice
+            key="repository-account-choice"
+            repositoryName={popup.repository.name}
+            accounts={popup.accounts}
+            onSelected={popup.onSelected}
+            onDismissed={this.getOnRepositoryAccountChoiceDismissedFn(popup)}
+          />
+        )
+      case PopupType.ManageAccountRepositories: {
+        const repositories = this.state.repositories.filter(
+          (repo): repo is Repository => repo instanceof Repository
+        )
+        const remoteURLs = new Map<number, string>()
+        for (const repository of repositories) {
+          const remote =
+            this.props.repositoryStateManager.get(repository).remote
+          if (remote !== null) {
+            remoteURLs.set(repository.id, remote.url)
+          }
+        }
+        return (
+          <ManageAccountRepositories
+            key={`manage-account-repositories-${popup.account.endpoint}-${popup.account.id}`}
+            account={popup.account}
+            repositories={repositories}
+            remoteURLs={remoteURLs}
+            knownAccounts={this.state.knownAccounts}
+            onAssign={this.onAssignManagedRepository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.UntrustedCertificate:
         return (
           <UntrustedCertificate
@@ -3380,6 +3436,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={repositories}
+        knownAccounts={this.state.knownAccounts}
         recentRepositories={this.state.recentRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
@@ -3592,6 +3649,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       onCreateWorktree: enableWorktreeSupport() ? onCreateWorktree : undefined,
       onShowWorktrees: enableWorktreeSupport() ? onShowWorktrees : undefined,
       repository: repository,
+      knownAccounts: this.state.knownAccounts,
+      accounts: this.state.accounts,
+      onSelectedAccount: account => {
+        if (repository instanceof Repository) {
+          void this.props.dispatcher.setRepositoryAccount(repository, account)
+        }
+      },
       shellLabel: this.state.useCustomShell
         ? undefined
         : this.state.selectedShell,

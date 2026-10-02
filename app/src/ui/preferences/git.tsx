@@ -12,6 +12,7 @@ import {
   shellFriendlyNames,
   SupportedHooksEnvShell,
 } from '../../lib/hooks/config'
+import { getManagedAuthor, IAuthor } from '../../lib/git/account-authorship'
 
 interface IGitProps {
   readonly name: string
@@ -20,6 +21,12 @@ interface IGitProps {
   readonly isLoadingGitConfig: boolean
 
   readonly accounts: ReadonlyArray<Account>
+  readonly authoringMode: 'desktop' | 'git'
+  readonly manageExternalAppAuthors: boolean
+  readonly managedAuthors: ReadonlyMap<string, IAuthor>
+  readonly onAuthoringModeChanged: (mode: 'desktop' | 'git') => void
+  readonly onManageExternalAppAuthorsChanged: (enabled: boolean) => void
+  readonly onManagedAuthorChanged: (account: Account, author: IAuthor) => void
 
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
@@ -46,7 +53,73 @@ const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
   'cmd',
 ]
 
-export class Git extends React.Component<IGitProps> {
+interface IGitState {
+  readonly selectedAccountKey: string | null
+}
+
+export const getAuthorAccountKey = (account: Account) =>
+  `${account.endpoint}:${account.id}`
+
+export class Git extends React.Component<IGitProps, IGitState> {
+  public constructor(props: IGitProps) {
+    super(props)
+    this.state = { selectedAccountKey: null }
+  }
+
+  private get selectedAccount(): Account | undefined {
+    return (
+      this.props.accounts.find(
+        account =>
+          getAuthorAccountKey(account) === this.state.selectedAccountKey
+      ) ?? this.props.accounts[0]
+    )
+  }
+
+  private onAccountChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    this.setState({ selectedAccountKey: event.currentTarget.value })
+  }
+
+  private onAuthoringModeChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    this.props.onAuthoringModeChanged(
+      event.currentTarget.value === 'git' ? 'git' : 'desktop'
+    )
+  }
+
+  private onManageExternalAppAuthorsChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onManageExternalAppAuthorsChanged(event.currentTarget.checked)
+  }
+
+  private onManagedNameChanged = (name: string) => {
+    const account = this.selectedAccount
+    if (account !== undefined) {
+      this.props.onManagedAuthorChanged(account, {
+        ...this.getManagedAuthor(account),
+        name,
+      })
+    }
+  }
+
+  private onManagedEmailChanged = (email: string) => {
+    const account = this.selectedAccount
+    if (account !== undefined) {
+      this.props.onManagedAuthorChanged(account, {
+        ...this.getManagedAuthor(account),
+        email,
+      })
+    }
+  }
+
+  private getManagedAuthor(account: Account): IAuthor {
+    return (
+      this.props.managedAuthors.get(getAuthorAccountKey(account)) ??
+      getManagedAuthor(account)
+    )
+  }
+
   private get selectedTabIndex() {
     return this.props.selectedTabIndex ?? 0
   }
@@ -166,17 +239,72 @@ export class Git extends React.Component<IGitProps> {
   }
 
   private renderGitConfigAuthorInfo() {
+    const account = this.selectedAccount
     return (
       <>
-        <GitConfigUserForm
-          email={this.props.email}
-          name={this.props.name}
-          isLoadingGitConfig={this.props.isLoadingGitConfig}
-          accounts={this.props.accounts}
-          onEmailChanged={this.props.onEmailChanged}
-          onNameChanged={this.props.onNameChanged}
-        />
-        {this.renderEditGlobalGitConfigInfo()}
+        <Select
+          label="Author identity source"
+          value={this.props.authoringMode}
+          onChange={this.onAuthoringModeChanged}
+        >
+          <option value="desktop">GitHub Desktop will manage</option>
+          <option value="git">Git will manage</option>
+        </Select>
+        {this.props.authoringMode === 'desktop' ? (
+          <>
+            {account !== undefined && (
+              <>
+                <Select
+                  label="Account"
+                  value={getAuthorAccountKey(account)}
+                  onChange={this.onAccountChanged}
+                >
+                  {this.props.accounts.map(a => (
+                    <option
+                      key={getAuthorAccountKey(a)}
+                      value={getAuthorAccountKey(a)}
+                    >
+                      {a.friendlyName} ({a.friendlyEndpoint})
+                    </option>
+                  ))}
+                </Select>
+                <GitConfigUserForm
+                  name={this.getManagedAuthor(account).name}
+                  email={this.getManagedAuthor(account).email}
+                  isLoadingGitConfig={false}
+                  accounts={[account]}
+                  onNameChanged={this.onManagedNameChanged}
+                  onEmailChanged={this.onManagedEmailChanged}
+                />
+              </>
+            )}
+            <Checkbox
+              label="Manage commit authors for external Git apps"
+              value={
+                this.props.manageExternalAppAuthors
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onManageExternalAppAuthorsChanged}
+            />
+            <p className="settings-description">
+              When enabled, Desktop writes the selected account's author to this
+              repository's local Git configuration for other Git apps.
+            </p>
+          </>
+        ) : (
+          <>
+            <GitConfigUserForm
+              email={this.props.email}
+              name={this.props.name}
+              isLoadingGitConfig={this.props.isLoadingGitConfig}
+              accounts={this.props.accounts}
+              onEmailChanged={this.props.onEmailChanged}
+              onNameChanged={this.props.onNameChanged}
+            />
+            {this.renderEditGlobalGitConfigInfo()}
+          </>
+        )}
       </>
     )
   }

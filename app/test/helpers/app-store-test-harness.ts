@@ -44,10 +44,8 @@ export function createTestPullRequestStore(
 /**
  * Creates a fresh SignInStore with a test AccountsStore.
  */
-export function createTestSignInStore(
-  accountsStore?: AccountsStore
-): SignInStore {
-  return new SignInStore(accountsStore ?? createTestAccountsStore())
+export function createTestSignInStore(): SignInStore {
+  return new SignInStore()
 }
 
 /**
@@ -68,9 +66,13 @@ export function createTestIssuesStore(): IssuesStore {
  * Creates a fresh CommitStatusStore.
  */
 export function createTestCommitStatusStore(
-  accountsStore?: AccountsStore
+  accountsStore?: AccountsStore,
+  repositoriesStore?: RepositoriesStore
 ): CommitStatusStore {
-  return new CommitStatusStore(accountsStore ?? createTestAccountsStore())
+  return new CommitStatusStore(
+    accountsStore ?? createTestAccountsStore(),
+    repositoriesStore ?? createTestRepositoriesStore()
+  )
 }
 
 /**
@@ -125,10 +127,13 @@ export function createTestStores(): ITestStores {
   const accountsStore = createTestAccountsStore()
   const repositoriesStore = createTestRepositoriesStore()
   const pullRequestStore = createTestPullRequestStore(repositoriesStore)
-  const signInStore = createTestSignInStore(accountsStore)
+  const signInStore = createTestSignInStore()
   const gitHubUserStore = createTestGitHubUserStore()
   const issuesStore = createTestIssuesStore()
-  const commitStatusStore = createTestCommitStatusStore(accountsStore)
+  const commitStatusStore = createTestCommitStatusStore(
+    accountsStore,
+    repositoriesStore
+  )
   const repositoryStateCache = new RepositoryStateCache(statsStore)
   const cloningRepositoriesStore = createTestCloningRepositoriesStore()
   const apiRepositoriesStore = createTestApiRepositoriesStore(accountsStore)

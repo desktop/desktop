@@ -130,6 +130,37 @@ describe('git/commit', () => {
       assert.equal(history[0].body, 'this is a description\n')
     })
 
+    it('uses a selected Desktop-managed author without changing Git config', async t => {
+      const repository = await setupEmptyRepository(t)
+      const author = {
+        name: 'Managed Identity',
+        email: 'managed@example.com',
+      }
+      const before = await exec(
+        ['config', '--get', 'user.email'],
+        repository.path
+      )
+
+      await createCommit(repository, 'Managed commit', [], {
+        allowEmpty: true,
+        author,
+      })
+
+      const actual = await exec(
+        ['show', '-s', '--format=%an%n%ae', 'HEAD'],
+        repository.path
+      )
+      const after = await exec(
+        ['config', '--get', 'user.email'],
+        repository.path
+      )
+      assert.strictEqual(
+        actual.stdout.trim(),
+        `${author.name}\n${author.email}`
+      )
+      assert.strictEqual(after.stdout, before.stdout)
+    })
+
     it('can commit renames', async t => {
       const repo = await setupEmptyRepository(t)
 

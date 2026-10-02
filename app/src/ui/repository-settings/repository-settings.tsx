@@ -11,7 +11,7 @@ import {
   getForkContributionTarget,
   isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
-import { Dialog, DialogError, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 import { NoRemote } from './no-remote'
 import { readGitIgnoreAtRoot } from '../../lib/git'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
@@ -31,6 +31,8 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { AccountPicker } from '../account-picker'
+import { Row } from '../lib/row'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -38,6 +40,7 @@ interface IRepositorySettingsProps {
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly onDismissed: () => void
 }
 
@@ -66,6 +69,7 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
   readonly isLoadingGitConfig: boolean
+  readonly selectedAccount: Account | null
 }
 
 export class RepositorySettings extends React.Component<
@@ -93,6 +97,7 @@ export class RepositorySettings extends React.Component<
       initialCommitterName: null,
       initialCommitterEmail: null,
       isLoadingGitConfig: true,
+      selectedAccount: props.repositoryAccount,
     }
   }
 
@@ -220,16 +225,40 @@ export class RepositorySettings extends React.Component<
     switch (tab) {
       case RepositorySettingsTab.Remote: {
         const remote = this.state.remote
-        if (remote) {
-          return (
-            <Remote
-              remote={remote}
-              onRemoteUrlChanged={this.onRemoteUrlChanged}
-            />
-          )
-        } else {
-          return <NoRemote onPublish={this.onPublish} />
-        }
+        const endpoint =
+          this.props.repository.gitHubRepository?.endpoint ??
+          this.props.repository.accountIdentity?.endpoint
+        const eligibleAccounts = this.props.accounts.filter(
+          account => account.endpoint === endpoint
+        )
+        return (
+          <>
+            {remote ? (
+              <Remote
+                remote={remote}
+                onRemoteUrlChanged={this.onRemoteUrlChanged}
+              />
+            ) : (
+              <NoRemote onPublish={this.onPublish} />
+            )}
+            {eligibleAccounts.length > 0 && (
+              <DialogContent>
+                <Row>
+                  <AccountPicker
+                    accounts={eligibleAccounts}
+                    selectedAccount={this.state.selectedAccount}
+                    onSelectedAccountChanged={this.onSelectedAccountChanged}
+                    placeholder={
+                      this.props.repository.accountIdentity
+                        ? 'Signed out'
+                        : 'Choose an account'
+                    }
+                  />
+                </Row>
+              </DialogContent>
+            )}
+          </>
+        )
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return (
@@ -328,6 +357,22 @@ export class RepositorySettings extends React.Component<
       }
     }
 
+    const selectedAccount = this.state.selectedAccount
+    if (
+      selectedAccount !== null &&
+      (this.props.repositoryAccount?.endpoint !== selectedAccount.endpoint ||
+        this.props.repositoryAccount.id !== selectedAccount.id)
+    ) {
+      try {
+        await this.props.dispatcher.setRepositoryAccount(
+          this.props.repository,
+          selectedAccount
+        )
+      } catch (e) {
+        errors.push(`Failed changing the repository account: ${e}`)
+      }
+    }
+
     // only update this if it will be different from what we have stored
     if (
       this.state.forkContributionTarget !==
@@ -405,6 +450,10 @@ export class RepositorySettings extends React.Component<
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedTab: index })
+  }
+
+  private onSelectedAccountChanged = (selectedAccount: Account) => {
+    this.setState({ selectedAccount })
   }
 
   private onForkContributionTargetChanged = (

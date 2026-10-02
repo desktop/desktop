@@ -1,6 +1,6 @@
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
-import { getAccountForEndpoint } from './api'
+import { GitHubRepository } from '../models/github-repository'
 import {
   enableCommitMessageGeneration,
   enableCopilotConflictResolution,
@@ -12,12 +12,44 @@ export function getAccountForRepository(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | null {
-  const gitHubRepository = repository.gitHubRepository
-  if (!gitHubRepository) {
+  const { accountIdentity } = repository
+  if (accountIdentity === null) {
     return null
   }
 
-  return getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+  if (accountIdentity !== undefined) {
+    return (
+      accounts.find(
+        account =>
+          account.endpoint === accountIdentity.endpoint &&
+          account.id === accountIdentity.id
+      ) ?? null
+    )
+  }
+
+  const gitHubRepository = repository.gitHubRepository
+  if (gitHubRepository === null) {
+    return null
+  }
+
+  const matchingAccounts = accounts.filter(
+    account => account.endpoint === gitHubRepository.endpoint
+  )
+  return matchingAccounts.length === 1 ? matchingAccounts[0] : null
+}
+
+/** Resolve a GitHub API request through its tracked local repository. */
+export function getAccountForGitHubRepository(
+  accounts: ReadonlyArray<Account>,
+  repositories: ReadonlyArray<Repository>,
+  gitHubRepository: GitHubRepository
+): Account | null {
+  const repository = repositories.find(
+    candidate => candidate.id === gitHubRepository.dbID
+  )
+  return repository === undefined
+    ? null
+    : getAccountForRepository(accounts, repository)
 }
 
 /**

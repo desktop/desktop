@@ -13,6 +13,7 @@ import * as GitPerf from '../../ui/lib/git-perf'
 import * as Path from 'path'
 import { isErrnoException } from '../errno-exception'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { IAccountIdentity } from '../../models/repository'
 import { kStringMaxLength } from 'buffer'
 import { withHooksEnv } from '../hooks/with-hooks-env'
 import { coerceToString } from './coerce-to-string'
@@ -85,6 +86,9 @@ export interface IGitExecutionOptions
    * This affects error handling and UI such as credential prompts.
    */
   readonly isBackgroundTask?: boolean
+
+  /** Account chosen for an operation before its repository is tracked. */
+  readonly accountIdentity?: IAccountIdentity
 
   readonly interceptHooks?: string[]
 }
@@ -379,7 +383,8 @@ export async function git(
         },
         path,
         options?.isBackgroundTask ?? false,
-        hooksEnv
+        hooksEnv,
+        options?.accountIdentity
       ),
     path,
     options

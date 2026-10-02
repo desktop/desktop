@@ -148,7 +148,7 @@ export class PublishRepository extends React.Component<
   public render() {
     return (
       <DialogContent>
-        {this.props.accounts.length > 1 && (
+        {this.props.accounts.length > 0 && (
           <Row>
             <AccountPicker
               accounts={this.props.accounts}

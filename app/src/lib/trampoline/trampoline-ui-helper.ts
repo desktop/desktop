@@ -1,6 +1,7 @@
 import { Account } from '../../models/account'
 import { IGitAccount } from '../../models/git-account'
 import { PopupType } from '../../models/popup'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../ui/dispatcher'
 import { SignInResult } from '../stores'
 
@@ -77,7 +78,28 @@ class TrampolineUIHelper {
     })
   }
 
-  public promptForGitHubSignIn(endpoint: string): Promise<Account | undefined> {
+  public promptForRepositoryAccount(
+    repository: Repository,
+    accounts: ReadonlyArray<Account>
+  ): Promise<Account | undefined> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.ChooseRepositoryAccount,
+        repository,
+        accounts,
+        onSelected: async account => {
+          await this.dispatcher.setRepositoryAccount(repository, account)
+          resolve(account)
+        },
+        onDismiss: () => resolve(undefined),
+      })
+    })
+  }
+
+  public promptForGitHubSignIn(
+    endpoint: string,
+    login?: string
+  ): Promise<Account | undefined> {
     return new Promise<Account | undefined>(async resolve => {
       const cb = (result: SignInResult) => {
         resolve(result.kind === 'success' ? result.account : undefined)
@@ -96,6 +118,7 @@ class TrampolineUIHelper {
         type: PopupType.SignIn,
         isCredentialHelperSignIn: true,
         credentialHelperUrl: endpoint,
+        credentialHelperLogin: login,
       })
     }).catch(e => {
       log.error(`Could not prompt for GitHub sign in`, e)

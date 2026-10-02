@@ -4,6 +4,9 @@ import { groupRepositories } from '../../src/ui/repositories-list/group-reposito
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
+import { Account } from '../../src/models/account'
+import { getGroupKey } from '../../src/ui/repositories-list/group-repositories'
+import { RepositoriesList } from '../../src/ui/repositories-list/repositories-list'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -153,4 +156,138 @@ describe('repository list grouping', () => {
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
   })
+
+  it('preserves owner headings for a single retained identity', () => {
+    const account = new Account(
+      'joan',
+      'https://api.github.com',
+      '',
+      [],
+      '',
+      1,
+      ''
+    )
+    const repo = associatedRepository(1, account)
+    const groups = groupRepositories([repo], cache, [], [account])
+
+    assert.equal(groups.length, 1)
+    assert.equal(groups[0].identifier.kind, 'dotcom')
+    assert.equal(getGroupKey(groups[0].identifier), '1:dotcom:team')
+  })
+
+  it('separates accounts and unassociated repositories in the same organization', () => {
+    const first = new Account(
+      'joan',
+      'https://api.github.com',
+      '',
+      [],
+      '',
+      1,
+      ''
+    )
+    const second = new Account(
+      'alex',
+      'https://api.github.com',
+      'token',
+      [],
+      '',
+      2,
+      ''
+    )
+    const groups = groupRepositories(
+      [
+        associatedRepository(1, first),
+        associatedRepository(2, second),
+        associatedRepository(3, null),
+      ],
+      cache,
+      [],
+      [first, second]
+    )
+
+    assert.equal(groups.length, 3)
+    assert.deepEqual(
+      groups.map(group => group.identifier.kind),
+      ['dotcom', 'dotcom', 'dotcom']
+    )
+    assert.deepEqual(
+      groups.map(group =>
+        group.identifier.kind === 'dotcom'
+          ? group.identifier.accountLabel
+          : undefined
+      ),
+      ['joan', 'alex', 'Unassociated']
+    )
+    assert.deepEqual(
+      groups.map(group => group.items[0].repository.id),
+      [1, 2, 3]
+    )
+  })
+
+  it('names the associated account in local-only groups while keeping unassociated repositories under Other', () => {
+    const first = new Account(
+      'wilmartin_microsoft',
+      'https://api.github.com',
+      'token',
+      [],
+      '',
+      1,
+      ''
+    )
+    const second = new Account('personal', first.endpoint, '', [], '', 2, '')
+    const local = (id: number, account: Account | null | undefined) =>
+      new Repository(
+        `repo-${id}`,
+        id,
+        null,
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        account === undefined
+          ? undefined
+          : account === null
+          ? null
+          : { endpoint: account.endpoint, id: account.id }
+      )
+    const groups = groupRepositories(
+      [local(1, first), local(2, second), local(3, null), local(4, undefined)],
+      cache,
+      [],
+      [first, second]
+    )
+
+    assert.equal(groups.length, 3)
+    assert.deepEqual(
+      groups.map(group => group.items.map(item => item.repository.id)),
+      [[3, 4], [1], [2]]
+    )
+    assert.deepEqual(
+      groups.map(group =>
+        RepositoriesList.prototype['getGroupLabel'](group.identifier)
+      ),
+      ['Other', 'Other — @wilmartin_microsoft', 'Other — @personal']
+    )
+    assert.equal(
+      new Set(groups.map(group => getGroupKey(group.identifier))).size,
+      3
+    )
+  })
 })
+
+function associatedRepository(id: number, account: Account | null) {
+  return new Repository(
+    `repo-${id}`,
+    id,
+    gitHubRepoFixture({ owner: 'team', name: `repo-${id}` }),
+    false,
+    null,
+    {},
+    false,
+    undefined,
+    undefined,
+    account === null ? null : { endpoint: account.endpoint, id: account.id }
+  )
+}

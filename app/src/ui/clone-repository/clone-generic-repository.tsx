@@ -4,10 +4,14 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { Ref } from '../lib/ref'
+import { Account } from '../../models/account'
 
 interface ICloneGenericRepositoryProps {
   /** The URL to clone. */
   readonly url: string
+  readonly accessibleAccounts: ReadonlyArray<Account> | null
+  readonly selectedAccount: Account | null
+  readonly onSelectedAccountChanged: (account: Account) => void
 
   /** The path to which the repository should be cloned. */
   readonly path: string
@@ -49,6 +53,25 @@ export class CloneGenericRepository extends React.Component<
           />
         </Row>
 
+        {this.props.accessibleAccounts !== null && (
+          <Row>
+            <div>Choose an account to clone this repository:</div>
+            {this.props.accessibleAccounts.map(account => (
+              <button
+                key={`${account.endpoint}/${account.id}`}
+                type="button"
+                className="button-component"
+                value={`${account.endpoint}/${account.id}`}
+                onClick={this.onAccountClicked}
+                aria-label={`Use @${account.login} on ${account.friendlyEndpoint}`}
+              >
+                {this.props.selectedAccount === account ? '✓ ' : ''}@
+                {account.login} - {account.friendlyEndpoint}
+              </button>
+            ))}
+          </Row>
+        )}
+
         <Row>
           <TextBox
             value={this.props.path}
@@ -64,5 +87,15 @@ export class CloneGenericRepository extends React.Component<
 
   private onUrlChanged = (url: string) => {
     this.props.onUrlChanged(url)
+  }
+
+  private onAccountClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const account = this.props.accessibleAccounts?.find(
+      candidate =>
+        `${candidate.endpoint}/${candidate.id}` === event.currentTarget.value
+    )
+    if (account !== undefined) {
+      this.props.onSelectedAccountChanged(account)
+    }
   }
 }

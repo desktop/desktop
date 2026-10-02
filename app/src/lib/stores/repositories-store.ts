@@ -16,6 +16,7 @@ import {
   assertIsRepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
+import { Account } from '../../models/account'
 import { fatalError, assertNonNullable, forceUnwrap } from '../fatal-error'
 import {
   IAPIRepository,
@@ -154,7 +155,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.accountIdentity
     )
   }
 
@@ -254,6 +256,7 @@ export class RepositoriesStore extends TypedBaseStore<
         const dbRepo: IDatabaseRepository = {
           path,
           gitHubRepositoryID: null,
+          accountIdentity: null,
           missing: opts?.missing ?? false,
           lastStashCheckDate: null,
           alias: null,
@@ -277,6 +280,95 @@ export class RepositoriesStore extends TypedBaseStore<
     this.emitUpdatedRepositories()
   }
 
+  /** Associate a repository with an account or explicitly leave it unassociated. */
+  public async setRepositoryAccount(
+    repository: Repository,
+    account: Account | null
+  ): Promise<Repository> {
+    if (
+      account !== null &&
+      repository.gitHubRepository !== null &&
+      account.endpoint !== repository.gitHubRepository.endpoint
+    ) {
+      throw new Error('Account endpoint does not match repository host')
+    }
+
+    const accountIdentity =
+      account === null ? null : { endpoint: account.endpoint, id: account.id }
+    await this.db.repositories.update(repository.id, { accountIdentity })
+    this.emitUpdatedRepositories()
+
+    return new Repository(
+      repository.path,
+      repository.id,
+      repository.gitHubRepository,
+      repository.missing,
+      repository.alias,
+      repository.workflowPreferences,
+      repository.isTutorialRepository,
+      repository.gitDir,
+      repository.mainWorktreePath,
+      accountIdentity
+    )
+  }
+
+  /**
+   * Use the selected account during a Git operation, retaining it on success
+   * and restoring the original association if the operation fails.
+   */
+  public async withRepositoryAccount<T>(
+    repository: Repository,
+    account: Account,
+    operation: (associatedRepository: Repository) => Promise<T>
+  ): Promise<T> {
+    const associated = await this.setRepositoryAccount(repository, account)
+    try {
+      return await operation(associated)
+    } catch (error) {
+      await this.db.repositories.update(repository.id, {
+        accountIdentity: repository.accountIdentity,
+      })
+      this.emitUpdatedRepositories()
+      throw error
+    }
+  }
+
+  /** Preserve the former single-account association for existing repositories. */
+  public async migrateRepositoryAccounts(
+    knownAccounts: ReadonlyArray<Account>
+  ): Promise<void> {
+    const repositories = await this.getAll()
+    const migrations = repositories.flatMap(repository => {
+      if (
+        repository.accountIdentity !== undefined ||
+        repository.gitHubRepository === null
+      ) {
+        return []
+      }
+
+      const matchingAccounts = knownAccounts.filter(
+        account => account.endpoint === repository.gitHubRepository?.endpoint
+      )
+      return matchingAccounts.length === 1
+        ? [{ repository, account: matchingAccounts[0] }]
+        : []
+    })
+
+    if (migrations.length === 0) {
+      return
+    }
+
+    await this.db.transaction('rw', this.db.repositories, async () => {
+      for (const { repository, account } of migrations) {
+        await this.db.repositories.update(repository.id, {
+          accountIdentity: { endpoint: account.endpoint, id: account.id },
+        })
+      }
+    })
+
+    this.emitUpdatedRepositories()
+  }
+
   /** Update the repository's `missing` flag. */
   public async updateRepositoryMissing(
     repository: Repository,
@@ -295,7 +387,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -317,7 +410,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -383,7 +477,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      mainWorktreePath
+      mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -436,7 +531,8 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.workflowPreferences,
         repository.isTutorialRepository,
         gitDir,
-        mainWorktreePath
+        mainWorktreePath,
+        repository.accountIdentity
       ),
       existingRepository: false,
     }
@@ -586,7 +682,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.accountIdentity
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

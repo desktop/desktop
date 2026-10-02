@@ -60,6 +60,7 @@ import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
 import { Account } from '../../models/account'
+import { CloneOptions } from '../../models/clone-options'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
@@ -180,6 +181,14 @@ export class Dispatcher {
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
     return this.appStore._addRepositories(paths)
+  }
+
+  /** Associate a repository with an account, or explicitly leave it unassociated. */
+  public setRepositoryAccount(
+    repository: Repository,
+    account: Account | null
+  ): Promise<Repository> {
+    return this.appStore._setRepositoryAccount(repository, account)
   }
 
   /**
@@ -399,6 +408,11 @@ export class Dispatcher {
    */
   public async refreshAuthor(repository: Repository): Promise<void> {
     return this.appStore._refreshAuthor(repository)
+  }
+
+  /** Synchronize external Git authorship across tracked repositories. */
+  public async synchronizeExternalAppAuthors(): Promise<void> {
+    return this.appStore._synchronizeExternalAppAuthors()
   }
 
   /** Show the popup. This will close any current popup. */
@@ -833,7 +847,7 @@ export class Dispatcher {
   public async clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    options?: CloneOptions
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -1787,10 +1801,14 @@ export class Dispatcher {
    * GitHub.com.
    */
   public async showDotComSignInDialog(
-    resultCallback?: (result: SignInResult) => void
+    resultCallback?: (result: SignInResult) => void,
+    login?: string
   ): Promise<void> {
     this.appStore._beginDotComSignIn(resultCallback)
-    this.appStore._showPopup({ type: PopupType.SignIn })
+    this.appStore._showPopup({
+      type: PopupType.SignIn,
+      credentialHelperLogin: login,
+    })
   }
 
   /**
@@ -1800,7 +1818,8 @@ export class Dispatcher {
    */
   public async showEnterpriseSignInDialog(
     endpoint?: string,
-    resultCallback?: (result: SignInResult) => void
+    resultCallback?: (result: SignInResult) => void,
+    login?: string
   ): Promise<void> {
     this.appStore._beginEnterpriseSignIn(resultCallback)
 
@@ -1808,7 +1827,10 @@ export class Dispatcher {
       this.appStore._setSignInEndpoint(endpoint)
     }
 
-    this.appStore._showPopup({ type: PopupType.SignIn })
+    this.appStore._showPopup({
+      type: PopupType.SignIn,
+      credentialHelperLogin: login,
+    })
   }
 
   /**

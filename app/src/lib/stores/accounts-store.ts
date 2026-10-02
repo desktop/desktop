@@ -1,6 +1,6 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account, accountEquals, isDotComAccount } from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
@@ -86,6 +86,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   public async getAll(): Promise<ReadonlyArray<Account>> {
     await this.loadingPromise
 
+    return this.accounts.filter(account => account.token.length > 0)
+  }
+
+  /** Get retained identities, including accounts whose credentials were removed. */
+  public async getKnownAccounts(): Promise<ReadonlyArray<Account>> {
+    await this.loadingPromise
     return this.accounts.slice()
   }
 
@@ -113,13 +119,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
+    this.accounts = sortAccounts(
+      this.accounts.some(existing => accountEquals(existing, account))
+        ? this.accounts.map(existing =>
+            accountEquals(existing, account) ? account : existing
+          )
+        : [...this.accounts, account]
     )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
 
     this.save()
     return account
@@ -128,11 +134,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
     this.accounts = await Promise.all(
-      this.accounts.map(acc => this.tryUpdateAccount(acc))
+      this.accounts.map(acc =>
+        acc.token.length > 0 ? this.tryUpdateAccount(acc) : acc
+      )
     )
 
     this.save()
-    this.emitUpdate(this.accounts)
   }
 
   /**
@@ -172,8 +179,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return
     }
 
-    this.accounts = this.accounts.filter(
-      a => !(a.endpoint === account.endpoint && a.id === account.id)
+    this.accounts = this.accounts.map(existing =>
+      accountEquals(existing, account) ? existing.withToken('') : existing
     )
 
     this.save()
@@ -244,7 +251,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (migratedAccounts !== null) {
       this.save() // Save already emits an update
     } else {
-      this.emitUpdate(this.accounts)
+      this.emitUpdate(this.accounts.filter(account => account.token.length > 0))
     }
   }
 
@@ -254,7 +261,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
-    this.emitUpdate(this.accounts)
+    this.emitUpdate(this.accounts.filter(account => account.token.length > 0))
   }
 }
 

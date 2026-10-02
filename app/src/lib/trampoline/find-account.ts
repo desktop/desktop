@@ -4,6 +4,7 @@ import { getGenericPassword, getGenericUsername } from '../generic-git-auth'
 import { AccountsStore } from '../stores'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { Account } from '../../models/account'
+import { IAccountIdentity } from '../../models/repository'
 
 /**
  * When we're asked for credentials we're typically first asked for the username
@@ -19,13 +20,26 @@ const memoizedGetGenericPassword = memoizeOne(
 
 export async function findGitHubTrampolineAccount(
   accountsStore: AccountsStore,
-  remoteUrl: string
+  remoteUrl: string,
+  identity?: IAccountIdentity | null
 ): Promise<Account | undefined> {
+  if (identity === null) {
+    return undefined
+  }
+
   const accounts = await accountsStore.getAll()
   const parsedUrl = new URL(remoteUrl)
-  return accounts.find(
+  const matching = accounts.filter(
     a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin
   )
+  return identity === undefined
+    ? matching.length === 1
+      ? matching[0]
+      : undefined
+    : matching.find(
+        account =>
+          account.endpoint === identity.endpoint && account.id === identity.id
+      )
 }
 
 export async function findGenericTrampolineAccount(

@@ -15,8 +15,9 @@ import memoizeOne from 'memoize-one'
 
 interface IAccountPickerProps {
   readonly accounts: ReadonlyArray<Account>
-  readonly selectedAccount: Account
+  readonly selectedAccount: Account | null
   readonly onSelectedAccountChanged: (account: Account) => void
+  readonly placeholder?: string
 
   /**
    * The class name to apply to the open button. This is useful for
@@ -65,7 +66,7 @@ export class AccountPicker extends React.Component<
     (
       accounts: ReadonlyArray<Account>,
       selectedItemId: string | undefined,
-      selectedAccount: Account
+      selectedAccount: Account | null
     ) =>
       this.getFilterListGroups(accounts)
         .flatMap(x => x.items)
@@ -74,7 +75,8 @@ export class AccountPicker extends React.Component<
           // gets reset when the selectedAccount props changes.
           selectedItemId
             ? x.id === selectedItemId
-            : accountEquals(x.account, selectedAccount)
+            : selectedAccount !== null &&
+              accountEquals(x.account, selectedAccount)
         ) ?? null
   )
 
@@ -147,12 +149,14 @@ export class AccountPicker extends React.Component<
         className="account-picker"
         contentTitle="Choose an account"
         buttonContent={
-          <div className="account">
-            <span className="login">@{account.login}</span> -{' '}
-            <span className="endpoint">
-              {this.props.selectedAccount.friendlyEndpoint}
-            </span>
-          </div>
+          account === null ? (
+            <span>{this.props.placeholder ?? 'Choose an account'}</span>
+          ) : (
+            <div className="account">
+              <span className="login">@{account.login}</span> -{' '}
+              <span className="endpoint">{account.friendlyEndpoint}</span>
+            </div>
+          )
         }
         label="Account"
         ref={this.popoverRef}
