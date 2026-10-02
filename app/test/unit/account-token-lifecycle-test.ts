@@ -781,6 +781,149 @@ describe('Coordinated account token renewal', () => {
     )
   })
 
+  it('keeps memory, storage, and restart in sync when overlapping sign-ins race', async t => {
+    const { store, secure, data } = setup()
+    await store.addAccount(account, rotating)
+    const original = secure.setItem.bind(secure)
+    const writing = deferred<void>()
+    const gate = deferred<void>()
+    let calls = 0
+    t.mock.method(
+      secure,
+      'setItem',
+      async (key: string, login: string, value: string) => {
+        calls++
+        if (calls === 1) {
+          writing.resolve()
+          await gate.promise
+          return original(key, login, value)
+        }
+        throw new Error('Keychain locked')
+      }
+    )
+    const errors: Error[] = []
+    store.onDidError(error => errors.push(error))
+    const first = account.withToken('first-access')
+    const second = account.withToken('second-access')
+
+    const firstAddition = store.addAccount(first)
+    await writing.promise
+    const secondAddition = store.addAccount(second)
+    gate.resolve()
+
+    assert.equal((await firstAddition)?.token, first.token)
+    assert.equal(await secondAddition, null)
+    assert.equal(errors.length, 1)
+    assert.deepEqual(await store.getAll(), [first])
+    assert.equal(
+      await store.resolveToken(first.endpoint, first.token),
+      first.token
+    )
+    assert.equal(
+      await secure.getItem(getKeyForAccount(account), account.login),
+      first.token
+    )
+    assert.deepEqual(await new AccountsStore(data, secure).getAll(), [first])
+  })
+
+  it('a sign-in saved after signing out the previous account stays signed in', async t => {
+    for (const login of [account.login, 'other']) {
+      const { store, secure, data } = setup()
+      await store.addAccount(account, rotating)
+      const original = secure.setItem.bind(secure)
+      const writing = deferred<void>()
+      const gate = deferred<void>()
+      const setItem = t.mock.method(
+        secure,
+        'setItem',
+        async (key: string, user: string, value: string) => {
+          writing.resolve()
+          await gate.promise
+          return original(key, user, value)
+        }
+      )
+      const replacement = new Account(
+        login,
+        account.endpoint,
+        'replacement-access',
+        [],
+        '',
+        login === account.login ? account.id : 2,
+        login
+      )
+
+      const addition = store.addAccount(replacement)
+      await writing.promise
+      const removal = store.removeAccount(account)
+      gate.resolve()
+      await Promise.all([addition, removal])
+      setItem.mock.restore()
+
+      assert.deepEqual(await store.getAll(), [replacement])
+      assert.equal(
+        await secure.getItem(getKeyForAccount(replacement), login),
+        replacement.token
+      )
+      if (login !== account.login) {
+        assert.equal(
+          await secure.getItem(getKeyForAccount(account), account.login),
+          null
+        )
+      }
+      assert.deepEqual(await new AccountsStore(data, secure).getAll(), [
+        replacement,
+      ])
+    }
+  })
+
+  it('a sign-out resuming as a sign-in is installed sees one consistent account', async t => {
+    // Sweep the microtasks between the sign-in's save and its caller resuming.
+    for (let delay = 0; delay < 8; delay++) {
+      const { store, secure, data } = setup()
+      await store.addAccount(account, rotating)
+      const other = new Account(
+        'other',
+        account.endpoint,
+        'other-access',
+        [],
+        '',
+        2,
+        'Other'
+      )
+      const original = secure.setItem.bind(secure)
+      let removal: Promise<Account | null> | undefined
+      const setItem = t.mock.method(
+        secure,
+        'setItem',
+        async (key: string, user: string, value: string) => {
+          await original(key, user, value)
+          removal = (async () => {
+            for (let i = 0; i < delay; i++) {
+              await Promise.resolve()
+            }
+            return store.removeAccount(account)
+          })()
+        }
+      )
+
+      assert.deepEqual(await store.addAccount(other), other)
+      await removal
+      setItem.mock.restore()
+
+      assert.deepEqual(await store.getAll(), [other], `delay ${delay}`)
+      assert.equal(
+        (await store.getAccountWithFreshToken(other)).token,
+        other.token,
+        `delay ${delay}`
+      )
+      assert.deepEqual(
+        await new AccountsStore(data, secure).getAll(),
+        [other],
+        `delay ${delay}`
+      )
+    }
+  })
+
   it('replacing an account never redirects stale clients to another identity', async () => {
     const { store } = setup()
     await store.addAccount(account, rotating)

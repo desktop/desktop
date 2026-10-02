@@ -53,6 +53,7 @@ function setup(
         return a
       },
       onTokenRenewed: (endpoint, token) => renewals.push([endpoint, token]),
+      onSignedIn: () => {},
     },
     renew,
     () => now,
@@ -119,13 +120,17 @@ describe('CredentialSessions', () => {
     )
   })
 
-  it('drops a sign-in superseded while storage was pending', async () => {
+  it('installs overlapping sign-ins in the order they are saved', async () => {
     const { sessions, secure } = setup()
     const first = sessions.add(account, expiring)
     const second = sessions.add(account.withToken('newer'), renewed)
 
-    assert.equal(await first, null)
-    assert.equal((await second)?.token, 'new-access')
+    assert.equal((await first).token, expiring.accessToken)
+    assert.equal((await second).token, 'new-access')
+    await assert.rejects(
+      sessions.resolveToken(account.endpoint, expiring.accessToken),
+      AccountRequiresSignInError
+    )
     assert.deepEqual(
       deserializeAccountCredential(
         await secure.getItem(getKeyForAccount(account), account.login)
