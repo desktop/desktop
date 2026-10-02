@@ -1,19 +1,19 @@
-import * as React from 'react'
 import classNames from 'classnames'
-import {
-  UserAutocompletionProvider,
-  AutocompletingInput,
-  UserHit,
-  KnownUserHit,
-} from '../../autocompletion'
+import memoizeOne from 'memoize-one'
+import * as React from 'react'
+import { getLegacyStealthEmailForUser } from '../../../lib/email'
 import {
   Author,
   isKnownAuthor,
   KnownAuthor,
   UnknownAuthor,
 } from '../../../models/author'
-import { getLegacyStealthEmailForUser } from '../../../lib/email'
-import memoizeOne from 'memoize-one'
+import {
+  AutocompletingInput,
+  KnownUserHit,
+  UserAutocompletionProvider,
+  UserHit,
+} from '../../autocompletion'
 import { FocusContainer } from '../focus-container'
 import { AuthorHandle } from './author-handle'
 import { getFullTextForAuthor } from './author-text'
@@ -60,6 +60,9 @@ interface IAuthorInputState {
 
   /** Last action description to be announced by screen readers */
   readonly lastActionDescription: string | null
+
+  /** Validation message shown for rejected author additions. */
+  readonly validationMessage: string | null
 }
 
 /**
@@ -102,11 +105,14 @@ export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
 > {
+  private readonly validationMessageDismissTimeoutMs = 2500
+
   private autocompletingInputRef =
     React.createRef<AutocompletingInput<UserHit>>()
   private shadowInputRef = React.createRef<HTMLDivElement>()
   private inputRef: HTMLInputElement | null = null
   private authorContainerRef = React.createRef<HTMLDivElement>()
+  private validationMessageTimeoutId: number | null = null
 
   private getAutocompleteItemFilter = memoizeOne(
     (authors: ReadonlyArray<Author>) => (item: UserHit) => {
@@ -127,6 +133,7 @@ export class AuthorInput extends React.Component<
       isFocusedWithin: false,
       focusedAuthorIndex: null,
       lastActionDescription: null,
+      validationMessage: null,
     }
   }
 
@@ -143,6 +150,10 @@ export class AuthorInput extends React.Component<
     ) {
       this.focusAuthorHandle(this.state.focusedAuthorIndex)
     }
+  }
+
+  public componentWillUnmount() {
+    this.clearValidationMessageTimeout()
   }
 
   public focus() {
@@ -199,7 +210,20 @@ export class AuthorInput extends React.Component<
           onFocus={this.onInputFocus}
           readOnly={this.props.readOnly}
         />
+        {this.renderValidationMessageCallout()}
       </FocusContainer>
+    )
+  }
+
+  private renderValidationMessageCallout() {
+    if (this.state.validationMessage === null) {
+      return null
+    }
+
+    return (
+      <div className="co-author-input-validation-callout">
+        {this.state.validationMessage}
+      </div>
     )
   }
 
@@ -341,6 +365,8 @@ export class AuthorInput extends React.Component<
   }
 
   private onCoAuthorsValueChanged = (value: string) => {
+    this.clearValidationMessage()
+
     if (
       this.shadowInputRef.current === null ||
       this.inputRef === null ||
@@ -383,12 +409,30 @@ export class AuthorInput extends React.Component<
   }
 
   private onAutocompleteItemSelected = (item: UserHit) => {
+    const username = item.username.trim().replace(/^@+/, '')
+
+    if (this.props.autoCompleteProvider.isCurrentUser(username)) {
+      this.rejectAuthorAddition(
+        username,
+        'You cannot add yourself as a co-author.'
+      )
+      return
+    }
+
+    if (this.hasAuthorWithUsername(username)) {
+      this.rejectAuthorAddition(
+        username,
+        'This user is already added as a co-author.'
+      )
+      return
+    }
+
     const authorToAdd: Author =
       item.kind === 'known-user'
         ? authorFromUserHit(item)
         : {
             kind: 'unknown',
-            username: item.username,
+            username: username,
             state: 'searching',
           }
 
@@ -402,12 +446,61 @@ export class AuthorInput extends React.Component<
       actionDescription += ` (${authorToAdd.name})`
     }
 
-    this.setState({ lastActionDescription: actionDescription })
+    this.setState({
+      lastActionDescription: actionDescription,
+    })
 
-    if (this.inputRef !== null) {
-      this.inputRef.value = ''
-      this.onCoAuthorsValueChanged('')
+    this.clearValidationMessage()
+
+    this.clearInput()
+  }
+
+  private hasAuthorWithUsername(username: string) {
+    return this.props.authors.some(
+      author => author.username?.toLowerCase() === username.toLowerCase()
+    )
+  }
+
+  private rejectAuthorAddition(username: string, validationMessage: string) {
+    this.clearValidationMessageTimeout()
+
+    this.setState({
+      lastActionDescription: `Could not add ${username}. ${validationMessage}`,
+      validationMessage,
+    })
+
+    this.validationMessageTimeoutId = window.setTimeout(
+      this.clearValidationMessage,
+      this.validationMessageDismissTimeoutMs
+    )
+
+    this.clearInput()
+  }
+
+  private clearValidationMessage = () => {
+    this.clearValidationMessageTimeout()
+
+    if (this.state.validationMessage === null) {
+      return
     }
+
+    this.setState({ validationMessage: null })
+  }
+
+  private clearValidationMessageTimeout() {
+    if (this.validationMessageTimeoutId !== null) {
+      window.clearTimeout(this.validationMessageTimeoutId)
+      this.validationMessageTimeoutId = null
+    }
+  }
+
+  private clearInput() {
+    if (this.inputRef === null) {
+      return
+    }
+
+    this.inputRef.value = ''
+    this.onCoAuthorsValueChanged('')
   }
 
   private async attemptUnknownAuthorSearch(author: UnknownAuthor) {
