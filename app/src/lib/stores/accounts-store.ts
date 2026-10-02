@@ -98,6 +98,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       {
         requireSignIn: this.requireSignIn,
         onTokenRenewed: this.onTokenRenewed,
+        onSignedIn: this.onSignedIn,
       },
       renewToken,
       now,
@@ -197,6 +198,14 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     this.save()
   }
 
+  private onSignedIn = (account: Account) => {
+    this.accounts = sortAccounts([
+      ...this.accounts.filter(a => a.endpoint !== account.endpoint),
+      account,
+    ])
+    this.save()
+  }
+
   /**
    * Add the account to the store.
    */
@@ -205,7 +214,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     credential: IOAuthToken = { accessToken: account.token }
   ): Promise<Account | null> {
     await this.loadingPromise
-    let authenticatedAccount: Account | null
+    let authenticatedAccount: Account
     try {
       authenticatedAccount = await this.credentials.add(account, credential)
     } catch (e) {
@@ -224,19 +233,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
       return null
     }
-    if (authenticatedAccount === null) {
-      return null
-    }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
-    )
-    accountsByEndpoint.set(account.endpoint, authenticatedAccount)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
-
-    this.save()
     return authenticatedAccount
   }
 
