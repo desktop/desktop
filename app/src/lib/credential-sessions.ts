@@ -83,6 +83,7 @@ export class CredentialSessions {
   /** Install a credential that was read back from secure storage. */
   public restore(account: Account, credential: AccountCredential) {
     const session: ICredentialSession = { account, credential, retired: false }
+    this.retireSession(account.endpoint)
     this.sessionsByEndpoint.set(account.endpoint, session)
     if (credential !== null) {
       this.sessionsByToken.set(
