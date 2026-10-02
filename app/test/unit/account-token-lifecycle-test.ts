@@ -966,6 +966,9 @@ describe('Coordinated account token renewal', () => {
       other.token
     )
     assert.equal(renewals, 0)
+    assert.deepEqual(await store.getAll(), [other])
+    assert.deepEqual(await store.removeAccount(other), other)
+    assert.deepEqual(await store.getAll(), [])
   })
 
   it('replacing an account never redirects stale clients to another identity', async () => {
