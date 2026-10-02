@@ -180,6 +180,28 @@ describe('Tokenizer', () => {
       assert.equal(results[2].text, ' from desktop/computering-icons-for-all')
     })
 
+    it('renders link when a external issue reference is found', () => {
+      const id = 818
+      const expectedUri = `${host}/testorg/testrepo/issues/${id}`
+      const text = `See testorg/testrepo#818 for background`
+
+      const tokenizer = new Tokenizer(emoji, repository)
+      const results = tokenizer.tokenize(text)
+      assert.equal(results.length, 3)
+
+      assert.equal(results[0].kind, TokenType.Text)
+      assert.equal(results[0].text, 'See ')
+
+      assert.equal(results[1].kind, TokenType.Link)
+      const mention = results[1] as HyperlinkMatch
+
+      assert.equal(mention.text, 'testorg/testrepo#818')
+      assert.equal(mention.url, expectedUri)
+
+      assert.equal(results[2].kind, TokenType.Text)
+      assert.equal(results[2].text, ' for background')
+    })
+
     it('renders link when squash and merge', () => {
       const id = 5203
       const expectedUri = `${htmlURL}/issues/${id}`
