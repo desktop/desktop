@@ -924,6 +924,50 @@ describe('Coordinated account token renewal', () => {
     }
   })
 
+  it('loading duplicate entries for an endpoint keeps only the last session live', async () => {
+    const { data, secure } = setup()
+    const other = new Account(
+      'other',
+      account.endpoint,
+      'other-access',
+      [],
+      '',
+      2,
+      'Other'
+    )
+    data.setItem(
+      'users',
+      JSON.stringify([account.withToken(''), other.withToken('')])
+    )
+    await secure.setItem(
+      getKeyForAccount(account),
+      account.login,
+      serializeAccountCredential({ ...rotating, expiresAt: now })
+    )
+    await secure.setItem(getKeyForAccount(other), other.login, other.token)
+    let renewals = 0
+    const store = new AccountsStore(
+      data,
+      secure,
+      async () => {
+        renewals++
+        return renewed
+      },
+      () => now,
+      async () => true
+    )
+
+    await assert.rejects(
+      store.resolveToken(account.endpoint, account.token),
+      AccountRequiresSignInError
+    )
+    assert.equal(
+      await store.resolveToken(other.endpoint, other.token),
+      other.token
+    )
+    assert.equal(renewals, 0)
+  })
+
   it('replacing an account never redirects stale clients to another identity', async () => {
     const { store } = setup()
     await store.addAccount(account, rotating)
