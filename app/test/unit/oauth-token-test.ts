@@ -319,17 +319,17 @@ describe('OAuth token requests', () => {
       name: 'OAuthTokenResponseError',
       message: 'The OAuth token response is invalid.',
     })
+  })
 
-    it('treats an HTML gateway failure as temporary rather than a malformed replacement pair', async t => {
-      t.mock.method(
-        globalThis,
-        'fetch',
-        async () => new Response('<html>Unavailable</html>', { status: 502 })
-      )
-      await assert.rejects(refreshOAuthToken('https://github.com', 'refresh'), {
-        name: 'Error',
-        message: 'The OAuth token request failed.',
-      })
+  it('treats an HTML gateway failure as temporary rather than a malformed replacement pair', async t => {
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async () => new Response('<html>Unavailable</html>', { status: 502 })
+    )
+    await assert.rejects(refreshOAuthToken('https://github.com', 'refresh'), {
+      name: 'Error',
+      message: 'The OAuth token request failed.',
     })
   })
 

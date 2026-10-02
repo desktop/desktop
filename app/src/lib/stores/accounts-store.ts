@@ -338,7 +338,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const migratedAccounts = this.getMigratedGHEAccounts(parsedAccounts)
     const rawAccounts = migratedAccounts ?? parsedAccounts
 
-    const accountsWithTokens = []
+    // Duplicate endpoints keep the last entry, like CredentialSessions.restore.
+    const accountsByEndpoint = new Map<string, Account>()
     let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
@@ -371,7 +372,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         const loaded = accountWithoutToken.withToken(
           credential?.accessToken ?? ''
         )
-        accountsWithTokens.push(loaded)
+        accountsByEndpoint.set(loaded.endpoint, loaded)
         this.credentials.restore(loaded, credential)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
@@ -380,7 +381,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
     }
 
-    this.accounts = sortAccounts(accountsWithTokens)
+    this.accounts = sortAccounts([...accountsByEndpoint.values()])
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null || removedInvalidAccounts) {
       this.save() // Save already emits an update
