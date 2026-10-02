@@ -205,7 +205,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
     log.info(
-      `[AccountsStore] signing out account ${account.login} (${account.name}) because its credentials can no longer be used`
+      `[AccountsStore] signing out account ${retired.login} (${retired.name}) because its credentials can no longer be used`
     )
     this.emitter.emit('token-invalidated', account.withToken(''))
     await this.deleteStoredAccount(retired)
