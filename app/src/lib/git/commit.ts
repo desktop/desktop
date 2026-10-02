@@ -5,6 +5,20 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { getDesktopManagedAuthor } from '../authorship'
+
+/** Override both author and committer for commits explicitly created in Desktop. */
+export function getCommitAuthorEnv(repository: Repository) {
+  const author = getDesktopManagedAuthor(repository)
+  return author === null
+    ? undefined
+    : {
+        GIT_AUTHOR_NAME: author.name,
+        GIT_AUTHOR_EMAIL: author.email,
+        GIT_COMMITTER_NAME: author.name,
+        GIT_COMMITTER_EMAIL: author.email,
+      }
+}
 
 /**
  * @param repository repository to execute merge in
@@ -34,6 +48,9 @@ export async function createCommit(
 
   if (options?.amend) {
     args.push('--amend')
+    if (getCommitAuthorEnv(repository) !== undefined) {
+      args.push('--reset-author')
+    }
   }
 
   if (options?.noVerify) {
@@ -54,6 +71,7 @@ export async function createCommit(
     'createCommit',
     {
       stdin: message,
+      env: getCommitAuthorEnv(repository),
       // https://git-scm.com/docs/githooks/2.46.1
       interceptHooks: [
         'pre-commit',
@@ -130,7 +148,8 @@ export async function createMergeCommit(
       '--cleanup=strip',
     ],
     repository.path,
-    'createMergeCommit'
+    'createMergeCommit',
+    { env: getCommitAuthorEnv(repository) }
   )
   return parseCommitSHA(result)
 }

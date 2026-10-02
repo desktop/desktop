@@ -38,6 +38,7 @@ export class PublishRepository extends React.Component<
   IPublishRepositoryProps,
   IPublishRepositoryState
 > {
+  private orgRequest = 0
   /** The repository name entered by the user. It has not yet been sanitized. */
   private name: string
 
@@ -60,12 +61,23 @@ export class PublishRepository extends React.Component<
     }
   }
 
+  public componentWillUnmount() {
+    this.orgRequest++
+  }
+
   private async fetchOrgs(account: Account) {
+    const request = ++this.orgRequest
     const api = API.fromAccount(account)
-    const apiOrgs = await api.fetchOrgs()
-    const orgs = [...apiOrgs]
-    orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
-    this.setState({ orgs })
+    try {
+      const apiOrgs = await api.fetchOrgs()
+      if (request === this.orgRequest) {
+        const orgs = [...apiOrgs]
+        orgs.sort((a, b) => caseInsensitiveCompare(a.login, b.login))
+        this.setState({ orgs })
+      }
+    } catch (error) {
+      log.warn('Could not load organizations for publishing', error)
+    }
   }
 
   private updateSettings<K extends keyof RepositoryPublicationSettings>(
@@ -148,16 +160,14 @@ export class PublishRepository extends React.Component<
   public render() {
     return (
       <DialogContent>
-        {this.props.accounts.length > 1 && (
-          <Row>
-            <AccountPicker
-              accounts={this.props.accounts}
-              openButtonClassName="dialog-preferred-focus"
-              selectedAccount={this.props.account}
-              onSelectedAccountChanged={this.props.onSelectedAccountChanged}
-            />
-          </Row>
-        )}
+        <Row>
+          <AccountPicker
+            accounts={this.props.accounts}
+            openButtonClassName="dialog-preferred-focus"
+            selectedAccount={this.props.account}
+            onSelectedAccountChanged={this.props.onSelectedAccountChanged}
+          />
+        </Row>
 
         <Row>
           <TextBox

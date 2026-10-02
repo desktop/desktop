@@ -28,6 +28,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
+import { Account, IAccountIdentity } from '../../models/account'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -154,7 +155,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.accountIdentity
     )
   }
 
@@ -185,6 +187,94 @@ export class RepositoriesStore extends TypedBaseStore<
 
         return repos
       }
+    )
+  }
+
+  /** Assign the only known account on each legacy repository's GitHub host. */
+  public async migrateRepositoryAccounts(
+    knownAccounts: ReadonlyArray<Account>
+  ): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        for (const repository of await this.db.repositories.toArray()) {
+          if (repository.accountIdentity !== undefined) {
+            continue
+          }
+
+          const gitHubRepository =
+            repository.gitHubRepositoryID === null
+              ? undefined
+              : await this.db.gitHubRepositories.get(
+                  repository.gitHubRepositoryID
+                )
+          const owner = gitHubRepository
+            ? await this.db.owners.get(gitHubRepository.ownerID)
+            : undefined
+          const matching = owner
+            ? knownAccounts.filter(
+                account => account.endpoint === owner.endpoint
+              )
+            : []
+          if (owner !== undefined && repository.id !== undefined) {
+            await this.db.repositories.update(repository.id, {
+              accountIdentity:
+                matching.length === 1
+                  ? { endpoint: matching[0].endpoint, id: matching[0].id }
+                  : null,
+            })
+          }
+        }
+      }
+    )
+  }
+
+  /** Change the one account associated with a local repository. */
+  public async setRepositoryAccount(
+    repository: Repository,
+    account: Account | null
+  ): Promise<Repository> {
+    if (
+      account !== null &&
+      repository.gitHubRepository !== null &&
+      account.endpoint !== repository.gitHubRepository.endpoint
+    ) {
+      throw new Error('The account must be on the repository host')
+    }
+
+    const accountIdentity =
+      account === null ? null : { endpoint: account.endpoint, id: account.id }
+    return this.setRepositoryAccountIdentity(repository, accountIdentity)
+  }
+
+  /** Restore an existing association, including one whose account is signed out. */
+  public async setRepositoryAccountIdentity(
+    repository: Repository,
+    accountIdentity: IAccountIdentity | null
+  ): Promise<Repository> {
+    if (
+      accountIdentity !== null &&
+      repository.gitHubRepository !== null &&
+      accountIdentity.endpoint !== repository.gitHubRepository.endpoint
+    ) {
+      throw new Error('The account must be on the repository host')
+    }
+    await this.db.repositories.update(repository.id, { accountIdentity })
+    this.emitUpdatedRepositories()
+    return new Repository(
+      repository.path,
+      repository.id,
+      repository.gitHubRepository,
+      repository.missing,
+      repository.alias,
+      repository.workflowPreferences,
+      repository.isTutorialRepository,
+      repository.gitDir,
+      repository.mainWorktreePath,
+      accountIdentity
     )
   }
 
@@ -295,7 +385,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -317,7 +408,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -383,7 +475,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      mainWorktreePath
+      mainWorktreePath,
+      repository.accountIdentity
     )
   }
 
@@ -436,7 +529,8 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.workflowPreferences,
         repository.isTutorialRepository,
         gitDir,
-        mainWorktreePath
+        mainWorktreePath,
+        repository.accountIdentity
       ),
       existingRepository: false,
     }
@@ -586,7 +680,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.accountIdentity
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { IAccountIdentity } from './account'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -65,7 +66,11 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    public readonly accountIdentity:
+      | IAccountIdentity
+      | null
+      | undefined = undefined
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +81,9 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.accountIdentity?.endpoint,
+      this.accountIdentity?.id
     )
   }
 

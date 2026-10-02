@@ -35,6 +35,7 @@ import { InputWarning } from '../lib/input-description/input-warning'
 import { CreateRepositoryError } from '../../lib/error-with-metadata'
 import { RepositoryPath } from '../lib/repository-path'
 import { pathExists } from '../../lib/path-exists'
+import { Account } from '../../models/account'
 
 /** URL used to provide information about submodules to the user. */
 const submoduleDocsUrl = 'https://gh.io/git-submodules'
@@ -53,6 +54,7 @@ const NoLicenseValue: ILicense = {
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
+  readonly accounts: ReadonlyArray<Account>
 
   /** Prefills path input so user doesn't have to. */
   readonly initialPath?: string
@@ -106,6 +108,7 @@ interface ICreateRepositoryState {
    * a new README.md.
    */
   readonly readMeExists: boolean
+  readonly selectedAccount: Account | null
 }
 
 /** The Create New Repository component. */
@@ -143,6 +146,7 @@ export class CreateRepository extends React.Component<
       isRepository: false,
       readMeExists: false,
       isSubFolderOfRepository: false,
+      selectedAccount: null,
     }
   }
 
@@ -280,7 +284,16 @@ export class CreateRepository extends React.Component<
       return
     }
 
-    const repository = repositories[0]
+    const repository = await this.props.dispatcher
+      .setRepositoryAccount(repositories[0], this.state.selectedAccount)
+      .catch(error => {
+        this.setState({ creating: false })
+        this.props.dispatcher.postError(error)
+        return null
+      })
+    if (repository === null) {
+      return
+    }
 
     if (this.state.createWithReadme) {
       try {
@@ -415,6 +428,12 @@ export class CreateRepository extends React.Component<
   private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const license = event.currentTarget.value
     this.setState({ license })
+  }
+
+  private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const selectedAccount =
+      this.props.accounts[Number(event.currentTarget.value)] ?? null
+    this.setState({ selectedAccount })
   }
 
   private renderGitIgnores() {
@@ -633,6 +652,26 @@ export class CreateRepository extends React.Component<
               label="Description"
               onValueChanged={this.onDescriptionChanged}
             />
+          </Row>
+          <Row>
+            <Select
+              label="Account"
+              value={
+                this.state.selectedAccount === null
+                  ? ''
+                  : String(
+                      this.props.accounts.indexOf(this.state.selectedAccount)
+                    )
+              }
+              onChange={this.onAccountChange}
+            >
+              <option value="">No account</option>
+              {this.props.accounts.map((account, index) => (
+                <option key={`${account.endpoint}:${account.id}`} value={index}>
+                  @{account.login} — {account.friendlyEndpoint}
+                </option>
+              ))}
+            </Select>
           </Row>
 
           {this.renderGitRepositoryError()}

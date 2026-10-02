@@ -81,6 +81,8 @@ import type { IBYOKProvider } from '../lib/copilot/byok'
 import { getConflictResolutionModelDisplay } from '../lib/copilot/conflict-resolution-model'
 import { OpenWithExternalEditor } from './open-with-external-editor/open-with-external-editor'
 import { RepositorySettings } from './repository-settings'
+import { RepositoryAccountManagement } from './repository-account-management'
+import { SelectRepositoryAccount } from './select-repository-account'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -1849,6 +1851,32 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             repositoryAccount={repositoryAccount}
+            accounts={popup.allowedAccounts ?? this.state.accounts}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ManageRepositoryAccounts:
+        return (
+          <RepositoryAccountManagement
+            key={`manage-repositories-${popup.account.endpoint}-${popup.account.id}`}
+            account={popup.account}
+            repositories={this.state.repositories.filter(
+              repository => repository instanceof Repository
+            )}
+            knownAccounts={this.state.knownAccounts}
+            onAssign={this.onAssignRepositoryAccount}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.SelectRepositoryAccount: {
+        return (
+          <SelectRepositoryAccount
+            key={`select-repository-account-${popup.repository.id}`}
+            repository={popup.repository}
+            accounts={popup.accounts}
+            onAssign={this.onAssignRepositoryAccount}
+            onSelected={popup.onSelected}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1879,6 +1907,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="create-repository"
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
+            accounts={this.state.accounts}
             initialPath={popup.path}
             isTopMost={isTopMost}
           />
@@ -3375,6 +3404,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repositories = this.state.repositories
     return (
       <RepositoriesList
+        knownAccounts={this.state.knownAccounts}
+        accounts={this.state.accounts}
         filterText={filterText}
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
@@ -3550,6 +3581,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private onAssignRepositoryAccount = (
+    repository: Repository,
+    account: Account
+  ) => this.props.dispatcher.setRepositoryAccount(repository, account)
+
   private onRepositoryToolbarButtonContextMenu = () => {
     const repository = this.state.selectedState?.repository
     if (repository === undefined) {
@@ -3579,6 +3615,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const items = generateRepositoryListContextMenu({
+      accounts: this.state.accounts,
+      knownAccounts: this.state.knownAccounts,
+      onSelectAccount: (repository, account) => {
+        this.props.dispatcher
+          .setRepositoryAccount(repository, account)
+          .catch(error => this.props.dispatcher.postError(error))
+      },
       onRemoveRepository: this.removeRepository,
       onShowRepository: this.showRepository,
       onOpenInShell: this.openInShell,

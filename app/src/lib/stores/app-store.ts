@@ -1,4 +1,11 @@
 import * as Path from 'path'
+import { CloneOptions } from '../../models/clone-options'
+import {
+  syncManagedAccounts,
+  syncExternalAuthorship,
+  updateAuthorshipSettings,
+} from '../authorship'
+import { RepositorySettingsTab } from '../../ui/repository-settings/repository-settings'
 import { writeFile } from 'fs/promises'
 import {
   AccountsStore,
@@ -44,6 +51,7 @@ import {
   Account,
   CopilotLicenseTypeNoAccess,
   isDotComAccount,
+  accountEquals,
 } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { Author } from '../../models/author'
@@ -137,9 +145,10 @@ import {
 } from '../../ui/main-process-proxy'
 import {
   API,
-  getAccountForEndpoint,
   IAPIOrganization,
   getEndpointForRepository,
+  getHTMLURL,
+  getDotComAPIEndpoint,
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
@@ -186,6 +195,7 @@ import {
   getAccountForCommitMessageGeneration,
   getAccountForCopilotConflictResolution,
   getAccountForRepository,
+  getAccountForGitHubRepository,
 } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -258,6 +268,7 @@ import {
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
+import { repositoryIsOnAccountHost } from '../repository-account-host'
 import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
@@ -594,6 +605,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
+  private knownAccounts: ReadonlyArray<Account> = []
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
@@ -902,18 +914,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onTokenInvalidated = (endpoint: string, token: string) => {
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    const account = this.accounts.find(
+      candidate => candidate.endpoint === endpoint && candidate.token === token
+    )
 
-    if (account === null) {
-      return
-    }
-
-    // If we have a token for the account but it doesn't match the token that
-    // was invalidated that likely means that someone held onto an account for
-    // longer than they should have which is bad but what's even worse is if we
-    // invalidate an active account.
-    if (account.token && account.token !== token) {
-      log.error(`Token for ${endpoint} invalidated but token mismatch`)
+    if (account === undefined) {
+      if (this.accounts.some(candidate => candidate.endpoint === endpoint)) {
+        log.error(`Token for ${endpoint} invalidated but token mismatch`)
+      }
       return
     }
 
@@ -1049,6 +1057,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      this.accountsStore
+        .getKnownAccounts()
+        .then(known => {
+          this.knownAccounts = known
+          this.emitUpdate()
+          syncManagedAccounts(known)
+          return syncExternalAuthorship(this.repositories)
+        })
+        .catch(error => this.emitError(error))
       this.syncCopilotModelsFromCache()
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
@@ -1067,6 +1084,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
+      syncExternalAuthorship(updateRepositories).catch(error =>
+        this.emitError(error)
+      )
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1279,6 +1299,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return {
       accounts: this.accounts,
+      knownAccounts: this.knownAccounts,
       repositories,
       recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
@@ -1510,7 +1531,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const branchName = findRemoteBranchName(tip, currentRemote, gitHubRepo)
 
     if (branchName !== null) {
-      const account = getAccountForEndpoint(this.accounts, gitHubRepo.endpoint)
+      const account = getAccountForRepository(this.accounts, repository)
 
       if (account === null) {
         return
@@ -2302,8 +2323,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.currentBranchPruner.start()
   }
 
-  public async _refreshIssues(repository: GitHubRepository) {
-    const user = getAccountForEndpoint(this.accounts, repository.endpoint)
+  public async _refreshIssues(
+    repository: GitHubRepository,
+    userInitiated = false
+  ) {
+    const localRepository = this.selectedRepository
+    const matchingRepository =
+      localRepository !== null &&
+      !(localRepository instanceof CloningRepository) &&
+      isRepositoryWithGitHubRepository(localRepository) &&
+      localRepository.gitHubRepository?.fullName === repository.fullName &&
+      localRepository.gitHubRepository.endpoint === repository.endpoint
+        ? localRepository
+        : null
+    const user =
+      matchingRepository === null
+        ? null
+        : userInitiated
+        ? await this.accountForExplicitGitHubRefresh(matchingRepository)
+        : getAccountForRepository(this.accounts, matchingRepository)
     if (!user) {
       return
     }
@@ -2315,6 +2353,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private async accountForExplicitGitHubRefresh(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<Account | null> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account !== null) {
+      return account
+    }
+
+    const identity = repository.accountIdentity
+    const endpoint = repository.gitHubRepository.endpoint
+    const onHost = this.accounts.filter(item => item.endpoint === endpoint)
+    if (identity === null && onHost.length > 0) {
+      return new Promise(resolve => {
+        this._showPopup({
+          type: PopupType.SelectRepositoryAccount,
+          repository,
+          accounts: onHost,
+          onSelected: selected => resolve(selected ?? null),
+        })
+      })
+    }
+
+    if (identity === null || identity !== undefined) {
+      return new Promise(resolve => {
+        const onResult = (result: SignInResult) => {
+          const signedIn = result.kind === 'success' ? result.account : null
+          if (
+            signedIn !== null &&
+            (signedIn.endpoint !== endpoint ||
+              (identity !== null && signedIn.id !== identity.id))
+          ) {
+            this.emitError(
+              new Error('The signed-in account does not match this repository')
+            )
+            resolve(null)
+          } else {
+            resolve(signedIn)
+          }
+        }
+        if (endpoint === getDotComAPIEndpoint()) {
+          this._beginDotComSignIn(onResult)
+        } else {
+          this._beginEnterpriseSignIn(onResult)
+          this._setSignInEndpoint(getHTMLURL(endpoint)).catch(error =>
+            this.emitError(error)
+          )
+        }
+        this._showPopup({ type: PopupType.SignIn })
+      })
+    }
+    return null
+  }
+
   private stopBackgroundFetching() {
     const backgroundFetcher = this.currentBackgroundFetcher
     if (backgroundFetcher) {
@@ -2324,7 +2415,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private refreshMentionables(repository: GitHubRepository) {
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const localRepository = this.selectedRepository
+    const account =
+      localRepository !== null &&
+      !(localRepository instanceof CloningRepository) &&
+      localRepository.gitHubRepository?.fullName === repository.fullName &&
+      localRepository.gitHubRepository.endpoint === repository.endpoint
+        ? getAccountForRepository(this.accounts, localRepository)
+        : null
     if (!account) {
       return
     }
@@ -2354,13 +2452,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async fetchPullRequest(repoUrl: string, pr: string) {
     const endpoint = getEndpointForRepository(repoUrl)
-    const account = getAccountForEndpoint(this.accounts, endpoint)
-
-    if (account) {
-      const api = API.fromAccount(account)
-      const remoteUrl = parseRemote(repoUrl)
-      if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
-        return await api.fetchPullRequest(remoteUrl.owner, remoteUrl.name, pr)
+    const remoteUrl = parseRemote(repoUrl)
+    if (remoteUrl && remoteUrl.owner && remoteUrl.name) {
+      const account = getAccountForGitHubRepository(
+        this.accounts,
+        this.repositories,
+        endpoint,
+        remoteUrl.owner,
+        remoteUrl.name
+      )
+      if (account !== null) {
+        return API.fromAccount(account).fetchPullRequest(
+          remoteUrl.owner,
+          remoteUrl.name,
+          pr
+        )
       }
     }
     return null
@@ -2431,12 +2537,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.currentBackgroundFetcher = fetcher
   }
 
+  /** Return signed-in and signed-out accounts for author preferences. */
+  public getKnownAuthorshipAccounts(): Promise<ReadonlyArray<Account>> {
+    return this.accountsStore.getKnownAccounts()
+  }
+
+  /** Apply author preferences and synchronize external Git configuration. */
+  public async setAuthorshipManagement(
+    desktopManaged: boolean,
+    externalManaged: boolean
+  ): Promise<void> {
+    await updateAuthorshipSettings(
+      desktopManaged,
+      externalManaged,
+      this.repositories
+    )
+  }
+
+  /** Refresh Git configuration after an individual managed identity edit. */
+  public async syncAuthorship(): Promise<void> {
+    await syncExternalAuthorship(this.repositories)
+  }
+
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const [accounts, repositories] = await Promise.all([
+    const [accounts, knownAccounts] = await Promise.all([
       this.accountsStore.getAll(),
-      this.repositoriesStore.getAll(),
+      this.accountsStore.getKnownAccounts(),
     ])
+    await this.repositoriesStore.migrateRepositoryAccounts(knownAccounts)
+    const repositories = await this.repositoriesStore.getAll()
 
     log.info(
       `[AppStore] loading ${repositories.length} repositories from store`
@@ -2446,7 +2576,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.accounts = accounts
+    this.knownAccounts = knownAccounts
     this.repositories = repositories
+    syncManagedAccounts(knownAccounts)
+    try {
+      await syncExternalAuthorship(repositories)
+    } catch (error) {
+      this.emitError(error)
+    }
     this.alwaysShowWorktreeList = getBoolean(alwaysShowWorktreeListKey, false)
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
@@ -4911,6 +5048,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { account, owner, name } = match
     const { endpoint } = account
+    const associateLegacyRepository = async (updated: Repository) => {
+      if (updated.accountIdentity !== undefined) {
+        return updated
+      }
+      const knownOnHost = (await this.accountsStore.getKnownAccounts()).filter(
+        known => known.endpoint === endpoint
+      )
+      return repoStore.setRepositoryAccount(
+        updated,
+        knownOnHost.length === 1 ? account : null
+      )
+    }
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
@@ -4920,7 +5069,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // the endpoint changed, the skeleton repository is better than nothing.
       if (endpoint !== repository.gitHubRepository?.endpoint) {
         const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
-        return repoStore.setGitHubRepository(repository, ghRepo)
+        return associateLegacyRepository(
+          await repoStore.setGitHubRepository(repository, ghRepo)
+        )
       }
 
       return repository
@@ -4933,9 +5084,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const ghRepo = await repoStore.upsertGitHubRepository(endpoint, apiRepo)
     const freshRepo = await repoStore.setGitHubRepository(repository, ghRepo)
+    const associatedRepo = await associateLegacyRepository(freshRepo)
 
-    await this.refreshBranchProtectionState(freshRepo)
-    return freshRepo
+    await this.refreshBranchProtectionState(associatedRepo)
+    return associatedRepo
   }
 
   /**
@@ -4964,10 +5116,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { owner, name } = repository.gitHubRepository
 
-    const account = getAccountForEndpoint(
-      this.accounts,
-      repository.gitHubRepository.endpoint
-    )
+    const account = getAccountForRepository(this.accounts, repository)
 
     if (account === null) {
       return
@@ -4996,9 +5145,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const remote = gitStore.defaultRemote
-    return remote !== null
-      ? matchGitHubRepository(this.accounts, remote.url)
-      : null
+    if (remote === null || repository.accountIdentity === null) {
+      return null
+    }
+
+    const matches = this.accounts
+      .map(account => matchGitHubRepository([account], remote.url))
+      .filter((match): match is IMatchedGitHubRepository => match !== null)
+    if (repository.accountIdentity !== undefined) {
+      return (
+        matches.find(
+          match =>
+            match.account.endpoint === repository.accountIdentity?.endpoint &&
+            match.account.id === repository.accountIdentity?.id
+        ) ?? null
+      )
+    }
+    return matches.length === 1 ? matches[0] : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5671,36 +5834,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     await gitStore.loadRemotes()
 
-    // skip pushing if the current branch is a detached HEAD or the repository
-    // is unborn
-    if (gitStore.tip.kind === TipState.Valid) {
-      if (
-        gitStore.defaultBranch !== null &&
-        gitStore.tip.branch.name !== gitStore.defaultBranch.name
-      ) {
-        await this.performPush(repository, {
-          branch: gitStore.defaultBranch,
-          forceWithLease: false,
-        })
+    const previousIdentity = repository.accountIdentity
+    const associatedRepository = await this._setRepositoryAccount(
+      repository,
+      account
+    )
+
+    try {
+      // skip pushing if the current branch is a detached HEAD or the repository
+      // is unborn
+      if (gitStore.tip.kind === TipState.Valid) {
+        if (
+          gitStore.defaultBranch !== null &&
+          gitStore.tip.branch.name !== gitStore.defaultBranch.name
+        ) {
+          await this.performPush(repository, {
+            branch: gitStore.defaultBranch,
+            forceWithLease: false,
+          })
+        }
+        await this.performPush(repository)
       }
-      await this.performPush(repository)
+
+      await gitStore.refreshDefaultBranch()
+
+      return this.repositoryWithRefreshedGitHubRepository(associatedRepository)
+    } catch (error) {
+      await this.repositoriesStore.setRepositoryAccountIdentity(
+        associatedRepository,
+        previousIdentity ?? null
+      )
+      throw error
     }
-
-    await gitStore.refreshDefaultBranch()
-
-    return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clone(
     url: string,
     path: string,
-    options: { branch?: string; defaultBranch?: string } = {}
+    options: CloneOptions = {},
+    account?: Account | null
   ): {
     promise: Promise<boolean>
     repository: CloningRepository
   } {
-    const promise = this.cloningRepositoriesStore.clone(url, path, options)
+    const accountIdentity =
+      account === undefined
+        ? options.accountIdentity
+        : account === null
+        ? null
+        : { endpoint: account.endpoint, id: account.id }
+    const promise = this.cloningRepositoriesStore.clone(url, path, {
+      ...options,
+      accountIdentity,
+    })
     const repository = this.cloningRepositoriesStore.repositories.find(
       r => r.url === url && r.path === path
     )!
@@ -8149,6 +8336,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
+    const knownAccounts = await this.accountsStore.getKnownAccounts()
+    const isNewIdentity = !knownAccounts.some(
+      known => known.endpoint === account.endpoint && known.id === account.id
+    )
     const storedAccount = await this.accountsStore.addAccount(account)
 
     // If we're in the welcome flow and a user signs in we want to trigger
@@ -8157,6 +8348,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // get to the blankslate.
     if (this.showWelcomeFlow && storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
+    }
+    if (
+      storedAccount !== null &&
+      isNewIdentity &&
+      !this.showWelcomeFlow &&
+      !this.popupManager.areTherePopupsOfType(PopupType.PublishRepository)
+    ) {
+      const matches = await Promise.allSettled(
+        this.repositories
+          .filter(
+            (repository): repository is Repository =>
+              repository instanceof Repository && !repository.missing
+          )
+          .map(repository =>
+            repositoryIsOnAccountHost(repository, storedAccount)
+          )
+      )
+      for (const match of matches) {
+        if (match.status === 'rejected') {
+          this.emitError(match.reason)
+        }
+      }
+      if (matches.some(match => match.status === 'fulfilled' && match.value)) {
+        await this._showPopup({
+          type: PopupType.ManageRepositoryAccounts,
+          account: storedAccount,
+        })
+      }
     }
   }
 
@@ -8176,6 +8395,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       workflowPreferences
     )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryAccount(
+    repository: Repository,
+    account: Account | null
+  ): Promise<Repository> {
+    if (
+      account !== null &&
+      !this.accounts.some(signedIn => accountEquals(signedIn, account))
+    ) {
+      throw new Error('Sign in to this account before associating a repository')
+    }
+
+    return this.repositoriesStore.setRepositoryAccount(repository, account)
   }
 
   /**
@@ -8215,7 +8449,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _addRepositories(
-    paths: ReadonlyArray<string>
+    paths: ReadonlyArray<string>,
+    cloneAccount?: Account | null
   ): Promise<ReadonlyArray<Repository>> {
     const addedRepositories = new Array<Repository>()
     const lfsRepositories = new Array<Repository>()
@@ -8248,7 +8483,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // We don't have to worry about repositoryWithRefreshedGitHubRepository
         // and isUsingLFS if the repo already exists in the app.
         if (existing !== undefined) {
-          addedRepositories.push(existing)
+          addedRepositories.push(
+            cloneAccount === undefined
+              ? existing
+              : await this._setRepositoryAccount(existing, cloneAccount)
+          )
           continue
         }
 
@@ -8263,7 +8502,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await gitStore.loadRemotes()
 
         const [refreshedRepo, usingLFS] = await Promise.all([
-          this.repositoryWithRefreshedGitHubRepository(addedRepo),
+          // Clone already resolved its account; only other add flows infer one.
+          cloneAccount === undefined
+            ? this.inferAddedRepositoryAccount(addedRepo)
+            : this._setRepositoryAccount(addedRepo, cloneAccount).then(
+                associated =>
+                  cloneAccount === null
+                    ? associated
+                    : this.repositoryWithRefreshedGitHubRepository(associated)
+              ),
           this.isUsingLFS(addedRepo),
         ])
         addedRepositories.push(refreshedRepo)
@@ -8288,6 +8535,66 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return addedRepositories
+  }
+
+  private async inferAddedRepositoryAccount(
+    repository: Repository
+  ): Promise<Repository> {
+    const remote = this.gitStoreCache.get(repository).defaultRemote
+    if (remote === null) {
+      return repository
+    }
+    const matches = this.accounts
+      .map(account => matchGitHubRepository([account], remote.url))
+      .filter((match): match is IMatchedGitHubRepository => match !== null)
+    const results = await Promise.all(
+      matches.map(async match => ({
+        match,
+        apiRepo: await API.fromAccount(match.account).fetchRepository(
+          match.owner,
+          match.name
+        ),
+      }))
+    )
+    const accessible = results.filter(
+      (
+        result
+      ): result is {
+        match: IMatchedGitHubRepository
+        apiRepo: IAPIFullRepository
+      } => result.apiRepo !== null
+    )
+    if (accessible.length === 0) {
+      return repository
+    }
+
+    const first = accessible[0]
+    const ghRepo = await this.repositoriesStore.upsertGitHubRepository(
+      first.match.account.endpoint,
+      first.apiRepo
+    )
+    const withGitHub = await this.repositoriesStore.setGitHubRepository(
+      repository,
+      ghRepo
+    )
+    if (accessible.length === 1) {
+      return this.repositoriesStore.setRepositoryAccount(
+        withGitHub,
+        first.match.account
+      )
+    }
+
+    const unassociated = await this.repositoriesStore.setRepositoryAccount(
+      withGitHub,
+      null
+    )
+    this._showPopup({
+      type: PopupType.RepositorySettings,
+      repository: unassociated,
+      initialSelectedTab: RepositorySettingsTab.Account,
+      allowedAccounts: accessible.map(result => result.match.account),
+    })
+    return unassociated
   }
 
   public async _relocateRepository(repository: Repository): Promise<void> {
@@ -8590,7 +8897,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _refreshPullRequests(repository: Repository): Promise<void> {
     if (isRepositoryWithGitHubRepository(repository)) {
-      const account = getAccountForRepository(this.accounts, repository)
+      const account = await this.accountForExplicitGitHubRefresh(repository)
       if (account !== null) {
         await this.pullRequestCoordinator.refreshPullRequests(
           repository,
@@ -10807,7 +11114,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { endpoint, name, owner } = repository.gitHubRepository
 
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    const account = getAccountForRepository(this.accounts, repository)
 
     if (account === null) {
       log.error(

@@ -13,6 +13,7 @@ import * as GitPerf from '../../ui/lib/git-perf'
 import * as Path from 'path'
 import { isErrnoException } from '../errno-exception'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { IAccountIdentity } from '../../models/account'
 import { kStringMaxLength } from 'buffer'
 import { withHooksEnv } from '../hooks/with-hooks-env'
 import { coerceToString } from './coerce-to-string'
@@ -64,6 +65,8 @@ export type HookCallbackOptions = {
 export interface IGitExecutionOptions
   extends HookCallbackOptions,
     DugiteExecutionOptions {
+  /** Account chosen for authentication during this Git operation. */
+  readonly credentialAccountIdentity?: IAccountIdentity | null
   /**
    * The exit codes which indicate success to the
    * caller. Unexpected exit codes will be logged and an
@@ -379,7 +382,8 @@ export async function git(
         },
         path,
         options?.isBackgroundTask ?? false,
-        hooksEnv
+        hooksEnv,
+        options?.credentialAccountIdentity
       ),
     path,
     options

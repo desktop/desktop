@@ -27,10 +27,13 @@ import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import { Account } from '../../models/account'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
 interface IRepositoriesListProps {
+  readonly knownAccounts: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<Account>
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
   readonly recentRepositories: ReadonlyArray<number>
@@ -122,14 +125,16 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      knownAccounts: ReadonlyArray<Account>
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            knownAccounts
           )
   )
 
@@ -243,11 +248,15 @@ export class RepositoriesList extends React.Component<
   private getGroupLabel(group: RepositoryListGroup) {
     const { kind } = group
     if (kind === 'enterprise') {
-      return group.host
+      return group.accountLabel
+        ? `${group.host} / ${group.accountLabel}`
+        : group.host
     } else if (kind === 'other') {
       return 'Other'
     } else if (kind === 'dotcom') {
-      return group.owner.login
+      return group.accountLabel
+        ? `${group.owner.login} / ${group.accountLabel}`
+        : group.owner.login
     } else if (kind === 'recent') {
       return 'Recent'
     } else {
@@ -288,6 +297,9 @@ export class RepositoriesList extends React.Component<
     event.preventDefault()
 
     const items = generateRepositoryListContextMenu({
+      accounts: this.props.accounts,
+      knownAccounts: this.props.knownAccounts,
+      onSelectAccount: this.onSelectAccount,
       onRemoveRepository: this.props.onRemoveRepository,
       onShowRepository: this.props.onShowRepository,
       onOpenInShell: this.props.onOpenInShell,
@@ -325,7 +337,8 @@ export class RepositoriesList extends React.Component<
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.recentRepositories,
+      this.props.knownAccounts
     )
 
     // So there's two types of selection at play here. There's the repository
@@ -458,6 +471,12 @@ export class RepositoriesList extends React.Component<
       type: PopupType.ChangeRepositoryAlias,
       repository,
     })
+  }
+
+  private onSelectAccount = (repository: Repository, account: Account) => {
+    this.props.dispatcher
+      .setRepositoryAccount(repository, account)
+      .catch(error => this.props.dispatcher.postError(error))
   }
 
   private onRemoveRepositoryAlias = (repository: Repository) => {

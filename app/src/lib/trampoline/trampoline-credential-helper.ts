@@ -12,6 +12,7 @@ import {
   getCredentialUrl,
   getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
+  getCredentialAccountIdentity,
   setHasRejectedCredentialsForEndpoint,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
@@ -26,8 +27,15 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
-import { getAPIEndpoint, isGitHubHost } from '../api'
+import { API, getAPIEndpoint, isGitHubHost } from '../api'
+import { APIError } from '../http'
+import { HttpStatusCode } from '../http-status-code'
 import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
+import { RepositoriesStore } from '../stores/repositories-store'
+import * as Path from 'path'
+import { getHTMLURL } from '../api'
+import { Account, IAccountIdentity } from '../../models/account'
+import { Repository } from '../../models/repository'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -47,9 +55,67 @@ const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
 const credWithAccount = (c: Credential, a: IGitAccount | undefined) =>
   a && new Map(c).set('username', a.login).set('password', a.token)
 
-async function getGitHubCredential(cred: Credential, store: AccountsStore) {
+/** Resolve GitHub credentials for an existing repository without host fallback. */
+export function accountForCredential(
+  accounts: ReadonlyArray<Account>,
+  repositories: ReadonlyArray<Repository>,
+  path: string,
+  remoteUrl: string,
+  knownAccounts: ReadonlyArray<Account> = accounts,
+  credentialAccountIdentity?: IAccountIdentity | null
+): Account | undefined {
+  const repository = repositories
+    .filter(
+      repo => path === repo.path || path.startsWith(`${repo.path}${Path.sep}`)
+    )
+    .sort((left, right) => right.path.length - left.path.length)[0]
+  const origin = new URL(remoteUrl).origin
+  const matchingAccounts = accounts.filter(
+    account => new URL(getHTMLURL(account.endpoint)).origin === origin
+  )
+  const identity =
+    credentialAccountIdentity === undefined
+      ? repository?.accountIdentity
+      : credentialAccountIdentity
+  if (identity === null) {
+    return undefined
+  }
+  if (identity === undefined) {
+    const knownOnHost = knownAccounts.filter(
+      account => new URL(getHTMLURL(account.endpoint)).origin === origin
+    )
+    return matchingAccounts.length === 1 && knownOnHost.length <= 1
+      ? matchingAccounts[0]
+      : undefined
+  }
+
+  return matchingAccounts.find(
+    account =>
+      account.endpoint === identity.endpoint && account.id === identity.id
+  )
+}
+
+async function getGitHubCredential(
+  cred: Credential,
+  store: AccountsStore,
+  repositoriesStore: RepositoriesStore,
+  token: string
+) {
   const endpoint = `${getCredentialUrl(cred)}`
-  const account = await findGitHubTrampolineAccount(store, endpoint)
+  const path = getTrampolineEnvironmentPath(token)
+  const [accounts, repositories, knownAccounts] = await Promise.all([
+    store.getAll(),
+    repositoriesStore.getAll(),
+    store.getKnownAccounts(),
+  ])
+  const account = accountForCredential(
+    accounts,
+    repositories,
+    path,
+    endpoint,
+    knownAccounts,
+    getCredentialAccountIdentity(token)
+  )
   if (account) {
     info(`found GitHub credential for ${endpoint} in store`)
   }
@@ -91,8 +157,18 @@ async function getExternalCredential(input: Credential, token: string) {
 }
 
 /** Implementation of the 'get' git credential helper command */
-async function getCredential(cred: Credential, store: Store, token: string) {
-  const ghCred = await getGitHubCredential(cred, store)
+async function getCredential(
+  cred: Credential,
+  store: Store,
+  repositoriesStore: RepositoriesStore,
+  token: string
+) {
+  const ghCred = await getGitHubCredential(
+    cred,
+    store,
+    repositoriesStore,
+    token
+  )
 
   if (ghCred) {
     return ghCred
@@ -103,12 +179,50 @@ async function getCredential(cred: Credential, store: Store, token: string) {
 
   const endpoint = `${getCredentialUrl(cred)}`
   const apiEndpoint = getAPIEndpoint(endpoint)
+  const path = getTrampolineEnvironmentPath(token)
+  const repository = (await repositoriesStore.getAll())
+    .filter(
+      repo => path === repo.path || path.startsWith(`${repo.path}${Path.sep}`)
+    )
+    .sort((left, right) => right.path.length - left.path.length)[0]
+  const selectedIdentity = getCredentialAccountIdentity(token)
+  const identity =
+    selectedIdentity === undefined
+      ? repository?.accountIdentity
+      : selectedIdentity
+  const accountsOnHost = accounts.filter(
+    account => account.endpoint === apiEndpoint
+  )
+  const knownOnHost = (await store.getKnownAccounts()).filter(
+    account => account.endpoint === apiEndpoint
+  )
+  if (
+    endpointKind !== 'generic' &&
+    selectedIdentity === undefined &&
+    repository !== undefined &&
+    (identity === null || (identity === undefined && knownOnHost.length > 1)) &&
+    accountsOnHost.length > 0
+  ) {
+    if (getIsBackgroundTaskEnvironment(token)) {
+      return undefined
+    }
+    const selected = await ui.promptForRepositoryAccount(
+      repository,
+      accountsOnHost
+    )
+    return credWithAccount(cred, selected)
+  }
+  const associatedAccountSignedOut =
+    identity !== null &&
+    identity !== undefined &&
+    identity.endpoint === apiEndpoint
 
   // If it appears as if the endpoint is a GitHub host and we don't have an
   // account for that endpoint then we should prompt the user to sign in.
   if (
     endpointKind !== 'generic' &&
-    !accounts.some(a => a.endpoint === apiEndpoint)
+    (associatedAccountSignedOut ||
+      !accounts.some(a => a.endpoint === apiEndpoint))
   ) {
     if (getIsBackgroundTaskEnvironment(token)) {
       debug('background task environment, skipping prompt')
@@ -117,8 +231,18 @@ async function getCredential(cred: Credential, store: Store, token: string) {
 
     const account = await ui.promptForGitHubSignIn(endpoint)
 
-    if (!account) {
+    if (
+      account === undefined ||
+      (associatedAccountSignedOut &&
+        (account.endpoint !== identity.endpoint || account.id !== identity.id))
+    ) {
+      if (account !== undefined) {
+        log.error(
+          'The signed-in account does not match the repository association'
+        )
+      }
       setHasRejectedCredentialsForEndpoint(token, endpoint)
+      return undefined
     }
 
     return credWithAccount(cred, account)
@@ -199,8 +323,38 @@ const storeExternalCredential = (cred: Credential, token: string) => {
 }
 
 /** Implementation of the 'erase' git credential helper command */
-async function eraseCredential(cred: Credential, store: Store, token: string) {
+async function eraseCredential(
+  cred: Credential,
+  store: Store,
+  repositoriesStore: RepositoriesStore,
+  token: string
+) {
   if ((await getEndpointKind(cred, store)) !== 'generic') {
+    const account = accountForCredential(
+      await store.getAll(),
+      await repositoriesStore.getAll(),
+      getTrampolineEnvironmentPath(token),
+      `${getCredentialUrl(cred)}`,
+      undefined,
+      getCredentialAccountIdentity(token)
+    )
+    if (account !== undefined && cred.get('password') === account.token) {
+      try {
+        await API.fromAccount(account).fetchAccount()
+      } catch (error) {
+        if (
+          error instanceof APIError &&
+          error.responseStatus === HttpStatusCode.Unauthorized
+        ) {
+          await store.removeAccount(account)
+        } else {
+          log.warn(
+            'Could not verify GitHub credential after Git rejected it',
+            error
+          )
+        }
+      }
+    }
     return
   }
 
@@ -218,45 +372,47 @@ const eraseExternalCredential = (cred: Credential, token: string) => {
 }
 
 export const createCredentialHelperTrampolineHandler: (
-  store: AccountsStore
-) => TrampolineCommandHandler = (store: Store) => async command => {
-  const firstParameter = command.parameters.at(0)
-  if (!firstParameter) {
-    return undefined
-  }
-
-  const { trampolineToken: token } = command
-  const input = parseCredential(command.stdin)
-
-  if (__DEV__) {
-    debug(
-      `${firstParameter}\n${command.stdin
-        .replaceAll(/^password=.*$/gm, 'password=***')
-        .replaceAll(/^(.*)$/gm, '  $1')
-        .trimEnd()}`
-    )
-  }
-
-  try {
-    if (firstParameter === 'get') {
-      const cred = await getCredential(input, store, token)
-      if (!cred) {
-        const endpoint = `${getCredentialUrl(input)}`
-        info(`could not find credential for ${endpoint}`)
-        setHasRejectedCredentialsForEndpoint(token, endpoint)
-      }
-      return cred ? formatCredential(cred) : undefined
-    } else if (firstParameter === 'store') {
-      await storeCredential(input, store, token)
-    } else if (firstParameter === 'erase') {
-      await eraseCredential(input, store, token)
+  store: AccountsStore,
+  repositoriesStore: RepositoriesStore
+) => TrampolineCommandHandler =
+  (store: Store, repositoriesStore: RepositoriesStore) => async command => {
+    const firstParameter = command.parameters.at(0)
+    if (!firstParameter) {
+      return undefined
     }
-    return undefined
-  } catch (e) {
-    error(`${firstParameter} failed`, e)
-    return undefined
+
+    const { trampolineToken: token } = command
+    const input = parseCredential(command.stdin)
+
+    if (__DEV__) {
+      debug(
+        `${firstParameter}\n${command.stdin
+          .replaceAll(/^password=.*$/gm, 'password=***')
+          .replaceAll(/^(.*)$/gm, '  $1')
+          .trimEnd()}`
+      )
+    }
+
+    try {
+      if (firstParameter === 'get') {
+        const cred = await getCredential(input, store, repositoriesStore, token)
+        if (!cred) {
+          const endpoint = `${getCredentialUrl(input)}`
+          info(`could not find credential for ${endpoint}`)
+          setHasRejectedCredentialsForEndpoint(token, endpoint)
+        }
+        return cred ? formatCredential(cred) : undefined
+      } else if (firstParameter === 'store') {
+        await storeCredential(input, store, token)
+      } else if (firstParameter === 'erase') {
+        await eraseCredential(input, store, repositoriesStore, token)
+      }
+      return undefined
+    } catch (e) {
+      error(`${firstParameter} failed`, e)
+      return undefined
+    }
   }
-}
 
 function getGcmEnv(token: string): Record<string, string | undefined> {
   const isBackgroundTask = getIsBackgroundTaskEnvironment(token)

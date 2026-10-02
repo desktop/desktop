@@ -1,6 +1,5 @@
 import { Repository } from '../models/repository'
 import { Account } from '../models/account'
-import { getAccountForEndpoint } from './api'
 import {
   enableCommitMessageGeneration,
   enableCopilotConflictResolution,
@@ -17,7 +16,52 @@ export function getAccountForRepository(
     return null
   }
 
-  return getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+  const identity = repository.accountIdentity
+  if (identity === null) {
+    return null
+  }
+
+  const matchingAccounts = accounts.filter(
+    account => account.endpoint === gitHubRepository.endpoint
+  )
+  if (identity === undefined) {
+    return matchingAccounts.length === 1 ? matchingAccounts[0] : null
+  }
+
+  return (
+    matchingAccounts.find(
+      account =>
+        account.endpoint === identity.endpoint && account.id === identity.id
+    ) ?? null
+  )
+}
+
+/** Resolve a GitHub resource only if every tracked copy uses the same account. */
+export function getAccountForGitHubRepository(
+  accounts: ReadonlyArray<Account>,
+  repositories: ReadonlyArray<Repository>,
+  endpoint: string,
+  owner: string,
+  name: string
+): Account | null {
+  const matching = repositories.filter(
+    repository =>
+      repository.gitHubRepository?.endpoint === endpoint &&
+      repository.gitHubRepository.owner.login.toLowerCase() ===
+        owner.toLowerCase() &&
+      repository.gitHubRepository.name.toLowerCase() === name.toLowerCase()
+  )
+  if (matching.length === 0) {
+    const onHost = accounts.filter(account => account.endpoint === endpoint)
+    return onHost.length === 1 ? onHost[0] : null
+  }
+  const resolved = matching.map(repository =>
+    getAccountForRepository(accounts, repository)
+  )
+  const first = resolved[0]
+  return first !== null && resolved.every(account => account === first)
+    ? first
+    : null
 }
 
 /**
@@ -36,7 +80,7 @@ export function getAccountForCommitMessageGeneration(
     return repositoryAccount
   }
 
-  return accounts.find(enableCommitMessageGeneration)
+  return undefined
 }
 
 /**
@@ -75,5 +119,5 @@ export function getAccountForCopilotConflictResolution(
     return repositoryAccount
   }
 
-  return accounts.find(isAccountEligibleForCopilotConflictResolution)
+  return undefined
 }

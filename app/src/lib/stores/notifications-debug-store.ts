@@ -35,7 +35,8 @@ export class NotificationsDebugStore {
     const { endpoint } = repository
 
     const accounts = await this.accountsStore.getAll()
-    return accounts.find(a => a.endpoint === endpoint) ?? null
+    const onHost = accounts.filter(account => account.endpoint === endpoint)
+    return onHost.length === 1 ? onHost[0] : null
   }
 
   private async getAPIForRepository(repository: GitHubRepository) {

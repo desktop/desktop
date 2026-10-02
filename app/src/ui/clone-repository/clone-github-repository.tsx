@@ -100,9 +100,7 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">
-        {this.props.accounts.length > 1 && (
-          <Row className="account-picker-row">{this.renderAccountPicker()}</Row>
-        )}
+        <Row className="account-picker-row">{this.renderAccountPicker()}</Row>
         <Row>
           <CloneableRepositoryFilterList
             account={this.props.account}

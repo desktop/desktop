@@ -1,4 +1,5 @@
 import { Account } from '../../models/account'
+import { Repository } from '../../models/repository'
 import { IGitAccount } from '../../models/git-account'
 import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../ui/dispatcher'
@@ -100,6 +101,20 @@ class TrampolineUIHelper {
     }).catch(e => {
       log.error(`Could not prompt for GitHub sign in`, e)
       return undefined
+    })
+  }
+
+  public promptForRepositoryAccount(
+    repository: Repository,
+    accounts: ReadonlyArray<Account>
+  ): Promise<Account | undefined> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.SelectRepositoryAccount,
+        repository,
+        accounts,
+        onSelected: resolve,
+      })
     })
   }
 }

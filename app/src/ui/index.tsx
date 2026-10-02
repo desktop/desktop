@@ -257,7 +257,11 @@ const statsStore = new StatsStore(
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
 
-const signInStore = new SignInStore(accountsStore)
+const signInStore = new SignInStore()
+
+const repositoriesStore = new RepositoriesStore(
+  new RepositoriesDatabase('Database')
+)
 
 trampolineServer.registerCommandHandler(
   TrampolineCommandIdentifier.AskPass,
@@ -266,11 +270,7 @@ trampolineServer.registerCommandHandler(
 
 trampolineServer.registerCommandHandler(
   TrampolineCommandIdentifier.CredentialHelper,
-  createCredentialHelperTrampolineHandler(accountsStore)
-)
-
-const repositoriesStore = new RepositoriesStore(
-  new RepositoriesDatabase('Database')
+  createCredentialHelperTrampolineHandler(accountsStore, repositoriesStore)
 )
 
 const pullRequestStore = new PullRequestStore(
@@ -287,7 +287,10 @@ const repositoryStateManager = new RepositoryStateCache(statsStore)
 
 const apiRepositoriesStore = new ApiRepositoriesStore(accountsStore)
 
-const commitStatusStore = new CommitStatusStore(accountsStore)
+const commitStatusStore = new CommitStatusStore(
+  accountsStore,
+  repositoriesStore
+)
 const aheadBehindStore = new AheadBehindStore()
 
 const aliveStore = new AliveStore(accountsStore)

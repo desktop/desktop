@@ -1,6 +1,6 @@
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
+import { getKeyForAccount, getKeyForEndpoint } from '../auth'
+import { Account, accountEquals, isDotComAccount } from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
@@ -68,6 +68,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private secureStore: ISecureStore
 
   private accounts: ReadonlyArray<Account> = []
+  private knownAccounts: ReadonlyArray<Account> = []
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
@@ -89,15 +90,28 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.accounts.slice()
   }
 
+  /** Get the identities of signed-in and previously signed-in accounts. */
+  public async getKnownAccounts(): Promise<ReadonlyArray<Account>> {
+    await this.loadingPromise
+    return this.knownAccounts.slice()
+  }
+
   /**
    * Add the account to the store.
    */
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
+    const previous = this.accounts.find(x => accountEquals(x, account))
 
     try {
       const key = getKeyForAccount(account)
       await this.secureStore.setItem(key, account.login, account.token)
+      if (previous !== undefined && previous.login !== account.login) {
+        await this.secureStore.deleteItem(
+          getKeyForAccount(previous),
+          previous.login
+        )
+      }
     } catch (e) {
       log.error(`Error adding account '${account.login}'`, e)
 
@@ -113,13 +127,14 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
-    )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    this.accounts = sortAccounts([
+      ...this.accounts.filter(x => !accountEquals(x, account)),
+      account,
+    ])
+    this.knownAccounts = sortAccounts([
+      ...this.knownAccounts.filter(x => !accountEquals(x, account)),
+      account.withToken(''),
+    ])
 
     this.save()
     return account
@@ -127,12 +142,44 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
-    this.accounts = await Promise.all(
-      this.accounts.map(acc => this.tryUpdateAccount(acc))
+    const refreshed = await Promise.all(
+      this.accounts.map(async previous => {
+        const updated = await this.tryUpdateAccount(previous)
+        if (!accountEquals(previous, updated)) {
+          this.emitError(
+            new Error(
+              `Account identity changed during refresh for ${previous.login}`
+            )
+          )
+          return previous
+        }
+        if (previous.login !== updated.login) {
+          try {
+            await this.secureStore.setItem(
+              getKeyForAccount(updated),
+              updated.login,
+              updated.token
+            )
+            await this.secureStore.deleteItem(
+              getKeyForAccount(previous),
+              previous.login
+            )
+          } catch (error) {
+            this.emitError(error)
+            return previous
+          }
+        }
+        return updated
+      })
     )
-
+    this.accounts = sortAccounts(refreshed)
+    this.knownAccounts = sortAccounts([
+      ...this.knownAccounts.filter(
+        known => !refreshed.some(account => accountEquals(known, account))
+      ),
+      ...refreshed.map(account => account.withToken('')),
+    ])
     this.save()
-    this.emitUpdate(this.accounts)
   }
 
   /**
@@ -172,9 +219,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return
     }
 
-    this.accounts = this.accounts.filter(
-      a => !(a.endpoint === account.endpoint && a.id === account.id)
-    )
+    this.accounts = this.accounts.filter(a => !accountEquals(a, account))
 
     this.save()
   }
@@ -207,16 +252,32 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    */
   private async loadFromStore(): Promise<void> {
     const raw = this.dataStore.getItem('users')
-    if (!raw || !raw.length) {
-      return
-    }
-
-    const parsedAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
+    const parsedAccounts: ReadonlyArray<IAccount> = raw ? JSON.parse(raw) : []
     const migratedAccounts = this.getMigratedGHEAccounts(parsedAccounts)
     const rawAccounts = migratedAccounts ?? parsedAccounts
+    const knownRaw = this.dataStore.getItem('known-users')
+    const knownAccounts: ReadonlyArray<IAccount> = knownRaw
+      ? JSON.parse(knownRaw)
+      : rawAccounts
+    const migratedKnownAccounts = this.getMigratedGHEAccounts(knownAccounts)
+    this.knownAccounts = sortAccounts(
+      (migratedKnownAccounts ?? knownAccounts).map(
+        account =>
+          new Account(
+            account.login,
+            account.endpoint,
+            '',
+            account.emails,
+            account.avatarURL,
+            account.id,
+            account.name,
+            account.plan
+          )
+      )
+    )
 
     const accountsWithTokens = []
-    for (const account of rawAccounts) {
+    for (const [index, account] of rawAccounts.entries()) {
       const accountWithoutToken = new Account(
         account.login,
         account.endpoint,
@@ -230,8 +291,25 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const token = await this.secureStore.getItem(key, account.login)
-        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+        let token = await this.secureStore.getItem(key, account.login)
+        if (!token) {
+          const oldEndpoints = new Set([
+            account.endpoint,
+            parsedAccounts[index].endpoint,
+          ])
+          for (const oldEndpoint of oldEndpoints) {
+            const oldKey = getKeyForEndpoint(oldEndpoint)
+            token = await this.secureStore.getItem(oldKey, account.login)
+            if (token) {
+              await this.secureStore.setItem(key, account.login, token)
+              await this.secureStore.deleteItem(oldKey, account.login)
+              break
+            }
+          }
+        }
+        if (token) {
+          accountsWithTokens.push(accountWithoutToken.withToken(token))
+        }
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 
@@ -241,7 +319,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     this.accounts = sortAccounts(accountsWithTokens)
     // If any account was migrated, make sure to persist the new value
-    if (migratedAccounts !== null) {
+    if (
+      migratedAccounts !== null ||
+      migratedKnownAccounts !== null ||
+      rawAccounts.length !== accountsWithTokens.length
+    ) {
       this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
@@ -253,6 +335,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       account.withToken('')
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
+    this.dataStore.setItem('known-users', JSON.stringify(this.knownAccounts))
 
     this.emitUpdate(this.accounts)
   }

@@ -31,6 +31,7 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { Select } from '../lib/select'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -38,6 +39,7 @@ interface IRepositorySettingsProps {
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly onDismissed: () => void
 }
 
@@ -45,6 +47,7 @@ export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   GitConfig,
+  Account,
   ForkSettings,
 }
 
@@ -66,6 +69,9 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
   readonly isLoadingGitConfig: boolean
+  readonly knownAccounts: ReadonlyArray<Account>
+  readonly selectedRepositoryAccount: Account | null
+  readonly accountSelectionChanged: boolean
 }
 
 export class RepositorySettings extends React.Component<
@@ -93,10 +99,17 @@ export class RepositorySettings extends React.Component<
       initialCommitterName: null,
       initialCommitterEmail: null,
       isLoadingGitConfig: true,
+      knownAccounts: [],
+      selectedRepositoryAccount: props.repositoryAccount,
+      accountSelectionChanged: false,
     }
   }
 
   public async componentWillMount() {
+    const knownAccounts =
+      await this.props.dispatcher.getKnownAuthorshipAccounts()
+    this.setState({ knownAccounts })
+
     try {
       const ignoreText = await readGitIgnoreAtRoot(this.props.repository)
       this.setState({ ignoreText })
@@ -195,6 +208,10 @@ export class RepositorySettings extends React.Component<
               <Octicon className="icon" symbol={octicons.gitCommit} />
               {__DARWIN__ ? 'Git Config' : 'Git config'}
             </span>
+            <span>
+              <Octicon className="icon" symbol={octicons.person} />
+              Account
+            </span>
             {showForkSettings && (
               <span>
                 <Octicon className="icon" symbol={octicons.repoForked} />
@@ -273,9 +290,72 @@ export class RepositorySettings extends React.Component<
         )
       }
 
+      case RepositorySettingsTab.Account:
+        return this.renderAccountSettings()
+
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
+  }
+
+  private renderAccountSettings() {
+    const identity = this.props.repository.accountIdentity
+    const eligibleAccounts = this.props.accounts.filter(
+      account =>
+        this.props.repository.gitHubRepository?.endpoint === account.endpoint
+    )
+    const signedOut =
+      !this.state.accountSelectionChanged &&
+      identity !== null &&
+      identity !== undefined &&
+      this.props.repositoryAccount === null
+    const retained = signedOut
+      ? this.state.knownAccounts.find(
+          account =>
+            account.endpoint === identity.endpoint && account.id === identity.id
+        )
+      : undefined
+    const value = signedOut
+      ? 'signed-out'
+      : this.state.selectedRepositoryAccount
+      ? `${this.state.selectedRepositoryAccount.endpoint}/${this.state.selectedRepositoryAccount.id}`
+      : ''
+
+    return (
+      <Select
+        label="Account"
+        value={value}
+        onChange={this.onRepositoryAccountChanged}
+      >
+        <option value="">No account</option>
+        {signedOut && (
+          <option value="signed-out" disabled={true}>
+            @{retained?.login ?? `Account ${identity.id}`} (Signed out)
+          </option>
+        )}
+        {eligibleAccounts.map(account => (
+          <option
+            key={`${account.endpoint}/${account.id}`}
+            value={`${account.endpoint}/${account.id}`}
+          >
+            @{account.login}
+          </option>
+        ))}
+      </Select>
+    )
+  }
+
+  private onRepositoryAccountChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const selected = this.props.accounts.find(
+      account =>
+        `${account.endpoint}/${account.id}` === event.currentTarget.value
+    )
+    this.setState({
+      selectedRepositoryAccount: selected ?? null,
+      accountSelectionChanged: true,
+    })
   }
 
   private onPublish = () => {
@@ -292,6 +372,21 @@ export class RepositorySettings extends React.Component<
   private onSubmit = async () => {
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
+
+    if (this.state.accountSelectionChanged) {
+      try {
+        await this.props.dispatcher.setRepositoryAccount(
+          this.props.repository,
+          this.state.selectedRepositoryAccount
+        )
+      } catch (e) {
+        log.error(
+          `RepositorySettings: unable to set account for ${this.props.repository.path}`,
+          e
+        )
+        errors.push(`Failed setting the repository account: ${e}`)
+      }
+    }
 
     if (this.state.remote && this.props.remote) {
       const trimmedUrl = this.state.remote.url.trim()

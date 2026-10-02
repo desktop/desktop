@@ -36,6 +36,8 @@ export enum PopupType {
   ConfirmDiscardChanges = 'ConfirmDiscardChanges',
   Preferences = 'Preferences',
   RepositorySettings = 'RepositorySettings',
+  ManageRepositoryAccounts = 'ManageRepositoryAccounts',
+  SelectRepositoryAccount = 'SelectRepositoryAccount',
   AddRepository = 'AddRepository',
   CreateRepository = 'CreateRepository',
   CloneRepository = 'CloneRepository',
@@ -183,6 +185,14 @@ export type PopupDetail =
       type: PopupType.RepositorySettings
       repository: Repository
       initialSelectedTab?: RepositorySettingsTab
+      allowedAccounts?: ReadonlyArray<Account>
+    }
+  | { type: PopupType.ManageRepositoryAccounts; account: Account }
+  | {
+      type: PopupType.SelectRepositoryAccount
+      repository: Repository
+      accounts: ReadonlyArray<Account>
+      onSelected: (account: Account | undefined) => void
     }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }

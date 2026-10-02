@@ -5,6 +5,7 @@ import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { assertIsRepositoryWithGitHubRepository } from '../../src/models/repository'
+import { Account } from '../../src/models/account'
 
 describe('RepositoriesStore', () => {
   let repoDb = new TestRepositoriesDatabase()
@@ -114,6 +115,146 @@ describe('RepositoriesStore', () => {
       assert.equal(
         firstRepo.gitHubRepository.dbID,
         secondRepo.gitHubRepository.dbID
+      )
+    })
+
+    it('migrates an existing repository to the sole known host account once', async () => {
+      await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository(
+          '/some/cool/path',
+          '/some/cool/path/.git'
+        ),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      const work = new Account('work', endpoint, '', [], '', 1, 'Work')
+      const personal = new Account(
+        'personal',
+        endpoint,
+        '',
+        [],
+        '',
+        2,
+        'Personal'
+      )
+
+      await repositoriesStore.migrateRepositoryAccounts([work])
+      await repositoriesStore.migrateRepositoryAccounts([work, personal])
+      const [reloaded] = await repositoriesStore.getAll()
+      assert.deepStrictEqual(reloaded.accountIdentity, {
+        endpoint,
+        id: work.id,
+      })
+    })
+
+    it('leaves repositories without GitHub metadata eligible for later migration', async () => {
+      const repository = await repositoriesStore.addRepository(
+        '/some/cool/path',
+        '/some/cool/path/.git'
+      )
+      const account = new Account('work', endpoint, '', [], '', 1, 'Work')
+      await repositoriesStore.migrateRepositoryAccounts([account])
+      assert.strictEqual(
+        (await repositoriesStore.getAll())[0].accountIdentity,
+        undefined
+      )
+
+      await repositoriesStore.setGitHubRepository(
+        repository,
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      await repositoriesStore.migrateRepositoryAccounts([account])
+      assert.deepStrictEqual(
+        (await repositoriesStore.getAll())[0].accountIdentity,
+        { endpoint, id: account.id }
+      )
+    })
+
+    it('does not guess an account for legacy repositories with two known identities', async () => {
+      const repository = await repositoriesStore.addRepository(
+        '/some/cool/path',
+        '/some/cool/path/.git'
+      )
+      await repositoriesStore.setGitHubRepository(
+        repository,
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      await repositoriesStore.migrateRepositoryAccounts([
+        new Account('work', endpoint, '', [], '', 1, 'Work'),
+        new Account('personal', endpoint, '', [], '', 2, 'Personal'),
+      ])
+      assert.strictEqual(
+        (await repositoriesStore.getAll())[0].accountIdentity,
+        null
+      )
+    })
+
+    it('persists reassignment and rejects an account on another host', async () => {
+      const repository = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository(
+          '/some/cool/path',
+          '/some/cool/path/.git'
+        ),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      const account = new Account('work', endpoint, 'token', [], '', 1, 'Work')
+      await repositoriesStore.setRepositoryAccount(repository, account)
+      assert.deepStrictEqual(
+        (await repositoriesStore.getAll())[0].accountIdentity,
+        {
+          endpoint,
+          id: account.id,
+        }
+      )
+
+      const otherHost = new Account(
+        'other',
+        'https://other.example.com/api/v3',
+        'token',
+        [],
+        '',
+        2,
+        'Other'
+      )
+      await assert.rejects(
+        repositoriesStore.setRepositoryAccount(repository, otherHost),
+        /repository host/
+      )
+    })
+
+    it('restores a signed-out association after a failed operation', async () => {
+      const repository = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository(
+          '/some/cool/path',
+          '/some/cool/path/.git'
+        ),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      const previousIdentity = { endpoint, id: 1 }
+      const selected = new Account(
+        'selected',
+        endpoint,
+        'token',
+        [],
+        '',
+        2,
+        'Selected'
+      )
+      const previouslyAssociated =
+        await repositoriesStore.setRepositoryAccountIdentity(
+          repository,
+          previousIdentity
+        )
+      const duringOperation = await repositoriesStore.setRepositoryAccount(
+        previouslyAssociated,
+        selected
+      )
+      await repositoriesStore.setRepositoryAccountIdentity(
+        duringOperation,
+        previousIdentity
+      )
+      assert.deepStrictEqual(
+        (await repositoriesStore.getAll())[0].accountIdentity,
+        previousIdentity
       )
     })
   })

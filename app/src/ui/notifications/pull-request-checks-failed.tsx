@@ -14,6 +14,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
+import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
@@ -314,11 +315,9 @@ export class PullRequestChecksFailed extends React.Component<
     const { pullRequest, repository } = this.props
     const { gitHubRepository } = repository
 
-    const account = this.props.accounts.find(
-      a => a.endpoint === gitHubRepository.endpoint
-    )
+    const account = getAccountForRepository(this.props.accounts, repository)
 
-    if (account === undefined) {
+    if (account === null) {
       this.setState({ loadingActionWorkflows: false })
       return
     }

@@ -1,4 +1,5 @@
 import { Disposable } from 'event-kit'
+import { CloneOptions } from '../../models/clone-options'
 
 import {
   IAPIOrganization,
@@ -170,6 +171,27 @@ export class Dispatcher {
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
     return this.appStore.loadInitialState()
+  }
+
+  /** Return known accounts, including those signed out. */
+  public getKnownAuthorshipAccounts(): Promise<ReadonlyArray<Account>> {
+    return this.appStore.getKnownAuthorshipAccounts()
+  }
+
+  /** Save Desktop and external Git authorship preferences. */
+  public setAuthorshipManagement(
+    desktopManaged: boolean,
+    externalManaged: boolean
+  ): Promise<void> {
+    return this.appStore.setAuthorshipManagement(
+      desktopManaged,
+      externalManaged
+    )
+  }
+
+  /** Synchronize per-repository Git identities after an identity edit. */
+  public syncAuthorship(): Promise<void> {
+    return this.appStore.syncAuthorship()
   }
 
   /**
@@ -829,14 +851,33 @@ export class Dispatcher {
     return this.appStore._cloneAgain(url, path)
   }
 
-  /** Clone the repository to the path. */
+  /** Clone the repository to the path, preserving an explicit account choice. */
   public async clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    options?: CloneOptions,
+    account?: Account | null
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
-      const { promise, repository } = this.appStore._clone(url, path, options)
+      const identity = options?.accountIdentity
+      const selectedAccount =
+        account !== undefined || identity === undefined
+          ? account
+          : identity === null
+          ? null
+          : this.appStore
+              .getState()
+              .accounts.find(
+                candidate =>
+                  candidate.endpoint === identity.endpoint &&
+                  candidate.id === identity.id
+              )
+      const { promise, repository } = this.appStore._clone(
+        url,
+        path,
+        options,
+        selectedAccount
+      )
       await this.selectRepository(repository)
       const success = await promise
       // TODO: this exit condition is not great, bob
@@ -844,7 +885,10 @@ export class Dispatcher {
         return null
       }
 
-      const addedRepositories = await this.addRepositories([path])
+      const addedRepositories = await this.appStore._addRepositories(
+        [path],
+        selectedAccount
+      )
 
       if (addedRepositories.length < 1) {
         return null
@@ -1150,7 +1194,7 @@ export class Dispatcher {
 
   /** Update the repository's issues from GitHub. */
   public refreshIssues(repository: GitHubRepository): Promise<void> {
-    return this.appStore._refreshIssues(repository)
+    return this.appStore._refreshIssues(repository, true)
   }
 
   /** End the Welcome flow. */
@@ -1872,6 +1916,14 @@ export class Dispatcher {
       repository,
       workflowPreferences
     )
+  }
+
+  /** Associate a repository with a signed-in account, or leave it unassociated. */
+  public setRepositoryAccount(
+    repository: Repository,
+    account: Account | null
+  ): Promise<Repository> {
+    return this.appStore._setRepositoryAccount(repository, account)
   }
 
   public async setAppFocusState(isFocused: boolean): Promise<void> {

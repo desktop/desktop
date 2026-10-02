@@ -25,18 +25,21 @@ const avatarTokenCache = new ExpiringOperationCache<
   { endpoint: string; accounts: ReadonlyArray<Account> },
   string
 >(
-  ({ endpoint }) => endpoint,
+  ({ endpoint, accounts }) =>
+    `${endpoint}:${
+      accounts.find(account => account.endpoint === endpoint)?.id ?? ''
+    }`,
   async ({ endpoint, accounts }) => {
     if (!isGHE(endpoint)) {
       throw new Error('Avatar tokens are only available for ghe.com')
     }
 
-    const account = accounts.find(a => a.endpoint === endpoint)
-    if (!account) {
-      throw new Error('No account found for endpoint')
+    const onHost = accounts.filter(account => account.endpoint === endpoint)
+    if (onHost.length !== 1) {
+      throw new Error('An unambiguous account is required for avatar tokens')
     }
 
-    const api = new API(endpoint, account.token)
+    const api = new API(endpoint, onHost[0].token)
     const token = await api.getAvatarToken()
 
     return forceUnwrap('Avatar token missing', token)
@@ -59,17 +62,23 @@ const botAvatarCache = new ExpiringOperationCache<
   { user: IAvatarUser; accounts: ReadonlyArray<Account> },
   IAvatarUser
 >(
-  ({ user }) => `${user.endpoint}:${user.email}`,
+  ({ user, accounts }) =>
+    `${user.endpoint}:${user.email}:${
+      user.endpoint && isGHES(user.endpoint)
+        ? accounts.find(account => account.endpoint === user.endpoint)?.id ?? ''
+        : ''
+    }`,
   async ({ user, accounts }) => {
     const { endpoint } = user
     if (user.avatarURL !== undefined || endpoint === null) {
       throw new Error('Avatar URL already resolved or endpoint is missing')
     }
 
-    const account = accounts.find(a => a.endpoint === user.endpoint)
-
-    if (!account) {
-      throw new Error('No account found for endpoint')
+    const onHost = accounts.filter(
+      account => account.endpoint === user.endpoint
+    )
+    if (onHost.length !== 1) {
+      throw new Error('An unambiguous account is required for bot avatars')
     }
 
     const login = getBotLogin(user)
@@ -78,7 +87,7 @@ const botAvatarCache = new ExpiringOperationCache<
       throw new Error('Email does not appear to be a bot email')
     }
 
-    const api = new API(endpoint, account.token)
+    const api = new API(endpoint, onHost[0].token)
     const apiUser = await api.fetchUser(login)
 
     if (!apiUser?.avatar_url) {
@@ -280,12 +289,18 @@ const getInitialStateForUser = (
   size: number | undefined,
   avatarToken?: string
 ): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
-  if (user && !user.avatarURL) {
+  if (
+    user &&
+    !user.avatarURL &&
+    accounts.filter(account => account.endpoint === user?.endpoint).length <= 1
+  ) {
     user = botAvatarCache.tryGet({ user, accounts }) ?? user
   }
   const endpoint = user?.endpoint
   avatarToken ??=
-    endpoint && isGHE(endpoint)
+    endpoint &&
+    isGHE(endpoint) &&
+    accounts.filter(account => account.endpoint === endpoint).length === 1
       ? avatarTokenCache.tryGet({ endpoint, accounts })
       : undefined
   const candidates = getAvatarUrlCandidates(user, avatarToken, size)
@@ -453,6 +468,11 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     if (!endpoint || !isGHE(endpoint)) {
       return
     }
+    if (
+      accounts.filter(account => account.endpoint === endpoint).length !== 1
+    ) {
+      return
+    }
 
     // Can we get a token synchronously?
     const token = avatarTokenCache.tryGet({ endpoint, accounts })
@@ -466,7 +486,19 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         .get({ endpoint, accounts })
         .then(token => {
           if (!this.cancelAvatarRequests) {
-            if (token && this.state.user?.endpoint === endpoint) {
+            if (
+              token &&
+              this.state.user?.endpoint === endpoint &&
+              this.props.accounts.filter(
+                account => account.endpoint === endpoint
+              ).length === 1 &&
+              this.props.accounts.some(
+                account =>
+                  account.endpoint === endpoint &&
+                  account.id ===
+                    accounts.find(item => item.endpoint === endpoint)?.id
+              )
+            ) {
               this.resetAvatarCandidates(token)
             }
           }
@@ -476,6 +508,17 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   public componentDidUpdate(prevProps: IAvatarProps, prevState: IAvatarState) {
+    if (prevProps.accounts !== this.props.accounts) {
+      this.setState(
+        getInitialStateForUser(
+          this.props.user,
+          this.props.accounts,
+          this.props.size
+        ),
+        () => this.resolveBotAvatar()
+      )
+      return
+    }
     this.ensureAvatarToken()
 
     const oldUser = prevState.user
@@ -507,15 +550,30 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const { accounts } = this.props
     const { user } = this.state
 
-    if (user?.endpoint && !user.avatarURL && getBotLogin(user)) {
+    if (
+      user?.endpoint &&
+      !user.avatarURL &&
+      getBotLogin(user) &&
+      accounts.filter(account => account.endpoint === user.endpoint).length ===
+        1
+    ) {
       botAvatarCache
         .get({ user, accounts })
         .then(resolved => {
           if (
             !this.cancelAvatarRequests &&
-            user.endpoint === resolved.endpoint &&
-            user.email === resolved.email &&
-            user.name === resolved.name &&
+            this.state.user?.endpoint === resolved.endpoint &&
+            this.state.user.email === resolved.email &&
+            this.state.user.name === resolved.name &&
+            this.props.accounts.filter(
+              account => account.endpoint === resolved.endpoint
+            ).length === 1 &&
+            this.props.accounts.some(
+              account =>
+                account.endpoint === resolved.endpoint &&
+                account.id ===
+                  accounts.find(item => item.endpoint === resolved.endpoint)?.id
+            ) &&
             user.avatarURL !== resolved.avatarURL
           ) {
             this.setState({ user: resolved }, () =>

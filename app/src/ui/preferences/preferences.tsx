@@ -85,6 +85,14 @@ import {
   enableFormattingPreferences,
 } from '../../lib/feature-flag'
 import { validateCopilotAppPath } from '../../lib/copilot-app'
+import {
+  getAuthorshipSettings,
+  getManagedAuthor,
+  setManagedAuthorField,
+  syncManagedAccounts,
+  IManagedAuthor,
+} from '../../lib/authorship'
+import { IAccountIdentity } from '../../models/account'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -130,6 +138,14 @@ interface IPreferencesProps {
 }
 
 interface IPreferencesState {
+  readonly knownAccounts: ReadonlyArray<Account>
+  readonly desktopManaged: boolean
+  readonly externalManaged: boolean
+  readonly managedAuthors: ReadonlyArray<{
+    readonly identity: IAccountIdentity
+    readonly author: IManagedAuthor
+  }>
+  readonly authorshipError?: string
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
@@ -220,6 +236,10 @@ export class Preferences extends React.Component<
 
     this.state = {
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
+      knownAccounts: this.props.accounts,
+      desktopManaged: getAuthorshipSettings().desktopManaged,
+      externalManaged: getAuthorshipSettings().externalManaged,
+      managedAuthors: [],
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
@@ -274,6 +294,14 @@ export class Preferences extends React.Component<
   }
 
   public async componentWillMount() {
+    const knownAccounts =
+      await this.props.dispatcher.getKnownAuthorshipAccounts()
+    syncManagedAccounts(knownAccounts)
+    const managedAuthors = knownAccounts.flatMap(account => {
+      const identity = { endpoint: account.endpoint, id: account.id }
+      const author = getManagedAuthor(identity)
+      return author === null ? [] : [{ identity, author }]
+    })
     const initialCommitterName = await getGlobalConfigValue('user.name')
     const initialCommitterEmail = await getGlobalConfigValue('user.email')
     const initialDefaultBranch = await getDefaultBranch()
@@ -314,6 +342,8 @@ export class Preferences extends React.Component<
     const availableShells = shells.map(e => e.shell) ?? null
 
     this.setState({
+      knownAccounts,
+      managedAuthors,
       committerName,
       committerEmail,
       defaultBranch: initialDefaultBranch,
@@ -347,6 +377,59 @@ export class Preferences extends React.Component<
       copilotAppPath: this.props.copilotAppPath ?? '',
       isLoadingGitConfig: false,
     })
+  }
+
+  private onDesktopManagedChanged = async (enabled: boolean) => {
+    try {
+      await this.props.dispatcher.setAuthorshipManagement(
+        enabled,
+        enabled && this.state.externalManaged
+      )
+      this.setState({
+        desktopManaged: enabled,
+        externalManaged: enabled && this.state.externalManaged,
+        authorshipError: undefined,
+      })
+    } catch (e) {
+      log.error('Could not update Desktop authorship management', e)
+      this.setState({ authorshipError: String(e) })
+    }
+  }
+
+  private onExternalManagedChanged = async (enabled: boolean) => {
+    try {
+      await this.props.dispatcher.setAuthorshipManagement(
+        this.state.desktopManaged,
+        enabled
+      )
+      this.setState({ externalManaged: enabled, authorshipError: undefined })
+    } catch (e) {
+      log.error('Could not update external authorship management', e)
+      this.setState({ authorshipError: String(e) })
+    }
+  }
+
+  private onManagedAuthorChanged = async (
+    identity: IAccountIdentity,
+    field: 'name' | 'email',
+    value: string
+  ) => {
+    setManagedAuthorField(identity, field, value)
+    this.setState({
+      managedAuthors: this.state.managedAuthors.map(item =>
+        item.identity.endpoint === identity.endpoint &&
+        item.identity.id === identity.id
+          ? { ...item, author: { ...item.author, [field]: value } }
+          : item
+      ),
+    })
+    try {
+      await this.props.dispatcher.syncAuthorship()
+      this.setState({ authorshipError: undefined })
+    } catch (e) {
+      log.error('Could not synchronize external authorship', e)
+      this.setState({ authorshipError: String(e) })
+    }
   }
 
   public componentDidUpdate(prevProps: IPreferencesProps) {
@@ -511,6 +594,13 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
+  private onManageRepositories = (account: Account) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ManageRepositoryAccounts,
+      account,
+    })
+  }
+
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -550,6 +640,7 @@ export class Preferences extends React.Component<
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
             onLogout={this.onLogout}
+            onManageRepositories={this.onManageRepositories}
           />
         )
         break
@@ -625,6 +716,14 @@ export class Preferences extends React.Component<
               name={this.state.committerName}
               email={this.state.committerEmail}
               accounts={this.props.accounts}
+              knownAccounts={this.state.knownAccounts}
+              desktopManaged={this.state.desktopManaged}
+              externalManaged={this.state.externalManaged}
+              managedAuthors={this.state.managedAuthors}
+              authorshipError={this.state.authorshipError}
+              onDesktopManagedChanged={this.onDesktopManagedChanged}
+              onExternalManagedChanged={this.onExternalManagedChanged}
+              onManagedAuthorChanged={this.onManagedAuthorChanged}
               defaultBranch={this.state.defaultBranch}
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}

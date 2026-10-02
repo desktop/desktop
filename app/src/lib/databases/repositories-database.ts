@@ -3,6 +3,7 @@ import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
 import { GitHubAccountType } from '../api'
+import { IAccountIdentity } from '../../models/account'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -52,6 +53,7 @@ export interface IDatabaseRepository {
   readonly path: string
   readonly alias: string | null
   readonly missing: boolean
+  readonly accountIdentity?: IAccountIdentity | null
 
   /** The path to the .git directory for this repository */
   readonly gitDir?: string

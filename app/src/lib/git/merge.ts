@@ -4,6 +4,7 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { pathExists } from '../path-exists'
 import { createMultiOperationTerminalOutputCallback } from './multi-operation-terminal-output'
+import { getCommitAuthorEnv } from './commit'
 
 export enum MergeResult {
   /** The merge completed successfully */
@@ -56,6 +57,7 @@ export async function merge(
     onHookProgress: options?.onHookProgress,
     onHookFailure: options?.onHookFailure,
     onTerminalOutputAvailable,
+    env: getCommitAuthorEnv(repository),
   })
 
   if (exitCode !== 0) {
@@ -78,6 +80,7 @@ export async function merge(
         onHookProgress: options?.onHookProgress,
         onHookFailure: options?.onHookFailure,
         onTerminalOutputAvailable,
+        env: getCommitAuthorEnv(repository),
       }
     )
     if (exitCode !== 0) {

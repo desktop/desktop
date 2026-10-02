@@ -4,6 +4,7 @@ import { groupRepositories } from '../../src/ui/repositories-list/group-reposito
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
+import { Account } from '../../src/models/account'
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -27,6 +28,79 @@ describe('repository list grouping', () => {
   ]
 
   const cache = new Map<number, ILocalRepositoryState>()
+
+  it('subdivides an owner by retained account and unassociated repositories', () => {
+    const endpoint = 'https://api.github.com'
+    const knownAccounts = [
+      new Account('work', endpoint, '', [], '', 1, 'Work'),
+      new Account('personal', endpoint, '', [], '', 2, 'Personal'),
+    ]
+    const ghRepo = gitHubRepoFixture({ owner: 'organization', name: 'shared' })
+    const repo = (id: number, accountId: number | null) =>
+      new Repository(
+        `repo${id}`,
+        id,
+        ghRepo,
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        accountId === null ? null : { endpoint, id: accountId }
+      )
+    const grouped = groupRepositories(
+      [repo(1, 1), repo(2, 2), repo(3, null)],
+      cache,
+      [],
+      knownAccounts
+    )
+
+    assert.deepStrictEqual(
+      grouped.map(group =>
+        group.identifier.kind === 'dotcom'
+          ? group.identifier.accountLabel
+          : null
+      ),
+      ['@work', '@personal', 'Unassociated']
+    )
+    assert.strictEqual(grouped[0].items[0].repository.path, 'repo1')
+  })
+
+  it('retains the single-account owner heading after sign-out', () => {
+    const known = new Account(
+      'work',
+      'https://api.github.com',
+      '',
+      [],
+      '',
+      1,
+      'Work'
+    )
+    const grouped = groupRepositories(
+      [
+        new Repository(
+          'repo',
+          1,
+          gitHubRepoFixture({ owner: 'organization', name: 'repo' }),
+          false,
+          null,
+          {},
+          false,
+          undefined,
+          undefined,
+          { endpoint: known.endpoint, id: known.id }
+        ),
+      ],
+      cache,
+      [],
+      [known]
+    )
+    assert.strictEqual(grouped[0].identifier.kind, 'dotcom')
+    if (grouped[0].identifier.kind === 'dotcom') {
+      assert.strictEqual(grouped[0].identifier.accountLabel, undefined)
+    }
+  })
 
   it('groups repositories by owners/Enterprise/Other', () => {
     const grouped = groupRepositories(repositories, cache, [])

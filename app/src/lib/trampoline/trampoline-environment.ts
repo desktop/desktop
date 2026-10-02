@@ -10,6 +10,7 @@ import { GitError as DugiteError, exec } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { GitError, getDescriptionForError } from '../git/core'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
+import { IAccountIdentity } from '../../models/account'
 
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
 
@@ -36,6 +37,10 @@ export const getHasRejectedCredentialsForEndpoint = (
 }
 const isBackgroundTaskEnvironment = new Map<string, boolean>()
 const trampolineEnvironmentPath = new Map<string, string>()
+const credentialAccountIdentities = new Map<string, IAccountIdentity | null>()
+
+export const getCredentialAccountIdentity = (trampolineToken: string) =>
+  credentialAccountIdentities.get(trampolineToken)
 
 export const getTrampolineEnvironmentPath = (trampolineToken: string) =>
   trampolineEnvironmentPath.get(trampolineToken) ?? process.cwd()
@@ -94,13 +99,17 @@ export async function withTrampolineEnv<T>(
   fn: (env: object) => Promise<T>,
   path: string,
   isBackgroundTask = false,
-  customEnv?: Record<string, string | undefined>
+  customEnv?: Record<string, string | undefined>,
+  credentialAccountIdentity?: IAccountIdentity | null
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
     isBackgroundTaskEnvironment.set(token, isBackgroundTask)
     trampolineEnvironmentPath.set(token, path)
+    if (credentialAccountIdentity !== undefined) {
+      credentialAccountIdentities.set(token, credentialAccountIdentity)
+    }
 
     const existingGitEnvConfig =
       customEnv?.['GIT_CONFIG_PARAMETERS'] ??
@@ -197,6 +206,7 @@ export async function withTrampolineEnv<T>(
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)
+      credentialAccountIdentities.delete(token)
     }
   })
 }

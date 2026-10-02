@@ -1,5 +1,13 @@
 import { ipcRenderer } from 'electron'
 
+export function stubIPCSend(): () => void {
+  const previousSend = ipcRenderer.send
+  ipcRenderer.send = () => {}
+  return () => {
+    ipcRenderer.send = previousSend
+  }
+}
+
 export function captureClipboardWrites() {
   const writes = new Array<string>()
   const previousInvoke = ipcRenderer.invoke

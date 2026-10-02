@@ -20,6 +20,7 @@ interface IAccountsProps {
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
   readonly onLogout: (account: Account) => void
+  readonly onManageRepositories: (account: Account) => void
 }
 
 enum SignInType {
@@ -29,15 +30,10 @@ enum SignInType {
 
 export class Accounts extends React.Component<IAccountsProps, {}> {
   public render() {
-    const { accounts } = this.props
-    const dotComAccount = accounts.find(isDotComAccount)
-
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
-          : this.renderSignIn(SignInType.DotCom)}
+        {this.renderMultipleDotComAccounts()}
 
         <h2>GitHub Enterprise</h2>
         {this.renderMultipleEnterpriseAccounts()}
@@ -45,14 +41,43 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     )
   }
 
-  private renderMultipleEnterpriseAccounts() {
-    const enterpriseAccounts = this.props.accounts.filter(isEnterpriseAccount)
+  private renderMultipleDotComAccounts() {
+    const accounts = this.props.accounts.filter(isDotComAccount)
+    if (accounts.length === 0) {
+      return this.renderSignIn(SignInType.DotCom)
+    }
 
     return (
       <>
-        {enterpriseAccounts.map(account => {
-          return this.renderAccount(account, SignInType.Enterprise)
-        })}
+        {accounts.map(account =>
+          this.renderAccount(account, SignInType.DotCom)
+        )}
+        <Button onClick={this.props.onDotComSignIn}>
+          Add GitHub.com account
+        </Button>
+      </>
+    )
+  }
+
+  private renderMultipleEnterpriseAccounts() {
+    const enterpriseAccounts = this.props.accounts.filter(isEnterpriseAccount)
+    const accountsByHost = new Map<string, Account[]>()
+    for (const account of enterpriseAccounts) {
+      const accounts = accountsByHost.get(account.friendlyEndpoint) ?? []
+      accounts.push(account)
+      accountsByHost.set(account.friendlyEndpoint, accounts)
+    }
+
+    return (
+      <>
+        {[...accountsByHost].map(([host, accounts]) => (
+          <React.Fragment key={host}>
+            <h3>{host}</h3>
+            {accounts.map(account =>
+              this.renderAccount(account, SignInType.Enterprise)
+            )}
+          </React.Fragment>
+        ))}
         {enterpriseAccounts.length === 0 ? (
           this.renderSignIn(SignInType.Enterprise)
         ) : (
@@ -78,7 +103,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       type === SignInType.DotCom ? DialogPreferredFocusClassName : undefined
 
     return (
-      <Row className="account-info">
+      <Row className="account-info" key={`${account.endpoint}/${account.id}`}>
         <div className="user-info-container">
           <Avatar accounts={this.props.accounts} user={avatarUser} />
           <div className="user-info">
@@ -99,6 +124,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             )}
           </div>
         </div>
+        <Button onClick={this.manageRepositories(account)}>
+          Manage repositories
+        </Button>
         <Button onClick={this.logout(account)} className={className}>
           {__DARWIN__ ? 'Sign Out' : 'Sign out'}
         </Button>
@@ -153,5 +181,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     return () => {
       this.props.onLogout(account)
     }
+  }
+
+  private manageRepositories = (account: Account) => {
+    return () => this.props.onManageRepositories(account)
   }
 }

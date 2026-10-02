@@ -42,12 +42,10 @@ export function createTestPullRequestStore(
 }
 
 /**
- * Creates a fresh SignInStore with a test AccountsStore.
+ * Creates a fresh SignInStore.
  */
-export function createTestSignInStore(
-  accountsStore?: AccountsStore
-): SignInStore {
-  return new SignInStore(accountsStore ?? createTestAccountsStore())
+export function createTestSignInStore(): SignInStore {
+  return new SignInStore()
 }
 
 /**
@@ -125,7 +123,7 @@ export function createTestStores(): ITestStores {
   const accountsStore = createTestAccountsStore()
   const repositoriesStore = createTestRepositoriesStore()
   const pullRequestStore = createTestPullRequestStore(repositoriesStore)
-  const signInStore = createTestSignInStore(accountsStore)
+  const signInStore = createTestSignInStore()
   const gitHubUserStore = createTestGitHubUserStore()
   const issuesStore = createTestIssuesStore()
   const commitStatusStore = createTestCommitStatusStore(accountsStore)

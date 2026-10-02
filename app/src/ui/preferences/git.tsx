@@ -3,8 +3,10 @@ import { DialogContent } from '../dialog'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
-import { Account } from '../../models/account'
+import { Account, IAccountIdentity } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { TextBox } from '../lib/text-box'
+import { IManagedAuthor } from '../../lib/authorship'
 import { TabBar } from '../tab-bar'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Select } from '../lib/select'
@@ -20,6 +22,21 @@ interface IGitProps {
   readonly isLoadingGitConfig: boolean
 
   readonly accounts: ReadonlyArray<Account>
+  readonly knownAccounts: ReadonlyArray<Account>
+  readonly desktopManaged: boolean
+  readonly externalManaged: boolean
+  readonly managedAuthors: ReadonlyArray<{
+    readonly identity: IAccountIdentity
+    readonly author: IManagedAuthor
+  }>
+  readonly authorshipError?: string
+  readonly onDesktopManagedChanged: (enabled: boolean) => void
+  readonly onExternalManagedChanged: (enabled: boolean) => void
+  readonly onManagedAuthorChanged: (
+    identity: IAccountIdentity,
+    field: 'name' | 'email',
+    value: string
+  ) => void
 
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
@@ -46,6 +63,50 @@ const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
   'cmd',
 ]
 
+interface IManagedAuthorFieldsProps {
+  readonly account: Account
+  readonly author: IManagedAuthor
+  readonly onChanged: (
+    identity: IAccountIdentity,
+    field: 'name' | 'email',
+    value: string
+  ) => void
+}
+
+class ManagedAuthorFields extends React.Component<IManagedAuthorFieldsProps> {
+  private onNameChanged = (value: string) =>
+    this.props.onChanged(this.identity, 'name', value)
+
+  private onEmailChanged = (value: string) =>
+    this.props.onChanged(this.identity, 'email', value)
+
+  private get identity(): IAccountIdentity {
+    const { endpoint, id } = this.props.account
+    return { endpoint, id }
+  }
+
+  public render() {
+    const { account, author } = this.props
+    return (
+      <div>
+        <h3>
+          {account.friendlyName} ({account.endpoint})
+        </h3>
+        <TextBox
+          label="Name"
+          value={author.name}
+          onValueChanged={this.onNameChanged}
+        />
+        <TextBox
+          label="Email"
+          value={author.email}
+          onValueChanged={this.onEmailChanged}
+        />
+      </div>
+    )
+  }
+}
+
 export class Git extends React.Component<IGitProps> {
   private get selectedTabIndex() {
     return this.props.selectedTabIndex ?? 0
@@ -71,6 +132,18 @@ export class Git extends React.Component<IGitProps> {
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     this.props.onSelectedShellChanged(event.currentTarget.value)
+  }
+
+  private onAuthorshipModeChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    this.props.onDesktopManagedChanged(event.currentTarget.value === 'desktop')
+  }
+
+  private onExternalManagedChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onExternalManagedChanged(event.currentTarget.checked)
   }
 
   private renderHooksSettings() {
@@ -168,15 +241,63 @@ export class Git extends React.Component<IGitProps> {
   private renderGitConfigAuthorInfo() {
     return (
       <>
-        <GitConfigUserForm
-          email={this.props.email}
-          name={this.props.name}
-          isLoadingGitConfig={this.props.isLoadingGitConfig}
-          accounts={this.props.accounts}
-          onEmailChanged={this.props.onEmailChanged}
-          onNameChanged={this.props.onNameChanged}
-        />
-        {this.renderEditGlobalGitConfigInfo()}
+        <Select
+          label="Commit authorship"
+          value={this.props.desktopManaged ? 'desktop' : 'git'}
+          onChange={this.onAuthorshipModeChanged}
+        >
+          <option value="git">Let Git manage my author identity</option>
+          <option value="desktop">
+            Let GitHub Desktop manage my author identity
+          </option>
+        </Select>
+        {this.props.desktopManaged ? (
+          <>
+            {this.props.knownAccounts.map(account => {
+              const identity = { endpoint: account.endpoint, id: account.id }
+              const author = this.props.managedAuthors.find(
+                item =>
+                  item.identity.endpoint === identity.endpoint &&
+                  item.identity.id === identity.id
+              )?.author
+              if (author === undefined) {
+                return null
+              }
+              return (
+                <ManagedAuthorFields
+                  key={`${account.endpoint}:${account.id}`}
+                  account={account}
+                  author={author}
+                  onChanged={this.props.onManagedAuthorChanged}
+                />
+              )
+            })}
+            <Checkbox
+              label="Use these identities with external Git"
+              value={
+                this.props.externalManaged
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onExternalManagedChanged}
+            />
+          </>
+        ) : (
+          <>
+            <GitConfigUserForm
+              email={this.props.email}
+              name={this.props.name}
+              isLoadingGitConfig={this.props.isLoadingGitConfig}
+              accounts={this.props.accounts}
+              onEmailChanged={this.props.onEmailChanged}
+              onNameChanged={this.props.onNameChanged}
+            />
+            {this.renderEditGlobalGitConfigInfo()}
+          </>
+        )}
+        {this.props.authorshipError !== undefined && (
+          <p role="alert">{this.props.authorshipError}</p>
+        )}
       </>
     )
   }

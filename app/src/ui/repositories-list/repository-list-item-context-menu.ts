@@ -1,6 +1,7 @@
 import { Repository } from '../../models/repository'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
+import { Account } from '../../models/account'
 import { writeClipboardText } from '../main-process-proxy'
 import {
   RevealInFileManagerLabel,
@@ -10,6 +11,9 @@ import {
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
+  accounts: ReadonlyArray<Account>
+  knownAccounts: ReadonlyArray<Account>
+  onSelectAccount: (repository: Repository, account: Account) => void
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
@@ -39,6 +43,7 @@ export const generateRepositoryListContextMenu = (
     : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
+    ...buildAccountMenuItems(config),
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
     {
@@ -78,6 +83,58 @@ export const generateRepositoryListContextMenu = (
   ]
 
   return items
+}
+
+const buildAccountMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+  if (
+    !(repository instanceof Repository) ||
+    repository.gitHubRepository === null
+  ) {
+    return []
+  }
+  const endpoint = repository.gitHubRepository.endpoint
+  const available = config.accounts.filter(
+    account => account.endpoint === endpoint
+  )
+  const identity = repository.accountIdentity
+  const current = config.knownAccounts.find(
+    account =>
+      account.endpoint === identity?.endpoint && account.id === identity?.id
+  )
+  const canChange = available.some(
+    account =>
+      account.endpoint !== identity?.endpoint || account.id !== identity?.id
+  )
+  if (!canChange) {
+    return []
+  }
+
+  const choices: ReadonlyArray<Account> =
+    current === undefined ||
+    available.some(account => account.id === current.id)
+      ? available
+      : [...available, current]
+
+  return [
+    {
+      label: 'Accounts',
+      submenu: choices.map(account => {
+        const signedIn = available.some(item => item.id === account.id)
+        return {
+          label: `@${account.login}${signedIn ? '' : ' (Signed out)'}`,
+          type: 'checkbox',
+          checked:
+            account.endpoint === identity?.endpoint &&
+            account.id === identity?.id,
+          enabled: signedIn,
+          action: () => config.onSelectAccount(repository, account),
+        }
+      }),
+    },
+  ]
 }
 
 const buildAliasMenuItems = (

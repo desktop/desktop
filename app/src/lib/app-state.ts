@@ -92,6 +92,7 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  readonly knownAccounts: ReadonlyArray<Account>
   /**
    * The current list of repositories tracked in the application
    */
