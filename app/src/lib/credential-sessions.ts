@@ -43,6 +43,14 @@ export interface ICredentialSessionsDelegate {
 
   /** A renewed access token for the endpoint was saved and installed. */
   readonly onTokenRenewed: (endpoint: string, accessToken: string) => void
+
+  /**
+   * A sign-in was saved and installed, replacing any session for its endpoint.
+   *
+   * Called synchronously with the swap, so the owner's account list never
+   * disagrees with the installed session.
+   */
+  readonly onSignedIn: (account: Account) => void
 }
 
 /**
@@ -63,11 +71,6 @@ export class CredentialSessions {
   private readonly sessionsByToken = new Map<string, ICredentialSession>()
   /** Per-endpoint queue so secure-storage saves and deletes never interleave. */
   private readonly credentialWriteQueues = new Map<string, Promise<void>>()
-  /**
-   * Per-endpoint counter bumped when a sign-in starts or a session is removed.
-   * `add` compares it after awaiting storage to drop stale sign-ins.
-   */
-  private readonly sessionGenerations = new Map<string, number>()
 
   public constructor(
     private readonly secureStore: ISecureStore,
@@ -92,25 +95,17 @@ export class CredentialSessions {
   /**
    * Save and install a new credential, replacing any session for its endpoint.
    *
-   * The current session stays usable until the new credential is saved, so a
-   * failed save leaves it untouched. Returns the account carrying the
-   * credential's access token, or null if another sign-in or a sign-out
-   * superseded this one while storage was pending. Throws if secure storage
-   * fails.
+   * Saves run in call order and each one is installed as soon as it succeeds,
+   * so memory always matches the last successful save. A failed save leaves
+   * the current session untouched. Returns the account carrying the
+   * credential's access token. Throws if secure storage fails.
    */
   public async add(
     account: Account,
     credential: IOAuthToken
-  ): Promise<Account | null> {
-    const { endpoint } = account
-    const generation = this.nextGeneration(endpoint)
-    const isLatest = () => this.sessionGenerations.get(endpoint) === generation
+  ): Promise<Account> {
     const authenticated = account.withToken(credential.accessToken)
-    let installed = false
-    await this.write(endpoint, async () => {
-      if (!isLatest()) {
-        return
-      }
+    await this.write(account.endpoint, async () => {
       await this.secureStore.setItem(
         getKeyForAccount(account),
         account.login,
@@ -118,13 +113,11 @@ export class CredentialSessions {
       )
       // Swap inside the write so a renewal of the replaced session queued
       // behind it sees the retirement and cannot overwrite this credential.
-      if (isLatest()) {
-        this.retirePrevious(endpoint)
-        this.restore(authenticated, credential)
-        installed = true
-      }
+      this.retireSession(account.endpoint)
+      this.restore(authenticated, credential)
+      this.delegate.onSignedIn(authenticated)
     })
-    return installed ? authenticated : null
+    return authenticated
   }
 
   /** Stop using the endpoint's session so no caller can obtain its token again. */
@@ -132,9 +125,18 @@ export class CredentialSessions {
     this.retireSession(endpoint)
   }
 
-  /** Delete the account's stored credential after any pending write. */
+  /**
+   * Delete the account's stored credential after any pending write.
+   *
+   * Skipped if a later sign-in with the same login has been installed since:
+   * the stored item now holds that sign-in's credential.
+   */
   public delete(account: Account): Promise<void> {
     return this.write(account.endpoint, async () => {
+      const current = this.sessionsByEndpoint.get(account.endpoint)
+      if (current?.account.login === account.login) {
+        return
+      }
       await this.secureStore.deleteItem(
         getKeyForAccount(account),
         account.login
@@ -143,23 +145,12 @@ export class CredentialSessions {
   }
 
   private retireSession(endpoint: string): void {
-    this.retirePrevious(endpoint)
-    this.nextGeneration(endpoint)
-  }
-
-  private retirePrevious(endpoint: string): void {
     const previous = this.sessionsByEndpoint.get(endpoint)
     if (previous !== undefined) {
       previous.retired = true
       previous.credential = null
     }
     this.sessionsByEndpoint.delete(endpoint)
-  }
-
-  private nextGeneration(endpoint: string): number {
-    const generation = (this.sessionGenerations.get(endpoint) ?? 0) + 1
-    this.sessionGenerations.set(endpoint, generation)
-    return generation
   }
 
   /** Resolve token snapshots held by long-lived clients without changing identity. */
