@@ -38,6 +38,31 @@ const fixedTags: ICommitMessagePromptTags = {
 }
 
 describe('buildCommitMessageSystemPrompt', () => {
+  it('defaults to no Copilot attribution unless other instructions directly require it', () => {
+    const base = buildCommitMessageSystemPrompt()
+    const withRules = buildCommitMessageSystemPrompt(true, fixedTags)
+
+    for (const prompt of [base, withRules]) {
+      assert.match(
+        prompt,
+        /By default, do not add a Co-authored-by: Copilot trailer/
+      )
+      assert.match(
+        prompt,
+        /unless other instructions otherwise indicated directly this should happen/
+      )
+      assert.match(
+        prompt,
+        /Commit authorship\s+belongs to the developer unless other instructions say otherwise/
+      )
+    }
+
+    assert.match(
+      withRules,
+      /constraints may override default commit-message preferences, including the\s+default Copilot-attribution guidance/
+    )
+  })
+
   it('returns the base system prompt unchanged when there are no rules', () => {
     const base = buildCommitMessageSystemPrompt()
     const withFalse = buildCommitMessageSystemPrompt(false, fixedTags)
