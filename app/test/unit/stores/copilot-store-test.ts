@@ -146,27 +146,37 @@ function createCopilotStoreWithModels(
 }
 
 function createCopilotStoreWithQuotaSnapshots(
-  quotaSnapshots: Readonly<Record<string, TestQuotaSnapshot | undefined>>
+  quotaSnapshots: Readonly<Record<string, TestQuotaSnapshot | undefined>>,
+  onStart: () => Promise<void> = async () => {}
 ): {
   readonly accountsStore: AccountsStore
   readonly store: CopilotStore
+  readonly quotaTokens: ReadonlyArray<string | undefined>
+  readonly stopCount: () => number
 } {
   const accountsStore = createAccountsStore()
   const store = new CopilotStore(accountsStore)
+  const quotaTokens: Array<string | undefined> = []
+  let stopCount = 0
   const testableStore = store as unknown as ITestableQuotaCopilotStore
 
   testableStore.createClient = async () =>
     ({
-      start: async () => {},
-      stop: async () => {},
+      start: onStart,
+      stop: async () => {
+        stopCount++
+      },
       rpc: {
         account: {
-          getQuota: async () => ({ quotaSnapshots }),
+          getQuota: async (request: { gitHubToken?: string }) => {
+            quotaTokens.push(request.gitHubToken)
+            return { quotaSnapshots }
+          },
         },
       },
     } as unknown as CopilotClient)
 
-  return { accountsStore, store }
+  return { accountsStore, store, quotaTokens, stopCount: () => stopCount }
 }
 
 function makeQuotaSnapshot(): AccountQuotaSnapshot {
@@ -519,6 +529,23 @@ describe('CopilotStore quota snapshots', () => {
     assert.strictEqual(snapshots?.size, 1)
     assert.deepStrictEqual(quotaTokens, ['new-access'])
   })
+
+  it('does not request quota under a replacement sign-in during client startup', async () => {
+    const account = makeAccount()
+    const { accountsStore, store, quotaTokens, stopCount } =
+      createCopilotStoreWithQuotaSnapshots(
+        { chat: makeQuotaSnapshot() },
+        async () => {
+          await accountsStore.removeAccount(account)
+          await accountsStore.addAccount(account)
+        }
+      )
+    await accountsStore.addAccount(account)
+
+    assert.strictEqual(await store.getQuotaSnapshots(account), null)
+    assert.deepStrictEqual(quotaTokens, [])
+    assert.strictEqual(stopCount(), 1)
+  })
 })
 
 describe('CopilotStore commit message generation cancellation', () => {
@@ -535,6 +562,28 @@ describe('CopilotStore commit message generation cancellation', () => {
     } else {
       process.env[PreviewFeaturesEnv] = previousPreviewFeatures
     }
+  })
+
+  it('honors already-aborted generation before requiring account credentials', async () => {
+    const account = makeAccount()
+    const { store, createClientAccounts } = createCopilotStoreWithModels(
+      () => []
+    )
+    const controller = new AbortController()
+    controller.abort()
+
+    await assert.rejects(
+      store.generateCommitMessage(
+        account,
+        'diff --git a/file b/file',
+        '/path/to/repository',
+        null,
+        [],
+        controller.signal
+      ),
+      assertCommitMessageGenerationCancelled
+    )
+    assert.strictEqual(createClientAccounts.length, 0)
   })
 
   it('does not create a commit-message client after cancellation during model resolution', async () => {
@@ -567,6 +616,7 @@ describe('CopilotStore commit message generation cancellation', () => {
   it('stops the client without creating a session after cancellation before session creation', async () => {
     const account = makeAccount()
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const controller = new AbortController()
     let createSessionCount = 0
@@ -606,6 +656,7 @@ describe('CopilotStore commit message generation cancellation', () => {
     const account = makeAccount()
     const repositoryPath = '/path/to/repository'
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const createSessionStarted = createDeferred<void>()
     const sessionCreation = createDeferred<CopilotSession>()
@@ -656,6 +707,7 @@ describe('CopilotStore commit message generation cancellation', () => {
     const account = makeAccount()
     const repositoryPath = '/path/to/repository'
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const sendStarted = createDeferred<void>()
     const controller = new AbortController()
