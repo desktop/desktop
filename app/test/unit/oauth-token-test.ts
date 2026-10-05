@@ -321,6 +321,18 @@ describe('OAuth token requests', () => {
     })
   })
 
+  it('treats an HTML gateway failure as temporary rather than a malformed replacement pair', async t => {
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async () => new Response('<html>Unavailable</html>', { status: 502 })
+    )
+    await assert.rejects(refreshOAuthToken('https://github.com', 'refresh'), {
+      name: 'Error',
+      message: 'The OAuth token request failed.',
+    })
+  })
+
   it('sanitizes network failures without retrying', async t => {
     const fetchMock = t.mock.method(globalThis, 'fetch', async () => {
       throw new Error('secret-request-body')
