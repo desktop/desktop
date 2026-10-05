@@ -271,6 +271,106 @@ describe('Refreshing Copilot session credentials', () => {
     )
   })
 
+  it('follows renewal within its originating credential session', async t => {
+    let clock = now
+    t.mock.method(Date, 'now', () => clock)
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: now + 2 * 60 * 60 * 1000,
+    })
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    const first = await provider({ host: 'github.com', reason: 'initial' })
+    assert.ok(first.kind === 'token')
+    assert.equal(first.accessToken, account.token)
+
+    clock += 60 * 60 * 1000
+    const refreshed = await provider({ host: 'github.com', reason: 'refresh' })
+    assert.ok(refreshed.kind === 'token')
+    assert.equal(refreshed.accessToken, 'new-access')
+    assert.equal(renewals(), 1)
+  })
+
+  for (const reuseAccessToken of [false, true]) {
+    it(`rejects the old provider after same-user sign-in ${
+      reuseAccessToken ? 'reuses the access token' : 'replaces the access token'
+    }`, async () => {
+      const { store, renewals } = await setup({
+        ...renewed(),
+        accessToken: account.token,
+      })
+      const oldProvider = createCopilotTokenProvider(store, account)
+      assert.ok(oldProvider)
+
+      await store.removeAccount(account)
+      const accessToken = reuseAccessToken ? account.token : 'signed-in-again'
+      const signedIn = account.withToken(accessToken)
+      await store.addAccount(signedIn, { ...renewed(), accessToken })
+
+      await assert.rejects(
+        async () => oldProvider({ host: 'github.com', reason: 'refresh' }),
+        /sign in again/
+      )
+      const newProvider = createCopilotTokenProvider(store, signedIn)
+      assert.ok(newProvider)
+      const result = await newProvider({
+        host: 'github.com',
+        reason: 'initial',
+      })
+      assert.ok(result.kind === 'token')
+      assert.equal(result.accessToken, accessToken)
+      assert.equal(renewals(), 0)
+    })
+  }
+
+  it('does not bind an obsolete account token to a later same-user sign-in', async () => {
+    const { store } = await setup({ ...renewed(), accessToken: account.token })
+    await store.removeAccount(account)
+    const signedIn = account.withToken('signed-in-again')
+    await store.addAccount(signedIn, {
+      ...renewed(),
+      accessToken: signedIn.token,
+    })
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    await assert.rejects(
+      async () => provider({ host: 'github.com', reason: 'initial' }),
+      /sign in again/
+    )
+  })
+
+  it('rejects a provider waiting on a Git lease when its session retires', async t => {
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: Date.now() + 45 * 60 * 1000,
+    })
+    const lease = await store.leaseAccountToken(account, 'git')
+    t.after(lease.release)
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    const result = Promise.resolve(
+      provider({ host: 'github.com', reason: 'initial' })
+    )
+    const rejected = assert.rejects(result, /sign in again/)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(renewals(), 0)
+
+    await store.removeAccount(account)
+    const signedIn = account.withToken('signed-in-again')
+    await store.addAccount(signedIn, {
+      ...renewed(),
+      accessToken: signedIn.token,
+    })
+    lease.release()
+    await rejected
+    assert.equal(renewals(), 0)
+  })
+
   it('waits for Git to release the token before renewing it', async () => {
     const { store, renewals } = await setup({
       accessToken: account.token,

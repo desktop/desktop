@@ -215,6 +215,40 @@ export class CredentialSessions {
   }
 
   /**
+   * Bind access-token acquisition and expiry metadata to the account's session.
+   *
+   * Follows token rotation within the issuing session, but permanently rejects
+   * once that session retires, even if the same user signs in again.
+   */
+  public createTokenGetter(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
+    const session = this.sessionsByToken.get(
+      this.tokenKey(account.endpoint, account.token)
+    )
+    return async () => {
+      if (session === undefined || session.account.id !== account.id) {
+        throw new AccountRequiresSignInError()
+      }
+      for (;;) {
+        const token = await this.validToken(session, minimumValidity)
+        if (session.retired) {
+          throw new AccountRequiresSignInError()
+        }
+        const credential = session.credential
+        // A concurrent rotation must not pair an old token with the new expiry.
+        if (
+          session.refreshing === undefined &&
+          credential?.accessToken === token
+        ) {
+          return { accessToken: token, expiresAt: credential.expiresAt }
+        }
+      }
+    }
+  }
+
+  /**
    * Get an access token for `holder` and hold off renewing it until the lease
    * is released.
    *
@@ -328,14 +362,6 @@ export class CredentialSessions {
       session?.account.id === account.id &&
       session.credential?.refreshToken !== undefined
     )
-  }
-
-  /** Access-token expiry for consumers that support on-demand token renewal. */
-  public getTokenExpiration(account: Account): number | undefined {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
-    return session?.account.id === account.id
-      ? session.credential?.expiresAt
-      : undefined
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
