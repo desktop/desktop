@@ -11,7 +11,11 @@ import {
   TestContext,
 } from 'node:test'
 import { AccountsStore } from '../../../src/lib/stores/accounts-store'
-import type { CopilotStore } from '../../../src/lib/stores/copilot-store'
+import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
+import type {
+  CopilotModelRequest,
+  CopilotStore,
+} from '../../../src/lib/stores/copilot-store'
 import type { IOAuthToken } from '../../../src/lib/oauth-token'
 import { Account } from '../../../src/models/account'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
@@ -59,16 +63,19 @@ async function setup(t: TestContext, credential: IOAuthToken) {
     async () => []
   )
   // Bypass model discovery, not production client or session creation.
-  const generate = () =>
+  const generate = (
+    original = account,
+    request: CopilotModelRequest = {
+      kind: 'byok',
+      modelId: 'test-model',
+      provider: { type: 'openai', baseUrl: 'https://example.com' },
+    }
+  ) =>
     store.generateCommitMessage(
-      account,
+      original,
       'diff --git a/file b/file',
       '/repository',
-      {
-        kind: 'byok',
-        modelId: 'test-model',
-        provider: { type: 'openai', baseUrl: 'https://example.com' },
-      }
+      request
     )
 
   return {
@@ -193,7 +200,9 @@ describe('CopilotStore session credential wiring', () => {
     )
 
     lookup.mock.restore()
-    await assert.rejects(generate(), sessionCreationStopped)
+    const [current] = await accountsStore.getAll()
+    assert.ok(current)
+    await assert.rejects(generate(current), sessionCreationStopped)
     assert.equal(createSession.mock.callCount(), 2)
     const newProvider =
       createSession.mock.calls[1].arguments[0]?.gitHubTokenProvider
@@ -205,5 +214,52 @@ describe('CopilotStore session credential wiring', () => {
       async () => oldProvider({ host: 'github.com', reason: 'refresh' }),
       /sign in again/
     )
+  })
+
+  it('rejects sign-in replacement while built-in model discovery is pending', async t => {
+    const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreview
+      }
+    })
+    t.mock.method(Date, 'now', () => now)
+    const { accountsStore, createSession, generate, renewals } = await setup(
+      t,
+      {
+        accessToken: account.token,
+        refreshToken: 'old-refresh',
+        expiresAt: now + 2 * 60 * 60 * 1000,
+      }
+    )
+    const [original] = await accountsStore.getAll()
+    assert.ok(original)
+    await new Promise(resolve => setImmediate(resolve))
+    t.mock.method(copilotSdk.CopilotClient.prototype, 'start', async () => {})
+    const discovery = t.mock.method(
+      copilotSdk.CopilotClient.prototype,
+      'listModels',
+      async () => {
+        await accountsStore.removeAccount(original)
+        await accountsStore.addAccount(original, {
+          accessToken: original.token,
+          refreshToken: 'replacement-refresh',
+          expiresAt: now + 45 * 60 * 1000,
+        })
+        return []
+      }
+    )
+
+    await assert.rejects(
+      generate(original, { kind: 'copilot', modelId: 'auto' }),
+      AccountRequiresSignInError
+    )
+    assert.equal(discovery.mock.callCount(), 1)
+    assert.equal(createSession.mock.callCount(), 0)
+    assert.equal(clientOptions.length, 1)
+    assert.equal(renewals(), 0)
   })
 })
