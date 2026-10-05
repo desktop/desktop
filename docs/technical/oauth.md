@@ -79,10 +79,25 @@ lease on it until the process exits, shared with the Git LFS processes it
 starts. Anyone who needs a leased token renewed waits until it is released,
 or until it is within a minute of expiring. During a token's last ten minutes,
 work that needs a renewal can therefore wait for a long Git operation.
-Private images use bounded, sender-checked IPC. Copilot sessions use the SDK's
-token-provider callback with its longer, one-hour preflight margin; only access
-tokens and remaining lifetimes cross that boundary. No lifetime is invented when
-the server omits it.
+Private images use bounded, sender-checked IPC.
+
+Copilot sessions use the SDK's token-provider callback. Desktop requires more
+than 61 minutes of validity and subtracts the one-minute safety buffer from the
+reported lifetime, aligning the SDK's one-hour cached-token preflight with
+Desktop's renewal deadline. Fractional seconds are preserved so a valid token
+is not rounded onto the SDK's rejection boundary. Unknown lifetimes, or buffered
+lifetimes of an hour or less, fail explicitly. Only access tokens and remaining
+lifetimes cross that boundary.
+
+Each client's provider binds to its issuing credential session before
+asynchronous client initialization. It follows rotation within that session and
+reads the access token and expiry from the same credential snapshot. Retirement
+permanently rejects the provider, even if the same user signs in again or the
+later sign-in reuses the access-token string. A new sign-in needs a new client.
+
+Copilot does not hold a token lease for the duration of an invocation. Preflight
+alignment does not protect an SDK request that is already running: a long-running
+invocation can still fail if another consumer rotates and revokes its token.
 
 ### Failure and recovery
 
