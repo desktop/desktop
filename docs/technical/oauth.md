@@ -74,6 +74,11 @@ API clients resolve credentials for every request, including clients created
 before rotation. Git and Git LFS receive a freshly resolved token as their
 username/password; Desktop's trampoline disables other credential helpers for its
 Git operations, so it does not populate external credential caches.
+Git reuses that token for every request it makes, so each Git process holds a
+lease on it until the process exits, shared with the Git LFS processes it
+starts. Anyone who needs a leased token renewed waits until it is released,
+or until it is within a minute of expiring. During a token's last ten minutes,
+work that needs a renewal can therefore wait for a long Git operation.
 Private images use bounded, sender-checked IPC. Copilot sessions use the SDK's
 token-provider callback with its longer, one-hour preflight margin; only access
 tokens and remaining lifetimes cross that boundary. No lifetime is invented when
@@ -84,7 +89,8 @@ the server omits it.
 - Temporary network/service failures retain credentials, fail the operation
   with connection guidance, and allow the next authenticated operation to retry
   immediately. They do not sign the user out. Simultaneous callers still share
-  an in-flight renewal.
+  an in-flight renewal. Git operations keep using the current access token
+  instead while it has not expired.
 - Explicit refresh rejection or a malformed replacement pair signs the user out
   and immediately asks whether to sign in again, matching the existing
   invalid-token flow. Choosing **No** leaves the account signed out; the usual
@@ -106,13 +112,18 @@ the server omits it.
   signed in as soon as its save succeeds. The last successful save wins, both
   in memory and after relaunch; a failed save leaves the current account
   signed in. Signing out does not cancel a sign-in that is still saving.
+- If a Git operation needs credentials for an account that has been signed out,
+  including because renewal was rejected, it follows the same path as when no
+  account exists: foreground operations ask the user to sign in, and background
+  operations fail with the usual authentication error.
 - OAuth exchanges have a 30-second deadline, including response parsing. They
   reject redirects and are never automatically replayed. Errors and lifecycle
   logs do not include token values or server-provided error descriptions.
-- Stale 401 responses do not invalidate a replacement credential. Requests already
-  in flight when a pair rotates can still fail: rotation invalidates the old
-  access token as well as its refresh token. Desktop does not blindly replay
-  mutations; retry the user operation after a failure.
+- Stale 401 responses do not invalidate a replacement credential. API requests
+  already in flight when a pair rotates can still fail: rotation invalidates
+  the old access token as well as its refresh token. Desktop does not blindly
+  replay mutations; retry the user operation after a failure. Git operations
+  are only affected if they run past their token's expiry.
 - If the server consumes a refresh token but its response is lost, a later
   attempt can be rejected. Sign-in is the recovery path; Desktop cannot make
   remote rotation and local persistence transactional.
