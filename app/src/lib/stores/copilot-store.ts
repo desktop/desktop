@@ -141,6 +141,11 @@ interface ICopilotQuotaCacheEntry {
   readonly cachedAt: number
 }
 
+interface ICopilotCredentialContext {
+  readonly getToken: ReturnType<AccountsStore['createTokenGetter']>
+  readonly tokenProvider: GitHubTokenProvider | undefined
+}
+
 /**
  * Per-feature model selections. An absent key means the default model
  * will be used for that feature.
@@ -247,9 +252,6 @@ export function createCopilotTokenProvider(
   accountsStore: AccountsStore,
   account: Account
 ): GitHubTokenProvider | undefined {
-  if (!accountsStore.isRefreshable(account)) {
-    return undefined
-  }
   // The SDK uses a one-hour preflight margin and doesn't retry rejected
   // tokens. Report the IPC buffer as already spent so its cached-token
   // deadline matches Desktop's renewal deadline.
@@ -257,6 +259,9 @@ export function createCopilotTokenProvider(
     account,
     CopilotTokenRefreshMarginMs + CopilotTokenLifetimeBufferMs
   )
+  if (!accountsStore.isRefreshable(account)) {
+    return undefined
+  }
   return async ({ host }) => {
     if (host !== (getCopilotGHHost(account) ?? 'github.com')) {
       throw new Error(
@@ -874,29 +879,36 @@ export class CopilotStore extends BaseStore {
     }
   }
 
+  /** Bind client authentication and session callbacks before asynchronous work. */
+  private createCredentialContext(account: Account): ICopilotCredentialContext {
+    return {
+      getToken: this.accountsStore.createTokenGetter(account),
+      tokenProvider: createCopilotTokenProvider(this.accountsStore, account),
+    }
+  }
+
   /**
    * Creates a new Copilot client for the account.
    *
-   * @throws Error if the account has no token
+   * @throws Error if the account has no token or its sign-in has retired
    */
   private async createClient(
     account: Account,
-    repositoryPath?: string
-  ): Promise<CopilotClient> {
-    const tokenProvider = createCopilotTokenProvider(
-      this.accountsStore,
+    repositoryPath?: string,
+    credentials: ICopilotCredentialContext = this.createCredentialContext(
       account
     )
-    account = await this.accountsStore.getAccountWithFreshToken(account)
-    if (!account.token) {
-      throw new Error('Cannot create Copilot client: Account has no token')
-    }
-
+  ): Promise<CopilotClient> {
     const runtimePath = getCopilotRuntimePath(join(__dirname, 'copilot'))
     if (!(await pathExists(runtimePath))) {
       throw new Error(
         'Cannot create Copilot client: Runtime entry point not found'
       )
+    }
+
+    const { accessToken } = await credentials.getToken()
+    if (!accessToken) {
+      throw new Error('Cannot create Copilot client: Account has no token')
     }
 
     const client = new CopilotClient({
@@ -914,10 +926,10 @@ export class CopilotStore extends BaseStore {
         repositoryPath,
         __WIN32__ ? 'windows' : 'posix'
       ),
-      gitHubToken: account.token,
+      gitHubToken: accessToken,
     })
-    if (tokenProvider !== undefined) {
-      this.clientTokenProviders.set(client, tokenProvider)
+    if (credentials.tokenProvider !== undefined) {
+      this.clientTokenProviders.set(client, credentials.tokenProvider)
     }
     return client
   }
@@ -1115,6 +1127,7 @@ export class CopilotStore extends BaseStore {
     }
 
     throwIfCancelled()
+    const credentials = this.createCredentialContext(account)
 
     let modelId: string
     let reasoningEffort: ReasoningEffort | undefined
@@ -1150,7 +1163,7 @@ export class CopilotStore extends BaseStore {
       null
 
     try {
-      client = await this.createClient(account, repositoryPath)
+      client = await this.createClient(account, repositoryPath, credentials)
       throwIfCancelled()
 
       const tags = generateCommitMessagePromptTags()
@@ -1768,13 +1781,14 @@ export class CopilotStore extends BaseStore {
   private async fetchQuotaSnapshots(
     account: Account
   ): Promise<CopilotQuotaSnapshots> {
-    const client = await this.createClient(account)
+    const credentials = this.createCredentialContext(account)
+    const client = await this.createClient(account, undefined, credentials)
 
     try {
       await client.start()
-      const fresh = await this.accountsStore.getAccountWithFreshToken(account)
+      const { accessToken } = await credentials.getToken()
       const result = await client.rpc.account.getQuota({
-        gitHubToken: fresh.token,
+        gitHubToken: accessToken,
       })
 
       const quotaSnapshots = new Map<string, ICopilotQuotaSnapshot>()

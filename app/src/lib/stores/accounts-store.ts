@@ -149,7 +149,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (current === undefined || current.id !== account.id) {
       throw new AccountRequiresSignInError()
     }
-    return current.withToken(token)
+    return this.credentials.inheritSession(current, current.withToken(token))
   }
 
   /**
@@ -167,7 +167,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       lease.release()
       throw new AccountRequiresSignInError()
     }
-    return { account: current.withToken(lease.token), release: lease.release }
+    return {
+      account: this.credentials.inheritSession(
+        current,
+        current.withToken(lease.token)
+      ),
+      release: lease.release,
+    }
   }
 
   /** Whether an account owns a rotating credential pair. */
@@ -175,7 +181,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.credentials.isRefreshable(account)
   }
 
-  /** Bind fresh access tokens and expiry metadata to the account's issuing session. */
+  /**
+   * Bind fresh access tokens and expiry metadata to the account's issuing session.
+   *
+   * Throws if the account snapshot is unknown or its session has retired.
+   */
   public createTokenGetter(
     account: Account,
     minimumValidity = refreshMargin
@@ -210,14 +220,19 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     log.info(
       `[AccountsStore] signing out account ${retired.login} (${retired.name}) because its credentials can no longer be used`
     )
-    this.emitter.emit('token-invalidated', account.withToken(''))
+    this.emitter.emit(
+      'token-invalidated',
+      this.credentials.inheritSession(account, account.withToken(''))
+    )
     await this.deleteStoredAccount(retired)
     return retired
   }
 
   private onTokenRenewed = (endpoint: string, accessToken: string) => {
     this.accounts = this.accounts.map(a =>
-      a.endpoint === endpoint ? a.withToken(accessToken) : a
+      a.endpoint === endpoint
+        ? this.credentials.inheritSession(a, a.withToken(accessToken))
+        : a
     )
     this.save()
   }
@@ -232,6 +247,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account to the store.
+   *
+   * Returns a new signed-in snapshot. Previous snapshots retain their old session.
    */
   public async addAccount(
     account: Account,
@@ -279,7 +296,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       const token = currentToken()
       if (token !== null) {
         this.accounts = this.accounts.map(a =>
-          a.endpoint === account.endpoint ? updated.withToken(token) : a
+          a.endpoint === account.endpoint
+            ? this.credentials.inheritSession(a, updated.withToken(token))
+            : a
         )
         this.save()
       }
@@ -396,8 +415,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         const loaded = accountWithoutToken.withToken(
           credential?.accessToken ?? ''
         )
-        accountsByEndpoint.set(loaded.endpoint, loaded)
-        this.credentials.restore(loaded, credential)
+        const restored = this.credentials.restore(loaded, credential)
+        accountsByEndpoint.set(restored.endpoint, restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 

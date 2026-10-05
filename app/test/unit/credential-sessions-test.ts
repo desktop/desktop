@@ -165,6 +165,30 @@ describe('CredentialSessions', () => {
     assert.deepEqual(renewals, [[account.endpoint, renewed.accessToken]])
   })
 
+  it('rejects a late getter from a stale account after sign-in reuses its token', async () => {
+    const { sessions } = setup()
+    const original = await sessions.add(account, {
+      ...renewed,
+      accessToken: account.token,
+    })
+    const replacement = await sessions.add(original, {
+      ...renewed,
+      accessToken: original.token,
+      refreshToken: 'replacement-refresh',
+    })
+    assert.notStrictEqual(original, replacement)
+    assert.equal(original.token, replacement.token)
+
+    assert.throws(
+      () => sessions.createTokenGetter(original),
+      AccountRequiresSignInError
+    )
+    assert.deepEqual(await sessions.createTokenGetter(replacement)(), {
+      accessToken: replacement.token,
+      expiresAt: renewed.expiresAt,
+    })
+  })
+
   it('never returns a token whose renewal started while it was handed out', async () => {
     const { sessions } = setup()
     sessions.restore(account, expiring)
@@ -187,13 +211,48 @@ describe('CredentialSessions', () => {
 
     const getting = getToken()
     sessions.retire(account.endpoint)
-    sessions.restore(account, { ...renewed, accessToken: account.token })
+    const replacement = sessions.restore(account, {
+      ...renewed,
+      accessToken: account.token,
+    })
 
     await assert.rejects(getting, AccountRequiresSignInError)
     await assert.rejects(getToken(), AccountRequiresSignInError)
     assert.equal(
-      (await sessions.createTokenGetter(account)()).accessToken,
+      (await sessions.createTokenGetter(replacement)()).accessToken,
       account.token
+    )
+  })
+
+  it('preserves a session through immutable account copies without relying on token text', async () => {
+    const { sessions } = setup()
+    sessions.restore(account, { ...renewed, accessToken: account.token })
+    const copied = sessions.inheritSession(
+      account,
+      account.withToken('copied-token-snapshot')
+    )
+
+    assert.deepEqual(await sessions.createTokenGetter(copied)(), {
+      accessToken: account.token,
+      expiresAt: renewed.expiresAt,
+    })
+    assert.equal(sessions.isRefreshable(copied), true)
+    sessions.retire(account.endpoint)
+    assert.equal(sessions.isRefreshable(copied), false)
+    assert.throws(
+      () => sessions.createTokenGetter(copied),
+      AccountRequiresSignInError
+    )
+  })
+
+  it('never reassigns an existing snapshot to a later issuing session', async () => {
+    const { sessions } = setup()
+    const original = await sessions.add(account, expiring)
+    const replacement = await sessions.add(original, renewed)
+
+    assert.throws(
+      () => sessions.inheritSession(replacement, original),
+      AccountRequiresSignInError
     )
   })
 
