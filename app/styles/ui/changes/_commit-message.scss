@@ -349,6 +349,25 @@
     display: flex;
   }
 
+  .assisted-commit-options {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-half);
+
+    .commit-options-button {
+      border: none;
+      background: transparent;
+      padding: var(--spacing-half);
+      height: 24px;
+      width: 24px;
+
+      svg {
+        height: 13px;
+        width: 16px;
+      }
+    }
+  }
+
   .copilot-commit-panel-transition-enter {
     opacity: 0;
     transform: translateY(8px) scale(0.96);
