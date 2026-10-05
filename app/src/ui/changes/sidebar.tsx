@@ -406,6 +406,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const {
       workingDirectory,
       commitMessage,
+      commitMode,
       showCoAuthoredBy,
       coAuthors,
       conflictState,
@@ -459,6 +460,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           commitMessage={commitMessage}
+          commitMode={commitMode}
           focusCommitMessage={this.props.focusCommitMessage}
           isShowingModal={this.props.isShowingModal}
           isShowingFoldout={this.props.isShowingFoldout}

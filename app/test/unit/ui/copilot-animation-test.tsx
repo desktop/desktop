@@ -134,6 +134,19 @@ describe('CopilotCommitPanel', () => {
     assert.ok(screen.getByText(/split the 1 selected file into commits/))
   })
 
+  it('describes an empty commit without claiming to analyze nonexistent changes', () => {
+    render(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={false}
+        allowEmptyCommit={true}
+      />
+    )
+    assert.ok(screen.getByText('Create an empty commit'))
+    assert.ok(screen.getByText(/without file changes or Copilot analysis/))
+    assert.strictEqual(screen.queryByText(/Select the changes/), null)
+  })
+
   it('celebrates its entrance and then idles', () => {
     const view = render(
       <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />

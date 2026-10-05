@@ -16,6 +16,7 @@ export function createState<K extends keyof IChangesState>(
       diff: null,
     },
     commitMessage: DefaultCommitMessage,
+    commitMode: 'manual',
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,
