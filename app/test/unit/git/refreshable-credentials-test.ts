@@ -35,57 +35,64 @@ async function installCredentialHelper(t: TestContext) {
   return binDir
 }
 
-/** Answer one smart HTTP request with `git http-backend`. */
-async function runHttpBackend(
+/** Answer smart HTTP push requests with `git receive-pack`, available in MinGit. */
+async function runReceivePack(
   root: string,
   req: IncomingMessage,
   res: ServerResponse
 ) {
   const url = new URL(req.url ?? '/', 'http://localhost')
-  const header = (name: string) => {
-    const value = req.headers[name]
-    return typeof value === 'string' ? value : ''
+  const advertiseRefs =
+    req.method === 'GET' &&
+    url.pathname === '/remote.git/info/refs' &&
+    url.searchParams.get('service') === 'git-receive-pack'
+  if (
+    !advertiseRefs &&
+    (req.method !== 'POST' || url.pathname !== '/remote.git/git-receive-pack')
+  ) {
+    res.writeHead(404).end()
+    return
   }
-  const cgi = spawn(['http-backend'], root, {
-    env: {
-      GIT_PROJECT_ROOT: root,
-      GIT_HTTP_EXPORT_ALL: '1',
-      REQUEST_METHOD: req.method ?? 'GET',
-      PATH_INFO: url.pathname,
-      QUERY_STRING: url.search.slice(1),
-      CONTENT_TYPE: header('content-type'),
-      HTTP_CONTENT_ENCODING: header('content-encoding'),
-      GIT_PROTOCOL: header('git-protocol'),
-      REMOTE_USER: 'octocat',
-      REMOTE_ADDR: '127.0.0.1',
-    },
-  })
-  req.pipe(cgi.stdin)
+  const child = spawn(
+    [
+      'receive-pack',
+      '--stateless-rpc',
+      ...(advertiseRefs ? ['--advertise-refs'] : []),
+      '--',
+      join(root, 'remote.git'),
+    ],
+    root
+  )
+  req.pipe(child.stdin)
   const chunks = new Array<Buffer>()
-  cgi.stdout.on('data', (chunk: Buffer) => chunks.push(chunk))
-  await new Promise(resolve => cgi.on('close', resolve))
-
-  const output = Buffer.concat(chunks)
-  const crlf = output.indexOf('\r\n\r\n')
-  const end = crlf >= 0 ? crlf : output.indexOf('\n\n')
-  const separator = crlf >= 0 ? 4 : 2
-  let status = 200
-  const headers: Record<string, string> = {}
-  for (const line of output.subarray(0, end).toString().split(/\r?\n/)) {
-    const colon = line.indexOf(':')
-    const name = line.slice(0, colon).trim()
-    const value = line.slice(colon + 1).trim()
-    if (name.toLowerCase() === 'status') {
-      status = parseInt(value, 10)
-    } else if (name.length > 0) {
-      headers[name] = value
-    }
+  const errors = new Array<Buffer>()
+  child.stdout.on('data', (chunk: Buffer) => chunks.push(chunk))
+  child.stderr.on('data', (chunk: Buffer) => errors.push(chunk))
+  const exitCode = await new Promise<number | null>((resolve, reject) => {
+    child.once('error', error => {
+      res.destroy()
+      reject(error)
+    })
+    child.once('close', resolve)
+  })
+  if (exitCode !== 0) {
+    res.writeHead(500).end()
   }
-  res.writeHead(status, headers).end(output.subarray(end + separator))
+  assert.equal(exitCode, 0, Buffer.concat(errors).toString())
+
+  res.writeHead(200, {
+    'Content-Type': advertiseRefs
+      ? 'application/x-git-receive-pack-advertisement'
+      : 'application/x-git-receive-pack-result',
+  })
+  if (advertiseRefs) {
+    res.write('001f# service=git-receive-pack\n0000')
+  }
+  res.end(Buffer.concat(chunks))
 }
 
 /**
- * Serve repositories under `root` over smart HTTP as an HTTP proxy, accepting
+ * Serve the test repository under `root` as a smart HTTP proxy, accepting
  * only access tokens for which `isValid` returns true, like GitHub does after
  * rotation. Proxying lets the remote use a host without a port, which is how
  * Desktop matches accounts to remotes.
@@ -111,7 +118,7 @@ async function serveRepositories(
       return
     }
     await onAuthenticatedRequest()
-    await runHttpBackend(root, req, res)
+    await runReceivePack(root, req, res)
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   t.after(() => new Promise(resolve => server.close(resolve)))
