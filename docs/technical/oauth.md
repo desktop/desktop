@@ -50,6 +50,15 @@ Electron's single-instance lock prevents a second Desktop instance from owning
 the same application profile. Main-process private image requests delegate token
 resolution to that renderer; Git subprocesses use the existing trampoline.
 
+`CredentialSessions` tracks the issuing session of account snapshots and
+propagates that association through owner-produced token, lease, and profile
+copies. The association lives outside `Account` fields and serialized account
+data. A replacement sign-in produces a distinct snapshot instead of rebinding
+old objects, even when the access-token string is reused. Session-bound getters
+reject unknown or retired snapshots rather than inferring identity from token
+text. Ordinary endpoint/user-ID fresh-account lookups still follow the current
+same-user sign-in; operations that must retain their origin use bound getters.
+
 Rotating credentials are persisted as a versioned record containing both tokens
 and their expiry metadata in one OS secure-store item. Refresh tokens are never
 part of `Account`, local storage, IPC, Git credentials, or Copilot SDK credentials.
@@ -81,19 +90,26 @@ or until it is within a minute of expiring. During a token's last ten minutes,
 work that needs a renewal can therefore wait for a long Git operation.
 Private images use bounded, sender-checked IPC.
 
-Copilot sessions use the SDK's token-provider callback. Desktop requires more
-than 61 minutes of validity and subtracts the one-minute safety buffer from the
-reported lifetime, aligning the SDK's one-hour cached-token preflight with
-Desktop's renewal deadline. Fractional seconds are preserved so a valid token
-is not rounded onto the SDK's rejection boundary. Unknown lifetimes, or buffered
-lifetimes of an hour or less, fail explicitly. Only access tokens and remaining
-lifetimes cross that boundary.
+Refreshable Copilot sessions use the SDK's token-provider callback. Desktop
+requires more than 61 minutes of validity and subtracts the one-minute safety
+buffer from the reported lifetime, aligning the SDK's one-hour cached-token
+preflight with Desktop's renewal deadline. Fractional seconds are preserved so a
+valid token is not rounded onto the SDK's rejection boundary. Unknown lifetimes,
+or buffered lifetimes of an hour or less, fail explicitly. Only access tokens and
+remaining lifetimes cross that boundary.
 
-Each client's provider binds to its issuing credential session before
-asynchronous client initialization. It follows rotation within that session and
-reads the access token and expiry from the same credential snapshot. Retirement
-permanently rejects the provider, even if the same user signs in again or the
-later sign-in reuses the access-token string. A new sign-in needs a new client.
+Each client's static authentication and SDK provider bind to the same originating
+session before asynchronous preparation. Commit-message generation captures
+that context before model discovery. The static token is resolved after runtime
+preparation, immediately before client construction, and quota token lookups
+stay bound across SDK startup. Metadata calls keep the ordinary ten-minute
+renewal margin, rather than the SDK session margin.
+
+Providers follow rotation within their session and read the access token and
+expiry from the same credential snapshot. Retirement permanently rejects both
+existing providers and attempts to create a provider from an old account
+snapshot, even if the same user signs in again or the later sign-in reuses the
+access-token string. A new sign-in needs a new account snapshot and client.
 
 Copilot does not hold a token lease for the duration of an invocation. Preflight
 alignment does not protect an SDK request that is already running: a long-running
@@ -154,7 +170,8 @@ consumer, recovery-dialog, and account-settings tests with `yarn test`, followed
 by the full suite.
 The tests use mock OAuth responses and in-memory secure stores. Before broad
 rollout, also verify real browser authorization and rotation on macOS and Windows,
-Git/LFS, sleep/resume, keychain failures, and supported Enterprise deployments.
+Git/LFS, Copilot SDK cached-token rollover and long-running invocations,
+sleep/resume, keychain failures, and supported Enterprise deployments.
 Security review and rollout approval remain release requirements.
 
 Device-bound credentials, token sharing with `gh`, forced migration, a token
