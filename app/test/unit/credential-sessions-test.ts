@@ -38,7 +38,8 @@ const renewed: IOAuthToken = {
 
 function setup(
   renew: (endpoint: string, token: string) => Promise<IOAuthToken> = async () =>
-    renewed
+    renewed,
+  clock = () => now
 ) {
   const secure = new AsyncInMemoryStore()
   const signedOut: Account[] = []
@@ -56,7 +57,7 @@ function setup(
       onSignedIn: () => {},
     },
     renew,
-    () => now,
+    clock,
     async a => {
       revoked.push(a.token)
       return true
@@ -161,5 +162,134 @@ describe('CredentialSessions', () => {
     assert.deepEqual(signedOut, [account])
     await new Promise(resolve => setImmediate(resolve))
     assert.deepEqual(revoked, [account.token])
+  })
+
+  describe('Leases', () => {
+    const minutes = (n: number) => n * 60_000
+    const validFor = (ms: number): IOAuthToken => ({
+      ...expiring,
+      expiresAt: now + ms,
+    })
+    const tick = () => new Promise(resolve => setImmediate(resolve))
+
+    it('waits for every holder to release a token before renewing it', async () => {
+      let renewals = 0
+      const { sessions } = setup(async () => {
+        renewals++
+        return renewed
+      })
+      sessions.restore(account, validFor(minutes(11)))
+
+      const first = await sessions.leaseToken(account, 'first')
+      const second = await sessions.leaseToken(account, 'second')
+      assert.equal(first.token, account.token)
+      assert.equal(second.token, account.token)
+
+      let token: string | undefined
+      const waiting = sessions
+        .getFreshToken(account, minutes(12))
+        .then(t => (token = t))
+      first.release()
+      first.release()
+      await tick()
+      assert.equal(token, undefined)
+      assert.equal(renewals, 0)
+
+      second.release()
+      await waiting
+      assert.equal(token, renewed.accessToken)
+      assert.equal(renewals, 1)
+    })
+
+    it('gives a holder the token it already holds instead of renewing it', async () => {
+      let renewals = 0
+      const { sessions } = setup(async () => {
+        renewals++
+        return renewed
+      })
+      sessions.restore(account, validFor(minutes(5)))
+      await sessions.leaseToken(account, 'git', 0)
+
+      const again = await sessions.leaseToken(account, 'git')
+      assert.equal(again.token, account.token)
+      assert.equal(renewals, 0)
+    })
+
+    it('renews a leased token that is about to expire anyway', async () => {
+      const { sessions } = setup()
+      sessions.restore(account, validFor(30_000))
+      await sessions.leaseToken(account, 'git', 0)
+
+      assert.equal(await sessions.getFreshToken(account), renewed.accessToken)
+    })
+
+    it('stops waiting once the leased token is about to expire', async () => {
+      const { sessions } = setup(undefined, Date.now)
+      sessions.restore(account, {
+        ...expiring,
+        expiresAt: Date.now() + minutes(1) + 20,
+      })
+      await sessions.leaseToken(account, 'git', 0)
+
+      assert.equal(await sessions.getFreshToken(account), renewed.accessToken)
+    })
+
+    it('stops waiting when the account signs out', async () => {
+      const { sessions } = setup()
+      sessions.restore(account, validFor(minutes(5)))
+      await sessions.leaseToken(account, 'git', 0)
+
+      const waiting = sessions.getFreshToken(account)
+      sessions.retire(account.endpoint)
+      await assert.rejects(waiting, AccountRequiresSignInError)
+    })
+
+    it('never leases a token whose renewal started while it was handed out', async () => {
+      const { sessions } = setup()
+      sessions.restore(account, validFor(minutes(5)))
+
+      const leasing = sessions.leaseToken(account, 'git', 0)
+      const renewing = sessions.getFreshToken(account)
+
+      assert.equal((await leasing).token, renewed.accessToken)
+      assert.equal(await renewing, renewed.accessToken)
+    })
+
+    it('uses the current token when renewal fails transiently', async () => {
+      const { sessions, signedOut } = setup(async () => {
+        throw new Error('offline')
+      })
+      sessions.restore(account, validFor(minutes(5)))
+
+      const lease = await sessions.leaseToken(account, 'git')
+      assert.equal(lease.token, account.token)
+      assert.deepEqual(signedOut, [])
+    })
+
+    it('does not use an expired token when renewal fails transiently', async () => {
+      const { sessions, signedOut } = setup(async () => {
+        throw new Error('offline')
+      })
+      sessions.restore(account, validFor(0))
+
+      await assert.rejects(sessions.leaseToken(account, 'git'), {
+        message:
+          'Unable to renew your GitHub session. Check your connection and try again shortly.',
+      })
+      assert.deepEqual(signedOut, [])
+    })
+
+    it('requires sign-in when renewal is rejected', async () => {
+      const { sessions, signedOut } = setup(async () => {
+        throw new OAuthRefreshRejectedError()
+      })
+      sessions.restore(account, validFor(minutes(5)))
+
+      await assert.rejects(
+        sessions.leaseToken(account, 'git'),
+        AccountRequiresSignInError
+      )
+      assert.deepEqual(signedOut, [account])
+    })
   })
 })
