@@ -151,6 +151,52 @@ describe('CredentialSessions', () => {
     assert.equal(token(), null)
   })
 
+  it('gets a renewed access token and its expiry from the issuing session', async () => {
+    const { sessions, renewals } = setup()
+    sessions.restore(account, expiring)
+    const getToken = sessions.createTokenGetter(account)
+    const expected = {
+      accessToken: renewed.accessToken,
+      expiresAt: renewed.expiresAt,
+    }
+
+    assert.deepEqual(await getToken(), expected)
+    assert.deepEqual(await getToken(), expected)
+    assert.deepEqual(renewals, [[account.endpoint, renewed.accessToken]])
+  })
+
+  it('never returns a token whose renewal started while it was handed out', async () => {
+    const { sessions } = setup()
+    sessions.restore(account, expiring)
+    const getToken = sessions.createTokenGetter(account, 0)
+
+    const getting = getToken()
+    const renewing = sessions.getFreshToken(account)
+
+    assert.deepEqual(await getting, {
+      accessToken: renewed.accessToken,
+      expiresAt: renewed.expiresAt,
+    })
+    assert.equal(await renewing, renewed.accessToken)
+  })
+
+  it('rejects retirement while handing out a token even if sign-in reuses it', async () => {
+    const { sessions } = setup()
+    sessions.restore(account, expiring)
+    const getToken = sessions.createTokenGetter(account, 0)
+
+    const getting = getToken()
+    sessions.retire(account.endpoint)
+    sessions.restore(account, { ...renewed, accessToken: account.token })
+
+    await assert.rejects(getting, AccountRequiresSignInError)
+    await assert.rejects(getToken(), AccountRequiresSignInError)
+    assert.equal(
+      (await sessions.createTokenGetter(account)()).accessToken,
+      account.token
+    )
+  })
+
   it('revokes and signs out when the current token is rejected', async () => {
     const { sessions, signedOut, revoked } = setup()
     sessions.restore(account, { accessToken: account.token })
