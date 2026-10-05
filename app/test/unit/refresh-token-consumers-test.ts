@@ -144,7 +144,11 @@ describe('Refreshing Copilot session credentials', () => {
   })
 
   it('satisfies the SDK one-hour refresh margin without exporting refresh tokens', async () => {
-    const { store, renewals } = await setup(Date.now() + 45 * 60 * 1000)
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: Date.now() + 45 * 60 * 1000,
+    })
     const provider = createCopilotTokenProvider(store, account)
     assert.ok(provider)
     const result = await provider({ host: 'github.com', reason: 'initial' })
@@ -153,6 +157,31 @@ describe('Refreshing Copilot session credentials', () => {
     assert.equal(result.accessToken, 'new-access')
     assert.ok(result.expiresIn > 3600)
     assert.equal('refreshToken' in result, false)
+    assert.equal(renewals(), 1)
+  })
+
+  it('waits for Git to release the token before renewing it', async () => {
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: Date.now() + 45 * 60 * 1000,
+    })
+    const lease = await store.leaseAccountToken(account, 'git')
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    let settled = false
+    const result = Promise.resolve(
+      provider({ host: 'github.com', reason: 'initial' })
+    ).finally(() => (settled = true))
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(settled, false)
+    assert.equal(renewals(), 0)
+
+    lease.release()
+    const token = await result
+    assert.ok(token.kind === 'token')
+    assert.equal(token.accessToken, 'new-access')
     assert.equal(renewals(), 1)
   })
 
