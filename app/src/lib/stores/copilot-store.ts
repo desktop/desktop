@@ -239,7 +239,10 @@ export function getCopilotGHHost(account: Account): string | undefined {
   return isGHE(account.endpoint) && host ? host.replace(/^api\./, '') : host
 }
 
-/** Supply only access tokens to SDK sessions, with the SDK's required validity margin. */
+const CopilotTokenRefreshMarginMs = 60 * 60 * 1000
+const CopilotTokenLifetimeBufferMs = 60 * 1000
+
+/** Supply only access tokens to SDK sessions, with aligned renewal deadlines. */
 export function createCopilotTokenProvider(
   accountsStore: AccountsStore,
   account: Account
@@ -253,21 +256,22 @@ export function createCopilotTokenProvider(
         'Copilot requested credentials for an unexpected GitHub host.'
       )
     }
-    // The SDK only asks for a new token once `expiresIn` says less than an
-    // hour remains; it doesn't ask again when a token is rejected. It
-    // therefore rejects tokens with an hour or less left, failing the
-    // session. Renew with a margin that also covers IPC transit.
+    // The SDK uses a one-hour preflight margin and doesn't retry rejected
+    // tokens. Report the IPC buffer as already spent so its cached-token
+    // deadline matches Desktop's renewal deadline.
     const fresh = await accountsStore.getAccountWithFreshToken(
       account,
-      61 * 60 * 1000
+      CopilotTokenRefreshMarginMs + CopilotTokenLifetimeBufferMs
     )
     // A refreshable token without a known expiry can't be given a safe
     // lifetime: guessing too long leaves the SDK using a dead token.
     const expiresAt = accountsStore.getTokenExpiration(fresh)
     const expiresIn =
-      expiresAt === undefined ? 0 : Math.floor((expiresAt - Date.now()) / 1000)
+      expiresAt === undefined
+        ? 0
+        : (expiresAt - Date.now() - CopilotTokenLifetimeBufferMs) / 1000
     // Fail here with a clear message instead of in the SDK.
-    if (expiresIn <= 3600) {
+    if (expiresIn <= CopilotTokenRefreshMarginMs / 1000) {
       throw new Error(
         'GitHub returned credentials without enough lifetime for a Copilot session.'
       )
