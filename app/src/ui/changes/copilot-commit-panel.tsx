@@ -26,6 +26,9 @@ interface ICopilotCommitPanelProps {
 
   /** Whether Copilot is busy working on the commits. */
   readonly isWorking: boolean
+
+  /** Whether an empty commit may be created when no files are selected. */
+  readonly allowEmptyCommit?: boolean
 }
 
 interface ICopilotCommitPanelState {
@@ -201,7 +204,7 @@ export class CopilotCommitPanel extends React.Component<
   }
 
   private renderCaption() {
-    const { isWorking, filesSelectedCount } = this.props
+    const { isWorking, filesSelectedCount, allowEmptyCommit } = this.props
 
     if (isWorking) {
       return (
@@ -209,6 +212,17 @@ export class CopilotCommitPanel extends React.Component<
           <div className="title working">Copilot is on it…</div>
           <div className="description">
             Splitting your changes into commits and writing their messages.
+          </div>
+        </>
+      )
+    }
+
+    if (filesSelectedCount === 0 && allowEmptyCommit) {
+      return (
+        <>
+          <div className="title">Create an empty commit</div>
+          <div className="description">
+            Create one commit without file changes or Copilot analysis.
           </div>
         </>
       )

@@ -129,16 +129,33 @@ export class DropdownSelectButton extends React.Component<
   private onFocusOut = (event: FocusEvent) => {
     if (
       this.state.showButtonOptions &&
-      event.relatedTarget &&
-      !this.dropdownSelectContainerRef.current?.contains(
-        event.relatedTarget as Node
+      !(
+        event.relatedTarget instanceof Node &&
+        this.dropdownSelectContainerRef.current?.contains(event.relatedTarget)
       )
     ) {
       this.setState({ showButtonOptions: false })
     }
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: IDropdownSelectButtonProps) {
+    if (this.props.dropdownDisabled && this.state.showButtonOptions) {
+      this.setState({ showButtonOptions: false })
+      this.dropdownButtonRef?.focus()
+      return
+    }
+
+    const selectedOptionID = this.state.selectedOption?.id
+    const selectedOptionRemoved =
+      selectedOptionID !== undefined &&
+      !this.props.options.some(option => option.id === selectedOptionID)
+    if (
+      prevProps.checkedOption !== this.props.checkedOption ||
+      selectedOptionRemoved
+    ) {
+      this.setState({ selectedOption: this.checkedOption })
+    }
+
     if (this.invokeButtonRef === null || this.optionsContainerRef === null) {
       return
     }
@@ -155,6 +172,17 @@ export class DropdownSelectButton extends React.Component<
     if (optionsPositionBottom !== this.state.optionsPositionBottom) {
       this.setState({ optionsPositionBottom })
     }
+  }
+
+  /** Move keyboard focus to the primary action. */
+  public focus() {
+    this.invokeButtonRef?.focus()
+  }
+
+  private get checkedOption(): IDropdownSelectButtonOption | null {
+    return this.getCheckedOption(
+      this.props.checkedOption ?? this.state.checkedOption?.id
+    )
   }
 
   private getCheckedOption(
@@ -174,6 +202,10 @@ export class DropdownSelectButton extends React.Component<
     item: MenuItem,
     source: ClickSource
   ) => {
+    if (this.props.dropdownDisabled) {
+      return
+    }
+
     const selectedOption = this.props.options.find(o => o.id === item.id)
 
     if (!selectedOption) {
@@ -218,12 +250,21 @@ export class DropdownSelectButton extends React.Component<
   }
 
   private openSplitButtonDropdown = () => {
-    this.setState({ showButtonOptions: !this.state.showButtonOptions })
+    if (!this.props.dropdownDisabled) {
+      this.setState({ showButtonOptions: !this.state.showButtonOptions })
+    }
   }
 
   private onDropdownButtonKeyDown = (
     event: React.KeyboardEvent<HTMLButtonElement>
   ) => {
+    if (
+      this.props.dropdownDisabled ||
+      (event.key === 'Enter' && (event.metaKey || event.ctrlKey))
+    ) {
+      return
+    }
+
     const { key } = event
     let flag = false
 
@@ -315,18 +356,17 @@ export class DropdownSelectButton extends React.Component<
   private renderSplitButtonOptions() {
     const {
       showButtonOptions,
-      checkedOption,
       selectedOption,
       optionsPositionBottom: bottom,
     } = this.state
 
-    if (!showButtonOptions) {
+    if (!showButtonOptions || this.props.dropdownDisabled) {
       return
     }
 
     const { options } = this.props
 
-    const items = this.getMenuItems(options, checkedOption?.id)
+    const items = this.getMenuItems(options, this.checkedOption?.id)
     const selectedItem = items.find(i => i.id === selectedOption?.id)
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
@@ -353,11 +393,13 @@ export class DropdownSelectButton extends React.Component<
   }
 
   private onSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const checkedOption = this.checkedOption
     if (
+      !this.props.disabled &&
       this.props.onSubmit !== undefined &&
-      this.state.checkedOption !== null
+      checkedOption !== null
     ) {
-      this.props.onSubmit(event, this.state.checkedOption)
+      this.props.onSubmit(event, checkedOption)
     }
   }
 
@@ -369,11 +411,8 @@ export class DropdownSelectButton extends React.Component<
       dropdownAriaLabel,
       renderInvokeButtonContent,
     } = this.props
-    const {
-      checkedOption: selectedOption,
-      optionsPositionBottom,
-      showButtonOptions,
-    } = this.state
+    const { optionsPositionBottom, showButtonOptions } = this.state
+    const selectedOption = this.checkedOption
     if (options.length === 0 || selectedOption === null) {
       return
     }

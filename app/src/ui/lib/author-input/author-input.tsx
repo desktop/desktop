@@ -17,6 +17,7 @@ import memoizeOne from 'memoize-one'
 import { FocusContainer } from '../focus-container'
 import { AuthorHandle } from './author-handle'
 import { getFullTextForAuthor } from './author-text'
+import { arrayEquals } from '../../../lib/equality'
 
 interface IAuthorInputProps {
   /**
@@ -30,6 +31,9 @@ interface IAuthorInputProps {
    * matches while autocompleting.
    */
   readonly autoCompleteProvider: UserAutocompletionProvider
+
+  /** Stable repository and host identity for asynchronous author lookups. */
+  readonly authorLookupContext?: string
 
   /**
    * The list of authors to fill the input with initially. If this
@@ -107,6 +111,12 @@ export class AuthorInput extends React.Component<
   private shadowInputRef = React.createRef<HTMLDivElement>()
   private inputRef: HTMLInputElement | null = null
   private authorContainerRef = React.createRef<HTMLDivElement>()
+  private lastAuthorLookupID = 0
+  // Retain lookup IDs until controlled props acknowledge the resolved author.
+  private readonly authorLookups = new Map<UnknownAuthor, number>()
+  private readonly pendingAuthorResolutions = new Map<UnknownAuthor, Author>()
+  private lastEmittedAuthors: ReadonlyArray<Author> | null = null
+  private pendingAuthorsUpdateBase: ReadonlyArray<Author> | null = null
 
   private getAutocompleteItemFilter = memoizeOne(
     (authors: ReadonlyArray<Author>) => (item: UserHit) => {
@@ -130,10 +140,54 @@ export class AuthorInput extends React.Component<
     }
   }
 
+  public componentDidMount() {
+    this.resumeAuthorLookups()
+  }
+
+  public componentWillUnmount() {
+    this.authorLookups.clear()
+    this.pendingAuthorResolutions.clear()
+    this.lastEmittedAuthors = null
+    this.pendingAuthorsUpdateBase = null
+  }
+
   public componentDidUpdate(
     prevProps: IAuthorInputProps,
     prevState: IAuthorInputState
   ) {
+    if (
+      prevProps.authorLookupContext !== this.props.authorLookupContext ||
+      (this.props.authorLookupContext === undefined &&
+        prevProps.autoCompleteProvider !== this.props.autoCompleteProvider)
+    ) {
+      this.authorLookups.clear()
+      this.pendingAuthorResolutions.clear()
+      this.lastEmittedAuthors = null
+      this.pendingAuthorsUpdateBase = null
+    }
+
+    if (
+      this.pendingAuthorsUpdateBase !== null &&
+      !arrayEquals(this.pendingAuthorsUpdateBase, this.props.authors)
+    ) {
+      this.pendingAuthorsUpdateBase = null
+    }
+
+    if (prevProps.authors !== this.props.authors) {
+      for (const author of this.authorLookups.keys()) {
+        if (!this.props.authors.includes(author)) {
+          this.authorLookups.delete(author)
+        }
+      }
+      for (const author of this.pendingAuthorResolutions.keys()) {
+        if (!this.props.authors.includes(author)) {
+          this.pendingAuthorResolutions.delete(author)
+        }
+      }
+    }
+    this.resumeAuthorLookups()
+    this.applyPendingAuthorResolutions()
+
     // If the focus is inside of the component and _something_ changed that
     // could affect the focus, make sure the focus is still where it should
     if (
@@ -233,6 +287,7 @@ export class AuthorInput extends React.Component<
         isLastAuthor={index === this.props.authors.length - 1}
         isFirstAuthor={index === 0}
         isInputFocused={focusedAuthorIndex === null}
+        readOnly={this.props.readOnly}
         onKeyDown={this.onAuthorKeyDown}
         onHandleClick={this.onAuthorClick}
         onRemoveClick={this.onRemoveAuthorClick}
@@ -267,14 +322,30 @@ export class AuthorInput extends React.Component<
   }
 
   private removeAuthor(index: number, direction: 'back' | 'forward' | 'none') {
-    const { authors } = this.props
-
-    if (index >= authors.length) {
+    if (this.props.readOnly) {
       return
     }
 
-    const authorToRemove = authors[index]
-    const newAuthors = authors.slice(0, index).concat(authors.slice(index + 1))
+    if (index >= this.props.authors.length) {
+      return
+    }
+
+    const selectedAuthor = this.props.authors[index]
+    const authors = this.authorsForUpdate
+    const authorToRemove = isKnownAuthor(selectedAuthor)
+      ? selectedAuthor
+      : this.pendingAuthorResolutions.get(selectedAuthor) ?? selectedAuthor
+    const currentIndex = authors.indexOf(authorToRemove)
+    if (currentIndex < 0) {
+      return
+    }
+    if (!isKnownAuthor(selectedAuthor)) {
+      this.authorLookups.delete(selectedAuthor)
+      this.pendingAuthorResolutions.delete(selectedAuthor)
+    }
+    const newAuthors = authors
+      .slice(0, currentIndex)
+      .concat(authors.slice(currentIndex + 1))
     let newFocusedAuthorIndex: number | null = null
 
     // Focus next author depending on the "direction" of the removal:
@@ -283,12 +354,12 @@ export class AuthorInput extends React.Component<
     //   on the same index)
     if (newAuthors.length > 0) {
       if (direction === 'back') {
-        newFocusedAuthorIndex = Math.max(0, index - 1)
+        newFocusedAuthorIndex = Math.max(0, currentIndex - 1)
       } else {
         newFocusedAuthorIndex =
-          index === authors.length - 1
+          currentIndex === authors.length - 1
             ? null
-            : Math.min(newAuthors.length - 1, index)
+            : Math.min(newAuthors.length - 1, currentIndex)
       }
     }
 
@@ -306,7 +377,26 @@ export class AuthorInput extends React.Component<
   }
 
   private emitAuthorsUpdated(addedAuthors: ReadonlyArray<Author>) {
-    this.props.onAuthorsUpdated(addedAuthors)
+    const resolvedAuthors = this.resolvePendingAuthors(addedAuthors)
+    this.pendingAuthorsUpdateBase = this.props.authors
+    this.lastEmittedAuthors = resolvedAuthors
+    this.props.onAuthorsUpdated(resolvedAuthors)
+  }
+
+  private get authorsForUpdate() {
+    return this.pendingAuthorsUpdateBase !== null &&
+      this.lastEmittedAuthors !== null &&
+      arrayEquals(this.pendingAuthorsUpdateBase, this.props.authors)
+      ? this.lastEmittedAuthors
+      : this.props.authors
+  }
+
+  private resolvePendingAuthors(authors: ReadonlyArray<Author>) {
+    return authors.map(author =>
+      isKnownAuthor(author)
+        ? author
+        : this.pendingAuthorResolutions.get(author) ?? author
+    )
   }
 
   private focusPreviousAuthor() {
@@ -375,14 +465,14 @@ export class AuthorInput extends React.Component<
   }
 
   private onInputRef = (input: HTMLInputElement | null) => {
-    if (input === null) {
-      return
-    }
-
     this.inputRef = input
   }
 
   private onAutocompleteItemSelected = (item: UserHit) => {
+    if (this.props.readOnly) {
+      return
+    }
+
     const authorToAdd: Author =
       item.kind === 'known-user'
         ? authorFromUserHit(item)
@@ -392,7 +482,7 @@ export class AuthorInput extends React.Component<
             state: 'searching',
           }
 
-    const newAuthors = [...this.props.authors, authorToAdd]
+    const newAuthors = [...this.authorsForUpdate, authorToAdd]
     this.emitAuthorsUpdated(newAuthors)
 
     let actionDescription = `Added ${authorToAdd.username}`
@@ -411,45 +501,74 @@ export class AuthorInput extends React.Component<
   }
 
   private async attemptUnknownAuthorSearch(author: UnknownAuthor) {
+    if (
+      this.authorLookups.has(author) ||
+      this.pendingAuthorResolutions.has(author)
+    ) {
+      return
+    }
+
+    const lookupID = ++this.lastAuthorLookupID
+    const provider = this.props.autoCompleteProvider
+    this.authorLookups.set(author, lookupID)
     const knownAuthor = this.props.authors
       .filter(isKnownAuthor)
       .find(a => a.username?.toLowerCase() === author.username.toLowerCase())
 
-    if (knownAuthor !== undefined) {
-      this.updateUnknownAuthor(knownAuthor)
+    const hit =
+      knownAuthor === undefined
+        ? await provider.exactMatch(author.username)
+        : null
+    if (
+      this.authorLookups.get(author) !== lookupID ||
+      this.authorContainerRef.current === null
+    ) {
       return
     }
 
-    const hit = await this.props.autoCompleteProvider.exactMatch(
-      author.username
-    )
-
-    if (hit === null || hit.kind !== 'known-user') {
-      const erroredUnknownAuthor: UnknownAuthor = {
-        ...author,
-        state: 'error',
-      }
-
-      this.updateUnknownAuthor(erroredUnknownAuthor)
-      this.setState({
-        lastActionDescription: `Error: user ${author.username} not found`,
-      })
-      return
-    }
-
-    const hitAuthor = authorFromUserHit(hit)
-    this.updateUnknownAuthor(hitAuthor)
+    const resolution: Author =
+      knownAuthor ??
+      (hit !== null && hit.kind === 'known-user'
+        ? authorFromUserHit(hit)
+        : { ...author, state: 'error' })
+    this.pendingAuthorResolutions.set(author, resolution)
+    this.applyPendingAuthorResolutions()
   }
 
-  private updateUnknownAuthor(author: Author) {
-    const newAuthors = this.props.authors.map(a =>
-      a.username?.toLowerCase() === author.username?.toLowerCase() &&
-      !isKnownAuthor(a)
-        ? author
-        : a
-    )
+  private resumeAuthorLookups() {
+    for (const author of this.authorsForUpdate) {
+      if (!isKnownAuthor(author) && author.state === 'searching') {
+        this.attemptUnknownAuthorSearch(author)
+      }
+    }
+  }
 
+  private applyPendingAuthorResolutions() {
+    if (this.props.readOnly || this.authorContainerRef.current === null) {
+      return
+    }
+
+    const currentAuthors = this.authorsForUpdate
+    const newAuthors = this.resolvePendingAuthors(currentAuthors)
+    if (
+      arrayEquals(newAuthors, currentAuthors) ||
+      (this.lastEmittedAuthors !== null &&
+        arrayEquals(newAuthors, this.lastEmittedAuthors))
+    ) {
+      return
+    }
     this.emitAuthorsUpdated(newAuthors)
+    const failed = newAuthors.find(
+      (author, index) =>
+        author !== currentAuthors[index] &&
+        !isKnownAuthor(author) &&
+        author.state === 'error'
+    )
+    if (failed !== undefined) {
+      this.setState({
+        lastActionDescription: `Error: user ${failed.username} not found`,
+      })
+    }
   }
 
   private onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
