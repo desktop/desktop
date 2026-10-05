@@ -250,22 +250,22 @@ export function createCopilotTokenProvider(
   if (!accountsStore.isRefreshable(account)) {
     return undefined
   }
+  // The SDK uses a one-hour preflight margin and doesn't retry rejected
+  // tokens. Report the IPC buffer as already spent so its cached-token
+  // deadline matches Desktop's renewal deadline.
+  const getToken = accountsStore.createTokenGetter(
+    account,
+    CopilotTokenRefreshMarginMs + CopilotTokenLifetimeBufferMs
+  )
   return async ({ host }) => {
     if (host !== (getCopilotGHHost(account) ?? 'github.com')) {
       throw new Error(
         'Copilot requested credentials for an unexpected GitHub host.'
       )
     }
-    // The SDK uses a one-hour preflight margin and doesn't retry rejected
-    // tokens. Report the IPC buffer as already spent so its cached-token
-    // deadline matches Desktop's renewal deadline.
-    const fresh = await accountsStore.getAccountWithFreshToken(
-      account,
-      CopilotTokenRefreshMarginMs + CopilotTokenLifetimeBufferMs
-    )
+    const { accessToken, expiresAt } = await getToken()
     // A refreshable token without a known expiry can't be given a safe
     // lifetime: guessing too long leaves the SDK using a dead token.
-    const expiresAt = accountsStore.getTokenExpiration(fresh)
     const expiresIn =
       expiresAt === undefined
         ? 0
@@ -276,7 +276,7 @@ export function createCopilotTokenProvider(
         'GitHub returned credentials without enough lifetime for a Copilot session.'
       )
     }
-    return { kind: 'token', accessToken: fresh.token, expiresIn }
+    return { kind: 'token', accessToken, expiresIn }
   }
 }
 
@@ -805,7 +805,10 @@ export async function runConflictResolutionTurn(
  * Copilot feature is used.
  */
 export class CopilotStore extends BaseStore {
-  private readonly clientAccounts = new WeakMap<CopilotClient, Account>()
+  private readonly clientTokenProviders = new WeakMap<
+    CopilotClient,
+    GitHubTokenProvider
+  >()
   private readonly modelCaches = new Map<string, ICopilotModelCacheEntry>()
   private readonly modelsInFlight = new Map<
     string,
@@ -880,6 +883,10 @@ export class CopilotStore extends BaseStore {
     account: Account,
     repositoryPath?: string
   ): Promise<CopilotClient> {
+    const tokenProvider = createCopilotTokenProvider(
+      this.accountsStore,
+      account
+    )
     account = await this.accountsStore.getAccountWithFreshToken(account)
     if (!account.token) {
       throw new Error('Cannot create Copilot client: Account has no token')
@@ -909,18 +916,16 @@ export class CopilotStore extends BaseStore {
       ),
       gitHubToken: account.token,
     })
-    this.clientAccounts.set(client, account)
+    if (tokenProvider !== undefined) {
+      this.clientTokenProviders.set(client, tokenProvider)
+    }
     return client
   }
 
   private createSession(client: CopilotClient, config: SessionConfig) {
-    const account = this.clientAccounts.get(client)
     return client.createSession({
       ...config,
-      gitHubTokenProvider:
-        account === undefined
-          ? undefined
-          : createCopilotTokenProvider(this.accountsStore, account),
+      gitHubTokenProvider: this.clientTokenProviders.get(client),
     })
   }
 
