@@ -105,6 +105,8 @@ import {
   DefaultCommitMessage,
   ICommitMessage,
 } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
+import { storeCommitMode } from './helpers/commit-mode-storage'
 import {
   Progress,
   ICheckoutProgress,
@@ -4391,6 +4393,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } catch (e) {
       log.error('Failed to refresh worktrees', e)
     }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _setCommitMode(repository: Repository, commitMode: CommitMode): void {
+    storeCommitMode(repository, commitMode)
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      commitMode,
+    }))
+    this.emitUpdate()
   }
 
   public _updateCommitOptions(
