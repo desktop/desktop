@@ -175,9 +175,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.credentials.isRefreshable(account)
   }
 
-  /** Access-token expiry for consumers that support on-demand token renewal. */
-  public getTokenExpiration(account: Account): number | undefined {
-    return this.credentials.getTokenExpiration(account)
+  /** Bind fresh access tokens and expiry metadata to the account's issuing session. */
+  public createTokenGetter(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
+    return this.credentials.createTokenGetter(account, minimumValidity)
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
