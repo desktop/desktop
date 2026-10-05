@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores/accounts-store'
+import { AccountRequiresSignInError } from '../../src/lib/credential-sessions'
 import { createCopilotTokenProvider } from '../../src/lib/stores/copilot-store'
 import { createCredentialHelperTrampolineHandler } from '../../src/lib/trampoline/trampoline-credential-helper'
 import { TrampolineCommandIdentifier } from '../../src/lib/trampoline/trampoline-command'
@@ -333,13 +334,35 @@ describe('Refreshing Copilot session credentials', () => {
       ...renewed(),
       accessToken: signedIn.token,
     })
-    const provider = createCopilotTokenProvider(store, account)
-    assert.ok(provider)
-
-    await assert.rejects(
-      async () => provider({ host: 'github.com', reason: 'initial' }),
-      /sign in again/
+    assert.throws(
+      () => createCopilotTokenProvider(store, account),
+      AccountRequiresSignInError
     )
+  })
+
+  it('rejects creating a provider from a stale account after same-token sign-in', async () => {
+    const { store } = await setup({ ...renewed(), accessToken: account.token })
+    const [original] = await store.getAll()
+    assert.ok(original)
+    await store.removeAccount(original)
+    const replacement = await store.addAccount(original, {
+      ...renewed(),
+      accessToken: original.token,
+      refreshToken: 'replacement-refresh',
+    })
+    assert.ok(replacement)
+    assert.notStrictEqual(original, replacement)
+    assert.equal(original.token, replacement.token)
+
+    assert.throws(
+      () => createCopilotTokenProvider(store, original),
+      AccountRequiresSignInError
+    )
+    const provider = createCopilotTokenProvider(store, replacement)
+    assert.ok(provider)
+    const result = await provider({ host: 'github.com', reason: 'initial' })
+    assert.ok(result.kind === 'token')
+    assert.equal(result.accessToken, replacement.token)
   })
 
   it('rejects a provider waiting on a Git lease when its session retires', async t => {

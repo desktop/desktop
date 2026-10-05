@@ -1,6 +1,6 @@
 import { ISecureStore } from './stores/stores'
 import { getKeyForAccount } from './auth'
-import { Account } from '../models/account'
+import { Account, accountEquals } from '../models/account'
 import { deleteToken, getHTMLURL } from './api'
 import {
   IOAuthToken,
@@ -87,6 +87,11 @@ export class CredentialSessions {
    * rotation) back to its session so `resolveToken` can return the current one.
    */
   private readonly sessionsByToken = new Map<string, ICredentialSession>()
+  /** Immutable account snapshots retain their issuing session across token reuse. */
+  private readonly sessionsByAccount = new WeakMap<
+    Account,
+    ICredentialSession
+  >()
   /** Per-endpoint queue so secure-storage saves and deletes never interleave. */
   private readonly credentialWriteQueues = new Map<string, Promise<void>>()
 
@@ -98,10 +103,18 @@ export class CredentialSessions {
     private readonly revokeToken = deleteToken
   ) {}
 
-  /** Install a credential that was read back from secure storage. */
-  public restore(account: Account, credential: AccountCredential) {
+  /**
+   * Install a credential and return its account snapshot.
+   *
+   * An already-associated snapshot keeps its original session; restoring it
+   * again creates a distinct snapshot, even when its token is unchanged.
+   */
+  public restore(account: Account, credential: AccountCredential): Account {
+    const restored = this.sessionsByAccount.has(account)
+      ? account.withToken(account.token)
+      : account
     const session: ICredentialSession = {
-      account,
+      account: restored,
       credential,
       retired: false,
       leases: new Set(),
@@ -109,12 +122,14 @@ export class CredentialSessions {
     }
     this.retireSession(account.endpoint)
     this.sessionsByEndpoint.set(account.endpoint, session)
+    this.sessionsByAccount.set(restored, session)
     if (credential !== null) {
       this.sessionsByToken.set(
         this.tokenKey(account.endpoint, credential.accessToken),
         session
       )
     }
+    return restored
   }
 
   /**
@@ -140,6 +155,9 @@ export class CredentialSessions {
       // behind it sees the retirement and cannot overwrite this credential.
       this.retireSession(account.endpoint)
       this.restore(authenticated, credential)
+      if (!this.sessionsByAccount.has(account)) {
+        this.inheritSession(authenticated, account)
+      }
       this.delegate.onSignedIn(authenticated)
     })
     return authenticated
@@ -214,23 +232,41 @@ export class CredentialSessions {
     return token
   }
 
+  /** Preserve the issuing session when publishing an immutable account copy. */
+  public inheritSession(original: Account, updated: Account): Account {
+    const session = this.sessionsByAccount.get(original)
+    const previous = this.sessionsByAccount.get(updated)
+    if (
+      session === undefined ||
+      !accountEquals(original, updated) ||
+      (previous !== undefined && previous !== session)
+    ) {
+      throw new AccountRequiresSignInError()
+    }
+    this.sessionsByAccount.set(updated, session)
+    return updated
+  }
+
   /**
    * Bind access-token acquisition and expiry metadata to the account's session.
    *
    * Follows token rotation within the issuing session, but permanently rejects
    * once that session retires, even if the same user signs in again.
+   * Throws at creation if the snapshot is unknown or its session has retired.
    */
   public createTokenGetter(
     account: Account,
     minimumValidity = refreshMargin
   ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
-    const session = this.sessionsByToken.get(
-      this.tokenKey(account.endpoint, account.token)
-    )
+    const session = this.sessionsByAccount.get(account)
+    if (
+      session === undefined ||
+      session.retired ||
+      !accountEquals(session.account, account)
+    ) {
+      throw new AccountRequiresSignInError()
+    }
     return async () => {
-      if (session === undefined || session.account.id !== account.id) {
-        throw new AccountRequiresSignInError()
-      }
       for (;;) {
         const token = await this.validToken(session, minimumValidity)
         if (session.retired) {
@@ -357,9 +393,10 @@ export class CredentialSessions {
 
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
+    const session = this.sessionsByAccount.get(account)
     return (
-      session?.account.id === account.id &&
+      session !== undefined &&
+      !session.retired &&
       session.credential?.refreshToken !== undefined
     )
   }

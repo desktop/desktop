@@ -247,9 +247,6 @@ export function createCopilotTokenProvider(
   accountsStore: AccountsStore,
   account: Account
 ): GitHubTokenProvider | undefined {
-  if (!accountsStore.isRefreshable(account)) {
-    return undefined
-  }
   // The SDK uses a one-hour preflight margin and doesn't retry rejected
   // tokens. Report the IPC buffer as already spent so its cached-token
   // deadline matches Desktop's renewal deadline.
@@ -257,6 +254,9 @@ export function createCopilotTokenProvider(
     account,
     CopilotTokenRefreshMarginMs + CopilotTokenLifetimeBufferMs
   )
+  if (!accountsStore.isRefreshable(account)) {
+    return undefined
+  }
   return async ({ host }) => {
     if (host !== (getCopilotGHHost(account) ?? 'github.com')) {
       throw new Error(
