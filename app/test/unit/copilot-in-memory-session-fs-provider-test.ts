@@ -78,6 +78,22 @@ describe('getCopilotInMemorySessionFsConfig', () => {
 })
 
 describe('createCopilotInMemorySessionFsProvider', () => {
+  it('releases all data and rejects late reads and writes after disposal', async () => {
+    const provider = createCopilotInMemorySessionFsProvider()
+    await provider.writeFile('state/events.jsonl', 'synthetic private data')
+    provider.dispose()
+    provider.dispose()
+    await assert.rejects(
+      provider.readFile('state/events.jsonl'),
+      /filesystem is disposed/
+    )
+    await assert.rejects(
+      provider.writeFile('state/late.jsonl', 'late data'),
+      /filesystem is disposed/
+    )
+    await assert.rejects(provider.readdir('.'), /filesystem is disposed/)
+  })
+
   it('creates isolated providers with the default state directory', async () => {
     const provider = createCopilotInMemorySessionFsProvider()
     const otherProvider = createCopilotInMemorySessionFsProvider()
