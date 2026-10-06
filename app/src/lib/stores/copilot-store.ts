@@ -960,24 +960,50 @@ export class CopilotStore extends BaseStore {
     config: SessionConfig,
     signal?: AbortSignal
   ): Promise<CopilotSession> {
+    return this.withCancellation(
+      () => this.createSession(client, config),
+      signal,
+      session => session.disconnect()
+    )
+  }
+
+  /** Cancel this waiter without aborting shared renewal or model discovery. */
+  private async withCancellation<T>(
+    action: () => Promise<T>,
+    signal: AbortSignal | undefined,
+    onCancelledResult?: (result: T) => void | Promise<void>
+  ): Promise<T> {
     if (signal?.aborted) {
       throw new CommitMessageGenerationCancelledError()
     }
 
-    const sessionCreation = this.createSession(client, config)
-
+    const operation = action()
     if (signal === undefined) {
-      return sessionCreation
+      return operation
     }
 
-    let sessionWasReturned = false
-    void sessionCreation
-      .then(async createdSession => {
-        if (signal.aborted && !sessionWasReturned) {
-          await createdSession.disconnect().catch(() => {})
+    let resultWasReturned = false
+    let resultWasDiscarded = false
+    const discardResult = async (result: T) => {
+      if (resultWasDiscarded) {
+        return
+      }
+      resultWasDiscarded = true
+      try {
+        await onCancelledResult?.(result)
+      } catch (error) {
+        log.error('CopilotStore: Failed to clean up cancelled operation', error)
+      }
+    }
+    // The race observes failures; this handler only owns abandoned results.
+    void operation.then(
+      result => {
+        if (signal.aborted && !resultWasReturned) {
+          void discardResult(result)
         }
-      })
-      .catch(() => {})
+      },
+      () => {}
+    )
 
     let rejectAbort: ((error: Error) => void) | null = null
     const abortPromise = new Promise<never>((_, reject) => {
@@ -995,9 +1021,13 @@ export class CopilotStore extends BaseStore {
         onAbort()
       }
 
-      const session = await Promise.race([sessionCreation, abortPromise])
-      sessionWasReturned = true
-      return session
+      const result = await Promise.race([operation, abortPromise])
+      if (signal.aborted) {
+        void discardResult(result)
+        throw new CommitMessageGenerationCancelledError()
+      }
+      resultWasReturned = true
+      return result
     } catch (error) {
       if (signal.aborted) {
         throw new CommitMessageGenerationCancelledError()
@@ -1144,7 +1174,10 @@ export class CopilotStore extends BaseStore {
     } else {
       const requestedModelId =
         request?.kind === 'copilot' ? request.modelId : null
-      const cachedModels = await this.getCachedModels(account)
+      const cachedModels = await this.withCancellation(
+        () => this.getCachedModels(account),
+        signal
+      )
       throwIfCancelled()
       const resolvedModel = requestedModelId
         ? cachedModels.find(m => m.id === requestedModelId) ?? null
@@ -1163,7 +1196,11 @@ export class CopilotStore extends BaseStore {
       null
 
     try {
-      client = await this.createClient(account, repositoryPath, credentials)
+      client = await this.withCancellation(
+        () => this.createClient(account, repositoryPath, credentials),
+        signal,
+        lateClient => this.stopClient(lateClient)
+      )
       throwIfCancelled()
 
       const tags = generateCommitMessagePromptTags()
@@ -1324,6 +1361,9 @@ export class CopilotStore extends BaseStore {
     if (filesTotal === 0) {
       return { resolutions: [], summary: null, references: [] }
     }
+    if (signal?.aborted) {
+      throw new CopilotConflictResolutionAbortError()
+    }
 
     onProgress?.({ filesResolved: 0, filesTotal })
 
@@ -1337,8 +1377,15 @@ export class CopilotStore extends BaseStore {
     const clientTimer = startTimer('createClient')
     let client: CopilotClient
     try {
-      client = await this.createClient(account, repositoryPath)
+      client = await this.withCancellation(
+        () => this.createClient(account, repositoryPath),
+        signal,
+        lateClient => this.stopClient(lateClient)
+      )
     } catch (error) {
+      if (error instanceof CommitMessageGenerationCancelledError) {
+        throw new CopilotConflictResolutionAbortError()
+      }
       throw new CopilotConflictResolutionError(error, 'create-client')
     }
     clientTimer.done()
@@ -1496,23 +1543,27 @@ export class CopilotStore extends BaseStore {
         const sessionTimer = startTimer(
           `createSession (attempt ${attempt + 1})`
         )
-        const session = await this.createSession(client, {
-          clientName: CopilotClientNames['conflict-resolution'],
-          model: modelConfig.modelId,
-          reasoningEffort: modelConfig.reasoningEffort,
-          provider: modelConfig.provider,
-          streaming: true,
-          availableTools: [],
-          enableSessionStore: false,
-          createSessionFsProvider: createCopilotInMemorySessionFsProvider,
-          systemMessage: {
-            mode: 'append',
-            content: ConflictResolutionSystemPrompt,
+        const session = await this.createCancellableSession(
+          client,
+          {
+            clientName: CopilotClientNames['conflict-resolution'],
+            model: modelConfig.modelId,
+            reasoningEffort: modelConfig.reasoningEffort,
+            provider: modelConfig.provider,
+            streaming: true,
+            availableTools: [],
+            enableSessionStore: false,
+            createSessionFsProvider: createCopilotInMemorySessionFsProvider,
+            systemMessage: {
+              mode: 'append',
+              content: ConflictResolutionSystemPrompt,
+            },
+            onPermissionRequest: async () => ({
+              kind: 'reject',
+            }),
           },
-          onPermissionRequest: async () => ({
-            kind: 'reject',
-          }),
-        })
+          signal
+        )
         sessionTimer.done()
 
         // The user may have cancelled while the session was being created. Tear
@@ -1559,6 +1610,9 @@ export class CopilotStore extends BaseStore {
           references: parsed.references,
         }
       } catch (e) {
+        if (e instanceof CommitMessageGenerationCancelledError) {
+          throw new CopilotConflictResolutionAbortError()
+        }
         lastError = e instanceof Error ? e : new Error(String(e))
         lastStage = stage
 
