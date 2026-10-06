@@ -1,6 +1,7 @@
 import { mergeTrailers } from './git/interpret-trailers'
 import { Repository } from '../models/repository'
 import { ICommitContext } from '../models/commit'
+import { IGitExecutionOptions } from './git/core'
 
 /**
  * Formats a summary and a description into a git-friendly
@@ -17,7 +18,8 @@ import { ICommitContext } from '../models/commit'
  */
 export async function formatCommitMessage(
   repository: Repository,
-  context: ICommitContext
+  context: ICommitContext,
+  options?: Pick<IGitExecutionOptions, 'env'>
 ) {
   const { summary, description, trailers } = context
 
@@ -31,6 +33,6 @@ export async function formatCommitMessage(
   const message = `${summary}\n\n${description || ''}\n`.replace(/\s+$/, '\n')
 
   return trailers !== undefined && trailers.length > 0
-    ? mergeTrailers(repository, message, trailers)
+    ? mergeTrailers(repository, message, trailers, false, options)
     : message
 }
