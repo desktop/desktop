@@ -1,4 +1,5 @@
 export * from './apply'
+export * from './assisted-commit'
 export * from './branch'
 export * from './checkout'
 export * from './clone'
