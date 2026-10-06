@@ -2,6 +2,9 @@
 
 This is backend scaffolding for plan-first assisted commits. It does not invoke
 Copilot, wire a UI callback, or push. Manual commits keep their existing behavior.
+The separate [assisted commit planner](assisted-commit-planning.md) proposes
+snapshot-only messages and groups, and returns this engine's checked capability
+after full validation. It does not execute the capability.
 
 Real-Git fault tests match exact physical filesystem paths, including missing
 lock paths, rather than Git/native separators or Windows short-name spellings.
