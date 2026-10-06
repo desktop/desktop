@@ -23,6 +23,7 @@ import type {
 import type { IOAuthToken } from '../../../src/lib/oauth-token'
 import { Account } from '../../../src/models/account'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
+import type { ICopilotPlanningClient } from '../../../src/lib/copilot-operation'
 
 const now = 1_800_000_000_000
 const account = new Account(
@@ -35,10 +36,15 @@ const account = new Account(
   'Octocat'
 )
 const clientOptions: CopilotClientOptions[] = []
-let createStore: (accountsStore: AccountsStore) => CopilotStore
+interface IPlannerCredentialStore extends CopilotStore {
+  createPlanningClient(account: Account): Promise<ICopilotPlanningClient>
+}
+
+let createStore: (accountsStore: AccountsStore) => IPlannerCredentialStore
 let runtimePathExists: () => Promise<boolean> = async () => true
 let assertGenerationCancelled: (error: unknown) => boolean
 let assertConflictCancelled: (error: unknown) => boolean
+let assistedFixtures: typeof import('../../helpers/copilot-assisted-commit')
 
 function createDeferred<T>() {
   let resolveValue: ((value: T) => void) | undefined
@@ -184,7 +190,12 @@ describe('CopilotStore session credential wiring', () => {
       CommitMessageGenerationCancelledError,
       isCopilotConflictResolutionAbortError,
     } = await import('../../../src/lib/stores/copilot-store')
-    createStore = accountsStore => new CopilotStore(accountsStore)
+    createStore = accountsStore =>
+      new (class extends CopilotStore {
+        public createPlanningClient(account: Account) {
+          return this.createAssistedCommitClient(account, '/repository')
+        }
+      })(accountsStore)
     assertGenerationCancelled = error => {
       assert.ok(error instanceof CommitMessageGenerationCancelledError)
       return true
@@ -193,6 +204,7 @@ describe('CopilotStore session credential wiring', () => {
       assert.ok(isCopilotConflictResolutionAbortError(error))
       return true
     }
+    assistedFixtures = await import('../../helpers/copilot-assisted-commit')
   })
 
   beforeEach(() => {
@@ -460,6 +472,211 @@ describe('CopilotStore session credential wiring', () => {
     assert.equal('refreshToken' in refreshed, false)
     assert.equal(renewals(), 1)
   })
+
+  it('uses the same rotating session-bound provider for isolated assisted planning clients', async t => {
+    let clock = now
+    t.mock.method(Date, 'now', () => clock)
+    const {
+      accountsStore,
+      store,
+      createSession,
+      sessionCreationStopped,
+      renewals,
+    } = await setup(t, {
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: now + 2 * 60 * 60 * 1000,
+    })
+    const client = await store.createPlanningClient(account)
+    await assert.rejects(
+      client.createSession({ model: 'auto', availableTools: [] }),
+      error => error === sessionCreationStopped
+    )
+    assert.equal(clientOptions.length, 1)
+    assert.equal(clientOptions[0].gitHubToken, account.token)
+    assert.equal(clientOptions[0].workingDirectory, '/repository')
+    assert.equal(clientOptions[0].logLevel, 'none')
+    assert.equal(createSession.mock.callCount(), 1)
+    const config = createSession.mock.calls[0].arguments[0]
+    assert.equal(config.gitHubToken, undefined)
+    const provider = config.gitHubTokenProvider
+    assert.ok(provider)
+    const initial = await provider({ host: 'github.com', reason: 'initial' })
+    assert.deepEqual(initial, {
+      kind: 'token',
+      accessToken: account.token,
+      expiresIn: 2 * 60 * 60 - 60,
+    })
+    clock += 60 * 60 * 1000
+    const refreshed = await provider({ host: 'github.com', reason: 'refresh' })
+    assert.deepEqual(refreshed, {
+      kind: 'token',
+      accessToken: 'new-access',
+      expiresIn: 8 * 60 * 60 - 60,
+    })
+    assert.equal(renewals(), 1)
+    await assert.rejects(
+      async () =>
+        provider({ host: 'unexpected.example.com', reason: 'refresh' }),
+      /unexpected GitHub host/
+    )
+    await accountsStore.removeAccount(account)
+    await accountsStore.addAccount(account, {
+      accessToken: 'new-access',
+      refreshToken: 'replacement-refresh',
+      expiresAt: now + 8 * 60 * 60 * 1000,
+    })
+    await assert.rejects(
+      async () => provider({ host: 'github.com', reason: 'refresh' }),
+      AccountRequiresSignInError
+    )
+    await client.stop()
+  })
+
+  for (const kind of ['legacy', 'byok'] as const) {
+    it(`omits the assisted session token provider for ${kind} authentication`, async t => {
+      const { store, createSession, sessionCreationStopped, renewals } =
+        await setup(
+          t,
+          kind === 'legacy'
+            ? { accessToken: account.token }
+            : {
+                accessToken: account.token,
+                refreshToken: 'old-refresh',
+                expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+              }
+        )
+      const client = await store.createPlanningClient(account)
+      const provider =
+        kind === 'byok'
+          ? ({ type: 'openai', baseUrl: 'http://127.0.0.1:1' } as const)
+          : undefined
+      await assert.rejects(
+        client.createSession({
+          model: 'synthetic-model',
+          availableTools: [],
+          provider,
+        }),
+        error => error === sessionCreationStopped
+      )
+      const config = createSession.mock.calls[0].arguments[0]
+      assert.equal(config.gitHubTokenProvider, undefined)
+      assert.equal(config.gitHubToken, undefined)
+      assert.deepEqual(config.provider, provider)
+      assert.equal(clientOptions[0].gitHubToken, account.token)
+      assert.equal(renewals(), 0)
+      await client.stop()
+    })
+  }
+
+  it('cancels assisted client renewal promptly without retiring shared renewal or leaking a late client', async t => {
+    let clock = now
+    t.mock.method(Date, 'now', () => clock)
+    const { accountsStore, store, createSession, renewals } = await setup(t, {
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: now + 20 * 60 * 1000,
+    })
+    const forceStop = t.mock.method(
+      copilotSdk.CopilotClient.prototype,
+      'forceStop',
+      async () => {}
+    )
+    const lease = await accountsStore.leaseAccountToken(account, 'git')
+    t.after(lease.release)
+    clock += 11 * 60 * 1000
+    const started = createDeferred<void>()
+    const originalFactory = accountsStore.createTokenGetter.bind(accountsStore)
+    t.mock.method(
+      accountsStore,
+      'createTokenGetter',
+      (original: Account, margin?: number) => {
+        const getToken = originalFactory(original, margin)
+        return () => {
+          started.resolve()
+          return getToken()
+        }
+      }
+    )
+    const controller = new AbortController()
+    let cancelled = false
+    const cancellation = assert
+      .rejects(
+        store.proposeAssistedCommitPlan(
+          account,
+          assistedFixtures.syntheticAnalysis,
+          '/repository',
+          {
+            request: assistedFixtures.syntheticBYOKRequest(),
+            signal: controller.signal,
+          }
+        ),
+        assistedFixtures.assertPlanningError('cancelled')
+      )
+      .then(() => {
+        cancelled = true
+      })
+    await started.promise
+    const otherConsumer = accountsStore.getAccountWithFreshToken(account)
+    controller.abort()
+    try {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(cancelled, true)
+      assert.equal(clientOptions.length, 0)
+      assert.equal(renewals(), 0)
+    } finally {
+      lease.release()
+      await cancellation
+      assert.equal((await otherConsumer).token, 'new-access')
+    }
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(clientOptions.length, 1)
+    assert.equal(clientOptions[0].gitHubToken, 'new-access')
+    assert.equal(createSession.mock.callCount(), 0)
+    assert.equal(forceStop.mock.callCount(), 1)
+    assert.equal(renewals(), 1)
+  })
+
+  for (const refreshable of [false, true]) {
+    it(`rejects assisted ${
+      refreshable ? 'refreshable' : 'legacy'
+    } client setup after sign-in replacement with the same access token`, async t => {
+      t.mock.method(Date, 'now', () => now)
+      const { accountsStore, store, createSession, renewals } = await setup(
+        t,
+        refreshable
+          ? {
+              accessToken: account.token,
+              refreshToken: 'old-refresh',
+              expiresAt: now + 2 * 60 * 60 * 1000,
+            }
+          : { accessToken: account.token }
+      )
+      runtimePathExists = async () => {
+        await accountsStore.removeAccount(account)
+        await accountsStore.addAccount(account, {
+          accessToken: account.token,
+          refreshToken: 'replacement-refresh',
+          expiresAt: now + 8 * 60 * 60 * 1000,
+        })
+        return true
+      }
+      await assert.rejects(
+        store.proposeAssistedCommitPlan(
+          account,
+          assistedFixtures.syntheticAnalysis,
+          '/repository',
+          {
+            request: assistedFixtures.syntheticBYOKRequest(),
+          }
+        ),
+        AccountRequiresSignInError
+      )
+      assert.equal(clientOptions.length, 0)
+      assert.equal(createSession.mock.callCount(), 0)
+      assert.equal(renewals(), 0)
+    })
+  }
 
   it('keeps static client authentication and omits the provider for legacy tokens', async t => {
     const { createSession, generate, sessionCreationStopped, renewals } =
