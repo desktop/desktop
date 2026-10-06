@@ -590,7 +590,7 @@ describe('CopilotStore commit message generation cancellation', () => {
     const account = makeAccount()
     const models = [makeModel({ id: DefaultCopilotModel, name: 'Default' })]
     const deferred = createDeferred<ReadonlyArray<Model>>()
-    const { accountsStore, store, createClientAccounts } =
+    const { accountsStore, store, createClientAccounts, stopCount } =
       createCopilotStoreWithModels(() => deferred.promise)
 
     await accountsStore.addAccount(account)
@@ -605,12 +605,26 @@ describe('CopilotStore commit message generation cancellation', () => {
       controller.signal
     )
 
+    const sharedDiscovery = store.listModels(account)
+    let cancelled = false
+    const cancellation = assert
+      .rejects(generation, assertCommitMessageGenerationCancelled)
+      .then(() => {
+        cancelled = true
+      })
     controller.abort()
-    deferred.resolve(models)
+    try {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.strictEqual(cancelled, true)
+      assert.strictEqual(stopCount(), 0)
+    } finally {
+      deferred.resolve(models)
+      await cancellation
+    }
 
-    await assert.rejects(generation, assertCommitMessageGenerationCancelled)
-
+    assert.strictEqual(await sharedDiscovery, models)
     assert.strictEqual(createClientAccounts.length, 1)
+    assert.strictEqual(stopCount(), 1)
   })
 
   it('stops the client without creating a session after cancellation before session creation', async () => {
@@ -1213,6 +1227,8 @@ describe('runConflictResolutionTurn', () => {
 describe('CopilotStore conflict resolution', () => {
   it('returns an empty result when every conflicted file was skipped', async () => {
     const store = new CopilotStore(createAccountsStore())
+    const controller = new AbortController()
+    controller.abort()
     const result = await store.resolveConflicts(
       makeAccount(),
       {
@@ -1229,7 +1245,10 @@ describe('CopilotStore conflict resolution', () => {
         ourCommits: [],
         theirCommits: [],
       },
-      '/repository'
+      '/repository',
+      undefined,
+      undefined,
+      controller.signal
     )
 
     assert.deepStrictEqual(result, {

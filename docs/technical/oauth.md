@@ -115,6 +115,14 @@ Copilot does not hold a token lease for the duration of an invocation. Preflight
 alignment does not protect an SDK request that is already running: a long-running
 invocation can still fail if another consumer rotates and revokes its token.
 
+Commit-message generation and conflict resolution cancel their own waits for
+client preparation and SDK session creation without waiting for Git leases to
+end. Generation also cancels its wait for shared model discovery. Shared discovery
+and credential renewal continue, and cancellation does not release another
+operation's token lease. Clients and sessions returned after cancellation are
+stopped or disconnected once. Conflict cancellation remains an abort rather than
+a transport failure or a retry.
+
 ### Failure and recovery
 
 - Temporary network/service failures retain credentials, fail the operation
