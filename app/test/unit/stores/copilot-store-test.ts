@@ -1227,6 +1227,8 @@ describe('runConflictResolutionTurn', () => {
 describe('CopilotStore conflict resolution', () => {
   it('returns an empty result when every conflicted file was skipped', async () => {
     const store = new CopilotStore(createAccountsStore())
+    const controller = new AbortController()
+    controller.abort()
     const result = await store.resolveConflicts(
       makeAccount(),
       {
@@ -1243,7 +1245,10 @@ describe('CopilotStore conflict resolution', () => {
         ourCommits: [],
         theirCommits: [],
       },
-      '/repository'
+      '/repository',
+      undefined,
+      undefined,
+      controller.signal
     )
 
     assert.deepStrictEqual(result, {
