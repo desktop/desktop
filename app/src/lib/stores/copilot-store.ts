@@ -1361,6 +1361,9 @@ export class CopilotStore extends BaseStore {
     if (filesTotal === 0) {
       return { resolutions: [], summary: null, references: [] }
     }
+    if (signal?.aborted) {
+      throw new CopilotConflictResolutionAbortError()
+    }
 
     onProgress?.({ filesResolved: 0, filesTotal })
 
@@ -1374,8 +1377,15 @@ export class CopilotStore extends BaseStore {
     const clientTimer = startTimer('createClient')
     let client: CopilotClient
     try {
-      client = await this.createClient(account, repositoryPath)
+      client = await this.withCancellation(
+        () => this.createClient(account, repositoryPath),
+        signal,
+        lateClient => this.stopClient(lateClient)
+      )
     } catch (error) {
+      if (error instanceof CommitMessageGenerationCancelledError) {
+        throw new CopilotConflictResolutionAbortError()
+      }
       throw new CopilotConflictResolutionError(error, 'create-client')
     }
     clientTimer.done()
@@ -1533,23 +1543,27 @@ export class CopilotStore extends BaseStore {
         const sessionTimer = startTimer(
           `createSession (attempt ${attempt + 1})`
         )
-        const session = await this.createSession(client, {
-          clientName: CopilotClientNames['conflict-resolution'],
-          model: modelConfig.modelId,
-          reasoningEffort: modelConfig.reasoningEffort,
-          provider: modelConfig.provider,
-          streaming: true,
-          availableTools: [],
-          enableSessionStore: false,
-          createSessionFsProvider: createCopilotInMemorySessionFsProvider,
-          systemMessage: {
-            mode: 'append',
-            content: ConflictResolutionSystemPrompt,
+        const session = await this.createCancellableSession(
+          client,
+          {
+            clientName: CopilotClientNames['conflict-resolution'],
+            model: modelConfig.modelId,
+            reasoningEffort: modelConfig.reasoningEffort,
+            provider: modelConfig.provider,
+            streaming: true,
+            availableTools: [],
+            enableSessionStore: false,
+            createSessionFsProvider: createCopilotInMemorySessionFsProvider,
+            systemMessage: {
+              mode: 'append',
+              content: ConflictResolutionSystemPrompt,
+            },
+            onPermissionRequest: async () => ({
+              kind: 'reject',
+            }),
           },
-          onPermissionRequest: async () => ({
-            kind: 'reject',
-          }),
-        })
+          signal
+        )
         sessionTimer.done()
 
         // The user may have cancelled while the session was being created. Tear
@@ -1596,6 +1610,9 @@ export class CopilotStore extends BaseStore {
           references: parsed.references,
         }
       } catch (e) {
+        if (e instanceof CommitMessageGenerationCancelledError) {
+          throw new CopilotConflictResolutionAbortError()
+        }
         lastError = e instanceof Error ? e : new Error(String(e))
         lastStage = stage
 
