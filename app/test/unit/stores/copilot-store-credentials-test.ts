@@ -33,6 +33,19 @@ const account = new Account(
 const clientOptions: CopilotClientOptions[] = []
 let createStore: (accountsStore: AccountsStore) => CopilotStore
 let runtimePathExists: () => Promise<boolean> = async () => true
+let assertGenerationCancelled: (error: unknown) => boolean
+
+function createDeferred<T>() {
+  let resolveValue: ((value: T) => void) | undefined
+  const promise = new Promise<T>(resolve => {
+    resolveValue = resolve
+  })
+  const resolve = (value: T) => {
+    assert.ok(resolveValue)
+    resolveValue(value)
+  }
+  return { promise, resolve }
+}
 
 function enablePreviewFeatures(t: TestContext) {
   const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
@@ -82,13 +95,16 @@ async function setup(t: TestContext, credential: IOAuthToken) {
       kind: 'byok',
       modelId: 'test-model',
       provider: { type: 'openai', baseUrl: 'https://example.com' },
-    }
+    },
+    signal?: AbortSignal
   ) =>
     store.generateCommitMessage(
       original,
       'diff --git a/file b/file',
       '/repository',
-      request
+      request,
+      undefined,
+      signal
     )
 
   return {
@@ -116,10 +132,13 @@ describe('CopilotStore session credential wiring', () => {
     mock.module('../../../src/lib/path-exists', {
       namedExports: { pathExists: () => runtimePathExists() },
     })
-    const { CopilotStore } = await import(
-      '../../../src/lib/stores/copilot-store'
-    )
+    const { CopilotStore, CommitMessageGenerationCancelledError } =
+      await import('../../../src/lib/stores/copilot-store')
     createStore = accountsStore => new CopilotStore(accountsStore)
+    assertGenerationCancelled = error => {
+      assert.ok(error instanceof CommitMessageGenerationCancelledError)
+      return true
+    }
   })
 
   beforeEach(() => {
@@ -128,6 +147,98 @@ describe('CopilotStore session credential wiring', () => {
   })
 
   after(() => mock.restoreAll())
+
+  it('cancels a leased-token wait promptly without cancelling another consumer', async t => {
+    let clock = now
+    t.mock.method(Date, 'now', () => clock)
+    const { accountsStore, createSession, generate, stop, renewals } =
+      await setup(t, {
+        accessToken: account.token,
+        refreshToken: 'old-refresh',
+        expiresAt: now + 20 * 60 * 1000,
+      })
+    const lease = await accountsStore.leaseAccountToken(account, 'git')
+    t.after(lease.release)
+    clock += 11 * 60 * 1000
+    const started = createDeferred<void>()
+    const originalFactory = accountsStore.createTokenGetter.bind(accountsStore)
+    t.mock.method(
+      accountsStore,
+      'createTokenGetter',
+      (original: Account, margin?: number) => {
+        const getToken = originalFactory(original, margin)
+        return () => {
+          started.resolve()
+          return getToken()
+        }
+      }
+    )
+    const controller = new AbortController()
+    let cancelled = false
+    const cancellation = assert
+      .rejects(
+        generate(account, undefined, controller.signal),
+        assertGenerationCancelled
+      )
+      .then(() => {
+        cancelled = true
+      })
+    await started.promise
+    const otherConsumer = accountsStore.getAccountWithFreshToken(account)
+    controller.abort()
+    try {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(cancelled, true)
+      assert.equal(clientOptions.length, 0)
+      assert.equal(stop.mock.callCount(), 0)
+      assert.equal(renewals(), 0)
+    } finally {
+      lease.release()
+      await cancellation
+      assert.equal((await otherConsumer).token, 'new-access')
+    }
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(clientOptions.length, 1)
+    assert.equal(clientOptions[0].gitHubToken, 'new-access')
+    assert.equal(stop.mock.callCount(), 1)
+    assert.equal(createSession.mock.callCount(), 0)
+    assert.equal(renewals(), 1)
+  })
+
+  it('handles runtime preparation failure returned after cancellation', async t => {
+    const { generate, createSession, stop } = await setup(t, {
+      accessToken: account.token,
+    })
+    const started = createDeferred<void>()
+    const runtime = createDeferred<boolean>()
+    runtimePathExists = () => {
+      started.resolve()
+      return runtime.promise
+    }
+    const controller = new AbortController()
+    let cancelled = false
+    const cancellation = assert
+      .rejects(
+        generate(account, undefined, controller.signal),
+        assertGenerationCancelled
+      )
+      .then(() => {
+        cancelled = true
+      })
+    await started.promise
+    controller.abort()
+    try {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(cancelled, true)
+    } finally {
+      runtime.resolve(false)
+      await cancellation
+    }
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(clientOptions.length, 0)
+    assert.equal(createSession.mock.callCount(), 0)
+    assert.equal(stop.mock.callCount(), 0)
+  })
 
   it('passes an invokable, rotating token provider to the SDK session', async t => {
     let clock = now
