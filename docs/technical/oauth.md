@@ -76,7 +76,11 @@ signed in. It shouldn't be passed merely because an account is available.
   more than one account has access. If none has access, cloning proceeds
   anonymously and the repository remains unassigned. A private clone that
   requires authentication fails normally; sign in with an account that has
-  access before retrying.
+  access before retrying. Cloning from the GitHub.com or GitHub Enterprise tab
+  uses only the account selected in that tab's picker. Desktop never falls back
+  to another account on the same endpoint, so the clone fails if the selected
+  account lacks access. Publishing likewise uses the account selected in its
+  picker.
 - **Account-dependent caches (included):** isolate repository permissions, pull request
   metadata, and check subscriptions between assigned identities.
 - **SSH identity selection (deferred):** SSH continues to use the user's SSH

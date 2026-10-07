@@ -13,3 +13,17 @@ export type CloneOptions = {
    */
   readonly fallbackAccount?: IAccountIdentity
 }
+
+/** Options for cloning a repository through the app. */
+export type CloneRepositoryOptions = {
+  /** The branch to checkout after the clone has completed. */
+  readonly branch?: string
+  /** The default branch name in case we're cloning an empty repository. */
+  readonly defaultBranch?: string
+  /**
+   * The account the user explicitly chose to clone with. Only this account
+   * is considered: if it can't access the repository the clone fails rather
+   * than using another account that happens to have access.
+   */
+  readonly account?: IAccountIdentity
+}

@@ -263,6 +263,7 @@ import {
 } from '../repository-matching'
 import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
+import { CloneRepositoryOptions } from '../../models/clone-options'
 import {
   Default as DefaultShell,
   findShellOrDefault,
@@ -410,7 +411,7 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
-import { compare } from '../compare'
+import { caseInsensitiveEquals, compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import {
@@ -5820,7 +5821,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _clone(
     url: string,
     path: string,
-    options: { branch?: string; defaultBranch?: string } = {}
+    options: CloneRepositoryOptions = {}
   ): {
     promise: Promise<boolean>
     repository: CloningRepository
@@ -5830,11 +5831,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       path,
       options,
       async () => {
-        const { chooseAccountForRemoteRepository } = await import(
-          '../repository-matching'
-        )
+        const {
+          chooseAccountForRemoteRepository,
+          probeRemoteRepositoryAccounts,
+        } = await import('../repository-matching')
+        const accounts = await this.accountsStore.getAll()
+        const { account } = options
+        if (account !== undefined) {
+          // Only the account the user chose may be used, even if it turns out
+          // not to have access and another account would.
+          const selected = accounts.filter(
+            a =>
+              a.endpoint === account.endpoint &&
+              caseInsensitiveEquals(a.login, account.login)
+          )
+          const [match] = await probeRemoteRepositoryAccounts(selected, url)
+          return match ?? null
+        }
         return chooseAccountForRemoteRepository(
-          await this.accountsStore.getAll(),
+          accounts,
           url,
           path,
           (repository, accounts) =>

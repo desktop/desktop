@@ -1,6 +1,9 @@
 import { CloningRepository } from '../../models/cloning-repository'
 import { ICloneProgress } from '../../models/progress'
-import { CloneOptions } from '../../models/clone-options'
+import {
+  CloneOptions,
+  CloneRepositoryOptions,
+} from '../../models/clone-options'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 
 import { clone as cloneRepo } from '../git'
@@ -32,7 +35,7 @@ export class CloningRepositoriesStore extends BaseStore {
   public async clone(
     url: string,
     path: string,
-    options: CloneOptions,
+    options: CloneRepositoryOptions,
     chooseAccount?: () => Promise<IAccessibleRepository | null | undefined>
   ): Promise<boolean> {
     const repository = new CloningRepository(path, url)
@@ -50,19 +53,19 @@ export class CloningRepositoriesStore extends BaseStore {
         this.remove(repository)
         return false
       }
-      if (assignment !== undefined) {
-        options = {
-          ...options,
-          fallbackAccount:
-            assignment === null
-              ? undefined
-              : {
-                  endpoint: assignment.account.endpoint,
-                  login: assignment.account.login,
-                },
-        }
+      const fallbackAccount =
+        assignment != null
+          ? {
+              endpoint: assignment.account.endpoint,
+              login: assignment.account.login,
+            }
+          : options.account
+      const cloneOptions: CloneOptions = {
+        branch: options.branch,
+        defaultBranch: options.defaultBranch,
+        fallbackAccount,
       }
-      await cloneRepo(url, path, options, progress => {
+      await cloneRepo(url, path, cloneOptions, progress => {
         this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })

@@ -235,6 +235,58 @@ describe('AppStore explicitly adding repositories', () => {
     assert.strictEqual(added[0].gitHubRepository?.permissions, 'write')
   })
 
+  describe('cloning with an explicitly selected account', () => {
+    async function chooseForClone(
+      t: TestContext,
+      accessible: ReadonlyArray<string>
+    ) {
+      const probed = new Array<string>()
+      t.mock.method(API, 'fromAccount', (account: Account) => {
+        probed.push(account.login)
+        return createMockAPI({
+          fetchRepository: async () =>
+            accessible.includes(account.login) ? apiRepository : null,
+        })
+      })
+      t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
+        assert.fail('The selected account must be used without prompting')
+      )
+      let choose: (() => Promise<unknown>) | undefined
+      t.mock.method(
+        stores.cloningRepositoriesStore,
+        'clone',
+        async (
+          _url: string,
+          _path: string,
+          _options: unknown,
+          chooseAccount: () => Promise<unknown>
+        ) => {
+          choose = chooseAccount
+          return true
+        }
+      )
+      appStore._clone('https://github.com/owner/repo', '/clone', {
+        account: { endpoint, login: 'BOB' },
+      })
+      assert.ok(choose)
+      return { assignment: await choose(), probed }
+    }
+
+    it('assigns the selected account when it has access', async t => {
+      const { assignment, probed } = await chooseForClone(t, ['alice', 'bob'])
+      assert.deepStrictEqual(probed, ['bob'])
+      assert.ok(assignment !== null && typeof assignment === 'object')
+      assert.ok('account' in assignment)
+      assert.deepStrictEqual(assignment.account, bob)
+    })
+
+    it('never uses another account when the selected one has no access', async t => {
+      const { assignment, probed } = await chooseForClone(t, ['alice'])
+      assert.deepStrictEqual(probed, ['bob'])
+      assert.strictEqual(assignment, null)
+    })
+  })
+
   for (const fork of [false, true]) {
     it(`uses the existing ${
       fork ? 'fork parent' : 'repository'

@@ -6,6 +6,7 @@ import {
   Account,
   isDotComAccount,
   isEnterpriseAccount,
+  isSameAccount,
 } from '../../models/account'
 import { FoldoutType } from '../../lib/app-state'
 import {
@@ -409,9 +410,7 @@ export class CloneRepository extends React.Component<
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
     const selectedAccount =
       (tabState.selectedAccount
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
-          )
+        ? tabAccounts.find(a => isSameAccount(a, tabState.selectedAccount))
         : undefined) ?? tabAccounts.at(0)
 
     return selectedAccount ?? null
@@ -744,7 +743,10 @@ export class CloneRepository extends React.Component<
       return { url }
     }
 
-    const account = await findAccountForRemoteURL(url, this.props.accounts)
+    const account =
+      this.props.selectedTab === CloneRepositoryTab.Generic
+        ? await findAccountForRemoteURL(url, this.props.accounts)
+        : this.getAccountForTab(this.props.selectedTab)
     if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const { owner, name } = lastParsedIdentifier
@@ -810,7 +812,21 @@ export class CloneRepository extends React.Component<
   }
 
   private cloneImpl(url: string, path: string, defaultBranch?: string) {
-    this.props.dispatcher.clone(url, path, { defaultBranch })
+    const { selectedTab } = this.props
+    const account =
+      selectedTab === CloneRepositoryTab.Generic
+        ? null
+        : this.getAccountForTab(selectedTab)
+    this.props.dispatcher.clone(
+      url,
+      path,
+      account === null
+        ? { defaultBranch }
+        : {
+            defaultBranch,
+            account: { endpoint: account.endpoint, login: account.login },
+          }
+    )
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

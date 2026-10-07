@@ -59,6 +59,7 @@ describe('CloningRepositoriesStore account selection', () => {
     assert.deepStrictEqual(clonedOptions, [
       {
         branch: 'feature',
+        defaultBranch: undefined,
         fallbackAccount: { endpoint: 'https://api.github.com', login: 'alice' },
       },
     ])
@@ -71,20 +72,42 @@ describe('CloningRepositoriesStore account selection', () => {
     assert.strictEqual(store.repositories.length, 0)
   })
 
-  it('retains an explicit null assignment without inheriting retry credentials', async () => {
+  it('clones without credentials when no account has access', async () => {
     const store = createStore()
     assert.strictEqual(
       await store.clone(
         'https://github.com/owner/repo',
         '/repo',
-        {
-          fallbackAccount: { endpoint: 'https://api.github.com', login: 'old' },
-        },
+        {},
         async () => null
       ),
       true
     )
-    assert.deepStrictEqual(clonedOptions, [{ fallbackAccount: undefined }])
+    assert.deepStrictEqual(clonedOptions, [
+      {
+        branch: undefined,
+        defaultBranch: undefined,
+        fallbackAccount: undefined,
+      },
+    ])
+    assert.strictEqual(store.takeCompletedAssignment('/repo'), null)
+  })
+
+  it('only uses the chosen account, even when it has no access', async () => {
+    const store = createStore()
+    const account = { endpoint: 'https://api.github.com', login: 'bob' }
+    assert.strictEqual(
+      await store.clone(
+        'https://github.com/owner/repo',
+        '/repo',
+        { account },
+        async () => null
+      ),
+      true
+    )
+    assert.deepStrictEqual(clonedOptions, [
+      { branch: undefined, defaultBranch: undefined, fallbackAccount: account },
+    ])
     assert.strictEqual(store.takeCompletedAssignment('/repo'), null)
   })
 

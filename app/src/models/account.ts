@@ -35,6 +35,14 @@ export function getAccountKey(account: IAccountIdentity): string {
   return `${account.endpoint}/users/${account.login}`.toLowerCase()
 }
 
+/** Whether both refer to the same account, by endpoint and login. */
+export function isSameAccount(
+  x: IAccountIdentity,
+  y: IAccountIdentity | null | undefined
+): boolean {
+  return y != null && getAccountKey(x) === getAccountKey(y)
+}
+
 /**
  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
  *
