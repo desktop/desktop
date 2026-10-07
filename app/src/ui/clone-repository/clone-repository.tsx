@@ -37,6 +37,10 @@ import { groupAccountsByHost } from '../../lib/group-accounts-by-host'
 import { SignInResult } from '../../lib/stores/sign-in-store'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
+import {
+  canonicalMutationPath,
+  isRepositoryAffectedByAssistedCommit,
+} from '../../lib/git/repository-operation'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -171,6 +175,11 @@ export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
   ICloneRepositoryState
 > {
+  private validatedClonePath:
+    | { readonly path: string; readonly canonical: string }
+    | undefined
+  private cloneDestinationProtected = false
+
   private checkIsTopMostDialog = isTopMostDialog(
     () => {
       this.validatePath()
@@ -248,6 +257,11 @@ export class CloneRepository extends React.Component<
       this.resetGitHubTabSelectionIfAccountChanged(this.getSelectedAccount())
     }
 
+    const protectedDestination = this.isCloneDestinationProtected()
+    if (this.cloneDestinationProtected !== protectedDestination) {
+      this.cloneDestinationProtected = protectedDestination
+      this.validatePath()
+    }
     this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
@@ -323,10 +337,23 @@ export class CloneRepository extends React.Component<
       url.length === 0 ||
       path == null ||
       path.length === 0 ||
+      this.isCloneDestinationProtected() ||
       loading ||
       error !== null
 
     return disabled
+  }
+
+  private isCloneDestinationProtected(): boolean {
+    const { path } = this.getSelectedTabState()
+    if (path === null) {
+      return false
+    }
+    return isRepositoryAffectedByAssistedCommit(
+      this.validatedClonePath?.path === path
+        ? this.validatedClonePath.canonical
+        : path
+    )
   }
 
   private renderFooter() {
@@ -717,6 +744,15 @@ export class CloneRepository extends React.Component<
     }
 
     try {
+      const canonical = await canonicalMutationPath(path)
+      if (this.getSelectedTabState().path === path) {
+        this.validatedClonePath = { path, canonical }
+      }
+      if (isRepositoryAffectedByAssistedCommit(canonical)) {
+        return new Error(
+          'Finish or cancel the assisted commit run before cloning into this directory.'
+        )
+      }
       const directoryFiles = await readdir(path)
 
       if (directoryFiles.length === 0) {
@@ -824,6 +860,12 @@ export class CloneRepository extends React.Component<
 
     const { url, defaultBranch } = cloneInfo
 
+    const currentPathError = await this.validateClonePath(path)
+    if (currentPathError !== null) {
+      this.setState({ loading: false })
+      this.setSelectedTabState({ error: currentPathError })
+      return
+    }
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
       this.cloneImpl(request, url.trim(), path, defaultBranch)

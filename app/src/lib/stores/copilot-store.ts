@@ -1034,6 +1034,11 @@ export class CopilotStore extends BaseStore {
     })
   }
 
+  /** Whether the packaged SDK runtime needed for assisted commit planning is installed. */
+  public async isAssistedCommitRuntimeAvailable(): Promise<boolean> {
+    return pathExists(getCopilotRuntimePath(join(__dirname, 'copilot')))
+  }
+
   /** Reuse current session-bound authentication with the planner's isolated runtime policy. */
   protected async createAssistedCommitClient(
     account: Account,

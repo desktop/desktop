@@ -57,7 +57,10 @@ export class RepositoryStateCache {
       // Worktrees retain separate state while sharing the repository's preference.
       const reconciled = {
         ...existing,
-        changesState: { ...existing.changesState, commitMode },
+        changesState: {
+          ...existing.changesState,
+          commitMode,
+        },
       }
       this.repositoryState.set(stateKey, reconciled)
       return reconciled
@@ -407,6 +410,8 @@ function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
       },
       commitMessage: DefaultCommitMessage,
       commitMode,
+      assistedCommit: { kind: 'idle' },
+      assistedCommitAvailable: false,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,

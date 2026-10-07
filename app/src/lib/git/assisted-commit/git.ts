@@ -1,4 +1,4 @@
-import { Stats } from 'fs'
+import { Stats, lstatSync } from 'fs'
 import { exec } from 'dugite'
 import {
   lstat,
@@ -318,6 +318,79 @@ export async function verifySelectedFiles(
       throw new AssistedCommitError(
         'selection-changed',
         `Selected file changed during the run: ${JSON.stringify(
+          file.file.path
+        )}`
+      )
+    }
+  }
+  await Promise.all(
+    data.files.map(async file => {
+      const current = await optionalStat(
+        join(data.snapshot.repositoryPath, file.file.path)
+      )
+      const expected = file.state
+      const matches =
+        expected.kind === 'missing'
+          ? current === null
+          : current !== null &&
+            (current.mode & 0o111) === expected.mode &&
+            (expected.kind === 'directory'
+              ? current.isDirectory()
+              : (expected.kind === 'file' || expected.kind === 'symlink') &&
+                (expected.kind === 'symlink'
+                  ? current.isSymbolicLink()
+                  : current.isFile()) &&
+                current.dev === expected.dev &&
+                current.ino === expected.ino &&
+                current.mtimeMs === expected.mtimeMs &&
+                current.ctimeMs === expected.ctimeMs)
+      if (!matches) {
+        throw new AssistedCommitError(
+          'selection-changed',
+          `Selected file changed across verification: ${JSON.stringify(
+            file.file.path
+          )}`
+        )
+      }
+    })
+  )
+  verifySelectedFileVersionsSync(data)
+}
+
+/** Non-yielding final backing fence after all awaited selected content/metadata reads. */
+function verifySelectedFileVersionsSync(data: IAssistedCommitData): void {
+  for (const file of data.files) {
+    let current: Stats | null
+    try {
+      // eslint-disable-next-line no-sync
+      current = lstatSync(join(data.snapshot.repositoryPath, file.file.path))
+    } catch (error) {
+      if (isErrnoException(error) && error.code === 'ENOENT') {
+        current = null
+      } else {
+        throw error
+      }
+    }
+    const expected = file.state
+    const matches =
+      expected.kind === 'missing'
+        ? current === null
+        : current !== null &&
+          (current.mode & 0o111) === expected.mode &&
+          (expected.kind === 'directory'
+            ? current.isDirectory()
+            : (expected.kind === 'file' || expected.kind === 'symlink') &&
+              (expected.kind === 'symlink'
+                ? current.isSymbolicLink()
+                : current.isFile()) &&
+              current.dev === expected.dev &&
+              current.ino === expected.ino &&
+              current.mtimeMs === expected.mtimeMs &&
+              current.ctimeMs === expected.ctimeMs)
+    if (!matches) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        `Selected file changed at final acceptance fence: ${JSON.stringify(
           file.file.path
         )}`
       )

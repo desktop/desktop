@@ -117,18 +117,25 @@ export class CommitMessageAvatar extends React.Component<
       accountEmail: this.props.preferredAccountEmail,
       isGitConfigLocal: false,
     }
-    this.determineGitConfigLocation()
+    if (props.isActive !== false) {
+      this.determineGitConfigLocation()
+    }
   }
 
   public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
+    if (this.props.isActive === false && prevProps.isActive !== false) {
+      this.gitConfigLocationRequestID++
+    }
     if (this.props.isActive === false && this.state.isPopoverOpen) {
       this.closePopover()
     }
 
     if (
-      this.props.user?.name !== prevProps.user?.name ||
-      this.props.user?.email !== prevProps.user?.email ||
-      this.props.repository.path !== prevProps.repository.path
+      this.props.isActive !== false &&
+      (prevProps.isActive === false ||
+        this.props.user?.name !== prevProps.user?.name ||
+        this.props.user?.email !== prevProps.user?.email ||
+        this.props.repository.path !== prevProps.repository.path)
     ) {
       this.determineGitConfigLocation()
     }
@@ -147,7 +154,7 @@ export class CommitMessageAvatar extends React.Component<
 
   private async determineGitConfigLocation() {
     const requestID = ++this.gitConfigLocationRequestID
-    const isGitConfigLocal = await this.isGitConfigLocal()
+    const isGitConfigLocal = await this.isGitConfigLocal(requestID)
     if (
       this.avatarButtonRef !== null &&
       requestID === this.gitConfigLocationRequestID
@@ -156,9 +163,15 @@ export class CommitMessageAvatar extends React.Component<
     }
   }
 
-  private isGitConfigLocal = async () => {
+  private isGitConfigLocal = async (requestID: number) => {
     const { repository } = this.props
     const localName = await getConfigValue(repository, 'user.name', true)
+    if (
+      requestID !== this.gitConfigLocationRequestID ||
+      this.props.isActive === false
+    ) {
+      return false
+    }
     const localEmail = await getConfigValue(repository, 'user.email', true)
     return localName !== null || localEmail !== null
   }
