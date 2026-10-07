@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import { createHash } from 'crypto'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
+import { pathToFileURL } from 'url'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 import { exec } from 'dugite'
 import { promises as FileSystem } from 'fs'
@@ -11,11 +12,12 @@ import {
   lstat,
   mkdir,
   readFile,
+  realpath,
   symlink,
   unlink,
   writeFile,
 } from 'fs/promises'
-import { basename, join } from 'path'
+import { basename, dirname, join } from 'path'
 import {
   AssistedCommitError,
   captureAssistedCommitSnapshot,
@@ -46,6 +48,7 @@ import { createTempDirectory } from '../../helpers/temp'
 import {
   commitBytes,
   count,
+  createPathMatcher,
   indexPath,
   optionalBytes,
   rawGit,
@@ -61,9 +64,45 @@ import {
   withRefLock,
 } from '../../../src/lib/git/update-ref'
 
+const FilterDirectoryIdentityCheck = [
+  "const assert = require('node:assert/strict')",
+  "const fs = require('node:fs')",
+  'const cwd = fs.statSync(process.cwd(), { bigint: true })',
+  'const worktree = fs.statSync(process.env.GIT_WORK_TREE, { bigint: true })',
+  'assert.equal(cwd.dev, worktree.dev)',
+  'assert.equal(cwd.ino, worktree.ino)',
+  "assert.ok(fs.existsSync('context-marker'))",
+].join('\n')
+
 describe('git/assisted-commit', () => {
   beforeEach(() => setHooksEnvEnabled(false))
   afterEach(() => localStorage.removeItem('git-hooks-env-enabled'))
+
+  it('matches only the exact physical fault target across aliases and missing suffixes', async t => {
+    const directory = await createTempDirectory(t)
+    const alias = join(await createTempDirectory(t), 'directory-alias')
+    const other = await createTempDirectory(t)
+    await symlink(
+      await realpath(directory),
+      alias,
+      process.platform === 'win32' ? 'junction' : 'dir'
+    )
+    await writeFile(join(directory, 'existing'), 'owned')
+    for (const name of ['existing', 'index.lock', 'missing/attributes']) {
+      const target = join(directory, name)
+      const matches = await createPathMatcher(target)
+      assert.ok(await matches(join(alias, name)))
+      assert.ok(await matches(join(alias, name).replace(/\\/g, '/')))
+      assert.ok(await matches(Buffer.from(target)))
+      assert.ok(await matches(pathToFileURL(target)))
+      assert.ok(!(await matches(join(other, name))))
+      assert.ok(!(await matches(join(directory, `${name}.unrelated`))))
+      assert.ok(!(await matches({ path: target })))
+      if (process.platform === 'win32' && name === 'existing') {
+        assert.ok(await matches(target.toUpperCase()))
+      }
+    }
+  })
 
   it('commits a cohesive frozen selection and leaves unselected bytes and HEAD content alone', async t => {
     const repository = await seed(t, { selected: 'old\n', other: 'original\n' })
@@ -2393,65 +2432,79 @@ describe('git/assisted-commit', () => {
     }
   )
 
-  it('holds the final owned HEAD across index synchronization', async t => {
-    const repository = await seed(t, { file: 'old\n', other: 'base\n' })
-    await writeFile(join(repository.path, 'other'), 'pre-run staging\n')
-    await rawGit(repository, ['add', '--', 'other'])
-    await writeFile(join(repository.path, 'file'), 'selected\n')
-    const input = await request(repository, ['file'])
-    const realIndex = await indexPath(repository)
-    const originalRename = FileSystem.rename
-    let attemptCode: number | undefined
-    t.mock.method(
-      FileSystem,
-      'rename',
-      async (
-        source: Parameters<typeof FileSystem.rename>[0],
-        destination: Parameters<typeof FileSystem.rename>[1]
-      ) => {
-        if (destination === realIndex) {
-          let childExited = false
-          try {
-            await exec(['update-ref', '--stdin'], repository.path, {
-              processCallback: process => {
-                process.stdin?.write('start\n')
-                setTimeout(() => {
-                  if (process.pid !== undefined && process.exitCode === null) {
-                    globalThis.process.kill(process.pid, 'SIGTERM')
-                  }
-                }, 10)
-              },
-            })
-          } catch (error) {
-            assert.ok(error instanceof Error)
-            childExited = true
+  for (const spelling of ['git-output', 'directory-alias']) {
+    it(`holds the final owned HEAD across index synchronization (${spelling})`, async t => {
+      const repository = await seed(t, { file: 'old\n', other: 'base\n' })
+      await writeFile(join(repository.path, 'other'), 'pre-run staging\n')
+      await rawGit(repository, ['add', '--', 'other'])
+      await writeFile(join(repository.path, 'file'), 'selected\n')
+      const input = await request(repository, ['file'])
+      const actualIndex = await indexPath(repository)
+      const alias = join(await createTempDirectory(t), 'metadata-alias')
+      await symlink(
+        await realpath(dirname(actualIndex)),
+        alias,
+        process.platform === 'win32' ? 'junction' : 'dir'
+      )
+      const realIndex =
+        spelling === 'directory-alias' ? join(alias, 'index') : actualIndex
+      const matchesIndex = await createPathMatcher(realIndex)
+      const originalRename = FileSystem.rename
+      let attemptCode: number | undefined
+      t.mock.method(
+        FileSystem,
+        'rename',
+        async (
+          source: Parameters<typeof FileSystem.rename>[0],
+          destination: Parameters<typeof FileSystem.rename>[1]
+        ) => {
+          if (await matchesIndex(destination)) {
+            let childExited = false
+            try {
+              await exec(['update-ref', '--stdin'], repository.path, {
+                processCallback: process => {
+                  process.stdin?.write('start\n')
+                  setTimeout(() => {
+                    if (
+                      process.pid !== undefined &&
+                      process.exitCode === null
+                    ) {
+                      globalThis.process.kill(process.pid, 'SIGTERM')
+                    }
+                  }, 10)
+                },
+              })
+            } catch (error) {
+              assert.ok(error instanceof Error)
+              childExited = true
+            }
+            assert.ok(childExited)
+            const current = await tip(repository)
+            await rawGit(repository, [
+              'update-ref',
+              'refs/heads/external',
+              current,
+            ])
+            const attempt = await exec(
+              ['symbolic-ref', 'HEAD', 'refs/heads/external'],
+              repository.path
+            )
+            attemptCode = attempt.exitCode
           }
-          assert.ok(childExited)
-          const current = await tip(repository)
-          await rawGit(repository, [
-            'update-ref',
-            'refs/heads/external',
-            current,
-          ])
-          const attempt = await exec(
-            ['symbolic-ref', 'HEAD', 'refs/heads/external'],
-            repository.path
-          )
-          attemptCode = attempt.exitCode
+          return originalRename(source, destination)
         }
-        return originalRename(source, destination)
-      }
-    )
-    const result = await single(repository, input)
-    assert.notStrictEqual(attemptCode, undefined)
-    assert.notStrictEqual(attemptCode, 0)
-    assert.strictEqual(
-      await rawGit(repository, ['symbolic-ref', 'HEAD']),
-      'refs/heads/master'
-    )
-    assert.strictEqual(await tip(repository), result.commits[0])
-    finalizeAssistedCommitTransaction(result)
-  })
+      )
+      const result = await single(repository, input)
+      assert.notStrictEqual(attemptCode, undefined)
+      assert.notStrictEqual(attemptCode, 0)
+      assert.strictEqual(
+        await rawGit(repository, ['symbolic-ref', 'HEAD']),
+        'refs/heads/master'
+      )
+      assert.strictEqual(await tip(repository), result.commits[0])
+      finalizeAssistedCommitTransaction(result)
+    })
+  }
 
   it(
     'joins a guarded action when its Git process fails during asynchronous work',
@@ -2523,6 +2576,7 @@ describe('git/assisted-commit', () => {
       const originalIndex = await readFile(await indexPath(repository))
       const result = await single(repository, input)
       const realLock = `${await indexPath(repository)}.lock`
+      const matchesLock = await createPathMatcher(realLock)
       await writeHook(
         repository,
         'reference-transaction',
@@ -2536,7 +2590,7 @@ describe('git/assisted-commit', () => {
         'open',
         async (...args: Parameters<typeof FileSystem.open>) => {
           const handle = await originalOpen(...args)
-          if (args[0] === realLock) {
+          if (await matchesLock(args[0])) {
             const originalSync = handle.sync.bind(handle)
             t.mock.method(handle, 'sync', async () => {
               await originalSync()
@@ -2620,6 +2674,7 @@ describe('git/assisted-commit', () => {
     const input = await request(repository, ['file'])
     const originalIndex = await readFile(await indexPath(repository))
     const realIndex = await indexPath(repository)
+    const matchesIndex = await createPathMatcher(realIndex)
     const externalLock = `${realIndex}.lock`
     const controller = new AbortController()
     const originalRename = FileSystem.rename
@@ -2632,7 +2687,7 @@ describe('git/assisted-commit', () => {
         destination: Parameters<typeof FileSystem.rename>[1]
       ) => {
         await originalRename(source, destination)
-        if (destination === realIndex && !interrupted) {
+        if ((await matchesIndex(destination)) && !interrupted) {
           interrupted = true
           controller.abort()
           await writeFile(externalLock, 'external staging lock')
@@ -2650,6 +2705,10 @@ describe('git/assisted-commit', () => {
         assert.ok(error.recovery?.retryToken)
         return true
       }
+    )
+    assert.ok(
+      interrupted,
+      'Cancellation must occur after installing the real index'
     )
     assert.strictEqual(await tip(repository), original)
     await unlink(externalLock)
@@ -2877,13 +2936,14 @@ describe('git/assisted-commit', () => {
               target === 'HEAD' ? 'HEAD' : 'refs/heads/master',
             ])}.lock`
       const originalOpen = FileSystem.open
+      const matchesLock = await createPathMatcher(path)
       let failed = false
       t.mock.method(
         FileSystem,
         'open',
         async (...args: Parameters<typeof FileSystem.open>) => {
           const handle = await originalOpen(...args)
-          if (args[0] === path && !failed) {
+          if ((await matchesLock(args[0])) && !failed) {
             const originalStat = handle.stat.bind(handle)
             t.mock.method(handle, 'stat', async () => {
               if (!failed) {
@@ -3285,6 +3345,7 @@ describe('git/assisted-commit', () => {
     const repository = await seed(t, { 'a.txt': 'original\n' })
     const attributes = await rawGit(repository, ['var', 'GIT_ATTR_GLOBAL'])
     assert.ok(attributes.length > 0)
+    const matchesAttributes = await createPathMatcher(attributes)
     await writeFile(join(repository.path, 'a.txt'), 'SELECTED\r\n')
     const input = await request(repository, ['a.txt'])
     const originalRead = FileSystem.readFile
@@ -3293,7 +3354,7 @@ describe('git/assisted-commit', () => {
       FileSystem,
       'readFile',
       async (...args: Parameters<typeof FileSystem.readFile>) => {
-        if (args[0] === attributes) {
+        if (await matchesAttributes(args[0])) {
           reads++
           return Buffer.from(
             reads === 1 ? '*.txt -text\n' : '*.txt text eol=lf\n'
@@ -3376,6 +3437,7 @@ describe('git/assisted-commit', () => {
     const input = await request(repository, ['file'])
     const originalIndex = await readFile(await indexPath(repository))
     const realLock = `${await indexPath(repository)}.lock`
+    const matchesLock = await createPathMatcher(realLock)
     const originalOpen = FileSystem.open
     let closes = 0
     let descriptor: (() => number) | undefined
@@ -3390,7 +3452,7 @@ describe('git/assisted-commit', () => {
       'open',
       async (...args: Parameters<typeof FileSystem.open>) => {
         const handle = await originalOpen(...args)
-        if (args[0] === realLock) {
+        if (await matchesLock(args[0])) {
           const close = handle.close.bind(handle)
           descriptor = () => handle.fd
           closeOwnedHandle = close
@@ -3456,7 +3518,9 @@ describe('git/assisted-commit', () => {
         fault === 'HEAD-close'
           ? join(directory, 'HEAD.lock')
           : `${realIndex}.lock`
+      const matchesLock = await createPathMatcher(target)
       let failCleanup = true
+      let injected = 0
       const handles: Array<{
         readonly fd: () => number
         readonly close: () => Promise<void>
@@ -3474,7 +3538,8 @@ describe('git/assisted-commit', () => {
           FileSystem,
           'unlink',
           async (...args: Parameters<typeof FileSystem.unlink>) => {
-            if (args[0] === target && failCleanup) {
+            if ((await matchesLock(args[0])) && failCleanup) {
+              injected++
               throw new Error('Injected persistent owned-lock unlink EIO')
             }
             return originalUnlink(...args)
@@ -3487,11 +3552,12 @@ describe('git/assisted-commit', () => {
           'open',
           async (...args: Parameters<typeof FileSystem.open>) => {
             const handle = await originalOpen(...args)
-            if (args[0] === target) {
+            if (await matchesLock(args[0])) {
               const close = handle.close.bind(handle)
               handles.push({ fd: () => handle.fd, close })
               t.mock.method(handle, 'close', async () => {
                 if (failCleanup) {
+                  injected++
                   throw new Error('Injected persistent owned-lock close EIO')
                 }
                 return close()
@@ -3518,6 +3584,7 @@ describe('git/assisted-commit', () => {
           return error.code === 'recovery-failed'
         }
       )
+      assert.ok(injected > 0, 'Owned-lock cleanup fault must be exercised')
       const token = failure?.recovery?.retryToken
       assert.ok(token)
       assert.throws(
@@ -3526,11 +3593,16 @@ describe('git/assisted-commit', () => {
           error instanceof AssistedCommitError &&
           error.code === 'cleanup-failed'
       )
+      const beforeRetry = injected
       await assert.rejects(
         rollbackAssistedCommitTransaction(token),
         error =>
           error instanceof AssistedCommitError &&
           error.code === 'recovery-failed'
+      )
+      assert.ok(
+        injected > beforeRetry,
+        'Retry must exercise the same cleanup fault'
       )
       failCleanup = false
       const recovery = await rollbackAssistedCommitTransaction(token)
@@ -3560,10 +3632,12 @@ describe('git/assisted-commit', () => {
       ])
       const path =
         target === 'index' ? `${realIndex}.lock` : join(directory, 'HEAD.lock')
+      const matchesLock = await createPathMatcher(path)
       const originalOpen = FileSystem.open
       const originalUnlink = FileSystem.unlink
       let failFirstStat = true
       let failCleanup = true
+      let failedUnlinks = 0
       t.after(async () => {
         if ((await optionalBytes(path)) !== null) {
           await originalUnlink(path)
@@ -3574,7 +3648,7 @@ describe('git/assisted-commit', () => {
         'open',
         async (...args: Parameters<typeof FileSystem.open>) => {
           const handle = await originalOpen(...args)
-          if (args[0] === path) {
+          if (await matchesLock(args[0])) {
             const stat = handle.stat.bind(handle)
             t.mock.method(handle, 'stat', async () => {
               if (failFirstStat) {
@@ -3591,7 +3665,8 @@ describe('git/assisted-commit', () => {
         FileSystem,
         'unlink',
         async (...args: Parameters<typeof FileSystem.unlink>) => {
-          if (args[0] === path && failCleanup) {
+          if ((await matchesLock(args[0])) && failCleanup) {
+            failedUnlinks++
             throw new Error('Injected initialization cleanup unlink EIO')
           }
           return originalUnlink(...args)
@@ -3603,6 +3678,12 @@ describe('git/assisted-commit', () => {
         failure = error
         return error.code === 'recovery-failed'
       })
+      assert.strictEqual(
+        failFirstStat,
+        false,
+        'Initialization stat fault must fire'
+      )
+      assert.ok(failedUnlinks > 0, 'Initialization cleanup fault must fire')
       const token = failure?.recovery?.retryToken
       assert.ok(token)
       assert.ok((failure?.recovery?.errors.length ?? 0) > 0)
@@ -3691,8 +3772,10 @@ describe('git/assisted-commit', () => {
     const realIndex = await indexPath(repository)
     const originalIndex = await readFile(realIndex)
     const target = `${realIndex}.lock`
+    const matchesLock = await createPathMatcher(target)
     const originalOpen = FileSystem.open
     let failStat = true
+    let failedStats = 0
     let descriptor: (() => number) | undefined
     let closeOwnedHandle: (() => Promise<void>) | undefined
     t.after(async () => {
@@ -3705,12 +3788,13 @@ describe('git/assisted-commit', () => {
       'open',
       async (...args: Parameters<typeof FileSystem.open>) => {
         const handle = await originalOpen(...args)
-        if (args[0] === target) {
+        if (await matchesLock(args[0])) {
           const stat = handle.stat.bind(handle)
           descriptor = () => handle.fd
           closeOwnedHandle = handle.close.bind(handle)
           t.mock.method(handle, 'stat', async () => {
             if (failStat) {
+              failedStats++
               throw new Error('Injected persistent owned inode observation EIO')
             }
             return stat()
@@ -3725,6 +3809,7 @@ describe('git/assisted-commit', () => {
       failure = error
       return error.code === 'recovery-failed'
     })
+    assert.ok(failedStats > 0, 'Unknown-inode observation fault must fire')
     const token = failure?.recovery?.retryToken
     assert.ok(token)
     assert.notStrictEqual(descriptor?.(), -1)
@@ -3955,7 +4040,7 @@ describe('git/assisted-commit', () => {
       'filter.sh': [
         '#!/bin/sh',
         'set -eu',
-        'test "$(pwd)" = "$(cd "$GIT_WORK_TREE" && pwd)"',
+        'if ! test . -ef "$GIT_WORK_TREE"; then echo "filter cwd/worktree identity mismatch" >&2; exit 1; fi',
         'test -f context-marker',
         'test "$1" = "file \' spaced.txt"',
         'cat',
@@ -3970,6 +4055,30 @@ describe('git/assisted-commit', () => {
       'sh filter.sh %f',
     ])
     await rawGit(repository, ['config', 'filter.context.required', 'true'])
+    const alias = join(await createTempDirectory(t), 'worktree-alias')
+    await symlink(
+      await realpath(repository.path),
+      alias,
+      process.platform === 'win32' ? 'junction' : 'dir'
+    )
+    const args = [
+      '-c',
+      'filter.context.clean=GIT_WORK_TREE="$DESKTOP_TEST_FILTER_ROOT" sh filter.sh %f',
+      'hash-object',
+      '--stdin',
+      `--path=${path}`,
+    ]
+    const matching = await exec(args, repository.path, {
+      stdin: 'SELECTED\n',
+      env: { DESKTOP_TEST_FILTER_ROOT: alias },
+    })
+    assert.strictEqual(matching.exitCode, 0, matching.stderr)
+    const wrongRoot = await exec(args, repository.path, {
+      stdin: 'SELECTED\n',
+      env: { DESKTOP_TEST_FILTER_ROOT: await createTempDirectory(t) },
+    })
+    assert.notStrictEqual(wrongRoot.exitCode, 0)
+    assert.match(wrongRoot.stderr, /filter cwd\/worktree identity mismatch/)
     const result = await single(repository, input)
     assert.strictEqual(await count(repository), 2)
     assert.deepStrictEqual(
@@ -3984,10 +4093,7 @@ describe('git/assisted-commit', () => {
   })
   it('preserves persistent process-filter protocol and original root context for frozen input conversion', async t => {
     const script = [
-      "const assert = require('node:assert/strict')",
-      "const fs = require('node:fs')",
-      'assert.equal(process.cwd(), fs.realpathSync(process.env.GIT_WORK_TREE))',
-      "assert.ok(fs.existsSync('context-marker'))",
+      FilterDirectoryIdentityCheck,
       'function read(size) {',
       '  const bytes = Buffer.alloc(size)',
       '  let position = 0',
@@ -4056,6 +4162,29 @@ describe('git/assisted-commit', () => {
       Buffer.from('SELECTED\n')
     )
     finalizeAssistedCommitTransaction(result)
+  })
+  it('accepts physical directory aliases but rejects another process-filter worktree', async t => {
+    const directory = await createTempDirectory(t)
+    const script = join(directory, 'identity.cjs')
+    await writeFile(script, FilterDirectoryIdentityCheck)
+    await writeFile(join(directory, 'context-marker'), 'original root')
+    const alias = join(await createTempDirectory(t), 'worktree-alias')
+    await symlink(
+      await realpath(directory),
+      alias,
+      process.platform === 'win32' ? 'junction' : 'dir'
+    )
+    await promisify(execFile)(process.execPath, [script], {
+      cwd: directory,
+      env: { ...process.env, GIT_WORK_TREE: alias },
+    })
+    await assert.rejects(
+      promisify(execFile)(process.execPath, [script], {
+        cwd: directory,
+        env: { ...process.env, GIT_WORK_TREE: await createTempDirectory(t) },
+      }),
+      /AssertionError/
+    )
   })
   it('does not resolve an unselected relative orderfile from the private conversion worktree', async t => {
     const repository = await seed(t, {
