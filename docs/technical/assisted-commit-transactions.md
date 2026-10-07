@@ -3,6 +3,11 @@
 This is backend scaffolding for plan-first assisted commits. It does not invoke
 Copilot, wire a UI callback, or push. Manual commits keep their existing behavior.
 
+Real-Git fault tests match exact physical filesystem paths, including missing
+lock paths, rather than Git/native separators or Windows short-name spellings.
+Filter fixtures compare cwd/worktree directory identity and reject a different
+directory; path aliases do not weaken transaction ownership checks.
+
 ## Interfaces and lifecycle
 
 The public API is exported from `app/src/lib/git/assisted-commit`. Snapshot and
