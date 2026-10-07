@@ -477,8 +477,11 @@ export interface IDailyMeasures {
   /** The number of times the user reruns checks */
   readonly rerunsChecks: number
 
-  /** The number of "checks failed" notifications the user received */
+  /** The number of eligible "checks failed" Alive events */
   readonly checksFailedNotificationCount: number
+
+  /** The number of "checks failed" notifications accepted with OS permission */
+  readonly checksFailedNotificationShownCount: number
 
   /**
    * The number of "checks failed" notifications the user received for a recent
@@ -522,8 +525,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewNotificationFromNonRecentRepoCount: number
 
-  /** The number of "approved PR" notifications the user received */
+  /** The number of eligible "approved PR" Alive events */
   readonly pullRequestReviewApprovedNotificationCount: number
+
+  /** The number of "approved PR" notifications accepted with OS permission */
+  readonly pullRequestReviewApprovedNotificationShownCount: number
 
   /** The number of "approved PR" notifications the user clicked */
   readonly pullRequestReviewApprovedNotificationClicked: number
@@ -534,8 +540,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewApprovedDialogSwitchToPullRequestCount: number
 
-  /** The number of "commented PR" notifications the user received */
+  /** The number of eligible "commented PR" review Alive events */
   readonly pullRequestReviewCommentedNotificationCount: number
+
+  /** The number of "commented PR" review notifications accepted with OS permission */
+  readonly pullRequestReviewCommentedNotificationShownCount: number
 
   /** The number of "commented PR" notifications the user clicked */
   readonly pullRequestReviewCommentedNotificationClicked: number
@@ -546,8 +555,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewCommentedDialogSwitchToPullRequestCount: number
 
-  /** The number of "changes requested" notifications the user received */
+  /** The number of eligible "changes requested" Alive events */
   readonly pullRequestReviewChangesRequestedNotificationCount: number
+
+  /** The number of "changes requested" notifications accepted with OS permission */
+  readonly pullRequestReviewChangesRequestedNotificationShownCount: number
 
   /** The number of "changes requested" notifications the user clicked */
   readonly pullRequestReviewChangesRequestedNotificationClicked: number
@@ -558,8 +570,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
 
-  /** The number of "commented PR" notifications the user received */
+  /** The number of eligible PR comment Alive events */
   readonly pullRequestCommentNotificationCount: number
+
+  /** The number of PR comment notifications accepted with OS permission */
+  readonly pullRequestCommentNotificationShownCount: number
 
   /** The number of "commented PR" notifications the user clicked */
   readonly pullRequestCommentNotificationClicked: number
