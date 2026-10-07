@@ -11,6 +11,11 @@ import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { isGitError } from '../../../src/lib/git/core'
+import { realpath } from 'fs/promises'
+import {
+  acquireAssistedCommitGitLease,
+  protectAssistedCommitResources,
+} from '../../../src/lib/git/repository-operation'
 
 async function createEmptyBareRepository(
   t: import('node:test').TestContext
@@ -221,6 +226,25 @@ describe('git/clone', () => {
 
     assert.equal(existsSync(path.join(clonePath, '.git')), true)
     assert.equal(existsSync(path.join(clonePath, 'README.md')), true)
+  })
+
+  it('allows an independent clone while the application execution directory is protected', async t => {
+    const source = await setupEmptyRepository(t)
+    await makeCommit(source, {
+      entries: [{ path: 'README.md', contents: 'Synthetic clone contents' }],
+    })
+    const destination = path.join(await createTempDirectory(t), 'independent')
+    const applicationDirectory = path.resolve(__dirname, '../../../src/lib/git')
+    const protection = protectAssistedCommitResources(applicationDirectory, [
+      applicationDirectory,
+      await realpath(applicationDirectory),
+    ])
+    t.after(() => protection.release())
+    const lease = await acquireAssistedCommitGitLease(applicationDirectory)
+    t.after(() => lease.release())
+    await clone(source.path, destination, {})
+    assert.strictEqual(existsSync(path.join(destination, 'README.md')), true)
+    assert.strictEqual(existsSync(path.join(destination, '.git')), true)
   })
 
   it('clones with a specific branch', async t => {
