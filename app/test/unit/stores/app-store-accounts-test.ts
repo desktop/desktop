@@ -230,17 +230,37 @@ describe('AppStore repository accounts', () => {
     assert.equal(removed.mock.callCount(), 2)
   })
 
-  it('invalidates the exact token rather than the first endpoint account', async t => {
-    const removed = t.mock.method(
-      appStore,
-      '_removeAccount',
-      async (_account: Account) => {}
-    )
-    appStore['onTokenInvalidated'](endpoint, bob.token)
-    assert.equal(removed.mock.calls[0]?.arguments[0].login, 'bob')
-    appStore['onTokenInvalidated'](endpoint, 'stale-token')
-    assert.equal(removed.mock.callCount(), 1)
-    assert.equal(popups.length, 0)
+  it('signs out only the account whose token is rejected and keeps its assignments', async () => {
+    const repository = await addRepository('/invalidated', 'bob')
+    const popupCount = popups.length
+    try {
+      await stores.accountsStore.invalidateToken(endpoint, 'stale-token')
+      assert.deepEqual(
+        (await stores.accountsStore.getAll()).map(a => a.login).sort(),
+        ['alice', 'bob']
+      )
+
+      await stores.accountsStore.invalidateToken(endpoint, bob.token)
+      assert.deepEqual(
+        (await stores.accountsStore.getAll()).map(a => a.login),
+        ['alice']
+      )
+      assert.equal(
+        (await stores.repositoriesStore.getAll()).find(
+          r => r.id === repository.id
+        )?.login,
+        'bob'
+      )
+      const shown = popups.slice(popupCount)
+      assert.equal(shown.length, 1)
+      assert.equal(shown[0].type, PopupType.InvalidatedToken)
+      assert.equal(
+        shown[0].type === PopupType.InvalidatedToken && shown[0].account.login,
+        'bob'
+      )
+    } finally {
+      await stores.accountsStore.addAccount(bob)
+    }
   })
 
   it('clears assignments and discovers the new endpoint when changing a remote', async t => {

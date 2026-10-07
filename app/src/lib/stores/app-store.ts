@@ -847,8 +847,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }, InitialRepositoryIndicatorTimeout)
 
-    API.onTokenInvalidated(this.onTokenInvalidated)
-
     this.notificationsStore.onChecksFailedNotification(
       this.onChecksFailedNotification
     )
@@ -907,28 +905,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return zoomFactor
-  }
-
-  private onTokenInvalidated = (endpoint: string, token: string) => {
-    const account = this.accounts.find(
-      a => a.endpoint === endpoint && a.token === token
-    )
-
-    if (account === undefined) {
-      return
-    }
-
-    // If we have a token for the account but it doesn't match the token that
-    // was invalidated that likely means that someone held onto an account for
-    // longer than they should have which is bad but what's even worse is if we
-    // invalidate an active account.
-    if (account.token && account.token !== token) {
-      log.error(`Token for ${endpoint} invalidated but token mismatch`)
-      return
-    }
-
-    // If the token was invalidated for an account, sign out from that account
-    this._removeAccount(account)
   }
 
   private onShowInstallingUpdate = () => {
@@ -1073,6 +1049,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
+    this.accountsStore.onTokenInvalidated(account => {
+      this._showPopup({ type: PopupType.InvalidatedToken, account })
+    })
 
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
@@ -8309,8 +8288,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    await this.accountsStore.removeAccount(account)
-    await deleteToken(account)
+    const current = await this.accountsStore.removeAccount(account)
+    if (current?.token) {
+      await deleteToken(current)
+    }
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */

@@ -125,6 +125,7 @@ async function createStores(t: TestContext) {
     getAll: async () => signedIn,
     removeAccount: async account => {
       signedIn = signedIn.filter(a => a !== account)
+      return account
     },
   }
   let eventHandler: ((event: DesktopAliveEvent) => void) | undefined

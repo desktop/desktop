@@ -27,7 +27,11 @@ environment variables:
 
 ## Repository account assignments
 
-Desktop can retain multiple signed-in accounts for the same endpoint. A local
+Desktop can retain multiple signed-in accounts for the same endpoint. Accounts
+are identified by their endpoint and login (case-insensitive), and each account
+has its own credential session (`CredentialSessions`): token renewal, rejected
+token handling, and secure-storage writes for one account never affect another
+account on the same endpoint. A local
 repository stores a nullable `login`, paired with its GitHub repository's API
 endpoint. This is an authentication choice, not a Git author name or email.
 Repository Settings exposes the assignment on the Remote tab.
@@ -46,6 +50,8 @@ and do not fall back to another account.
 
 Explicit sign-out offers to keep or clear matching repository assignments.
 Automatic account removal, including token invalidation, preserves assignments.
+When an account is signed out because its token is no longer valid, Desktop
+says which login was signed out and offers to sign back in to that account.
 Changing a repository's endpoint clears its account assignment.
 
 HTTPS Git credentials are resolved in the credential trampoline using its

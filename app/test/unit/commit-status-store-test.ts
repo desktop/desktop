@@ -385,7 +385,7 @@ describe('CommitStatusStore account assignment', () => {
     t.mock.method(API, 'fromAccount', (account: Account) =>
       createMockAPI({
         fetchCombinedRefStatus: () =>
-          account === firstAccount
+          account.login === firstAccount.login
             ? new Promise<IAPIRefStatus>(resolve => {
                 finish = resolve
               })

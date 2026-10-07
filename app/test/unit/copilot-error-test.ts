@@ -8,6 +8,32 @@ import {
 } from '../../src/lib/copilot-error'
 
 describe('parseCopilotPaymentRequiredError', () => {
+  it('preserves array responses as raw text', () => {
+    const response = '[{"message":"Not a top-level error"}]'
+    const error = parseCopilotPaymentRequiredError(response, null)
+    assert.strictEqual(error.message, response)
+    assert.strictEqual(error.code, undefined)
+  })
+
+  it('uses the top-level message when the nested error is an array', () => {
+    const error = parseCopilotPaymentRequiredError(
+      JSON.stringify({
+        message: 'Billing unavailable',
+        error: [{ code: 'quota_exceeded', message: 'Nested message' }],
+      }),
+      null
+    )
+    assert.strictEqual(error.message, 'Billing unavailable')
+    assert.strictEqual(error.code, undefined)
+  })
+
+  it('preserves raw text when an array error has no top-level message', () => {
+    const response = '{"error":[{"code":"quota_exceeded"}]}'
+    const error = parseCopilotPaymentRequiredError(response, null)
+    assert.strictEqual(error.message, response)
+    assert.strictEqual(error.code, undefined)
+  })
+
   it('parses quota_exceeded responses', () => {
     const error = parseCopilotPaymentRequiredError(
       JSON.stringify({

@@ -26,6 +26,16 @@ export interface IAccountIdentity {
 }
 
 /**
+ * Get a key uniquely identifying an account by its endpoint and login.
+ *
+ * Multiple accounts can be signed in to the same endpoint, so the endpoint
+ * alone doesn't identify an account. Logins are compared case-insensitively.
+ */
+export function getAccountKey(account: IAccountIdentity): string {
+  return `${account.endpoint}/users/${account.login}`.toLowerCase()
+}
+
+/**
  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
  *
  * This contains a token that will be used for operations that require authentication.
