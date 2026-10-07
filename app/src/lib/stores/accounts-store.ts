@@ -149,7 +149,31 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (current === undefined || current.id !== account.id) {
       throw new AccountRequiresSignInError()
     }
-    return current.withToken(token)
+    return this.credentials.inheritSession(current, current.withToken(token))
+  }
+
+  /**
+   * Get the account's credential for `holder`, holding off renewal of that
+   * token until the lease is released. See `CredentialSessions.leaseToken`.
+   */
+  public async leaseAccountToken(
+    account: Account,
+    holder: string
+  ): Promise<{ readonly account: Account; readonly release: () => void }> {
+    await this.loadingPromise
+    const lease = await this.credentials.leaseToken(account, holder)
+    const current = this.accounts.find(a => a.endpoint === account.endpoint)
+    if (current === undefined || current.id !== account.id) {
+      lease.release()
+      throw new AccountRequiresSignInError()
+    }
+    return {
+      account: this.credentials.inheritSession(
+        current,
+        current.withToken(lease.token)
+      ),
+      release: lease.release,
+    }
   }
 
   /** Whether an account owns a rotating credential pair. */
@@ -157,9 +181,16 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.credentials.isRefreshable(account)
   }
 
-  /** Access-token expiry for consumers that support on-demand token renewal. */
-  public getTokenExpiration(account: Account): number | undefined {
-    return this.credentials.getTokenExpiration(account)
+  /**
+   * Bind fresh access tokens and expiry metadata to the account's issuing session.
+   *
+   * Throws if the account snapshot is unknown or its session has retired.
+   */
+  public createTokenGetter(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
+    return this.credentials.createTokenGetter(account, minimumValidity)
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
@@ -186,14 +217,19 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (retired === null) {
       return null
     }
-    this.emitter.emit('token-invalidated', account.withToken(''))
+    this.emitter.emit(
+      'token-invalidated',
+      this.credentials.inheritSession(account, account.withToken(''))
+    )
     await this.deleteStoredAccount(retired)
     return retired
   }
 
   private onTokenRenewed = (endpoint: string, accessToken: string) => {
     this.accounts = this.accounts.map(a =>
-      a.endpoint === endpoint ? a.withToken(accessToken) : a
+      a.endpoint === endpoint
+        ? this.credentials.inheritSession(a, a.withToken(accessToken))
+        : a
     )
     this.save()
   }
@@ -208,6 +244,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account to the store.
+   *
+   * Returns a new signed-in snapshot. Previous snapshots retain their old session.
    */
   public async addAccount(
     account: Account,
@@ -255,7 +293,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       const token = currentToken()
       if (token !== null) {
         this.accounts = this.accounts.map(a =>
-          a.endpoint === account.endpoint ? updated.withToken(token) : a
+          a.endpoint === account.endpoint
+            ? this.credentials.inheritSession(a, updated.withToken(token))
+            : a
         )
         this.save()
       }
@@ -372,8 +412,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         const loaded = accountWithoutToken.withToken(
           credential?.accessToken ?? ''
         )
-        accountsByEndpoint.set(loaded.endpoint, loaded)
-        this.credentials.restore(loaded, credential)
+        const restored = this.credentials.restore(loaded, credential)
+        accountsByEndpoint.set(restored.endpoint, restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 
