@@ -155,106 +155,79 @@ describe('StatsStore', () => {
     assert.strictEqual(await statsDb.dailyMeasures.count(), 1)
   })
 
-  for (const newEndpoint of [false, true]) {
-    for (const permission of ['denied', null] as const) {
-      it(`reports ${
-        permission === null
-          ? 'null after lookup failure'
-          : 'false for denied permission'
-      } to the ${newEndpoint ? 'new' : 'legacy'} endpoint`, async t => {
-        statsDb = await createStatsDb()
-        localStorage.setItem('has-sent-stats-opt-in-ping', '1')
-        const previousPreviewFeatures =
-          process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-        if (newEndpoint) {
-          process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
-        } else {
-          delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-        }
-        const descriptor = Object.getOwnPropertyDescriptor(
-          globalThis,
-          'Notification'
-        )
-        Object.defineProperty(globalThis, 'Notification', {
-          configurable: true,
-          value: {
-            get permission() {
-              if (permission !== null) {
-                return permission
-              }
-              throw new Error('Permission lookup failed')
-            },
-          },
-        })
-        t.after(() => {
-          if (previousPreviewFeatures === undefined) {
-            delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-          } else {
-            process.env.GITHUB_DESKTOP_PREVIEW_FEATURES =
-              previousPreviewFeatures
-          }
-          if (descriptor === undefined) {
-            Reflect.deleteProperty(globalThis, 'Notification')
-          } else {
-            Object.defineProperty(globalThis, 'Notification', descriptor)
-          }
-        })
-        const invoke = ipcRenderer.invoke
-        t.mock.method(
-          ipcRenderer,
-          'invoke',
-          async (channel: string, ...args: unknown[]) => {
-            if (channel === 'get-notifications-permission') {
-              if (permission !== null) {
-                return permission
-              }
-              throw new Error('Permission lookup failed')
+  for (const permission of ['denied', null] as const) {
+    it(`reports ${
+      permission === null
+        ? 'null after lookup failure'
+        : 'false for denied permission'
+    } to the new endpoint`, async t => {
+      statsDb = await createStatsDb()
+      localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+      const descriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        'Notification'
+      )
+      Object.defineProperty(globalThis, 'Notification', {
+        configurable: true,
+        value: {
+          get permission() {
+            if (permission !== null) {
+              return permission
             }
-            return invoke(channel, ...args)
-          }
-        )
-        const warn = t.mock.method(log, 'warn')
-        let requestBody: string | undefined
-        t.mock.method(
-          globalThis,
-          'fetch',
-          async (_input: string | URL | Request, init?: RequestInit) => {
-            requestBody = typeof init?.body === 'string' ? init.body : undefined
-            return new Response(null, { status: 200 })
-          }
-        )
-        const store = new StatsStore(statsDb, new TestActivityMonitor())
-        await store.increment('commits')
-
-        assert.strictEqual(await store.sendStats([], []), true)
-        assert.strictEqual(warn.mock.callCount(), permission === null ? 1 : 0)
-        assert.ok(requestBody)
-        const payload = JSON.parse(requestBody)
-        assert.strictEqual(
-          newEndpoint
-            ? payload.events[0].dimensions.notificationsPermission
-            : payload.notificationsPermission,
-          newEndpoint
-            ? String(permission === null ? null : false)
-            : permission === null
-            ? null
-            : false
-        )
-        assert.strictEqual(
-          newEndpoint ? payload.events[0].measures.commits : payload.commits,
-          1
-        )
-        if (newEndpoint) {
-          assert.strictEqual(
-            'notificationsPermission' in payload.events[0].measures,
-            false
-          )
+            throw new Error('Permission lookup failed')
+          },
+        },
+      })
+      t.after(() => {
+        if (descriptor === undefined) {
+          Reflect.deleteProperty(globalThis, 'Notification')
+        } else {
+          Object.defineProperty(globalThis, 'Notification', descriptor)
         }
       })
-    }
-  }
+      const invoke = ipcRenderer.invoke
+      t.mock.method(
+        ipcRenderer,
+        'invoke',
+        async (channel: string, ...args: unknown[]) => {
+          if (channel === 'get-notifications-permission') {
+            if (permission !== null) {
+              return permission
+            }
+            throw new Error('Permission lookup failed')
+          }
+          return invoke(channel, ...args)
+        }
+      )
+      const warn = t.mock.method(log, 'warn')
+      let requestBody: string | undefined
+      t.mock.method(
+        globalThis,
+        'fetch',
+        async (_input: string | URL | Request, init?: RequestInit) => {
+          requestBody = typeof init?.body === 'string' ? init.body : undefined
+          return new Response(null, { status: 200 })
+        }
+      )
+      const store = new StatsStore(statsDb, new TestActivityMonitor())
+      await store.increment('commits')
 
-  it('posts flat stats to the legacy endpoint', async t => {
+      assert.strictEqual(await store.sendStats([], []), true)
+      assert.strictEqual(warn.mock.callCount(), permission === null ? 1 : 0)
+      assert.ok(requestBody)
+      const payload = JSON.parse(requestBody)
+      assert.strictEqual(
+        payload.events[0].dimensions.notificationsPermission,
+        String(permission === null ? null : false)
+      )
+      assert.strictEqual(payload.events[0].measures.commits, 1)
+      assert.strictEqual(
+        'notificationsPermission' in payload.events[0].measures,
+        false
+      )
+    })
+  }
+  it('posts structured stats to the new endpoint by default', async t => {
     statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
     let requestUrl: string | undefined
@@ -264,62 +237,6 @@ describe('StatsStore', () => {
     delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
     t.after(() => {
       if (previousPreviewFeatures !== undefined) {
-        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
-      }
-    })
-
-    t.mock.method(
-      globalThis,
-      'fetch',
-      async (input: string | URL | Request, init?: RequestInit) => {
-        requestUrl = String(input)
-        requestBody = typeof init?.body === 'string' ? init.body : undefined
-        return new Response(null, { status: 200 })
-      }
-    )
-
-    const store = new StatsStore(statsDb, activityMonitor)
-    await store.increment('commits')
-    await store.increment('checksFailedNotificationShownCount')
-    await store.recordLaunchStats({
-      mainReadyTime: 112.29,
-      loadTime: 15481.89,
-      rendererReadyTime: 7216.25,
-    })
-
-    assert.strictEqual(await store.sendStats([], []), true)
-    assert.strictEqual(
-      requestUrl,
-      'https://central.github.com/api/usage/desktop'
-    )
-    assert.notStrictEqual(requestBody, undefined)
-
-    const payload = JSON.parse(requestBody ?? '')
-    assert.strictEqual(payload.eventType, 'usage')
-    assert.strictEqual(payload.commits, 1)
-    assert.strictEqual(payload.checksFailedNotificationShownCount, 1)
-    assert.strictEqual(
-      payload.notificationsPermission,
-      __DARWIN__ || __WIN32__ ? true : null
-    )
-    assert.strictEqual(payload.mainReadyTime, 112.29)
-    assert.strictEqual('events' in payload, false)
-    assert.strictEqual('dimensions' in payload, false)
-    assert.strictEqual('measures' in payload, false)
-  })
-
-  it('posts structured stats to the new endpoint', async t => {
-    statsDb = await createStatsDb()
-    const activityMonitor = new TestActivityMonitor()
-    let requestUrl: string | undefined
-    let requestBody: string | undefined
-    const previousPreviewFeatures = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
-    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
-    t.after(() => {
-      if (previousPreviewFeatures === undefined) {
-        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-      } else {
         process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
       }
     })
