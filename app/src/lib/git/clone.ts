@@ -6,6 +6,10 @@ import { getDefaultBranch } from '../helpers/default-branch'
 import { envForRemoteOperation } from './environment'
 import { homedir } from 'os'
 import * as Path from 'path'
+import {
+  canonicalMutationPath,
+  withRepositoryGitResourceMutation,
+} from './repository-operation'
 
 const unsupportedCloneProtocols: ReadonlyArray<string> = ['ext', 'ext.exe']
 
@@ -89,6 +93,21 @@ export async function clone(
     )
   }
 
+  const operationPath = Path.resolve(__dirname, path)
+  return withRepositoryGitResourceMutation([operationPath], async () => {
+    const destination = await canonicalMutationPath(operationPath)
+    return withRepositoryGitResourceMutation([destination], () =>
+      cloneCore(url, path, options, progressCallback)
+    )
+  })
+}
+
+async function cloneCore(
+  url: string,
+  path: string,
+  options: CloneOptions,
+  progressCallback?: (progress: ICloneProgress) => void
+): Promise<void> {
   const env = {
     ...(await envForRemoteOperation(url)),
     GIT_CLONE_PROTECTION_ACTIVE: 'false',

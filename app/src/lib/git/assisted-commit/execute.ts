@@ -1,4 +1,5 @@
-import { readFile } from 'fs/promises'
+import { copyFile, mkdir, readFile, rm, writeFile } from 'fs/promises'
+import { CommitIdentity } from '../../../models/commit-identity'
 import { join } from 'path'
 import {
   IAssistedCommitHead,
@@ -7,6 +8,7 @@ import {
 } from '../../../models/assisted-commit'
 import { formatCommitMessage } from '../../format-commit-message'
 import { HookCallbackOptions } from '../core'
+import { getAuthorIdentity, getCommitterIdentity } from '../var'
 import { updateRefWithVerification, withRefLock } from '../update-ref'
 import { IOwnedFileLease, releaseOwnedFileLock } from '../owned-file-lock'
 import {
@@ -44,7 +46,142 @@ import {
 /** Hook interception and transaction controls, with no per-commit option overrides. */
 export interface IAssistedCommitExecutionOptions
   extends IAssistedCommitOperationOptions,
-    HookCallbackOptions {}
+    HookCallbackOptions {
+  /** Check actual native commit messages/identities before publishing any created object. */
+  readonly onVerifyCommit?: (
+    commit: IAssistedCommitCreatedCommit
+  ) => void | Promise<void>
+}
+
+/** Complete raw native message and identities, not display-truncated Commit fields. */
+export interface IAssistedCommitCreatedCommit {
+  readonly sha: string
+  readonly message: string
+  readonly author: CommitIdentity
+  readonly committer: CommitIdentity
+}
+
+/** Frozen execution metadata, not live repository configuration or model authority. */
+export interface IAssistedCommitExecutionMetadata {
+  readonly author: CommitIdentity | null
+  readonly committer: CommitIdentity | null
+  readonly messages: ReadonlyArray<string>
+}
+
+/** Read exact snapshot-configured identities and messages for whole-plan rule validation. */
+export async function getAssistedCommitExecutionMetadata(
+  snapshot: IAssistedCommitSnapshot,
+  validated: IValidatedAssistedCommitPlan,
+  options: IAssistedCommitOperationOptions = {}
+): Promise<IAssistedCommitExecutionMetadata> {
+  const data = getSnapshotData(snapshot)
+  if (validatedPlans.get(validated) !== data || data.phase !== 'captured') {
+    throw new AssistedCommitError(
+      'invalid-plan',
+      'Execution metadata requires a captured snapshot and its checked plan'
+    )
+  }
+  const configuration = { env: data.environment }
+  const messages: string[] = []
+  const directory = join(data.temporaryDirectory, 'message-validation')
+  const preview = {
+    repository: data.repository,
+    environment: {
+      ...data.environment,
+      GIT_DIR: directory,
+      GIT_COMMON_DIR: directory,
+      GIT_INDEX_FILE: join(directory, 'index'),
+    },
+  }
+  data.phase = 'validating'
+  let failure: unknown
+  let failed = false
+  try {
+    checkAssistedCommitCancellation(options.signal)
+    const author = await getAuthorIdentity(data.repository, configuration)
+    const committer = await getCommitterIdentity(data.repository, configuration)
+    await mkdir(join(directory, 'objects'), { recursive: true })
+    await mkdir(join(directory, 'refs', 'heads'), { recursive: true })
+    await copyFile(
+      join(data.temporaryDirectory, 'config'),
+      join(directory, 'config')
+    )
+    await writeFile(
+      join(directory, 'HEAD'),
+      snapshot.originalHead.sha === null
+        ? 'ref: refs/heads/message-validation\n'
+        : `${snapshot.originalHead.sha}\n`
+    )
+    const noHooks = [
+      '-c',
+      `core.hooksPath=${join(directory, 'no-hooks')}`,
+      '-c',
+      'commit.gpgsign=false',
+    ]
+    for (const [index, commit] of validated.plan.commits.entries()) {
+      checkAssistedCommitCancellation(options.signal)
+      const message = await formatCommitMessage(
+        data.repository,
+        {
+          summary: commit.title,
+          description: commit.description ?? '',
+          trailers: data.request.trailers,
+        },
+        configuration
+      )
+      await privateGit(
+        preview,
+        [...noHooks, 'read-tree', validated.trees[index]],
+        'assistedCommitMessageValidationTree'
+      )
+      await privateGit(
+        preview,
+        [
+          ...noHooks,
+          'commit',
+          '--allow-empty',
+          '--no-verify',
+          '-F',
+          '-',
+          ...(data.request.signOffCommits ? ['--signoff'] : []),
+        ],
+        'assistedCommitNativeMessageValidation',
+        { stdin: message }
+      )
+      const object = await privateGit(
+        preview,
+        ['cat-file', 'commit', 'HEAD'],
+        'assistedCommitReadValidatedMessage'
+      )
+      const separator = object.stdout.indexOf('\n\n')
+      if (separator === -1) {
+        throw new AssistedCommitError(
+          'commit-failed',
+          'Could not read complete native commit message'
+        )
+      }
+      messages.push(object.stdout.slice(separator + 2))
+      checkAssistedCommitCancellation(options.signal)
+    }
+    return { author, committer, messages }
+  } catch (error) {
+    failed = true
+    failure = error
+    throw error
+  } finally {
+    try {
+      await rm(directory, { recursive: true, force: true })
+    } catch (error) {
+      throw new AssistedCommitError(
+        'cleanup-failed',
+        'Could not clean up private native message validation',
+        { cause: failed ? new AggregateError([failure, error]) : error }
+      )
+    } finally {
+      data.phase = 'captured'
+    }
+  }
+}
 
 /** Completed local commits. Pushing is deliberately outside this engine. */
 export interface IAssistedCommitResult {
@@ -106,7 +243,7 @@ async function verifyCreatedCommit(
   sha: string,
   parent: string | null,
   tree: string
-): Promise<void> {
+): Promise<IAssistedCommitCreatedCommit> {
   const replacements = await privateGit(
     data,
     ['replace', '--list'],
@@ -161,6 +298,20 @@ async function verifyCreatedCommit(
       'commit-failed',
       'A hook staged content outside the planned cumulative tree'
     )
+  }
+  const author = header.find(line => line.startsWith('author '))
+  const committer = header.find(line => line.startsWith('committer '))
+  if (author === undefined || committer === undefined) {
+    throw new AssistedCommitError(
+      'commit-failed',
+      'Created commit has no complete author or committer identity'
+    )
+  }
+  return {
+    sha,
+    message,
+    author: CommitIdentity.parseIdentity(author.slice(7)),
+    committer: CommitIdentity.parseIdentity(committer.slice(10)),
   }
 }
 
@@ -471,8 +622,14 @@ export async function executeAssistedCommitPlan(
       // it after Git settles; never infer ownership from commit's console output.
       const sha = await privateTip(data)
       if (sha !== null && sha !== expectedTip) {
-        await verifyCreatedCommit(data, sha, expectedTip, tree)
+        const createdCommit = await verifyCreatedCommit(
+          data,
+          sha,
+          expectedTip,
+          tree
+        )
         created.push(sha)
+        await options.onVerifyCommit?.(createdCommit)
       }
       checkAssistedCommitCancellation(options.signal)
       if (
@@ -751,6 +908,113 @@ export async function rollbackAssistedCommitTransaction(
     return fullRecovery
   } finally {
     transaction.recovering = false
+  }
+}
+
+/**
+ * Verify retained local success at a caller-owned completion boundary.
+ *
+ * AppStore may await reconciliation after execution. Continue checking selected
+ * bytes, full HEAD identity and the owned installed index until finalization;
+ * verification itself never stages, rewrites history, or restores working files.
+ */
+export async function verifyAssistedCommitTransaction(
+  result: IAssistedCommitResult,
+  options: IAssistedCommitOperationOptions = {}
+): Promise<void> {
+  const transaction = completedTransactions.get(result)
+  if (transaction === undefined) {
+    throw new AssistedCommitError(
+      'disposed',
+      'Assisted commit transaction was finalized or is not Desktop-owned'
+    )
+  }
+  if (transaction.recovering) {
+    throw new AssistedCommitError(
+      'busy',
+      'Assisted commit recovery is in progress'
+    )
+  }
+  checkAssistedCommitCancellation(options.signal)
+  await verifySelectedFiles(transaction.data)
+  await ensureNoRepositoryOperation(transaction.data.repository)
+  await verifyHead(transaction.data, transaction.expectedTip)
+  await verifyIndex(transaction.data, transaction.installedIndex)
+  checkAssistedCommitCancellation(options.signal)
+}
+
+/**
+ * Verify and finalize local acceptance under parent-owned HEAD/ref/index fences.
+ *
+ * The callback is synchronous: authorize the final boundary, not awaited work
+ * or UI success. Cleanup failures reactivate retained recovery ownership.
+ */
+export async function acceptVerifiedAssistedCommitTransaction(
+  result: IAssistedCommitResult,
+  accept: () => void,
+  options: IAssistedCommitOperationOptions = {}
+): Promise<void> {
+  const transaction = completedTransactions.get(result)
+  if (transaction === undefined || transaction.recovering) {
+    throw new AssistedCommitError(
+      'disposed',
+      'Assisted commit result is unavailable for final acceptance'
+    )
+  }
+  const priorLocks = new Set(transaction.ownedLocks)
+  let indexLock: IOwnedIndexLock | undefined
+  let accepted = false
+  try {
+    indexLock = await lockIndex(transaction.data, owned =>
+      transaction.ownedLocks.push(owned)
+    )
+    await withRefLock(
+      transaction.data.repository,
+      result.head.ref ?? 'HEAD',
+      transaction.expectedTip ?? transaction.data.zeroId,
+      async guard => {
+        await ensureNoRepositoryOperation(transaction.data.repository)
+        await verifyHead(transaction.data, transaction.expectedTip)
+        await verifyIndex(transaction.data, transaction.installedIndex)
+        await verifySelectedFiles(transaction.data)
+        checkAssistedCommitCancellation(options.signal)
+        guard.assertHeld()
+        if ([...priorLocks].some(lock => !lock.closed || !lock.consumed)) {
+          throw new AssistedCommitError(
+            'cleanup-failed',
+            'Prior transaction cleanup must finish before acceptance'
+          )
+        }
+        accept()
+        guard.assertHeld()
+        completedTransactions.delete(result)
+        finalizedTransactions.add(result)
+        accepted = true
+      },
+      owned => transaction.ownedLocks.push(owned)
+    )
+    await releaseIndexLock(indexLock)
+    indexLock = undefined
+  } catch (error) {
+    if (accepted) {
+      finalizedTransactions.delete(result)
+      completedTransactions.set(result, transaction)
+    }
+    throw error
+  } finally {
+    if (indexLock !== undefined) {
+      try {
+        await releaseIndexLock(indexLock)
+      } catch (error) {
+        finalizedTransactions.delete(result)
+        completedTransactions.set(result, transaction)
+        throw new AssistedCommitError(
+          'cleanup-failed',
+          'Could not release final acceptance index fence',
+          { cause: error }
+        )
+      }
+    }
   }
 }
 
