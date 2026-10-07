@@ -41,8 +41,11 @@ field are assigned the existing account for their endpoint, if one exists.
 The migration writes `null` when none exists and never revisits that choice.
 New records default to `null`.
 
-User-initiated operations on an unassigned repository ask the user to choose an
-account. If an assigned login is signed out, Desktop offers to sign back into
+Desktop asks the user to choose an account for an unassigned repository only
+at the point one is needed: when Git asks for HTTPS credentials during a
+user-initiated operation, or when the user explicitly requests GitHub data.
+Fetch, pull, and push never prompt up front, so SSH remotes and public HTTPS
+repositories work without an account. If an assigned login is signed out, Desktop offers to sign back into
 that account or choose another. Targeted reauthentication adds `login` and
 `allow_signup=false` to the OAuth authorization URL and verifies the returned
 identity before accepting it. Background operations never open these prompts

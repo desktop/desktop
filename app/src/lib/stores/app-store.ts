@@ -5290,7 +5290,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     options?: PushOptions
   ): Promise<void> {
-    return this.withRepositoryAccount(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performPush(repository, options)
     })
   }
@@ -5584,7 +5584,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _pull(repository: Repository): Promise<void> {
-    return this.withRepositoryAccount(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performPull(repository)
     })
   }
@@ -6041,7 +6041,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     refspec: string
   ): Promise<void> {
-    return this.withRepositoryAccount(repository, async repository => {
+    return this.withRefreshedGitHubRepository(repository, async repository => {
       const gitStore = this.gitStoreCache.get(repository)
       await gitStore.fetchRefspec(refspec)
 
@@ -6058,11 +6058,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * if _any_ fetches or pulls are currently in-progress.
    */
   public _fetch(repository: Repository, fetchType: FetchType): Promise<void> {
-    return this.withRepositoryAccount(
-      repository,
-      repository => this.performFetch(repository, fetchType),
-      fetchType === FetchType.BackgroundTask
-    )
+    return this.withRefreshedGitHubRepository(repository, repository => {
+      return this.performFetch(repository, fetchType)
+    })
   }
 
   /**
@@ -6076,11 +6074,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     remote: IRemote,
     fetchType: FetchType
   ): Promise<void> {
-    return this.withRepositoryAccount(
-      repository,
-      repository => this.performFetch(repository, fetchType, [remote]),
-      fetchType === FetchType.BackgroundTask
-    )
+    return this.withRefreshedGitHubRepository(repository, repository => {
+      return this.performFetch(repository, fetchType, [remote])
+    })
   }
 
   /**
@@ -8757,29 +8753,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
         : ''
     }`
-  }
-
-  private async withRepositoryAccount(
-    repository: Repository,
-    fn: (repository: Repository) => Promise<void>,
-    background = false
-  ): Promise<void> {
-    const current =
-      (await this.repositoriesStore.getAll()).find(
-        r => r.id === repository.id
-      ) ?? repository
-    if (isRepositoryWithGitHubRepository(current)) {
-      const account = background
-        ? getAccountForRepository(this.accounts, current)
-        : await this._ensureRepositoryAccount(current)
-      if (account == null) {
-        return
-      }
-    }
-    const updated =
-      (await this.repositoriesStore.getAll()).find(r => r.id === current.id) ??
-      current
-    return this.withRefreshedGitHubRepository(updated, fn)
   }
 
   private async withRefreshedGitHubRepository<T>(

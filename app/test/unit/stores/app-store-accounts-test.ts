@@ -287,4 +287,63 @@ describe('AppStore repository accounts', () => {
       'https://api.company.ghe.com/'
     )
   })
+
+  for (const [description, login, fetchType] of [
+    ['an unassigned repository', null, 'user'],
+    ['a signed-out assigned account', 'carol', 'user'],
+    ['an unassigned repository in the background', null, 'background'],
+  ] as const) {
+    it(`fetches ${description} without asking for an account when Git needs no credentials`, async t => {
+      const { setupEmptyRepository } = await import(
+        '../../helpers/repositories'
+      )
+      const { makeCommit } = await import(
+        '../../helpers/repository-scaffolding'
+      )
+      const { FetchType } = await import('../../../src/models/fetch')
+      const upstream = await setupEmptyRepository(t)
+      await makeCommit(upstream, {
+        commitMessage: 'first',
+        entries: [{ path: 'README.md', contents: 'first' }],
+      })
+      const local = await setupEmptyRepository(t)
+      const remote = await exec(
+        ['remote', 'add', 'origin', upstream.path],
+        local.path
+      )
+      assert.equal(remote.exitCode, 0)
+      const repository = await addRepository(local.path, login)
+      await appStore['gitStoreCache'].get(repository).loadRemotes()
+      t.mock.method(appStore, '_refreshRepository', async () => {})
+      // The local remote path never matches a GitHub repository, so keep the
+      // repository as-is rather than clearing its association.
+      const refresh = appStore['repositoryWithRefreshedGitHubRepository']
+      appStore['repositoryWithRefreshedGitHubRepository'] = async r => r
+      t.after(() => {
+        appStore['repositoryWithRefreshedGitHubRepository'] = refresh
+      })
+      popups.length = 0
+
+      await appStore._fetch(
+        repository,
+        fetchType === 'user'
+          ? FetchType.UserInitiatedTask
+          : FetchType.BackgroundTask
+      )
+
+      const refs = await exec(
+        ['for-each-ref', '--format=%(refname)', 'refs/remotes/origin/'],
+        local.path
+      )
+      assert.notEqual(
+        refs.stdout.trim(),
+        '',
+        'Expected origin refs to be fetched'
+      )
+      assert.deepEqual(
+        popups.filter(p => p.type === PopupType.RepositoryAccount),
+        []
+      )
+    })
+  }
 })
