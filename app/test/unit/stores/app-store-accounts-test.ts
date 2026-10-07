@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { after, before, describe, it, mock } from 'node:test'
+import type { TestContext } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
 import type { AppStore } from '../../../src/lib/stores/app-store'
+import type { SignInResult } from '../../../src/lib/stores/sign-in-store'
 import { Account } from '../../../src/models/account'
 import { PopupType } from '../../../src/models/popup'
 import type { Popup } from '../../../src/models/popup'
@@ -156,6 +158,85 @@ describe('AppStore repository accounts', () => {
       r => r.id === repository.id
     )
     assert.equal(persisted?.login, 'bob')
+  })
+
+  describe('when no account is signed in for the endpoint', () => {
+    const gheEndpoint = 'https://api.company.ghe.com/'
+
+    async function addGHERepository(path: string) {
+      const gh = await stores.repositoriesStore.upsertGitHubRepository(
+        gheEndpoint,
+        { ...createMockAPIRepository(), parent: undefined }
+      )
+      return stores.repositoriesStore.setGitHubRepository(
+        await stores.repositoriesStore.addRepository(path, undefined),
+        gh
+      )
+    }
+
+    function captureSignIn(t: TestContext) {
+      const signIn: {
+        endpoint?: string
+        callback?: (result: SignInResult) => void
+      } = {}
+      t.mock.method(
+        appStore,
+        '_beginEnterpriseSignIn',
+        (callback: (result: SignInResult) => void) => {
+          signIn.callback = callback
+        }
+      )
+      t.mock.method(appStore, '_setSignInEndpoint', async (url: string) => {
+        signIn.endpoint = url
+      })
+      return signIn
+    }
+
+    it('shows sign-in instead of an empty account choice and saves the new account', async t => {
+      const signIn = captureSignIn(t)
+      const repository = await addGHERepository('/ghe-unassigned')
+      const carol = new Account(
+        'carol',
+        gheEndpoint,
+        'carol-token',
+        [],
+        '',
+        3,
+        'Carol'
+      )
+      const prompt = appStore._ensureRepositoryAccount(repository)
+
+      await nextPopup(PopupType.SignIn)
+      assert.equal(signIn.endpoint, 'https://company.ghe.com/')
+      await stores.accountsStore.addAccount(carol)
+      t.after(() => stores.accountsStore.removeAccount(carol))
+      signIn.callback?.({ kind: 'success', account: carol })
+
+      assert.equal((await prompt)?.login, 'carol')
+      assert.deepEqual(
+        popups.filter(p => p.type === PopupType.RepositoryAccount),
+        []
+      )
+      const persisted = (await stores.repositoriesStore.getAll()).find(
+        r => r.id === repository.id
+      )
+      assert.equal(persisted?.login, 'carol')
+    })
+
+    it('leaves the repository unassigned when sign-in is cancelled', async t => {
+      const signIn = captureSignIn(t)
+      const repository = await addGHERepository('/ghe-cancelled')
+      const prompt = appStore._ensureRepositoryAccount(repository)
+
+      await nextPopup(PopupType.SignIn)
+      signIn.callback?.({ kind: 'cancelled' })
+
+      assert.equal(await prompt, undefined)
+      const persisted = (await stores.repositoriesStore.getAll()).find(
+        r => r.id === repository.id
+      )
+      assert.equal(persisted?.login, null)
+    })
   })
 
   it('keeps the stored login when reauthentication is cancelled', async () => {

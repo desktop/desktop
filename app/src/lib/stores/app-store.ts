@@ -138,6 +138,7 @@ import {
 import {
   API,
   getAPIEndpoint,
+  getDotComAPIEndpoint,
   getHTMLURL,
   isGitHubHost,
   IAPIOrganization,
@@ -8370,17 +8371,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: RepositoryWithGitHubRepository,
     accounts?: ReadonlyArray<Account>
   ): Promise<Account | undefined> {
-    const prompt = this.repositoryAccountPromptQueue.then(
-      () =>
-        new Promise<Account | undefined>((resolve, reject) => {
-          this._showPopup({
-            type: PopupType.RepositoryAccount,
-            repository,
-            accounts,
-            onComplete: resolve,
-          }).catch(reject)
-        })
+    return this.enqueueRepositoryAccountPrompt(() =>
+      this.showRepositoryAccountDialog(repository, accounts)
     )
+  }
+
+  private async enqueueRepositoryAccountPrompt(
+    show: () => Promise<Account | undefined>
+  ): Promise<Account | undefined> {
+    const prompt = this.repositoryAccountPromptQueue.then(show)
     this.repositoryAccountPromptQueue = prompt.then(
       () => undefined,
       () => undefined
@@ -8390,6 +8389,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.accountPersistence
     }
     return selected
+  }
+
+  private showRepositoryAccountDialog(
+    repository: RepositoryWithGitHubRepository,
+    accounts?: ReadonlyArray<Account>
+  ) {
+    return new Promise<Account | undefined>((resolve, reject) => {
+      this._showPopup({
+        type: PopupType.RepositoryAccount,
+        repository,
+        accounts,
+        onComplete: resolve,
+      }).catch(reject)
+    })
+  }
+
+  /**
+   * Ask for an account for an unassigned repository. When no account is
+   * signed in for its endpoint there's nothing to choose from, so show the
+   * regular sign-in prompt for that endpoint instead.
+   */
+  private promptForUnassignedRepositoryAccount(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<Account | undefined> {
+    const { endpoint } = repository.gitHubRepository
+    return this.enqueueRepositoryAccountPrompt(async () =>
+      this.accounts.some(a => a.endpoint === endpoint)
+        ? this.showRepositoryAccountDialog(repository)
+        : this.showSignInForEndpoint(endpoint)
+    )
+  }
+
+  private showSignInForEndpoint(endpoint: string) {
+    return new Promise<Account | undefined>((resolve, reject) => {
+      const onResult = (result: SignInResult) => {
+        if (result.kind === 'success') {
+          this._closePopup(PopupType.SignIn)
+        }
+        resolve(
+          result.kind === 'success' && result.account.endpoint === endpoint
+            ? result.account
+            : undefined
+        )
+      }
+      const begin =
+        endpoint === getDotComAPIEndpoint()
+          ? Promise.resolve(this._beginDotComSignIn(onResult))
+          : Promise.resolve(this._beginEnterpriseSignIn(onResult)).then(() =>
+              this._setSignInEndpoint(getHTMLURL(endpoint), true)
+            )
+      begin
+        .then(() => this._showPopup({ type: PopupType.SignIn }))
+        .catch(reject)
+    })
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
@@ -8423,28 +8476,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (pending !== undefined) {
       return pending
     }
-    const prompt = this._chooseRepositoryAccount(current).then(
-      async selected => {
-        if (selected === undefined) {
-          return undefined
-        }
-        await this.accountPersistence
-        const accounts = await this.accountsStore.getAll()
-        const signedInAccount = accounts.find(
-          a =>
-            a.endpoint === current.gitHubRepository.endpoint &&
-            a.login.toLowerCase() === selected.login.toLowerCase()
-        )
-        if (signedInAccount === undefined) {
-          throw new Error(
-            'The selected repository account is no longer signed in.'
-          )
-        }
-        this.accounts = accounts
-        await this._updateRepositoryAccount(current, signedInAccount.login)
-        return signedInAccount
+    const prompt = (
+      current.login === null
+        ? this.promptForUnassignedRepositoryAccount(current)
+        : this._chooseRepositoryAccount(current)
+    ).then(async selected => {
+      if (selected === undefined) {
+        return undefined
       }
-    )
+      await this.accountPersistence
+      const accounts = await this.accountsStore.getAll()
+      const signedInAccount = accounts.find(
+        a =>
+          a.endpoint === current.gitHubRepository.endpoint &&
+          a.login.toLowerCase() === selected.login.toLowerCase()
+      )
+      if (signedInAccount === undefined) {
+        throw new Error(
+          'The selected repository account is no longer signed in.'
+        )
+      }
+      this.accounts = accounts
+      await this._updateRepositoryAccount(current, signedInAccount.login)
+      return signedInAccount
+    })
     this.repositoryAccountPrompts.set(current.id, prompt)
     try {
       return await prompt
