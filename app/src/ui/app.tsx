@@ -229,6 +229,8 @@ import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-dialog'
 import { WorktreeEntry } from '../models/worktree'
 import { shouldShowWorktreeDropdown } from '../lib/worktree-dropdown'
+import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from '../lib/git/repository-operation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2905,6 +2907,20 @@ export class App extends React.Component<IAppProps, IAppState> {
           </CopilotDisclaimer>
         )
       }
+      case PopupType.AssistedCommitDisclaimer: {
+        return (
+          <CopilotDisclaimer
+            key="assisted-commit-disclaimer"
+            onAccepted={popup.onAccepted}
+            onDismissed={onPopupDismissedFn}
+          >
+            Copilot will plan your selected changes, and GitHub Desktop will
+            create one or more local commits with their generated messages.
+            Copilot will not edit your files. You can cancel to undo commits
+            created by this run.
+          </CopilotDisclaimer>
+        )
+      }
       case PopupType.CopilotConflictResolutionDisclaimer: {
         const { repository } = popup
         const onAccepted = () => {
@@ -3661,6 +3677,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         remoteName={remoteName}
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
+        disabled={
+          isAssistedCommitRepositoryLocked(state.changesState.assistedCommit) ||
+          isRepositoryAffectedByAssistedCommit(selection.repository.path)
+        }
         progress={progress}
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
@@ -3845,6 +3865,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropDownStateChanged={this.onWorktreeDropdownStateChanged}
         enableFocusTrap={enableFocusTrap}
         worktreeDropdownWidth={this.state.worktreeDropdownWidth}
+        disabled={
+          isAssistedCommitRepositoryLocked(
+            selection.state.changesState.assistedCommit
+          ) || isRepositoryAffectedByAssistedCommit(repository.path)
+        }
       />
     )
   }

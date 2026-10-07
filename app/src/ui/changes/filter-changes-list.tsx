@@ -15,6 +15,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { CommitMode } from '../../models/commit-mode'
 import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
+import { AssistedCommitRunState } from '../../models/assisted-commit-run'
 import {
   isRepositoryWithGitHubRepository,
   Repository,
@@ -185,6 +186,12 @@ interface IFilterChangesListProps {
 
   /** Assisted operation progress, separate from manual message generation. */
   readonly isCreatingCopilotAssistedCommits?: boolean
+  readonly repositoryMutationBlocked?: boolean
+
+  readonly assistedCommitState?: AssistedCommitRunState
+  readonly onPrepareCopilotAssistedCommitRequest?: (
+    request: ICopilotAssistedCommitRequest
+  ) => Promise<ICopilotAssistedCommitRequest>
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -1036,6 +1043,19 @@ export class FilterChangesList extends React.Component<
         isCreatingCopilotAssistedCommits={
           this.props.isCreatingCopilotAssistedCommits
         }
+        repositoryMutationBlocked={this.props.repositoryMutationBlocked}
+        assistedCommitState={this.props.assistedCommitState}
+        onPrepareCopilotAssistedCommitRequest={
+          this.props.onPrepareCopilotAssistedCommitRequest
+        }
+        onCancelCopilotAssistedCommits={this.onCancelCopilotAssistedCommits}
+        onRetryCopilotAssistedCommitRecovery={
+          this.onRetryCopilotAssistedCommitRecovery
+        }
+        onDismissCopilotAssistedCommitError={
+          this.onDismissCopilotAssistedCommitError
+        }
+        onAssistedCommitErrorDetails={this.onAssistedCommitErrorDetails}
       />
     )
   }
@@ -1093,6 +1113,43 @@ export class FilterChangesList extends React.Component<
 
   private onCancelGenerateCommitMessage = () => {
     this.props.dispatcher.cancelGenerateCommitMessage(this.props.repository)
+  }
+
+  private onCancelCopilotAssistedCommits = () => {
+    const state = this.props.assistedCommitState
+    if (state !== undefined && state.kind !== 'idle') {
+      this.props.dispatcher.cancelCopilotAssistedCommits(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onRetryCopilotAssistedCommitRecovery = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.retryCopilotAssistedCommitRecovery(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onDismissCopilotAssistedCommitError = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.dismissCopilotAssistedCommitError(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onAssistedCommitErrorDetails = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.postError(state.error)
+    }
   }
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)

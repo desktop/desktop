@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, realpath, writeFile } from 'fs/promises'
 import * as Path from 'path'
 import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
@@ -10,6 +10,7 @@ import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { setDefaultDir } from '../../../src/ui/lib/default-dir'
 import { createTempDirectory } from '../../helpers/temp'
 import { fireEvent, render, screen, waitFor } from '../../helpers/ui/render'
+import { protectAssistedCommitResources } from '../../../src/lib/git/repository-operation'
 
 const applicationPathError =
   'The local path cannot end in .app on macOS. Choose a different folder name to avoid creating an application bundle.'
@@ -42,7 +43,7 @@ async function renderCloneDialog(
     clone,
     closeFoldout: t.mock.fn<Dispatcher['closeFoldout']>(),
   }
-  const view = render(
+  const element = (
     <CloneRepository
       dispatcher={dispatcher as Dispatcher}
       onDismissed={t.mock.fn()}
@@ -55,6 +56,7 @@ async function renderCloneDialog(
       isTopMost={true}
     />
   )
+  const view = render(element)
 
   const pathInput = screen.getByRole('textbox', {
     name: /Local path/i,
@@ -68,7 +70,7 @@ async function renderCloneDialog(
   })
   assert.ok(cloneButton instanceof HTMLButtonElement)
 
-  return { ...view, directory, pathInput, cloneButton, clone }
+  return { ...view, element, directory, pathInput, cloneButton, clone }
 }
 
 describe('CloneRepository path validation', () => {
@@ -200,6 +202,37 @@ describe('CloneRepository path validation', () => {
       )
     )
     assert.strictEqual(cloneButton.getAttribute('aria-disabled'), 'true')
+  })
+
+  it('blocks protected clone destinations and re-enables them after settlement', async t => {
+    const view = await renderCloneDialog(t)
+    const protection = protectAssistedCommitResources(view.directory, [
+      view.directory,
+      await realpath(view.directory),
+    ])
+    t.after(() => protection.release())
+    const path = Path.join(view.directory, 'protected-clone')
+    fireEvent.change(view.pathInput, { target: { value: path } })
+    const message =
+      'Finish or cancel the assisted commit run before cloning into this directory.'
+    await waitFor(() => assert.ok(screen.getByText(message)))
+    assert.strictEqual(view.cloneButton.getAttribute('aria-disabled'), 'true')
+    const form = view.container.querySelector('form')
+    assert.ok(form)
+    fireEvent.submit(form)
+    await waitFor(() =>
+      assert.strictEqual(
+        view.container.querySelector('.dialog-header .spin') === null,
+        true
+      )
+    )
+    assert.strictEqual(view.clone.mock.callCount(), 0)
+    protection.release()
+    view.rerender(React.cloneElement(view.element))
+    await waitFor(() =>
+      assert.strictEqual(view.cloneButton.getAttribute('aria-disabled'), null)
+    )
+    assert.strictEqual(screen.queryByText(message), null)
   })
 
   it('clones to a corrected destination without changing the repository URL', async t => {

@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { addWorktree, listWorktrees } from '../../lib/git/worktree'
 import { BranchAutocompletionProvider } from '../autocompletion/branch-autocompletion-provider'
 import memoizeOne from 'memoize-one'
 import { RepositoryPath } from '../lib/repository-path'
@@ -90,47 +89,28 @@ export class AddWorktreeDialog extends React.Component<
       b => b.name === effectiveBranchName
     )
 
+    const options =
+      branch?.type === BranchType.Remote
+        ? {
+            createBranch: branch.nameWithoutRemote,
+            commitish: branch.ref,
+          }
+        : branch !== undefined
+        ? { commitish: branch.name }
+        : { createBranch: effectiveBranchName }
     try {
-      if (branch?.type === BranchType.Remote) {
-        // Remote branch: create a new local branch from the remote ref
-        await addWorktree(this.props.repository, fullPath, {
-          createBranch: branch.nameWithoutRemote,
-          commitish: branch.ref,
-        })
-      } else if (branch) {
-        // Existing local branch: check it out in the new worktree
-        await addWorktree(this.props.repository, fullPath, {
-          commitish: branch.name,
-        })
-      } else {
-        // New branch: create it in the new worktree
-        await addWorktree(this.props.repository, fullPath, {
-          createBranch: effectiveBranchName,
-        })
+      if (
+        await this.props.dispatcher.addWorktreeAndSwitch(
+          this.props.repository,
+          fullPath,
+          options
+        )
+      ) {
+        this.props.onDismissed()
       }
-    } catch (e) {
-      this.props.dispatcher.postError(e)
+    } finally {
       this.setState({ creating: false })
-      return
     }
-
-    const { dispatcher, repository } = this.props
-    const worktrees = await listWorktrees(repository)
-    const worktree = worktrees.find(wt => wt.path === fullPath)
-
-    if (!worktree) {
-      this.props.dispatcher.postError(
-        new Error('Failed to find the newly created worktree')
-      )
-      this.setState({ creating: false })
-      return
-    }
-
-    dispatcher.incrementMetric('worktreeCreatedCount')
-    await dispatcher.switchWorktree(repository, worktree)
-
-    this.setState({ creating: false })
-    this.props.onDismissed()
   }
 
   private renderBranchStatus() {

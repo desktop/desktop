@@ -46,6 +46,7 @@ interface IPushPullButtonProps {
 
   /** Is a push/pull/fetch in progress? */
   readonly networkActionInProgress: boolean
+  readonly disabled?: boolean
 
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
@@ -433,6 +434,17 @@ export class PushPullButton extends React.Component<
   }
 
   private renderButton() {
+    if (this.props.disabled) {
+      return (
+        <ToolbarButton
+          {...this.defaultButtonProps()}
+          icon={octicons.gitCommit}
+          title="Local commit run"
+          description="Finish or cancel before syncing"
+          disabled={true}
+        />
+      )
+    }
     const {
       progress,
       networkActionInProgress,

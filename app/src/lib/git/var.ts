@@ -1,6 +1,7 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
+import { IGitExecutionOptions } from './core'
 
 /**
  * Gets the author identity, ie the name and email which would
@@ -18,16 +19,40 @@ import { CommitIdentity } from '../../models/commit-identity'
  * commits can be expected to fail as well.
  */
 export async function getAuthorIdentity(
-  repository: Repository
+  repository: Repository,
+  options?: Pick<IGitExecutionOptions, 'env'>
 ): Promise<CommitIdentity | null> {
-  const result = await git(
-    ['var', 'GIT_AUTHOR_IDENT'],
-    repository.path,
+  return getIdentity(
+    repository,
+    'GIT_AUTHOR_IDENT',
     'getAuthorIdentity',
-    {
-      successExitCodes: new Set([0, 128]),
-    }
+    options
   )
+}
+
+/** Get the identity Git uses for Signed-off-by trailers and the committer. */
+export async function getCommitterIdentity(
+  repository: Repository,
+  options?: Pick<IGitExecutionOptions, 'env'>
+): Promise<CommitIdentity | null> {
+  return getIdentity(
+    repository,
+    'GIT_COMMITTER_IDENT',
+    'getCommitterIdentity',
+    options
+  )
+}
+
+async function getIdentity(
+  repository: Repository,
+  variable: 'GIT_AUTHOR_IDENT' | 'GIT_COMMITTER_IDENT',
+  name: string,
+  options?: Pick<IGitExecutionOptions, 'env'>
+): Promise<CommitIdentity | null> {
+  const result = await git(['var', variable], repository.path, name, {
+    successExitCodes: new Set([0, 128]),
+    ...options,
+  })
 
   // If user.user.useconfigonly is set and no user.name or user.email
   if (result.exitCode === 128) {

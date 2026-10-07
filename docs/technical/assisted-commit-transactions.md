@@ -1,7 +1,10 @@
 # Assisted commit transactions
 
-This is backend scaffolding for plan-first assisted commits. It does not invoke
-Copilot, wire a UI callback, or push. Manual commits keep their existing behavior.
+This is the backend engine for plan-first assisted commits. It does not itself
+invoke Copilot, wire a UI callback, or push. The
+[AppStore run integration](assisted-commit-runs.md) owns the real Changes action,
+consent, Git reader coordination, cancellation and local acceptance.
+Manual commits keep their existing behavior.
 The separate [assisted commit planner](assisted-commit-planning.md) proposes
 snapshot-only messages and groups, and returns this engine's checked capability
 after full validation. It does not execute the capability.
@@ -52,7 +55,7 @@ const result = await withAssistedCommitSnapshot(
       snapshot.analysis.changes.length === 0
         ? createSingleAssistedCommitPlan(snapshot, {
             reason: 'empty-selection',
-            title: callerProvidedEmptyCommitTitle,
+            title: 'Empty commit',
           })
         : await planner.propose(snapshot.analysis)
 
@@ -65,6 +68,7 @@ const result = await withAssistedCommitSnapshot(
 if (options.signal?.aborted) {
   await rollbackAssistedCommitTransaction(result, options)
 } else {
+  await verifyAssistedCommitTransaction(result, options)
   // Immediately before push starts, or before returning to the ready state.
   finalizeAssistedCommitTransaction(result)
 }
@@ -73,7 +77,9 @@ if (options.signal?.aborted) {
 Execution consumes the accepted snapshot and removes its private files. The
 opaque result retains an in-memory original-index backup for cancellation after
 the last local commit but before a future push. `rollbackAssistedCommitTransaction`
-rechecks ownership and restores only this run. `finalizeAssistedCommitTransaction`
+rechecks ownership and restores only this run. `verifyAssistedCommitTransaction`
+rechecks retained success after caller-owned awaited steps, including selected
+bytes and the installed index. `finalizeAssistedCommitTransaction`
 releases that capability without Git operations. A failed rollback retains it
 for a caller-directed retry or explicit finalization.
 Cleanup failures retain owned handle/path obligations too. Recovery retry must

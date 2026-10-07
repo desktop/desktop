@@ -955,6 +955,11 @@ export class CopilotStore extends BaseStore {
     })
   }
 
+  /** Whether the packaged SDK runtime needed for assisted commit planning is installed. */
+  public async isAssistedCommitRuntimeAvailable(): Promise<boolean> {
+    return pathExists(getCopilotRuntimePath(join(__dirname, 'copilot')))
+  }
+
   /** Reuse the SDK client factory without granting the planner additional capabilities. */
   protected async createAssistedCommitClient(
     account: Account,

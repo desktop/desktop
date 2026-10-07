@@ -31,7 +31,12 @@ import { getCommitMode } from './helpers/commit-mode-storage'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
+  private readonly transferredHashes = new Map<string, string>()
   private readonly commitModes = new Map<number, CommitMode>()
+  private readonly assistedCommits = new Map<
+    number,
+    Pick<IChangesState, 'assistedCommit' | 'assistedCommitAvailable'>
+  >()
 
   public constructor(private readonly statsStore: IStatsStore) {}
 
@@ -40,24 +45,41 @@ export class RepositoryStateCache {
     const commitMode =
       this.commitModes.get(repository.id) ?? getCommitMode(repository)
     this.commitModes.set(repository.id, commitMode)
+    const assistedCommit = this.assistedCommits.get(repository.id)
 
-    const existing = this.repositoryState.get(repository.hash)
+    const hash = this.getStateHash(repository.hash)
+    const existing = this.repositoryState.get(hash)
     if (existing != null) {
-      if (existing.changesState.commitMode === commitMode) {
+      if (
+        existing.changesState.commitMode === commitMode &&
+        (assistedCommit === undefined ||
+          (existing.changesState.assistedCommit ===
+            assistedCommit.assistedCommit &&
+            existing.changesState.assistedCommitAvailable ===
+              assistedCommit.assistedCommitAvailable))
+      ) {
         return existing
       }
 
       // Aliases and refreshed metadata can revisit an older hash for the same ID.
       const reconciled = {
         ...existing,
-        changesState: { ...existing.changesState, commitMode },
+        changesState: {
+          ...existing.changesState,
+          commitMode,
+          ...assistedCommit,
+        },
       }
-      this.repositoryState.set(repository.hash, reconciled)
+      this.repositoryState.set(hash, reconciled)
       return reconciled
     }
 
-    const newItem = getInitialRepositoryState(commitMode)
-    this.repositoryState.set(repository.hash, newItem)
+    const initial = getInitialRepositoryState(commitMode)
+    const newItem = {
+      ...initial,
+      changesState: { ...initial.changesState, ...assistedCommit },
+    }
+    this.repositoryState.set(hash, newItem)
     return newItem
   }
 
@@ -69,6 +91,10 @@ export class RepositoryStateCache {
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
     this.commitModes.set(repository.id, newState.changesState.commitMode)
+    this.assistedCommits.set(repository.id, {
+      assistedCommit: newState.changesState.assistedCommit,
+      assistedCommitAvailable: newState.changesState.assistedCommitAvailable,
+    })
 
     const currentTip = currentState.branchesState.tip
     const newTip = newState.branchesState.tip
@@ -83,7 +109,7 @@ export class RepositoryStateCache {
       newTip.branch.tip.sha === newState.commitToAmend.sha &&
       newState.changesState.conflictState === null
 
-    this.repositoryState.set(repository.hash, {
+    this.repositoryState.set(this.getStateHash(repository.hash), {
       ...newState,
       commitToAmend: isAmending ? newState.commitToAmend : null,
     })
@@ -275,7 +301,7 @@ export class RepositoryStateCache {
     source: Repository,
     worktree: WorktreeEntry
   ) {
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceState = this.repositoryState.get(this.getStateHash(source.hash))
     if (sourceState === undefined) {
       return
     }
@@ -317,13 +343,32 @@ export class RepositoryStateCache {
       return
     }
 
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceHash = this.getStateHash(source.hash)
+    const targetHash = this.getStateHash(target.hash)
+    const sourceState = this.repositoryState.get(sourceHash)
     if (sourceState === undefined) {
       return
     }
 
-    this.repositoryState.set(target.hash, sourceState)
-    this.repositoryState.delete(source.hash)
+    this.repositoryState.set(targetHash, sourceState)
+    if (sourceHash !== targetHash) {
+      this.repositoryState.delete(sourceHash)
+      if (source.path === target.path) {
+        this.transferredHashes.set(sourceHash, targetHash)
+      }
+    }
+  }
+
+  private getStateHash(hash: string): string {
+    let current = hash
+    while (this.transferredHashes.has(current)) {
+      const next = this.transferredHashes.get(current)
+      if (next === undefined) {
+        break
+      }
+      current = next
+    }
+    return current
   }
 
   private sendPullRequestStateNotExistsException() {
@@ -397,6 +442,8 @@ function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
       },
       commitMessage: DefaultCommitMessage,
       commitMode,
+      assistedCommit: { kind: 'idle' },
+      assistedCommitAvailable: false,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,

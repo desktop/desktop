@@ -17,6 +17,8 @@ export function createState<K extends keyof IChangesState>(
     },
     commitMessage: DefaultCommitMessage,
     commitMode: 'manual',
+    assistedCommit: { kind: 'idle' },
+    assistedCommitAvailable: false,
     showCoAuthoredBy: false,
     coAuthors: [],
     conflictState: null,
