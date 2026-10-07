@@ -1,8 +1,9 @@
 import assert from 'node:assert'
 import { TestContext } from 'node:test'
 import { exec, IGitExecutionOptions } from 'dugite'
-import { chmod, mkdir, readFile, writeFile } from 'fs/promises'
-import { dirname, join } from 'path'
+import { chmod, mkdir, readFile, realpath, writeFile } from 'fs/promises'
+import { basename, dirname, join, resolve } from 'path'
+import { fileURLToPath } from 'url'
 import {
   createSingleAssistedCommitPlan,
   executeAssistedCommitPlan,
@@ -15,6 +16,46 @@ import { ICopilotAssistedCommitRequest } from '../../src/models/copilot-assisted
 import { Repository } from '../../src/models/repository'
 import { setupEmptyRepository } from './repositories'
 import { getStatusOrThrow } from './status'
+import { isErrnoException } from '../../src/lib/errno-exception'
+
+async function physicalPath(path: string): Promise<string> {
+  const absolute = resolve(path)
+  try {
+    return await realpath(absolute)
+  } catch (error) {
+    if (!isErrnoException(error) || error.code !== 'ENOENT') {
+      throw error
+    }
+    const parent = dirname(absolute)
+    if (parent === absolute) {
+      throw error
+    }
+    return join(await physicalPath(parent), basename(absolute))
+  }
+}
+
+/**
+ * Match an exact physical fault target across Git/native path spellings.
+ *
+ * Missing lock/source paths resolve through their existing ancestors. This is
+ * test instrumentation only; production inode/ref/index guards stay unchanged.
+ */
+export async function createPathMatcher(
+  target: string
+): Promise<(candidate: unknown) => Promise<boolean>> {
+  const expected = await physicalPath(target)
+  return async candidate => {
+    const path =
+      typeof candidate === 'string'
+        ? candidate
+        : Buffer.isBuffer(candidate)
+        ? candidate.toString()
+        : candidate instanceof URL
+        ? fileURLToPath(candidate)
+        : undefined
+    return path !== undefined && (await physicalPath(path)) === expected
+  }
+}
 
 export async function rawGit(
   repository: Repository,
