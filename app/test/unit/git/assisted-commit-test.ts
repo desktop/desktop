@@ -4,7 +4,7 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { pathToFileURL } from 'url'
 import { afterEach, beforeEach, describe, it } from 'node:test'
-import { exec } from 'dugite'
+import { exec, IGitResult } from 'dugite'
 import { promises as FileSystem } from 'fs'
 import {
   chmod,
@@ -2459,26 +2459,49 @@ describe('git/assisted-commit', () => {
           destination: Parameters<typeof FileSystem.rename>[1]
         ) => {
           if (await matchesIndex(destination)) {
+            let terminated = false
             let childExited = false
+            let childFailed = false
+            let result: IGitResult | undefined
+            let executionError: unknown
             try {
-              await exec(['update-ref', '--stdin'], repository.path, {
-                processCallback: process => {
-                  process.stdin?.write('start\n')
-                  setTimeout(() => {
+              result = await exec(['update-ref', '--stdin'], repository.path, {
+                processCallback: child => {
+                  child.once('exit', (code, signal) => {
+                    childExited = true
+                    childFailed =
+                      signal === 'SIGTERM' || (code !== null && code !== 0)
+                  })
+                  child.stdin?.write('start\n')
+                  const timeout = setTimeout(() => {
                     if (
-                      process.pid !== undefined &&
-                      process.exitCode === null
+                      child.pid !== undefined &&
+                      child.exitCode === null &&
+                      child.signalCode === null
                     ) {
-                      globalThis.process.kill(process.pid, 'SIGTERM')
+                      terminated = globalThis.process.kill(child.pid, 'SIGTERM')
                     }
                   }, 10)
+                  child.once('close', () => clearTimeout(timeout))
                 },
               })
             } catch (error) {
-              assert.ok(error instanceof Error)
-              childExited = true
+              executionError = error
             }
-            assert.ok(childExited)
+            assert.ok(
+              terminated,
+              'The helper Git process must actually be terminated'
+            )
+            assert.ok(
+              childExited && childFailed,
+              'The helper must exit unsuccessfully before checking the parent-owned guard'
+            )
+            // Dugite rejects POSIX signals but resolves Windows numeric exits.
+            if (result === undefined) {
+              assert.ok(executionError instanceof Error)
+            } else {
+              assert.notStrictEqual(result.exitCode, 0)
+            }
             const current = await tip(repository)
             await rawGit(repository, [
               'update-ref',
