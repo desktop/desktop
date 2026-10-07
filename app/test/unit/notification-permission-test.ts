@@ -1,7 +1,8 @@
 import assert from 'node:assert'
-import { describe, it, mock, TestContext } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import { ipcRenderer } from 'electron'
 import { MockIPC } from '../helpers/mock-ipc'
+import { mockNotification } from '../helpers/mock-notification'
 
 let nativeNotificationsSupported = true
 mock.module('desktop-notifications', {
@@ -15,21 +16,6 @@ async function getSystemNotificationsPermission() {
     '../../src/lib/notifications/notification-permission'
   )
   return module.getSystemNotificationsPermission()
-}
-
-function mockNotification(t: TestContext, value: unknown) {
-  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'Notification')
-  Object.defineProperty(globalThis, 'Notification', {
-    configurable: true,
-    value,
-  })
-  t.after(() => {
-    if (descriptor === undefined) {
-      Reflect.deleteProperty(globalThis, 'Notification')
-    } else {
-      Object.defineProperty(globalThis, 'Notification', descriptor)
-    }
-  })
 }
 
 describe('system notification permission', () => {

@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import { before, beforeEach, describe, it, mock } from 'node:test'
 import { ipcRenderer } from 'electron'
 import { MockIPC } from '../helpers/mock-ipc'
+import { mockNotification } from '../helpers/mock-notification'
 import { notificationCallbacks } from '../../src/lib/notifications/notification-handler'
 
 let nativeNotificationsSupported = true
@@ -106,21 +107,7 @@ describe('showNotification', () => {
 
   it('does not count notifications when neither API is available', async t => {
     nativeNotificationsSupported = false
-    const descriptor = Object.getOwnPropertyDescriptor(
-      globalThis,
-      'Notification'
-    )
-    Object.defineProperty(globalThis, 'Notification', {
-      configurable: true,
-      value: undefined,
-    })
-    t.after(() => {
-      if (descriptor === undefined) {
-        Reflect.deleteProperty(globalThis, 'Notification')
-      } else {
-        Object.defineProperty(globalThis, 'Notification', descriptor)
-      }
-    })
+    mockNotification(t, undefined)
     const warn = t.mock.method(log, 'warn')
     assert.strictEqual(
       await showNotification({
@@ -139,24 +126,10 @@ describe('showNotification', () => {
       'Notifications are not allowed',
       'NotAllowedError'
     )
-    const descriptor = Object.getOwnPropertyDescriptor(
-      globalThis,
-      'Notification'
-    )
     function Notification() {
       throw error
     }
-    Object.defineProperty(globalThis, 'Notification', {
-      configurable: true,
-      value: Notification,
-    })
-    t.after(() => {
-      if (descriptor === undefined) {
-        Reflect.deleteProperty(globalThis, 'Notification')
-      } else {
-        Object.defineProperty(globalThis, 'Notification', descriptor)
-      }
-    })
+    mockNotification(t, Notification)
     const warn = t.mock.method(log, 'warn')
     const onClick = t.mock.fn()
 
@@ -175,10 +148,6 @@ describe('showNotification', () => {
   for (const event of ['show', 'error'] as const) {
     it(`waits for the HTML5 ${event} event`, async t => {
       nativeNotificationsSupported = false
-      const descriptor = Object.getOwnPropertyDescriptor(
-        globalThis,
-        'Notification'
-      )
       const notification = {
         onclick: () => {},
         onshow: () => {},
@@ -187,17 +156,7 @@ describe('showNotification', () => {
       function Notification() {
         return notification
       }
-      Object.defineProperty(globalThis, 'Notification', {
-        configurable: true,
-        value: Notification,
-      })
-      t.after(() => {
-        if (descriptor === undefined) {
-          Reflect.deleteProperty(globalThis, 'Notification')
-        } else {
-          Object.defineProperty(globalThis, 'Notification', descriptor)
-        }
-      })
+      mockNotification(t, Notification)
       const ipc = new MockIPC()
       const sendDescriptor = Object.getOwnPropertyDescriptor(
         ipcRenderer,

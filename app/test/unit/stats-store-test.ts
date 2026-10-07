@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 import assert from 'node:assert'
 import { ipcRenderer } from 'electron'
 import { TestStatsDatabase } from '../helpers/databases'
+import { mockNotification } from '../helpers/mock-notification'
 
 import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
@@ -163,27 +164,13 @@ describe('StatsStore', () => {
     } to the new endpoint`, async t => {
       statsDb = await createStatsDb()
       localStorage.setItem('has-sent-stats-opt-in-ping', '1')
-      const descriptor = Object.getOwnPropertyDescriptor(
-        globalThis,
-        'Notification'
-      )
-      Object.defineProperty(globalThis, 'Notification', {
-        configurable: true,
-        value: {
-          get permission() {
-            if (permission !== null) {
-              return permission
-            }
-            throw new Error('Permission lookup failed')
-          },
+      mockNotification(t, {
+        get permission() {
+          if (permission !== null) {
+            return permission
+          }
+          throw new Error('Permission lookup failed')
         },
-      })
-      t.after(() => {
-        if (descriptor === undefined) {
-          Reflect.deleteProperty(globalThis, 'Notification')
-        } else {
-          Object.defineProperty(globalThis, 'Notification', descriptor)
-        }
       })
       const invoke = ipcRenderer.invoke
       t.mock.method(
