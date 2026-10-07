@@ -132,5 +132,5 @@ export const enableCopilotAppHandoff = () =>
 
 /** Should stats be sent to the new telemetry endpoint? */
 export function enableNewStatsEndpoint(): boolean {
-  return enableBetaFeatures()
+  return true
 }
