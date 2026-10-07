@@ -13,6 +13,14 @@ import {
 } from '../../models/commit-message'
 import { CommitMode } from '../../models/commit-mode'
 import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
+import {
+  AssistedCommitRunState,
+  isAssistedCommitRepositoryLocked,
+} from '../../models/assisted-commit-run'
+import {
+  assistedCommitRequestsEqual,
+  freezeAssistedCommitRequest,
+} from '../../lib/assisted-commit-request'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
@@ -150,6 +158,15 @@ interface ICommitMessageProps {
   readonly isGeneratingCommitMessage?: boolean
   /** Progress of the assisted operation, not manual commit-message generation. */
   readonly isCreatingCopilotAssistedCommits?: boolean
+  readonly repositoryMutationBlocked?: boolean
+  readonly assistedCommitState?: AssistedCommitRunState
+  readonly onPrepareCopilotAssistedCommitRequest?: (
+    request: ICopilotAssistedCommitRequest
+  ) => Promise<ICopilotAssistedCommitRequest>
+  readonly onCancelCopilotAssistedCommits?: () => void
+  readonly onRetryCopilotAssistedCommitRecovery?: () => void
+  readonly onDismissCopilotAssistedCommitError?: () => void
+  readonly onAssistedCommitErrorDetails?: () => void
   readonly shouldShowGenerateCommitMessageCallOut?: boolean
   readonly commitToAmend: Commit | null
   readonly placeholder: string
@@ -367,6 +384,7 @@ export class CommitMessage extends React.Component<
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
   private shouldRestoreCommitModeFocus = false
+  private mounted = false
 
   private readonly COMMIT_MSG_ERROR_BTN_ID = 'commit-message-failure-hint'
 
@@ -393,6 +411,7 @@ export class CommitMessage extends React.Component<
 
   // Persist our current commit message if the caller wants to
   public componentWillUnmount() {
+    this.mounted = false
     const { props, state } = this
     props.onPersistCommitMessage?.(state.commitMessage)
     window.removeEventListener('keydown', this.onKeyDown)
@@ -400,6 +419,7 @@ export class CommitMessage extends React.Component<
   }
 
   public async componentDidMount() {
+    this.mounted = true
     window.addEventListener('keydown', this.onKeyDown)
     if (this.props.focusCommitMessage) {
       this.focusSummary()
@@ -491,6 +511,9 @@ export class CommitMessage extends React.Component<
     }
 
     if (
+      !this.isCopilotCommitMode &&
+      (prevProps.assistedCommitState === undefined ||
+        prevProps.assistedCommitState.kind === 'idle') &&
       prevProps.mostRecentLocalCommit?.sha !==
         this.props.mostRecentLocalCommit?.sha &&
       this.props.mostRecentLocalCommit !== null
@@ -698,8 +721,17 @@ export class CommitMessage extends React.Component<
 
   /** Whether Copilot will be creating the commits. */
   private get isCopilotCommitMode() {
+    if (
+      this.props.assistedCommitState !== undefined &&
+      isAssistedCommitRepositoryLocked(this.props.assistedCommitState)
+    ) {
+      return true
+    }
     return (
-      this.isCopilotAssistedCommitAvailable &&
+      (this.isCopilotAssistedCommitAvailable ||
+        (this.props.assistedCommitState !== undefined &&
+          this.props.assistedCommitState.kind !== 'idle' &&
+          this.props.onCreateCopilotAssistedCommits !== undefined)) &&
       this.props.commitMode === 'copilot'
     )
   }
@@ -708,22 +740,97 @@ export class CommitMessage extends React.Component<
     return (
       this.props.isCommitting === true ||
       this.props.isGeneratingCommitMessage === true ||
-      this.props.isCreatingCopilotAssistedCommits === true
+      this.props.isCreatingCopilotAssistedCommits === true ||
+      (this.props.assistedCommitState !== undefined &&
+        isAssistedCommitRepositoryLocked(this.props.assistedCommitState))
     )
   }
 
   private canCreateCopilotAssistedCommits() {
     return (
       this.isCopilotCommitMode &&
+      this.isCopilotAssistedCommitAvailable &&
+      this.props.repositoryMutationBlocked !== true &&
       (this.props.anyFilesSelected || this.props.allowEmptyCommit) &&
       !this.isBusy &&
       !this.hasRepoRuleFailure(false)
     )
   }
 
-  private createCopilotAssistedCommits(options?: ICreateCommitOptions) {
+  private async createCopilotAssistedCommits(
+    options?: ICreateCommitOptions,
+    pending?: {
+      readonly request: ICopilotAssistedCommitRequest
+      readonly repository: Repository
+      readonly authors: string
+    }
+  ) {
+    const currentRequest: ICopilotAssistedCommitRequest = {
+      files: this.props.filesSelected,
+      trailers: this.getCoAuthorTrailers(),
+      skipCommitHooks: this.props.skipCommitHooks,
+      signOffCommits: this.props.signOffCommits,
+      allowEmptyCommit: this.props.allowEmptyCommit,
+    }
+    if (
+      pending !== undefined &&
+      (!this.mounted ||
+        this.props.repository.id !== pending.repository.id ||
+        this.props.repository.path !== pending.repository.path ||
+        !assistedCommitRequestsEqual(pending.request, currentRequest) ||
+        JSON.stringify(this.props.coAuthors) !== pending.authors)
+    ) {
+      this.props.onShowPopup({
+        type: PopupType.Error,
+        error: new Error(
+          'The selected changes or commit options changed. Review your selection and try again.'
+        ),
+      })
+      return
+    }
     if (!this.canCreateCopilotAssistedCommits()) {
       return
+    }
+    const original = pending ?? {
+      request: freezeAssistedCommitRequest(currentRequest),
+      repository: this.props.repository,
+      authors: JSON.stringify(this.props.coAuthors),
+    }
+    let preflight = original
+    if (
+      pending === undefined &&
+      this.props.onPrepareCopilotAssistedCommitRequest !== undefined
+    ) {
+      try {
+        preflight = {
+          ...original,
+          request: await this.props.onPrepareCopilotAssistedCommitRequest(
+            original.request
+          ),
+        }
+      } catch (error) {
+        this.props.onShowPopup({ type: PopupType.Error, error })
+        return
+      }
+      if (
+        !this.mounted ||
+        this.props.repository.id !== original.repository.id ||
+        !assistedCommitRequestsEqual(currentRequest, {
+          files: this.props.filesSelected,
+          trailers: this.getCoAuthorTrailers(),
+          skipCommitHooks: this.props.skipCommitHooks,
+          signOffCommits: this.props.signOffCommits,
+          allowEmptyCommit: this.props.allowEmptyCommit,
+        })
+      ) {
+        this.props.onShowPopup({
+          type: PopupType.Error,
+          error: new Error(
+            'The selected changes or commit options changed. Review your selection and try again.'
+          ),
+        })
+        return
+      }
     }
 
     if (options?.warnUnknownAuthors !== false) {
@@ -732,10 +839,13 @@ export class CommitMessage extends React.Component<
       )
       if (unknownAuthors.length > 0) {
         this.props.onConfirmCommitWithUnknownCoAuthors(unknownAuthors, () =>
-          this.createCopilotAssistedCommits({
-            warnUnknownAuthors: false,
-            warnFilesNotVisible: options?.warnFilesNotVisible ?? true,
-          })
+          this.createCopilotAssistedCommits(
+            {
+              warnUnknownAuthors: false,
+              warnFilesNotVisible: options?.warnFilesNotVisible ?? true,
+            },
+            preflight
+          )
         )
         return
       }
@@ -747,21 +857,18 @@ export class CommitMessage extends React.Component<
       this.props.onFilesToCommitNotVisible !== undefined
     ) {
       this.props.onFilesToCommitNotVisible(() =>
-        this.createCopilotAssistedCommits({
-          warnUnknownAuthors: options?.warnUnknownAuthors ?? true,
-          warnFilesNotVisible: false,
-        })
+        this.createCopilotAssistedCommits(
+          {
+            warnUnknownAuthors: options?.warnUnknownAuthors ?? true,
+            warnFilesNotVisible: false,
+          },
+          preflight
+        )
       )
       return
     }
 
-    this.props.onCreateCopilotAssistedCommits?.({
-      files: this.props.filesSelected,
-      trailers: this.getCoAuthorTrailers(),
-      skipCommitHooks: this.props.skipCommitHooks,
-      signOffCommits: this.props.signOffCommits,
-      allowEmptyCommit: this.props.allowEmptyCommit,
-    })
+    await this.props.onCreateCopilotAssistedCommits?.(preflight.request)
   }
 
   private getCoAuthorTrailers() {
@@ -1970,12 +2077,15 @@ export class CommitMessage extends React.Component<
   private isManualCommitButtonEnabled() {
     const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
     return (
-      (this.canCommit() || this.canAmend()) && !isSummaryBlank && !this.isBusy
+      (this.canCommit() || this.canAmend()) &&
+      !isSummaryBlank &&
+      !this.isBusy &&
+      this.props.repositoryMutationBlocked !== true
     )
   }
 
   private renderSubmitButton() {
-    if (this.isCopilotAssistedCommitAvailable) {
+    if (this.isCopilotAssistedCommitAvailable || this.isCopilotCommitMode) {
       return this.renderCommitModeButton()
     }
 
@@ -2122,6 +2232,11 @@ export class CommitMessage extends React.Component<
             filesSelectedCount={filesSelected.length}
             isWorking={isCreatingCopilotAssistedCommits === true}
             allowEmptyCommit={allowEmptyCommit}
+            runState={this.props.assistedCommitState}
+            onCancel={this.props.onCancelCopilotAssistedCommits}
+            onRetryRecovery={this.props.onRetryCopilotAssistedCommitRecovery}
+            onDismissError={this.props.onDismissCopilotAssistedCommitError}
+            onErrorDetails={this.props.onAssistedCommitErrorDetails}
           />
         </div>
       </CSSTransition>
@@ -2259,7 +2374,9 @@ export class CommitMessage extends React.Component<
         {this.renderSubmitButton()}
         {this.renderCommitProgress()}
         <span className="sr-only" aria-live="polite" aria-atomic="true">
-          {this.state.isCommittingStatusMessage}
+          {this.isCopilotCommitMode
+            ? null
+            : this.state.isCommittingStatusMessage}
         </span>
       </div>
     )

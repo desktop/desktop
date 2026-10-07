@@ -7,6 +7,9 @@ import {
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { AssistedCommitRunState } from '../../models/assisted-commit-run'
+import { Button } from '../lib/button'
+import { assertNever } from '../../lib/fatal-error'
 
 /** The one-shot animations the mascot plays in response to the user. */
 type CopilotReaction = 'celebrate' | 'tickle' | 'jump-wiggle'
@@ -29,6 +32,11 @@ interface ICopilotCommitPanelProps {
 
   /** Whether an empty commit may be created when no files are selected. */
   readonly allowEmptyCommit?: boolean
+  readonly runState?: AssistedCommitRunState
+  readonly onCancel?: () => void
+  readonly onRetryRecovery?: () => void
+  readonly onDismissError?: () => void
+  readonly onErrorDetails?: () => void
 }
 
 interface ICopilotCommitPanelState {
@@ -205,6 +213,70 @@ export class CopilotCommitPanel extends React.Component<
 
   private renderCaption() {
     const { isWorking, filesSelectedCount, allowEmptyCommit } = this.props
+    const state = this.props.runState
+    if (state?.kind === 'error') {
+      return (
+        <div className="assisted-commit-error" role="alert">
+          <div className="title">Commit run stopped</div>
+          <div className="description">{state.error.message}</div>
+          {state.settling && (
+            <div className="description">Finishing repository refresh…</div>
+          )}
+          {state.selectionNeedsReview && (
+            <div className="description">
+              Some selected changes moved or changed. Review and reselect them.
+            </div>
+          )}
+          <div className="assisted-commit-actions">
+            {state.retry !== null && this.props.onRetryRecovery !== undefined && (
+              <Button
+                onClick={this.props.onRetryRecovery}
+                disabled={state.settling}
+              >
+                {state.retry === 'recovery'
+                  ? 'Retry rollback'
+                  : 'Retry refresh'}
+              </Button>
+            )}
+            {state.retry === null && this.props.onDismissError !== undefined && (
+              <Button
+                onClick={this.props.onDismissError}
+                disabled={state.settling}
+              >
+                Dismiss
+              </Button>
+            )}
+            {this.props.onErrorDetails !== undefined && (
+              <Button onClick={this.props.onErrorDetails}>Details</Button>
+            )}
+          </div>
+        </div>
+      )
+    }
+    if (state !== undefined && state.kind !== 'idle') {
+      return (
+        <>
+          <div className="title working">{getRunStatus(state)}</div>
+          {state.kind === 'committing' && (
+            <div className="description commit-title">{state.title}</div>
+          )}
+          {this.props.onCancel !== undefined && (
+            <div className="assisted-commit-actions">
+              <Button
+                onClick={this.props.onCancel}
+                disabled={
+                  state.kind === 'rolling-back' ||
+                  state.kind === 'refreshing' ||
+                  state.kind === 'closing'
+                }
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </>
+      )
+    }
 
     if (isWorking) {
       return (
@@ -259,7 +331,7 @@ export class CopilotCommitPanel extends React.Component<
         onMouseLeave={this.onMouseLeave}
       >
         <div className="glow" />
-        <div className="copilot-stage">
+        <div className="copilot-stage" aria-hidden={true}>
           {this.renderSparkles()}
           {/*
            * Poking Copilot is a purely decorative easter egg, so it's
@@ -286,14 +358,60 @@ export class CopilotCommitPanel extends React.Component<
         <div className="caption">{this.renderCaption()}</div>
         <AriaLiveContainer
           message={
-            this.props.isWorking
+            this.props.runState !== undefined &&
+            this.props.runState.kind !== 'idle'
+              ? getRunStatus(this.props.runState)
+              : this.props.isWorking
               ? 'Copilot is splitting your changes into commits'
               : null
           }
-          trackedUserInput={this.props.isWorking}
         />
       </div>
     )
+  }
+}
+
+function getRunStatus(
+  state: Exclude<AssistedCommitRunState, { readonly kind: 'idle' }>
+): string {
+  if (
+    state.kind !== 'error' &&
+    state.kind !== 'rolling-back' &&
+    state.kind !== 'refreshing' &&
+    state.kind !== 'closing' &&
+    state.cancelRequested
+  ) {
+    return 'Cancelling the commit run…'
+  }
+  switch (state.kind) {
+    case 'awaiting-consent':
+      return 'Waiting for your consent'
+    case 'preparing':
+      return 'Preparing selected changes…'
+    case 'capturing':
+      return 'Freezing selected changes…'
+    case 'analyzing':
+      return 'Planning selected changes…'
+    case 'summarizing-selection':
+      return 'Writing one message for all selected changes…'
+    case 'validating':
+      return 'Checking the complete commit plan…'
+    case 'committing':
+      return `Creating commit ${state.index + 1} of ${state.total}: ${
+        state.title
+      }`
+    case 'rolling-back':
+      return 'Undoing commits from this run…'
+    case 'refreshing':
+      return 'Refreshing selected changes…'
+    case 'closing':
+      return 'Finalizing local commits…'
+    case 'finishing':
+      return 'Refreshing local commits…'
+    case 'error':
+      return `Commit run stopped: ${state.error.message}`
+    default:
+      return assertNever(state, 'Unknown assisted commit run state')
   }
 }
 

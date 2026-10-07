@@ -5,6 +5,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { ITextDiff, ILargeTextDiff } from '../../models/diff'
 
 /**
  * @param repository repository to execute merge in
@@ -21,6 +22,11 @@ export async function createCommit(
     noVerify?: boolean
     signOff?: boolean
     allowEmpty?: boolean
+    /** Preserve the verified diff basis of restored partial selections through staging. */
+    readonly certifiedPartialDiffs?: ReadonlyMap<
+      string,
+      ITextDiff | ILargeTextDiff
+    >
   } & HookCallbackOptions
 ): Promise<string> {
   // Clear the staging area, our diffs reflect the difference between the
@@ -28,7 +34,7 @@ export async function createCommit(
   // do the same thing.
   await unstageAll(repository)
 
-  await stageFiles(repository, files)
+  await stageFiles(repository, files, options?.certifiedPartialDiffs)
 
   const args = ['-F', '-']
 
