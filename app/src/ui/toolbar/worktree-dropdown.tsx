@@ -21,6 +21,7 @@ interface IWorktreeDropdownProps {
   readonly onDropDownStateChanged: (state: DropdownState) => void
   readonly enableFocusTrap: boolean
   readonly worktreeDropdownWidth: IConstrainedValue
+  readonly disabled?: boolean
 }
 
 interface IWorktreeDropdownState {
@@ -39,6 +40,9 @@ export class WorktreeDropdown extends React.Component<
   }
 
   private onWorktreeClick = async (worktree: WorktreeEntry) => {
+    if (this.props.disabled) {
+      return
+    }
     const { dispatcher, repository } = this.props
 
     dispatcher.closeFoldout(FoldoutType.Worktree)
@@ -92,6 +96,9 @@ export class WorktreeDropdown extends React.Component<
 
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+    if (this.props.disabled) {
+      return
+    }
 
     const currentWorktree = this.getCurrentWorktree()
     if (currentWorktree === null) {
@@ -120,6 +127,9 @@ export class WorktreeDropdown extends React.Component<
   }
 
   private renderWorktreeFoldout = (): JSX.Element | null => {
+    if (this.props.disabled) {
+      return null
+    }
     const { worktrees } = this.props
 
     return (
@@ -169,6 +179,7 @@ export class WorktreeDropdown extends React.Component<
         onContextMenu={this.onContextMenu}
         dropdownContentRenderer={this.renderWorktreeFoldout}
         dropdownState={currentState}
+        disabled={this.props.disabled}
         showDisclosureArrow={true}
         enableFocusTrap={enableFocusTrap}
         foldoutStyleOverrides={

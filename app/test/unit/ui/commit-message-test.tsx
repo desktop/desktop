@@ -36,6 +36,8 @@ import {
   UserHit,
 } from '../../../src/ui/autocompletion'
 import { CommitOptions } from '../../../src/lib/app-state'
+import { AssistedCommitRunState } from '../../../src/models/assisted-commit-run'
+import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
 import { ISerializableMenuItem } from '../../../src/lib/menu-item'
 import {
   getCommitMode,
@@ -1724,6 +1726,127 @@ describe('CommitMessage', () => {
       )
     })
 
+    const panelRunCases: ReadonlyArray<
+      readonly [AssistedCommitRunState, boolean, boolean, string, boolean]
+    > = [
+      [
+        { kind: 'analyzing', runId: 'run', cancelRequested: false },
+        true,
+        true,
+        'Cancel',
+        false,
+      ],
+      [
+        {
+          kind: 'committing',
+          runId: 'run',
+          index: 1,
+          total: 3,
+          title: 'Exact generated title',
+          cancelRequested: false,
+        },
+        true,
+        true,
+        'Cancel',
+        false,
+      ],
+      [{ kind: 'rolling-back', runId: 'run' }, true, true, 'Cancel', true],
+      ...(['recovery', 'refresh', null] as const).map(
+        retry =>
+          [
+            {
+              kind: 'error',
+              runId: 'run',
+              retry,
+              settling: false,
+              selectionNeedsReview: true,
+              error: new ErrorWithMetadata(
+                new Error('Selected changes need attention'),
+                {}
+              ),
+            },
+            false,
+            retry !== null,
+            retry === null
+              ? 'Dismiss'
+              : retry === 'recovery'
+              ? 'Retry rollback'
+              : 'Retry refresh',
+            false,
+          ] as const
+      ),
+    ]
+
+    for (const [
+      state,
+      working,
+      gearDisabled,
+      action,
+      actionDisabled,
+    ] of panelRunCases) {
+      it(`keeps the panel gear and ${action} wired during ${state.kind}${
+        state.kind === 'error' ? `/${state.retry}` : ''
+      }`, t => {
+        let acted = 0
+        const menu = t.mock.method(ipcRenderer, 'invoke', async () => null)
+        const { view } = renderWithCommitModes({
+          commitMode: 'copilot',
+          isCreatingCopilotAssistedCommits: working,
+          assistedCommitState: state,
+          onCancelCopilotAssistedCommits: () => acted++,
+          onRetryCopilotAssistedCommitRecovery: () => acted++,
+          onDismissCopilotAssistedCommitError: () => acted++,
+          onAssistedCommitErrorDetails: () => {},
+        })
+        const gear = screen.getByRole('button', {
+          name: 'Configure commit options',
+        })
+        const panel = view.container.querySelector(
+          '.copilot-commit-panel.with-options'
+        )
+        assert.ok(panel !== null && panel.contains(gear))
+        assert.strictEqual(gear.closest('[aria-hidden="true"]'), null)
+        assert.strictEqual(
+          view.container.querySelector(
+            '.commit-message-component > .assisted-commit-options'
+          ),
+          null
+        )
+        assert.strictEqual(
+          gear.getAttribute('aria-disabled') === 'true',
+          gearDisabled
+        )
+        fireEvent.click(gear)
+        assert.strictEqual(menu.mock.callCount(), gearDisabled ? 0 : 1)
+        const runAction = screen.getByRole('button', {
+          name: action,
+          exact: true,
+        })
+        assert.ok(panel.contains(runAction))
+        assert.strictEqual(
+          runAction.getAttribute('aria-disabled') === 'true',
+          actionDisabled
+        )
+        fireEvent.click(runAction)
+        assert.strictEqual(acted, actionDisabled ? 0 : 1)
+        assert.strictEqual(
+          screen.queryByRole('combobox', { name: 'Commit summary' }),
+          null
+        )
+        if (state.kind === 'committing') {
+          assert.ok(
+            screen.getByText('Exact generated title', {
+              selector: '.commit-title',
+            })
+          )
+        }
+        if (state.kind === 'error') {
+          assert.ok(panel.contains(screen.getByRole('alert')))
+          assert.ok(screen.getByRole('button', { name: 'Details' }))
+        }
+      })
+    }
+
     it('restores summary focus when leaving the focused panel options control', () => {
       const { rerender } = renderWithCommitModes({ commitMode: 'copilot' })
       const button = screen.getByRole('button', {
@@ -2090,6 +2213,28 @@ describe('CommitMessage', () => {
       assert.ok(
         cancel.mock.calls.some(call => call.arguments[0] === pendingFrameID)
       )
+    })
+
+    it('never announces transient assisted commits as completed before acceptance', async () => {
+      const commit = createCommit()
+      const harness = renderWithCommitModes({
+        commitMode: 'copilot',
+        isCreatingCopilotAssistedCommits: true,
+        assistedCommitState: {
+          kind: 'finishing',
+          runId: 'run',
+          cancelRequested: false,
+        },
+        mostRecentLocalCommit: null,
+      })
+      harness.rerender({ mostRecentLocalCommit: commit })
+      await waitFor(() => {
+        const live = harness.view.container.querySelector(
+          'span[aria-live="polite"][aria-atomic="true"]'
+        )
+        assert.ok(live)
+        assert.ok(!live.textContent?.includes('Committed Just now'))
+      })
     })
 
     it('honors both unknown-coauthor and hidden-file confirmations before dispatch', () => {
