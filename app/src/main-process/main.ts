@@ -4,7 +4,6 @@ import {
   app,
   Menu,
   BrowserWindow,
-  clipboard,
   dialog,
   shell,
   session,
@@ -512,10 +511,6 @@ app.on('ready', () => {
       menu.popup({ window, callback: () => resolve(null) })
     })
   })
-
-  ipcMain.handle('write-clipboard-text', async (_, text) =>
-    clipboard.writeText(text)
-  )
 
   ipcMain.handle('check-for-updates', async (_, url) =>
     mainWindow?.checkForUpdates(url)

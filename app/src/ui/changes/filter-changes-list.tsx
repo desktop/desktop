@@ -36,7 +36,7 @@ import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../../lib/menu-item'
 import { arrayEquals } from '../../lib/equality'
-import { writeClipboardText } from '../main-process-proxy'
+import { clipboard } from 'electron'
 import { basename } from 'path'
 import { Commit, ICommitContext } from '../../models/commit'
 import {
@@ -585,7 +585,7 @@ export class FilterChangesList extends React.Component<
       label: CopyFilePathLabel,
       action: () => {
         const fullPath = Path.join(this.props.repository.path, file.path)
-        writeClipboardText(fullPath)
+        clipboard.writeText(fullPath)
       },
     }
   }
@@ -595,7 +595,7 @@ export class FilterChangesList extends React.Component<
   ): IMenuItem => {
     return {
       label: CopyRelativeFilePathLabel,
-      action: () => writeClipboardText(Path.normalize(file.path)),
+      action: () => clipboard.writeText(Path.normalize(file.path)),
     }
   }
 
@@ -608,7 +608,7 @@ export class FilterChangesList extends React.Component<
         const fullPaths = files.map(file =>
           Path.join(this.props.repository.path, file.path)
         )
-        writeClipboardText(fullPaths.join(EOL))
+        clipboard.writeText(fullPaths.join(EOL))
       },
     }
   }
@@ -620,7 +620,7 @@ export class FilterChangesList extends React.Component<
       label: CopySelectedRelativePathsLabel,
       action: () => {
         const paths = files.map(file => Path.normalize(file.path))
-        writeClipboardText(paths.join(EOL))
+        clipboard.writeText(paths.join(EOL))
       },
     }
   }

@@ -1,7 +1,7 @@
 import { Repository } from '../../models/repository'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
-import { writeClipboardText } from '../main-process-proxy'
+import { clipboard } from 'electron'
 import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
@@ -43,11 +43,11 @@ export const generateRepositoryListContextMenu = (
     ...buildWorktreeMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
-      action: () => writeClipboardText(repository.name),
+      action: () => clipboard.writeText(repository.name),
     },
     {
       label: __DARWIN__ ? 'Copy Repo Path' : 'Copy repo path',
-      action: () => writeClipboardText(repository.path),
+      action: () => clipboard.writeText(repository.path),
     },
     { type: 'separator' },
     {

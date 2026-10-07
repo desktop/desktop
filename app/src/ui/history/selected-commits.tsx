@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { writeClipboardText } from '../main-process-proxy'
+import { clipboard } from 'electron'
 import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
@@ -421,11 +421,11 @@ export class SelectedCommits extends React.Component<
       { type: 'separator' },
       {
         label: CopyFilePathLabel,
-        action: () => writeClipboardText(fullPath),
+        action: () => clipboard.writeText(fullPath),
       },
       {
         label: CopyRelativeFilePathLabel,
-        action: () => writeClipboardText(Path.normalize(file.path)),
+        action: () => clipboard.writeText(Path.normalize(file.path)),
       },
       { type: 'separator' },
     ]

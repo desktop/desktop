@@ -1,10 +1,10 @@
+import { clipboard } from 'electron'
 import React from 'react'
 import * as octicons from './octicons/octicons.generated'
 import { Octicon } from './octicons'
 import { sleep } from '../lib/promise'
 import { Button } from './lib/button'
 import { AriaLiveContainer } from './accessibility/aria-live-container'
-import { writeClipboardText } from './main-process-proxy'
 
 interface ICopyButtonProps {
   readonly copyContent: string
@@ -29,9 +29,7 @@ export class CopyButton extends React.Component<
 
   private onCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    if (!(await writeClipboardText(this.props.copyContent))) {
-      return
-    }
+    clipboard.writeText(this.props.copyContent)
 
     this.setState({ showCopied: true })
 

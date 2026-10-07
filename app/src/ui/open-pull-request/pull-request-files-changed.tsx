@@ -19,7 +19,7 @@ import {
   RevealInFileManagerLabel,
 } from '../lib/context-menu'
 import { revealInFileManager } from '../../lib/app-shell'
-import { writeClipboardText } from '../main-process-proxy'
+import { clipboard } from 'electron'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
@@ -201,11 +201,11 @@ export class PullRequestFilesChanged extends React.Component<
       { type: 'separator' },
       {
         label: CopyFilePathLabel,
-        action: () => writeClipboardText(fullPath),
+        action: () => clipboard.writeText(fullPath),
       },
       {
         label: CopyRelativeFilePathLabel,
-        action: () => writeClipboardText(Path.normalize(file.path)),
+        action: () => clipboard.writeText(Path.normalize(file.path)),
       },
       { type: 'separator' },
     ]
