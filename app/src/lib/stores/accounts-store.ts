@@ -152,6 +152,24 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return current.withToken(token)
   }
 
+  /**
+   * Get the account's credential for `holder`, holding off renewal of that
+   * token until the lease is released. See `CredentialSessions.leaseToken`.
+   */
+  public async leaseAccountToken(
+    account: Account,
+    holder: string
+  ): Promise<{ readonly account: Account; readonly release: () => void }> {
+    await this.loadingPromise
+    const lease = await this.credentials.leaseToken(account, holder)
+    const current = this.accounts.find(a => a.endpoint === account.endpoint)
+    if (current === undefined || current.id !== account.id) {
+      lease.release()
+      throw new AccountRequiresSignInError()
+    }
+    return { account: current.withToken(lease.token), release: lease.release }
+  }
+
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
     return this.credentials.isRefreshable(account)
