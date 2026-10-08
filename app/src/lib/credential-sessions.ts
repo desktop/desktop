@@ -1,6 +1,6 @@
 import { ISecureStore } from './stores/stores'
 import { getKeyForAccount } from './auth'
-import { Account } from '../models/account'
+import { Account, accountEquals } from '../models/account'
 import { deleteToken, getHTMLURL } from './api'
 import {
   IOAuthToken,
@@ -15,6 +15,8 @@ import {
 
 /** Renew credentials that expire within this window before handing them out. */
 export const refreshMargin = 10 * 60 * 1000
+/** Stop waiting for a leased token's holders once it is this close to expiring. */
+const leasedRenewalMargin = 60 * 1000
 const revocationTimeout = 30_000
 
 /** Authentication cannot proceed until the user signs in again. */
@@ -29,6 +31,22 @@ interface ICredentialSession {
   credential: AccountCredential
   retired: boolean
   refreshing?: Promise<string>
+  /** Leases on access tokens that are in use, such as by running Git processes. */
+  readonly leases: Set<ILease>
+  /** Callers waiting for a leased token to be released or the session to retire. */
+  readonly leaseWaiters: Set<() => void>
+}
+
+interface ILease {
+  readonly token: string
+  readonly holder: string
+}
+
+/** An access token that is not renewed until it is released. */
+export interface ITokenLease {
+  readonly token: string
+  /** Stop holding the token. Safe to call more than once. */
+  readonly release: () => void
 }
 
 /** Account-list changes that credential sessions ask their owner to perform. */
@@ -69,6 +87,11 @@ export class CredentialSessions {
    * rotation) back to its session so `resolveToken` can return the current one.
    */
   private readonly sessionsByToken = new Map<string, ICredentialSession>()
+  /** Immutable account snapshots retain their issuing session across token reuse. */
+  private readonly sessionsByAccount = new WeakMap<
+    Account,
+    ICredentialSession
+  >()
   /** Per-endpoint queue so secure-storage saves and deletes never interleave. */
   private readonly credentialWriteQueues = new Map<string, Promise<void>>()
 
@@ -80,17 +103,33 @@ export class CredentialSessions {
     private readonly revokeToken = deleteToken
   ) {}
 
-  /** Install a credential that was read back from secure storage. */
-  public restore(account: Account, credential: AccountCredential) {
-    const session: ICredentialSession = { account, credential, retired: false }
+  /**
+   * Install a credential and return its account snapshot.
+   *
+   * An already-associated snapshot keeps its original session; restoring it
+   * again creates a distinct snapshot, even when its token is unchanged.
+   */
+  public restore(account: Account, credential: AccountCredential): Account {
+    const restored = this.sessionsByAccount.has(account)
+      ? account.withToken(account.token)
+      : account
+    const session: ICredentialSession = {
+      account: restored,
+      credential,
+      retired: false,
+      leases: new Set(),
+      leaseWaiters: new Set(),
+    }
     this.retireSession(account.endpoint)
     this.sessionsByEndpoint.set(account.endpoint, session)
+    this.sessionsByAccount.set(restored, session)
     if (credential !== null) {
       this.sessionsByToken.set(
         this.tokenKey(account.endpoint, credential.accessToken),
         session
       )
     }
+    return restored
   }
 
   /**
@@ -116,6 +155,9 @@ export class CredentialSessions {
       // behind it sees the retirement and cannot overwrite this credential.
       this.retireSession(account.endpoint)
       this.restore(authenticated, credential)
+      if (!this.sessionsByAccount.has(account)) {
+        this.inheritSession(authenticated, account)
+      }
       this.delegate.onSignedIn(authenticated)
     })
     return authenticated
@@ -150,6 +192,7 @@ export class CredentialSessions {
     if (previous !== undefined) {
       previous.retired = true
       previous.credential = null
+      this.notifyLeaseWaiters(previous)
     }
     this.sessionsByEndpoint.delete(endpoint)
   }
@@ -169,6 +212,9 @@ export class CredentialSessions {
   /**
    * Get an access token for the account valid for at least `minimumValidity`.
    *
+   * If the token needs renewing while it is leased, waits for its holders to
+   * release it first. See `leaseToken`.
+   *
    * Throws `AccountRequiresSignInError` if the account has no usable session.
    */
   public async getFreshToken(
@@ -184,6 +230,151 @@ export class CredentialSessions {
       throw new AccountRequiresSignInError()
     }
     return token
+  }
+
+  /** Preserve the issuing session when publishing an immutable account copy. */
+  public inheritSession(original: Account, updated: Account): Account {
+    const session = this.sessionsByAccount.get(original)
+    const previous = this.sessionsByAccount.get(updated)
+    if (
+      session === undefined ||
+      !accountEquals(original, updated) ||
+      (previous !== undefined && previous !== session)
+    ) {
+      throw new AccountRequiresSignInError()
+    }
+    this.sessionsByAccount.set(updated, session)
+    return updated
+  }
+
+  /**
+   * Bind access-token acquisition and expiry metadata to the account's session.
+   *
+   * Follows token rotation within the issuing session, but permanently rejects
+   * once that session retires, even if the same user signs in again.
+   * Throws at creation if the snapshot is unknown or its session has retired.
+   */
+  public createTokenGetter(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
+    const session = this.sessionsByAccount.get(account)
+    if (
+      session === undefined ||
+      session.retired ||
+      !accountEquals(session.account, account)
+    ) {
+      throw new AccountRequiresSignInError()
+    }
+    return async () => {
+      for (;;) {
+        const token = await this.validToken(session, minimumValidity)
+        if (session.retired) {
+          throw new AccountRequiresSignInError()
+        }
+        const credential = session.credential
+        // A concurrent rotation must not pair an old token with the new expiry.
+        if (
+          session.refreshing === undefined &&
+          credential?.accessToken === token
+        ) {
+          return { accessToken: token, expiresAt: credential.expiresAt }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get an access token for `holder` and hold off renewing it until the lease
+   * is released.
+   *
+   * Renewal revokes the previous access token, but some consumers keep using
+   * the token they were given: Git reuses a credential for every request a
+   * process makes. Anyone who needs a leased token renewed waits until every
+   * holder releases it, or until it is about to expire anyway, except a holder
+   * of that token, which gets it again instead. If renewal fails for a reason other than
+   * the account being signed out, the current token is used while it is
+   * unexpired.
+   *
+   * Throws `AccountRequiresSignInError` if the account has no usable session.
+   */
+  public async leaseToken(
+    account: Account,
+    holder: string,
+    minimumValidity = refreshMargin
+  ): Promise<ITokenLease> {
+    for (;;) {
+      const session = this.sessionsByEndpoint.get(account.endpoint)
+      if (session === undefined || session.account.id !== account.id) {
+        throw new AccountRequiresSignInError()
+      }
+      let token: string
+      try {
+        token = await this.validToken(session, minimumValidity, holder)
+      } catch (e) {
+        const credential = session.credential
+        if (session.retired || e instanceof AccountRequiresSignInError) {
+          throw new AccountRequiresSignInError()
+        }
+        if (
+          credential === null ||
+          (credential.expiresAt !== undefined &&
+            credential.expiresAt <= this.now())
+        ) {
+          throw e
+        }
+        log.warn('OAuth renewal failed; using the current credentials.')
+        token = credential.accessToken
+      }
+      if (session.retired) {
+        throw new AccountRequiresSignInError()
+      }
+      // A renewal that started while this caller waited would revoke `token`.
+      if (
+        session.refreshing === undefined &&
+        session.credential?.accessToken === token
+      ) {
+        const lease: ILease = { token, holder }
+        session.leases.add(lease)
+        const release = () => {
+          if (session.leases.delete(lease)) {
+            this.notifyLeaseWaiters(session)
+          }
+        }
+        return { token, release }
+      }
+    }
+  }
+
+  /**
+   * Resolve once a lease may have been released, the credential is about to
+   * expire, or the session is retired. Callers must check the session again.
+   */
+  private waitForLeaseRelease(
+    session: ICredentialSession,
+    credential: IOAuthToken
+  ): Promise<void> {
+    return new Promise(resolve => {
+      let timeout: ReturnType<typeof setTimeout> | undefined
+      const done = () => {
+        clearTimeout(timeout)
+        session.leaseWaiters.delete(done)
+        resolve()
+      }
+      session.leaseWaiters.add(done)
+      if (credential.expiresAt !== undefined) {
+        timeout = setTimeout(
+          done,
+          credential.expiresAt - leasedRenewalMargin - this.now()
+        )
+      }
+    })
+  }
+
+  private notifyLeaseWaiters(session: ICredentialSession) {
+    for (const done of [...session.leaseWaiters]) {
+      done()
+    }
   }
 
   /**
@@ -202,19 +393,12 @@ export class CredentialSessions {
 
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
+    const session = this.sessionsByAccount.get(account)
     return (
-      session?.account.id === account.id &&
+      session !== undefined &&
+      !session.retired &&
       session.credential?.refreshToken !== undefined
     )
-  }
-
-  /** Access-token expiry for consumers that support on-demand token renewal. */
-  public getTokenExpiration(account: Account): number | undefined {
-    const session = this.sessionsByEndpoint.get(account.endpoint)
-    return session?.account.id === account.id
-      ? session.credential?.expiresAt
-      : undefined
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
@@ -304,7 +488,8 @@ export class CredentialSessions {
 
   private async validToken(
     session: ICredentialSession,
-    minimumValidity = refreshMargin
+    minimumValidity = refreshMargin,
+    holder?: string
   ): Promise<string> {
     if (session.retired) {
       throw new AccountRequiresSignInError()
@@ -325,6 +510,15 @@ export class CredentialSessions {
     ) {
       return credential.accessToken
     }
+    const holders = this.leaseHolders(session, credential)
+    // Renewing would revoke the token this holder is still using.
+    if (holder !== undefined && holders.includes(holder)) {
+      return credential.accessToken
+    }
+    if (holders.length > 0) {
+      await this.waitForLeaseRelease(session, credential)
+      return this.validToken(session, minimumValidity, holder)
+    }
     const refreshing = this.rotate(session, credential)
     session.refreshing = refreshing
     try {
@@ -332,6 +526,22 @@ export class CredentialSessions {
     } finally {
       session.refreshing = undefined
     }
+  }
+
+  /** Holders of the credential's token, unless it is about to expire anyway. */
+  private leaseHolders(
+    session: ICredentialSession,
+    credential: IOAuthToken
+  ): ReadonlyArray<string> {
+    if (
+      credential.expiresAt !== undefined &&
+      credential.expiresAt <= this.now() + leasedRenewalMargin
+    ) {
+      return []
+    }
+    return [...session.leases]
+      .filter(l => l.token === credential.accessToken)
+      .map(l => l.holder)
   }
 
   private async rotate(
