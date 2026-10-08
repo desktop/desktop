@@ -1,4 +1,5 @@
 import * as Path from 'path'
+import { randomUUID } from 'crypto'
 import { writeFile } from 'fs/promises'
 import {
   AccountsStore,
@@ -65,8 +66,10 @@ import {
   DiffSelection,
   DiffSelectionType,
   DiffType,
+  IDiff,
   ImageDiffType,
   ITextDiff,
+  ILargeTextDiff,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
@@ -106,6 +109,72 @@ import {
   ICommitMessage,
 } from '../../models/commit-message'
 import { CommitMode } from '../../models/commit-mode'
+import {
+  AssistedCommitRunOutcome,
+  AssistedCommitRunState,
+  isAssistedCommitRunBusy,
+  isAssistedCommitRepositoryLocked,
+} from '../../models/assisted-commit-run'
+import {
+  IAssistedCommitIntent,
+  ICopilotAssistedCommitRequest,
+} from '../../models/copilot-assisted-commit'
+import {
+  IAssistedCommitSnapshot,
+  IAssistedCommitHead,
+  IValidatedAssistedCommitPlan,
+} from '../../models/assisted-commit'
+import {
+  assistedCommitRequestsEqual,
+  freezeAssistedCommitRequest,
+  getAssistedCommitInputVersions,
+  assistedCommitInputIdentityMatches,
+} from '../assisted-commit-request'
+import {
+  assistedCommitErrorCauses,
+  getAssistedCommitRecovery,
+  isAssistedCommitCancellation,
+  reconcileAssistedCommitSelection,
+} from '../assisted-commit-run'
+import { planAssistedCommits } from '../assisted-commit-planning'
+import {
+  AssistedCommitError,
+  AssistedCommitProgress,
+  checkAssistedCommitCancellation,
+  createSingleAssistedCommitPlan,
+  disposeAssistedCommitSnapshot,
+  executeAssistedCommitPlan,
+  finalizeAssistedCommitTransaction,
+  IAssistedCommitRecovery,
+  IAssistedCommitRecoveryToken,
+  IAssistedCommitResult,
+  rollbackAssistedCommitTransaction,
+  validateAssistedCommitPlan,
+  acceptVerifiedAssistedCommitTransaction,
+  withAssistedCommitSnapshot,
+  getAssistedCommitExecutionMetadata,
+  readAssistedCommitHead,
+} from '../git/assisted-commit'
+import {
+  acquireAssistedCommitGitLease,
+  assertRepositoryGitAvailable,
+  IAssistedCommitGitLease,
+  hasRepositoryGitOperationAccess,
+  isRepositoryGitPaused,
+  withoutRepositoryGitAccess,
+  withRepositoryGitOperation,
+  withRepositoryGitErrorPropagation,
+  getAssistedCommitProtectedPaths,
+  assertRepositoryGitDestructionAvailable,
+  IRepositoryGitResourceProtection,
+  protectAssistedCommitResources,
+  isRepositoryGitMutationInProgress,
+  withRepositoryGitResourceMutation,
+  withRepositoryGitDestruction,
+  canonicalMutationPath,
+  isRepositoryAffectedByAssistedCommit,
+  repositoryPathsOverlap,
+} from '../git/repository-operation'
 import { storeCommitMode } from './helpers/commit-mode-storage'
 import {
   Progress,
@@ -164,7 +233,6 @@ import {
   SelectionType,
   IRepositoryState,
   ChangesSelectionKind,
-  ChangesWorkingDirectorySelection,
   isRebaseConflictState,
   isCherryPickConflictState,
   IFileListFilterState,
@@ -230,6 +298,10 @@ import {
   getRepositoryType,
   RepositoryType,
   listWorktrees,
+  addWorktree,
+  IAddWorktreeOptions,
+  setConfigValue,
+  removeConfigValue,
   resolveMainWorktreePath,
   removeWorktree,
   moveWorktree,
@@ -312,6 +384,7 @@ import {
   enableCopilotConflictResolution,
   enableCopilotAppHandoff,
   enableCopilotSdkCommitMessageGeneration,
+  enableCopilotAssistedCommit,
   enableCustomIntegration,
   enableWorktreeSupport,
 } from '../feature-flag'
@@ -575,6 +648,9 @@ const commitMessageGenerationDisclaimerLastSeenKey =
 const commitMessageGenerationButtonClickedKey =
   'commit-message-generation-button-clicked'
 
+const assistedCommitDisclaimerLastSeenKey =
+  'assisted-commit-disclaimer-last-seen'
+
 const copilotConflictResolutionDisclaimerLastSeenKey =
   'copilot-conflict-resolution-disclaimer-last-seen'
 
@@ -591,6 +667,88 @@ export const showChangesFilterKey = 'show-changes-filter'
 const selectedCopilotModelsKey = 'selected-copilot-models'
 const selectedCopilotModelsByAccountKey = 'selected-copilot-models-by-account'
 export const showChangesFilterDefault = true
+
+interface IAssistedCommitPreparedIntent {
+  readonly repository: Repository
+  readonly request: ICopilotAssistedCommitRequest
+  readonly initialState: IRepositoryState
+  readonly account: Account | undefined
+  readonly modelSelection: string | null
+  readonly providerDefinition: string | null
+  readonly providerRevision: number
+  readonly versions: ReadonlyArray<string>
+}
+
+interface IAssistedCommitRun {
+  readonly id: string
+  readonly repository: Repository
+  readonly request: ICopilotAssistedCommitRequest
+  readonly initialState: IRepositoryState
+  readonly account: Account | undefined
+  readonly modelSelection: string | null
+  readonly providerDefinition: string | null
+  readonly providerRevision: number
+  readonly controller: AbortController
+  readonly selectionReaders: Set<Promise<void>>
+  settlement: IAssistedCommitSettlement
+  selectionReadersClosed: boolean
+  resourceProtection?: IRepositoryGitResourceProtection
+  inputVersions?: ReadonlyArray<string>
+  protectedPaths?: ReadonlyArray<string>
+  lease?: IAssistedCommitGitLease
+  snapshot?: IAssistedCommitSnapshot
+  snapshotAuthorized?: boolean
+  plan?: IValidatedAssistedCommitPlan
+  result?: IAssistedCommitResult
+  recovery?: IAssistedCommitRecovery
+  recoveryCapability?: IAssistedCommitResult | IAssistedCommitRecoveryToken
+  authorizationError?: Error
+  consent?: {
+    readonly popupId?: number
+    readonly resolve: (accepted: boolean) => void
+  }
+  hookFailure?: {
+    readonly present: () => void
+    readonly resolve: (resolution: 'abort' | 'ignore') => void
+    popupId?: number
+  }
+  finalized: boolean
+  finished: boolean
+  reconciling?: boolean
+  selectionReadError?: unknown
+  declined?: boolean
+  selectionFence?: {
+    readonly head: IAssistedCommitHead
+    readonly versions: ReadonlyArray<string>
+  }
+  cleanupPending?: boolean
+}
+
+interface IRestoredAssistedCommitSelection {
+  readonly text: string | null
+  readonly head: IAssistedCommitHead
+  readonly version: string
+}
+
+interface IWorkingDirectorySelectionBasis {
+  readonly text: string | null
+  readonly sourceSelectionType:
+    | DiffSelectionType.All
+    | DiffSelectionType.Partial
+}
+
+interface IAssistedCommitSettlement {
+  readonly done: Promise<void>
+  readonly complete: () => void
+}
+
+function createAssistedCommitSettlement(): IAssistedCommitSettlement {
+  let complete: () => void = () => {}
+  const done = new Promise<void>(resolve => {
+    complete = resolve
+  })
+  return { done, complete }
+}
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -752,6 +910,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private commitMessageGenerationDisclaimerLastSeen: number | null = null
   private commitMessageGenerationButtonClicked: boolean = false
+  private assistedCommitDisclaimerLastSeen: number | null = null
+  private readonly assistedCommitRuns = new Map<number, IAssistedCommitRun>()
+  private readonly assistedCommitIntents = new WeakMap<
+    IAssistedCommitIntent,
+    IAssistedCommitPreparedIntent
+  >()
+  private readonly hookFailureQueue = new Set<
+    NonNullable<IAssistedCommitRun['hookFailure']>
+  >()
+  private readonly deferredAssistedCommitRefreshes = new Map<
+    number,
+    Repository
+  >()
+  private readonly deferredAssistedCommitHistorySelections = new Map<
+    number,
+    Repository
+  >()
+  private readonly assistedCommitHistoryReaders = new Set<number>()
+  private readonly assistedCommitRestoredSelections = new WeakMap<
+    DiffSelection,
+    IRestoredAssistedCommitSelection
+  >()
+  private readonly workingDirectorySelectionDiffs = new WeakMap<
+    DiffSelection,
+    IWorkingDirectorySelectionBasis
+  >()
+  private readonly assistedCommitSelectionReaders = new Map<
+    number,
+    {
+      readonly pending: Set<Promise<void>>
+      readonly wasCommitting: boolean
+    }
+  >()
+  private readonly manualCommitSelectionSettlements = new Map<
+    number,
+    {
+      readonly repositoryPath: string
+      readonly settlement: IAssistedCommitSettlement
+    }
+  >()
 
   private copilotConflictResolutionDisclaimerLastSeen: number | null = null
   private copilotConflictResolutionClickCount: number = 0
@@ -766,6 +964,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private copilotQuotaSnapshotsByAccount: CopilotQuotaSnapshotsByAccount =
     new Map()
   private byokProviders: ReadonlyArray<IBYOKProvider> = []
+  private readonly assistedCommitProviderRevisions = new Map<string, number>()
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -1024,6 +1223,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      this.abortUnauthorizedAssistedCommitRuns()
       this.syncCopilotModelsFromCache()
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
@@ -1174,6 +1374,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   protected emitUpdate() {
+    withoutRepositoryGitAccess(() => this.queueUpdate())
+  }
+
+  private queueUpdate() {
     // If the window is hidden then we won't get an animation frame, but there
     // may still be work we wanna do in response to the state change. So
     // immediately emit the update.
@@ -1191,6 +1395,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     window.requestAnimationFrame(() => {
       this.emitUpdateNow()
     })
+  }
+
+  protected emitError(error: Error) {
+    withoutRepositoryGitAccess(() => super.emitError(error))
   }
 
   private emitUpdateNow() {
@@ -1696,7 +1904,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Array.from(shasInDiff)
   }
 
-  private updateOrSelectFirstCommit(
+  private async updateOrSelectFirstCommit(
     repository: Repository,
     commitSHAs: ReadonlyArray<string>
   ) {
@@ -1718,12 +1926,84 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (selectedSHA === null && commitSHAs.length > 0) {
       this._changeCommitSelection(repository, [commitSHAs[0]], true)
-      this._loadChangedFilesForCurrentSelection(repository)
+      const assisted = this.assistedCommitRuns.get(repository.id)
+      if (
+        assisted !== undefined &&
+        (!assisted.finished || assisted.lease !== undefined)
+      ) {
+        this.deferredAssistedCommitHistorySelections.set(
+          repository.id,
+          repository
+        )
+      } else {
+        this.deferredAssistedCommitHistorySelections.delete(repository.id)
+        await this._loadChangedFilesForCurrentSelection(repository)
+      }
+    }
+    await this.resumeDeferredAssistedCommitHistory(repository)
+  }
+
+  private async resumeDeferredAssistedCommitHistory(
+    repository: Repository
+  ): Promise<ErrorWithMetadata | undefined> {
+    const deferred = this.deferredAssistedCommitHistorySelections.get(
+      repository.id
+    )
+    const assisted = this.assistedCommitRuns.get(repository.id)
+    if (
+      deferred === undefined ||
+      this.assistedCommitHistoryReaders.has(repository.id) ||
+      (assisted !== undefined &&
+        (!assisted.finished || assisted.lease !== undefined))
+    ) {
+      return
+    }
+    this.assistedCommitHistoryReaders.add(repository.id)
+    try {
+      await withRepositoryGitOperation(deferred.path, 'read', () =>
+        withRepositoryGitErrorPropagation(() =>
+          this._loadChangedFilesForCurrentSelection(deferred)
+        )
+      )
+      if (
+        this.deferredAssistedCommitHistorySelections.get(repository.id) ===
+        deferred
+      ) {
+        this.deferredAssistedCommitHistorySelections.delete(repository.id)
+      }
+      return undefined
+    } catch (error) {
+      const metadata = new ErrorWithMetadata(
+        error instanceof Error
+          ? error
+          : new Error('Could not load deferred History', { cause: error }),
+        { repository: deferred }
+      )
+      try {
+        this.emitError(metadata)
+      } catch (notificationError) {
+        throw new AggregateError(
+          [metadata, notificationError],
+          'Desktop could not present the deferred History error'
+        )
+      }
+      return metadata
+    } finally {
+      this.assistedCommitHistoryReaders.delete(repository.id)
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _initializeCompare(
+    repository: Repository,
+    initialAction?: CompareAction
+  ) {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.initializeCompareReadCore(repository, initialAction)
+    )
+  }
+
+  private async initializeCompareReadCore(
     repository: Repository,
     initialAction?: CompareAction
   ) {
@@ -1760,11 +2040,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const cachedState = compareState.formState
     const action =
       initialAction != null ? initialAction : getInitialAction(cachedState)
-    this._executeCompare(repository, action)
+    await this._executeCompare(repository, action)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _executeCompare(
+    repository: Repository,
+    action: CompareAction
+  ): Promise<void> {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.executeCompareReadCore(repository, action)
+    )
+  }
+
+  private async executeCompareReadCore(
     repository: Repository,
     action: CompareAction
   ): Promise<void> {
@@ -1819,7 +2108,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         filterText: '',
         showBranchList: false,
       }))
-      this.updateOrSelectFirstCommit(repository, commits)
+      await this.updateOrSelectFirstCommit(repository, commits)
 
       return this.emitUpdate()
     }
@@ -1887,7 +2176,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
-    this.updateOrSelectFirstCommit(repository, commitSHAs)
+    await this.updateOrSelectFirstCommit(repository, commitSHAs)
 
     if (this.currentMergeTreePromise != null) {
       return this.currentMergeTreePromise
@@ -1951,6 +2240,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadNextCommitBatch(repository: Repository): Promise<void> {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.loadNextCommitBatchReadCore(repository)
+    )
+  }
+
+  private async loadNextCommitBatchReadCore(
+    repository: Repository
+  ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const state = this.repositoryStateCache.get(repository)
@@ -1988,6 +2285,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadChangedFilesForCurrentSelection(
+    repository: Repository
+  ): Promise<void> {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.loadChangedFilesForCurrentSelectionReadCore(repository)
+    )
+  }
+
+  private async loadChangedFilesForCurrentSelectionReadCore(
     repository: Repository
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
@@ -2039,7 +2344,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     if (firstFileOrDefault !== null) {
-      this._changeFileSelection(repository, firstFileOrDefault)
+      await this._changeFileSelection(repository, firstFileOrDefault)
     }
   }
 
@@ -2051,6 +2356,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.changeFileSelectionReadCore(repository, file)
+    )
+  }
+
+  private async changeFileSelectionReadCore(
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
@@ -2348,6 +2662,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     lastPush: Date | null
   ): Promise<boolean> {
+    if (
+      isRepositoryGitPaused(repository.path) ||
+      isRepositoryAffectedByAssistedCommit(repository.path)
+    ) {
+      return false
+    }
     const gitStore = this.gitStoreCache.get(repository)
     const lastFetched = await gitStore.updateLastFetched()
 
@@ -2616,6 +2936,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.commitMessageGenerationDisclaimerLastSeen =
       getNumber(commitMessageGenerationDisclaimerLastSeenKey) ?? null
+    this.assistedCommitDisclaimerLastSeen =
+      getNumber(assistedCommitDisclaimerLastSeenKey) ?? null
 
     this.commitMessageGenerationButtonClicked = getBoolean(
       commitMessageGenerationButtonClickedKey,
@@ -2964,18 +3286,450 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(
     repository: Repository,
-    clearPartialState: boolean = false
+    clearPartialState: boolean = false,
+    propagateErrors: boolean = false
+  ): Promise<IStatusResult | null> {
+    return this.loadStatusRead(repository, clearPartialState, propagateErrors)
+  }
+
+  private async loadStatusRead(
+    repository: Repository,
+    clearPartialState: boolean,
+    propagateErrors: boolean,
+    excludeNewFiles: boolean = false
+  ): Promise<IStatusResult | null> {
+    const currentRun = this.getAssistedCommitSelectionOwner(repository)
+    if (currentRun?.selectionReadersClosed && !currentRun.finished) {
+      await currentRun.settlement.done
+      return this.loadStatusRead(
+        repository,
+        clearPartialState,
+        propagateErrors,
+        true
+      )
+    }
+    const assistedRun = currentRun
+    return this.withAssistedCommitSelectionReader(repository, assistedRun, () =>
+      withRepositoryGitOperation(repository.path, 'read', () =>
+        this.loadStatusCore(
+          repository,
+          clearPartialState && !excludeNewFiles,
+          propagateErrors,
+          assistedRun,
+          excludeNewFiles
+        )
+      )
+    )
+  }
+
+  private getAssistedCommitSelectionOwner(
+    repository: Repository
+  ): IAssistedCommitRun | undefined {
+    const run = this.assistedCommitRuns.get(repository.id)
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    return run?.repository.path === repository.path &&
+      (!run.finished || (state.kind === 'error' && state.retry !== null))
+      ? run
+      : undefined
+  }
+
+  private async withAssistedCommitSelectionReader<T>(
+    repository: Repository,
+    run: IAssistedCommitRun | undefined,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const manual = this.manualCommitSelectionSettlements.get(repository.id)
+    if (manual?.repositoryPath === repository.path) {
+      await manual.settlement.done
+      return this.withAssistedCommitSelectionReader(repository, run, operation)
+    }
+    const state = this.repositoryStateCache.get(repository)
+    if (
+      run === undefined &&
+      !state.changesState.workingDirectory.files.some(file =>
+        this.assistedCommitRestoredSelections.has(file.selection)
+      )
+    ) {
+      return operation()
+    }
+    const readers = this.assistedCommitSelectionReaders.get(repository.id) ?? {
+      pending: new Set<Promise<void>>(),
+      wasCommitting: state.isCommitting,
+    }
+    let complete: () => void = () => {}
+    const done = new Promise<void>(resolve => {
+      complete = resolve
+    })
+    const protection = protectAssistedCommitResources(repository.path)
+    readers.pending.add(done)
+    run?.selectionReaders.add(done)
+    this.assistedCommitSelectionReaders.set(repository.id, readers)
+    this.repositoryStateCache.update(repository, () => ({ isCommitting: true }))
+    this.updateAssistedCommitErrorSettlement(repository)
+    try {
+      this.emitUpdate()
+      return await withRepositoryGitOperation(repository.path, 'read', () =>
+        withRepositoryGitErrorPropagation(operation)
+      )
+    } catch (error) {
+      this.invalidateAssistedCommitSelection(repository, run, error)
+      throw error
+    } finally {
+      readers.pending.delete(done)
+      run?.selectionReaders.delete(done)
+      complete()
+      protection.release()
+      if (readers.pending.size === 0) {
+        this.assistedCommitSelectionReaders.delete(repository.id)
+        if (!readers.wasCommitting) {
+          this.repositoryStateCache.update(repository, () => ({
+            isCommitting: false,
+          }))
+        }
+      }
+      this.updateAssistedCommitErrorSettlement(repository)
+      this.emitUpdate()
+    }
+  }
+
+  private updateAssistedCommitErrorSettlement(repository: Repository): void {
+    const run = this.assistedCommitRuns.get(repository.id)
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    if (run !== undefined && state.kind === 'error' && state.runId === run.id) {
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        assistedCommit: {
+          ...state,
+          settling:
+            !run.finished ||
+            (run.lease === undefined &&
+              this.assistedCommitSelectionReaders.has(repository.id)),
+        },
+      }))
+    }
+  }
+
+  private invalidateAssistedCommitSelection(
+    repository: Repository,
+    run: IAssistedCommitRun | undefined,
+    error: unknown
+  ): void {
+    this.repositoryStateCache.updateChangesState(repository, state => ({
+      workingDirectory: state.workingDirectory.withIncludeAllFiles(false),
+      selection:
+        state.selection.kind === ChangesSelectionKind.WorkingDirectory
+          ? { ...state.selection, diff: null }
+          : state.selection,
+    }))
+    if (
+      run !== undefined &&
+      this.assistedCommitRuns.get(repository.id) === run
+    ) {
+      const state =
+        this.repositoryStateCache.get(repository).changesState.assistedCommit
+      const cause =
+        state.kind === 'error'
+          ? assistedCommitErrorCauses(state.error).includes(error)
+            ? state.error
+            : new AggregateError(
+                [state.error, error],
+                'Assisted commit selection refresh failed'
+              )
+          : error
+      run.selectionReadError = cause
+      this.showAssistedCommitFailure(run, cause, 'refresh', true, false)
+    } else {
+      this.emitError(
+        new ErrorWithMetadata(
+          error instanceof Error
+            ? error
+            : new Error('Could not verify restored assisted selections', {
+                cause: error,
+              }),
+          { repository }
+        )
+      )
+    }
+  }
+
+  private async finishAssistedCommitSelectionReads(
+    run: IAssistedCommitRun
+  ): Promise<void> {
+    try {
+      await this.updateChangesWorkingDirectoryDiff(run.repository)
+      do {
+        while (run.selectionReaders.size > 0) {
+          await Promise.all([...run.selectionReaders])
+        }
+        if (!run.finalized && run.selectionFence !== undefined) {
+          await withRepositoryGitOperation(run.repository.path, 'read', () =>
+            this.verifyAssistedCommitSelectionFence(run)
+          )
+        }
+      } while (run.selectionReaders.size > 0)
+      run.selectionReadersClosed = true
+    } catch (error) {
+      this.invalidateAssistedCommitSelection(run.repository, run, error)
+      while (run.selectionReaders.size > 0) {
+        await Promise.all([...run.selectionReaders])
+      }
+      run.selectionReadersClosed = true
+    }
+  }
+
+  private async verifyRestoredAssistedCommitSelections(
+    repository: Repository,
+    selectedFiles: ReadonlyArray<WorkingDirectoryFileChange> = this.repositoryStateCache.get(
+      repository
+    ).changesState.workingDirectory.files
+  ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
+    const certified = new Map<string, ITextDiff | ILargeTextDiff>()
+    const files = selectedFiles.filter(
+      file =>
+        file.selection.getSelectionType() !== DiffSelectionType.None &&
+        this.assistedCommitRestoredSelections.has(file.selection)
+    )
+    if (files.length === 0) {
+      return certified
+    }
+    for (const file of files) {
+      const authority = this.assistedCommitRestoredSelections.get(
+        file.selection
+      )
+      if (authority?.text === null) {
+        continue
+      }
+      const diff = await this.getAssistedCommitRecoveryDiff(repository, file)
+      if (
+        authority === undefined ||
+        diff === null ||
+        (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
+        diff.text !== authority.text
+      ) {
+        throw new AssistedCommitError(
+          'selection-changed',
+          'Restored selected changes no longer match their verified diff. Review and reselect current changes.'
+        )
+      }
+      if (file.selection.getSelectionType() === DiffSelectionType.Partial) {
+        certified.set(file.id, diff)
+      }
+    }
+    const head = await readAssistedCommitHead(repository)
+    const versions = await getAssistedCommitInputVersions(repository, files)
+    if (
+      files.some((file, index) => {
+        const authority = this.assistedCommitRestoredSelections.get(
+          file.selection
+        )
+        return (
+          authority === undefined ||
+          authority.head.ref !== head.ref ||
+          authority.head.sha !== head.sha ||
+          authority.version !== versions[index]
+        )
+      })
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Restored selected files changed before refresh or commit admission. Review and reselect current changes.'
+      )
+    }
+    return certified
+  }
+
+  private async assertManualCommitSelectionAuthority(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
+    const restored = files.filter(file =>
+      this.assistedCommitRestoredSelections.has(file.selection)
+    )
+    if (restored.length === 0) {
+      return new Map()
+    }
+    const assertCurrentSelection = () => {
+      const changes =
+        this.repositoryStateCache.get(repository).changesState.workingDirectory
+      if (
+        restored.some(file => {
+          const current = changes.findFileWithID(file.id)
+          return (
+            current === null ||
+            !file.selection.equals(current.selection) ||
+            JSON.stringify(file.status) !== JSON.stringify(current.status)
+          )
+        })
+      ) {
+        throw new AssistedCommitError(
+          'selection-changed',
+          'Restored selected changes changed before manual commit admission. Review and reselect current changes.'
+        )
+      }
+    }
+    assertCurrentSelection()
+    const certified = await withRepositoryGitErrorPropagation(() =>
+      this.verifyRestoredAssistedCommitSelections(repository, restored)
+    )
+    assertCurrentSelection()
+    return certified
+  }
+
+  private async verifyRequestedAssistedCommitSelection(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<ReadonlyArray<string>> {
+    const protection = protectAssistedCommitResources(repository.path)
+    try {
+      return await withRepositoryGitOperation(repository.path, 'read', () =>
+        withRepositoryGitErrorPropagation(async () => {
+          const versions = await getAssistedCommitInputVersions(
+            repository,
+            files
+          )
+          await this.verifyRestoredAssistedCommitSelections(repository, files)
+          for (const file of files) {
+            const retained = this.workingDirectorySelectionDiffs.get(
+              file.selection
+            )
+            const type = file.selection.getSelectionType()
+            if (type !== DiffSelectionType.Partial && retained === undefined) {
+              continue
+            }
+            if (
+              type === DiffSelectionType.All &&
+              retained?.sourceSelectionType === DiffSelectionType.Partial
+            ) {
+              throw new AssistedCommitError(
+                'selection-changed',
+                'The original partial selection became whole-file selection during refresh. Review and reselect current changes.'
+              )
+            }
+            const basis =
+              retained?.text ??
+              this.assistedCommitRestoredSelections.get(file.selection)?.text
+            const diff = await this.getAssistedCommitRecoveryDiff(
+              repository,
+              file
+            )
+            if (
+              basis === undefined ||
+              basis === null ||
+              diff === null ||
+              (diff.kind !== DiffType.Text &&
+                diff.kind !== DiffType.LargeText) ||
+              diff.text !== basis
+            ) {
+              throw new AssistedCommitError(
+                'selection-changed',
+                'The selected partial diff no longer matches its original basis. Review and reselect current changes.'
+              )
+            }
+          }
+          const current = await getAssistedCommitInputVersions(
+            repository,
+            files
+          )
+          if (!arrayEquals(versions, current)) {
+            throw new AssistedCommitError(
+              'selection-changed',
+              'Selected files changed while their selection was being verified. Review and reselect current changes.'
+            )
+          }
+          return versions
+        })
+      )
+    } finally {
+      protection.release()
+    }
+  }
+
+  private releaseSettledAssistedCommitResources(run: IAssistedCommitRun): void {
+    if (
+      run.finished &&
+      !isAssistedCommitRepositoryLocked(
+        this.repositoryStateCache.get(run.repository).changesState
+          .assistedCommit
+      ) &&
+      !this.assistedCommitSelectionReaders.has(run.repository.id)
+    ) {
+      run.resourceProtection?.release()
+      run.resourceProtection = undefined
+    }
+  }
+
+  private async loadStatusCore(
+    repository: Repository,
+    clearPartialState: boolean,
+    propagateErrors: boolean,
+    assistedRun: IAssistedCommitRun | undefined,
+    excludeNewFiles: boolean
   ): Promise<IStatusResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
-    const status = await gitStore.loadStatus()
+    const status = await gitStore.loadStatus({ propagateErrors })
 
     if (status === null) {
       return null
     }
-
-    this.repositoryStateCache.updateChangesState(repository, state =>
-      updateChangedFiles(state, status, clearPartialState)
+    await getAssistedCommitProtectedPaths(repository.path)
+    try {
+      await this.verifyRestoredAssistedCommitSelections(repository)
+    } catch (error) {
+      if (
+        error instanceof AssistedCommitError &&
+        error.code === 'selection-changed'
+      ) {
+        this.invalidateAssistedCommitSelection(repository, assistedRun, error)
+        if (propagateErrors) {
+          throw error
+        }
+        return status
+      }
+      throw error
+    }
+    if (assistedRun?.selectionFence !== undefined) {
+      const currentRun = this.assistedCommitRuns.get(repository.id)
+      if (currentRun !== undefined && currentRun !== assistedRun) {
+        return status
+      }
+      try {
+        await this.verifyAssistedCommitSelectionFence(assistedRun)
+      } catch (error) {
+        this.invalidateAssistedCommitSelection(repository, assistedRun, error)
+        return status
+      }
+    }
+    const assistedCommitAccount = getAccountForCommitMessageGeneration(
+      this.accounts,
+      repository
     )
+    const assistedCommitAvailable =
+      enableCopilotAssistedCommit() &&
+      assistedCommitAccount !== undefined &&
+      assistedCommitAccount.token.length > 0 &&
+      assistedCommitAccount.copilotLicenseType !== CopilotLicenseTypeNoAccess &&
+      enableCopilotSdkCommitMessageGeneration(assistedCommitAccount) &&
+      (await this.copilotStore.isAssistedCommitRuntimeAvailable())
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      assistedCommitAvailable,
+    }))
+
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      const fresh =
+        !excludeNewFiles &&
+        assistedRun?.snapshot === undefined &&
+        !state.workingDirectory.files.some(file =>
+          this.assistedCommitRestoredSelections.has(file.selection)
+        )
+          ? status
+          : {
+              ...status,
+              workingDirectory:
+                status.workingDirectory.withIncludeAllFiles(false),
+            }
+      return updateChangedFiles(state, fresh, clearPartialState)
+    })
 
     this.repositoryStateCache.updateChangesState(repository, state => ({
       conflictState: updateConflictState(state, status, this.statsStore),
@@ -2993,7 +3747,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
 
-    this.updateChangesWorkingDirectoryDiff(repository)
+    await this.updateChangesWorkingDirectoryDiff(repository)
+    if (assistedRun?.selectionFence !== undefined) {
+      try {
+        await this.verifyAssistedCommitSelectionFence(assistedRun)
+      } catch (error) {
+        this.invalidateAssistedCommitSelection(repository, assistedRun, error)
+      }
+    }
 
     return status
   }
@@ -3342,6 +4103,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     selectedSection: RepositorySectionTab,
     forceButtonFocus: boolean = false
   ): Promise<void> {
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.changeRepositorySectionReadCore(
+        repository,
+        selectedSection,
+        forceButtonFocus
+      )
+    )
+  }
+
+  private async changeRepositorySectionReadCore(
+    repository: Repository,
+    selectedSection: RepositorySectionTab,
+    forceButtonFocus: boolean = false
+  ): Promise<void> {
     this.repositoryStateCache.update(repository, state => {
       if (state.selectedSection !== selectedSection) {
         this.statsStore.increment('repositoryViewChangeCount')
@@ -3397,6 +4172,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * selected file.
    */
   private async updateChangesWorkingDirectoryDiff(
+    repository: Repository
+  ): Promise<void> {
+    const run = this.getAssistedCommitSelectionOwner(repository)
+    if (run?.selectionReadersClosed && !run.finished) {
+      await run.settlement.done
+      return this.updateChangesWorkingDirectoryDiff(repository)
+    }
+    if (
+      isRepositoryGitPaused(repository.path) ||
+      (run?.snapshot !== undefined &&
+        !run.finished &&
+        !run.reconciling &&
+        !run.finalized &&
+        run.result === undefined)
+    ) {
+      this.deferAssistedCommitRefresh(repository)
+      return
+    }
+    return this.withAssistedCommitSelectionReader(repository, run, () =>
+      withRepositoryGitOperation(repository.path, 'read', () =>
+        this.updateChangesWorkingDirectoryDiffCore(repository)
+      )
+    )
+  }
+
+  private async updateChangesWorkingDirectoryDiffCore(
     repository: Repository
   ): Promise<void> {
     const stateBeforeLoad = this.repositoryStateCache.get(repository)
@@ -3470,6 +4271,125 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    const basis = this.assistedCommitRestoredSelections.get(
+      currentlySelectedFile.selection
+    )
+    const active = this.getAssistedCommitSelectionOwner(repository)
+    const engineOwnsSelection =
+      active?.snapshotAuthorized === true && !active.finished
+    const retainedBasis =
+      this.workingDirectorySelectionDiffs.get(
+        currentlySelectedFile.selection
+      ) ??
+      (currentlySelectedFile.selection.getSelectionType() ===
+        DiffSelectionType.Partial && !engineOwnsSelection
+        ? {
+            text: basis?.text ?? null,
+            sourceSelectionType: DiffSelectionType.Partial,
+          }
+        : undefined)
+    if (
+      basis === undefined &&
+      retainedBasis !== undefined &&
+      changesState.commitMode === 'copilot' &&
+      changesState.assistedCommitAvailable
+    ) {
+      const canonical = await getWorkingDirectoryDiff(
+        repository,
+        currentlySelectedFile,
+        false,
+        { noTextconv: true }
+      )
+      const latest = this.repositoryStateCache.get(repository).changesState
+      if (
+        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+        !arrayEquals(
+          latest.selection.selectedFileIDs,
+          selectedFileIDsBeforeLoad
+        ) ||
+        latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
+          currentlySelectedFile.selection
+      ) {
+        return
+      }
+      if (
+        retainedBasis.text === null ||
+        (canonical.kind !== DiffType.Text &&
+          canonical.kind !== DiffType.LargeText) ||
+        (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
+        canonical.text !== retainedBasis.text ||
+        diff.text !== retainedBasis.text
+      ) {
+        this.invalidateAssistedCommitSelection(
+          repository,
+          active,
+          new AssistedCommitError(
+            'selection-changed',
+            'The original partial diff changed during display refresh. Review and reselect current changes.'
+          )
+        )
+        return
+      }
+    }
+    if (basis !== undefined) {
+      if (basis.text !== null) {
+        const canonical = await getWorkingDirectoryDiff(
+          repository,
+          currentlySelectedFile,
+          false,
+          { noTextconv: true }
+        )
+        if (
+          (canonical.kind !== DiffType.Text &&
+            canonical.kind !== DiffType.LargeText) ||
+          (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
+          canonical.text !== basis.text ||
+          diff.text !== basis.text
+        ) {
+          this.invalidateAssistedCommitSelection(
+            repository,
+            active,
+            new AssistedCommitError(
+              'selection-changed',
+              'The selected diff changed during refresh. Review and reselect current changes.'
+            )
+          )
+          return
+        }
+      }
+      const head = await readAssistedCommitHead(repository)
+      const versions = await getAssistedCommitInputVersions(repository, [
+        currentlySelectedFile,
+      ])
+      if (
+        head.ref !== basis.head.ref ||
+        head.sha !== basis.head.sha ||
+        versions[0] !== basis.version
+      ) {
+        this.invalidateAssistedCommitSelection(
+          repository,
+          active,
+          new AssistedCommitError(
+            'selection-changed',
+            'Selected files changed while their diff was being verified. Review and reselect current changes.'
+          )
+        )
+        return
+      }
+      const latest = this.repositoryStateCache.get(repository).changesState
+      if (
+        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+        !arrayEquals(
+          latest.selection.selectedFileIDs,
+          selectedFileIDsBeforeLoad
+        ) ||
+        latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
+          currentlySelectedFile.selection
+      ) {
+        return
+      }
+    }
+
     const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText) {
       // The diff might have changed dramatically since last we loaded it.
@@ -3489,21 +4409,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const newSelection =
       currentlySelectedFile.selection.withSelectableLines(selectableLines)
-    const selectedFile = currentlySelectedFile.withSelection(newSelection)
-    const updatedFiles = changesState.workingDirectory.files.map(f =>
-      f.id === selectedFile.id ? selectedFile : f
-    )
-    const workingDirectory = WorkingDirectoryStatus.fromFiles(updatedFiles)
-
-    const selection: ChangesWorkingDirectorySelection = {
-      ...changesState.selection,
-      diff,
+    if (basis !== undefined) {
+      this.assistedCommitRestoredSelections.set(newSelection, basis)
     }
-
-    this.repositoryStateCache.updateChangesState(repository, () => ({
-      selection,
-      workingDirectory,
-    }))
+    if (retainedBasis !== undefined) {
+      this.workingDirectorySelectionDiffs.set(newSelection, retainedBasis)
+    }
+    this.repositoryStateCache.updateChangesState(repository, latest => {
+      const unchanged = {
+        selection: latest.selection,
+        workingDirectory: latest.workingDirectory,
+      }
+      if (
+        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+        !arrayEquals(
+          latest.selection.selectedFileIDs,
+          selectedFileIDsBeforeLoad
+        )
+      ) {
+        return unchanged
+      }
+      const currentFile = latest.workingDirectory.findFileWithID(selectedFileID)
+      if (
+        currentFile === null ||
+        currentFile.selection !== currentlySelectedFile.selection
+      ) {
+        return unchanged
+      }
+      const selectedFile = currentFile.withSelection(newSelection)
+      return {
+        selection: { ...latest.selection, diff },
+        workingDirectory: WorkingDirectoryStatus.fromFiles(
+          latest.workingDirectory.files.map(file =>
+            file.id === selectedFile.id ? selectedFile : file
+          )
+        ),
+      }
+    })
     this.emitUpdate()
   }
 
@@ -3672,11 +4614,1910 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _prepareCopilotAssistedCommitRequest(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<ICopilotAssistedCommitRequest> {
+    this.assertNoAssistedCommitRun(repository)
+    if (isRepositoryGitMutationInProgress(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Finish the current Git operation before starting assisted commits'
+      )
+    }
+    if (isRepositoryAffectedByAssistedCommit(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Another assisted run uses these working files or shared Git metadata'
+      )
+    }
+    const initialState = this.repositoryStateCache.get(repository)
+    const account = getAccountForCommitMessageGeneration(
+      this.accounts,
+      repository
+    )
+    const frozen = freezeAssistedCommitRequest(request)
+    const modelSelection =
+      account === undefined
+        ? null
+        : this.getSelectedCopilotModels(account)['commit-message-generation'] ??
+          null
+    const providerDefinition =
+      this.getAssistedCommitProviderDefinition(modelSelection)
+    const providerRevision =
+      this.getAssistedCommitProviderRevision(modelSelection)
+    const versions = await this.withAssistedCommitSelectionReader(
+      repository,
+      undefined,
+      () =>
+        this.verifyRequestedAssistedCommitSelection(repository, frozen.files)
+    )
+    const intent = Object.freeze({ id: randomUUID() })
+    this.assistedCommitIntents.set(intent, {
+      repository,
+      request: frozen,
+      initialState,
+      account,
+      modelSelection,
+      providerDefinition,
+      providerRevision,
+      versions,
+    })
+    return Object.freeze({ ...frozen, intent })
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _createCopilotAssistedCommits(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<AssistedCommitRunOutcome> {
+    const currentState = this.repositoryStateCache.get(repository)
+    const prepared =
+      request.intent === undefined
+        ? undefined
+        : this.assistedCommitIntents.get(request.intent)
+    const initialState = prepared?.initialState ?? currentState
+    const previous = this.assistedCommitRuns.get(repository.id)
+    if (
+      currentState.isCommitting ||
+      isRepositoryGitMutationInProgress(repository.path) ||
+      isRepositoryAffectedByAssistedCommit(repository.path) ||
+      this.assistedCommitSelectionReaders.has(repository.id) ||
+      isAssistedCommitRepositoryLocked(
+        currentState.changesState.assistedCommit
+      ) ||
+      currentState.isGeneratingCommitMessage ||
+      currentState.isPushPullFetchInProgress ||
+      currentState.checkoutProgress !== null ||
+      currentState.revertProgress !== null ||
+      previous?.lease !== undefined ||
+      (previous !== undefined && !previous.finished)
+    ) {
+      return { kind: 'busy' }
+    }
+    const account =
+      prepared === undefined
+        ? getAccountForCommitMessageGeneration(this.accounts, repository)
+        : prepared.account
+    const modelSelection =
+      prepared !== undefined
+        ? prepared.modelSelection
+        : account === undefined
+        ? null
+        : this.getSelectedCopilotModels(account)['commit-message-generation'] ??
+          null
+    const run: IAssistedCommitRun = {
+      id: randomUUID(),
+      repository,
+      request: freezeAssistedCommitRequest(request),
+      initialState,
+      account,
+      modelSelection,
+      controller: new AbortController(),
+      selectionReaders: new Set<Promise<void>>(),
+      settlement: createAssistedCommitSettlement(),
+      selectionReadersClosed: false,
+      providerRevision:
+        prepared?.providerRevision ??
+        this.getAssistedCommitProviderRevision(modelSelection),
+      providerDefinition:
+        prepared !== undefined
+          ? prepared.providerDefinition
+          : this.getAssistedCommitProviderDefinition(modelSelection),
+      finalized: false,
+      finished: false,
+      inputVersions: prepared?.versions,
+    }
+    let outcome: AssistedCommitRunOutcome
+    let verifiedCancellation = false
+    try {
+      this.assistedCommitRuns.set(repository.id, run)
+      run.resourceProtection = protectAssistedCommitResources(repository.path)
+      this.repositoryStateCache.update(repository, () => ({
+        isCommitting: true,
+        hookProgress: null,
+        subscribeToCommitOutput: null,
+      }))
+      this.setAssistedCommitRunState(run, {
+        kind: 'preparing',
+        runId: run.id,
+        cancelRequested: false,
+      })
+      if (
+        request.intent !== undefined &&
+        (prepared === undefined ||
+          prepared.repository.path !== repository.path ||
+          prepared.repository.id !== repository.id ||
+          !assistedCommitRequestsEqual(prepared.request, request))
+      ) {
+        throw new AssistedCommitError(
+          'selection-changed',
+          'The first-click commit request changed. Review your selection and try again.'
+        )
+      }
+      if (request.intent !== undefined) {
+        this.assistedCommitIntents.delete(request.intent)
+      }
+      this.assertAssistedCommitInputs(run)
+      this.updateAssistedCommitResourceProtection(
+        run,
+        await getAssistedCommitProtectedPaths(repository.path)
+      )
+      const verifiedVersions = await this.withAssistedCommitSelectionReader(
+        repository,
+        run,
+        () =>
+          this.verifyRequestedAssistedCommitSelection(
+            repository,
+            run.request.files
+          )
+      )
+      if (run.inputVersions === undefined) {
+        run.inputVersions = verifiedVersions
+      } else {
+        if (!arrayEquals(run.inputVersions, verifiedVersions)) {
+          throw new AssistedCommitError(
+            'selection-changed',
+            'Selected files changed after the first-click request. Review and reselect current changes.'
+          )
+        }
+        await this.assertFreshAssistedCommitInputs(run)
+      }
+      this.assertAssistedCommitInputs(run)
+      if (!(await this.copilotStore.isAssistedCommitRuntimeAvailable())) {
+        throw new Error(
+          'Copilot runtime is unavailable. Restart GitHub Desktop or reinstall it before trying assisted commits.'
+        )
+      }
+      await this.assertFreshAssistedCommitInputs(run)
+      if (
+        run.request.files.length > 0 &&
+        !this.isAssistedCommitDisclaimerFresh()
+      ) {
+        const accepted = await this.requestAssistedCommitConsent(run)
+        if (!accepted && !run.controller.signal.aborted) {
+          await this.assertUncapturedAssistedCommitSelection(run)
+          run.declined = true
+          throw new AssistedCommitError(
+            'cancelled',
+            'Assisted commit consent was declined'
+          )
+        }
+      }
+      await this.assertFreshAssistedCommitInputs(run)
+      const model =
+        run.request.files.length === 0
+          ? undefined
+          : await this.resolveAssistedCommitModelRequest(run)
+      await this.assertFreshAssistedCommitInputs(run)
+      this.setAssistedCommitRunState(run, {
+        kind: 'preparing',
+        runId: run.id,
+        cancelRequested: false,
+      })
+      this.checkAssistedCommitRun(run)
+      this.updateAssistedCommitResourceProtection(
+        run,
+        await getAssistedCommitProtectedPaths(repository.path)
+      )
+      this.checkAssistedCommitRun(run)
+      run.lease = await acquireAssistedCommitGitLease(
+        repository.path,
+        run.protectedPaths
+      )
+      await this.assertFreshAssistedCommitInputs(run)
+      await run.lease.run(
+        () =>
+          this.verifyRequestedAssistedCommitSelection(
+            repository,
+            run.request.files
+          ),
+        true
+      )
+      await this.assertFreshAssistedCommitInputs(run)
+      const onProgress = (progress: AssistedCommitProgress) =>
+        withoutRepositoryGitAccess(() =>
+          this.onAssistedCommitProgress(run, progress)
+        )
+      const options = { signal: run.controller.signal, onProgress }
+      const result = await run.lease.run(() =>
+        withAssistedCommitSnapshot(
+          repository,
+          run.request,
+          async snapshot => {
+            run.snapshot = snapshot
+            this.checkAssistedCommitRun(run)
+            this.assertAssistedCommitCapturedHead(run, snapshot.originalHead)
+            await this.verifyRequestedAssistedCommitSelection(
+              repository,
+              run.request.files
+            )
+            await this.assertFreshAssistedCommitInputs(run)
+            run.snapshotAuthorized = true
+            this.retireAssistedCommitSelectionAuthority(
+              repository,
+              run.request.files
+            )
+            const checked =
+              snapshot.analysis.changes.length === 0
+                ? await validateAssistedCommitPlan(
+                    snapshot,
+                    createSingleAssistedCommitPlan(snapshot, {
+                      reason: 'empty-selection',
+                      title: 'Empty commit',
+                    }),
+                    options
+                  )
+                : await planAssistedCommits(
+                    snapshot,
+                    async (analysis, mode, signal) => {
+                      this.checkAssistedCommitRun(run)
+                      const account = run.account
+                      if (account === undefined) {
+                        throw new Error(
+                          'Sign in to an account with Copilot for Desktop enabled'
+                        )
+                      }
+                      const response = await withoutRepositoryGitAccess(() =>
+                        this.copilotStore.proposeAssistedCommitPlan(
+                          account,
+                          analysis,
+                          snapshot.repositoryPath,
+                          {
+                            request: model,
+                            commitMessageRules:
+                              run.initialState.changesState.currentRepoRulesInfo.commitMessagePatterns.getRules(),
+                            mode,
+                            signal,
+                          }
+                        )
+                      )
+                      this.checkAssistedCommitRun(run)
+                      return response
+                    },
+                    {
+                      ...options,
+                      onPlanningProgress: progress =>
+                        withoutRepositoryGitAccess(() => {
+                          this.checkAssistedCommitRun(run)
+                          this.setAssistedCommitRunState(run, {
+                            kind:
+                              progress.kind === 'planning'
+                                ? 'analyzing'
+                                : 'summarizing-selection',
+                            runId: run.id,
+                            cancelRequested: false,
+                          })
+                        }),
+                    }
+                  )
+            run.plan = checked
+            await this.validateAssistedCommitMessages(run, snapshot, checked)
+            this.checkAssistedCommitRun(run)
+            const result = await executeAssistedCommitPlan(snapshot, checked, {
+              ...options,
+              onVerifyCommit: commit => {
+                this.checkAssistedCommitRun(run)
+                if (
+                  snapshot.analysis.changes.length === 0 &&
+                  commit.message.split('\n')[0] !== 'Empty commit'
+                ) {
+                  throw new AssistedCommitError(
+                    'commit-failed',
+                    'A commit hook changed the required Empty commit title'
+                  )
+                }
+                if (
+                  useRepoRulesLogic(
+                    getAccountForRepository(this.accounts, repository),
+                    repository
+                  )
+                ) {
+                  const rules =
+                    run.initialState.changesState.currentRepoRulesInfo
+                  if (
+                    rules.commitMessagePatterns.getFailedRules(commit.message)
+                      .status === 'fail' ||
+                    rules.commitAuthorEmailPatterns.getFailedRules(
+                      commit.author.email
+                    ).status === 'fail' ||
+                    rules.committerEmailPatterns.getFailedRules(
+                      commit.committer.email
+                    ).status === 'fail'
+                  ) {
+                    throw new AssistedCommitError(
+                      'unsafe-plan',
+                      'The created commit message, author or committer does not meet repository rules'
+                    )
+                  }
+                }
+              },
+              onHookProgress: progress =>
+                withoutRepositoryGitAccess(() => {
+                  this.onHookProgress(repository)(progress)
+                  if (
+                    run.controller.signal.aborted &&
+                    progress.status === 'started'
+                  ) {
+                    progress.abort()
+                  }
+                }),
+              onHookFailure: (name, output) =>
+                withoutRepositoryGitAccess(() =>
+                  this.onAssistedCommitHookFailure(run, name, output)
+                ),
+              onTerminalOutputAvailable: subscribeToCommitOutput =>
+                withoutRepositoryGitAccess(() => {
+                  this.repositoryStateCache.update(repository, () => ({
+                    subscribeToCommitOutput,
+                  }))
+                  this.emitUpdate()
+                }),
+            })
+            run.result = result
+            run.recoveryCapability = result
+            return result
+          },
+          options
+        )
+      )
+      this.checkAssistedCommitRun(run)
+      this.setAssistedCommitRunState(run, {
+        kind: 'finishing',
+        runId: run.id,
+        cancelRequested: false,
+      })
+      // Keep the result capability through awaited UI reconciliation. Cancel
+      // here must still roll back even though the executor returned success.
+      await run.lease.run(
+        () => this.refreshAssistedCommitRepository(repository, true),
+        true
+      )
+      const deferredBeforeAcceptance = this.deferredAssistedCommitRefreshes.get(
+        repository.id
+      )
+      if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
+        await run.lease.run(
+          () =>
+            withRepositoryGitErrorPropagation(() =>
+              this._refreshRepository(deferredBeforeAcceptance ?? repository)
+            ),
+          true
+        )
+        this.repositoryStateCache.updateChangesState(repository, changes => ({
+          workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
+        }))
+      }
+      await run.lease.run(
+        () =>
+          acceptVerifiedAssistedCommitTransaction(
+            result,
+            () => {
+              this.checkAssistedCommitRun(run)
+              this.setAssistedCommitRunState(run, {
+                kind: 'closing',
+                runId: run.id,
+              })
+            },
+            options
+          ),
+        true
+      )
+      this.acceptLocalAssistedCommitRun(run, result)
+      outcome = { kind: 'local-ready', result }
+    } catch (originalError) {
+      if (run.finalized && run.result !== undefined) {
+        this.showAssistedCommitFailure(
+          run,
+          new Error(
+            'Commits were accepted locally, but Desktop presentation failed',
+            { cause: originalError }
+          ),
+          'refresh',
+          false,
+          false
+        )
+        outcome = { kind: 'local-ready', result: run.result }
+      } else {
+        run.reconciling = true
+        let error = originalError
+        let uncapturedSelectionFailed = false
+        if (
+          run.snapshotAuthorized !== true &&
+          run.inputVersions !== undefined
+        ) {
+          try {
+            if (run.lease !== undefined) {
+              await run.lease.run(
+                () => this.assertUncapturedAssistedCommitSelection(run),
+                true
+              )
+            } else {
+              await this.assertUncapturedAssistedCommitSelection(run)
+            }
+          } catch (selectionError) {
+            error = new AggregateError(
+              [originalError, selectionError],
+              'Selected files changed before the assisted run could start'
+            )
+            uncapturedSelectionFailed = true
+          }
+        }
+        run.recovery = getAssistedCommitRecovery(error)
+        const completed = run.result
+        if (
+          completed !== undefined &&
+          !run.finalized &&
+          run.lease !== undefined
+        ) {
+          try {
+            run.recovery = await run.lease.run(() =>
+              rollbackAssistedCommitTransaction(completed, {
+                onProgress: progress =>
+                  withoutRepositoryGitAccess(() =>
+                    this.onAssistedCommitProgress(run, progress)
+                  ),
+              })
+            )
+            run.recoveryCapability = undefined
+          } catch (recoveryError) {
+            run.recovery = getAssistedCommitRecovery(recoveryError)
+            error = new AggregateError(
+              [originalError, recoveryError],
+              'Assisted commit failed and recovery needs attention'
+            )
+          }
+        } else {
+          run.recoveryCapability = run.recovery?.retryToken
+        }
+        const cleanupNeedsRetry =
+          run.snapshot !== undefined &&
+          assistedCommitErrorCauses(error).some(
+            cause =>
+              cause instanceof AssistedCommitError &&
+              cause.code === 'cleanup-failed'
+          )
+        run.cleanupPending = cleanupNeedsRetry
+        const retryRecovery =
+          run.recoveryCapability !== undefined || cleanupNeedsRetry
+        let selectionNeedsReview = false
+        let reconciliationFailed = uncapturedSelectionFailed
+        if (
+          run.snapshotAuthorized !== true &&
+          assistedCommitErrorCauses(error).some(
+            cause =>
+              cause instanceof AssistedCommitError &&
+              (cause.code === 'selection-changed' ||
+                cause.code === 'repository-changed')
+          )
+        ) {
+          reconciliationFailed = true
+          selectionNeedsReview = true
+        }
+        if (
+          !retryRecovery &&
+          run.lease !== undefined &&
+          run.snapshot !== undefined
+        ) {
+          try {
+            selectionNeedsReview = await run.lease.run(
+              () => this.restoreAssistedCommitSelection(run, error),
+              true
+            )
+          } catch (refreshError) {
+            reconciliationFailed = true
+            error = new AggregateError(
+              [error, refreshError],
+              'Assisted commit stopped, but Desktop could not refresh the changes'
+            )
+          }
+        }
+        if (
+          !retryRecovery &&
+          !reconciliationFailed &&
+          run.authorizationError === undefined &&
+          isAssistedCommitCancellation(error) &&
+          !selectionNeedsReview
+        ) {
+          verifiedCancellation = true
+          outcome = { kind: run.declined ? 'declined' : 'cancelled' }
+        } else {
+          const failure =
+            run.authorizationError === undefined
+              ? error
+              : new Error(run.authorizationError.message, { cause: error })
+          const metadata = this.showAssistedCommitFailure(
+            run,
+            failure,
+            retryRecovery
+              ? 'recovery'
+              : reconciliationFailed
+              ? 'refresh'
+              : null,
+            selectionNeedsReview,
+            false
+          )
+          outcome = { kind: 'error', error: metadata }
+        }
+      }
+    } finally {
+      run.reconciling = true
+      try {
+        run.consent?.resolve(false)
+        run.hookFailure?.resolve('abort')
+        const state =
+          this.repositoryStateCache.get(repository).changesState.assistedCommit
+        const retainsOwnership =
+          state.kind === 'error' && state.retry === 'recovery'
+        if (!retainsOwnership) {
+          const deferredRepository = this.deferredAssistedCommitRefreshes.get(
+            repository.id
+          )
+          if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
+            try {
+              const refresh = () =>
+                withRepositoryGitErrorPropagation(async () => {
+                  await this._refreshRepository(
+                    deferredRepository ?? repository
+                  )
+                  await this.verifyAssistedCommitSelectionFence(run)
+                })
+              if (run.lease !== undefined) {
+                await run.lease.run(refresh, true)
+              } else {
+                await withRepositoryGitOperation(
+                  repository.path,
+                  'read',
+                  refresh
+                )
+              }
+            } catch (error) {
+              const metadata = this.showAssistedCommitFailure(
+                run,
+                run.finalized
+                  ? new Error(
+                      'Commits were accepted locally, but Desktop could not refresh them',
+                      { cause: error }
+                    )
+                  : error,
+                'refresh',
+                true,
+                false
+              )
+              if (!run.finalized) {
+                outcome = { kind: 'error', error: metadata }
+              }
+            }
+          }
+          run.lease?.release()
+          run.lease = undefined
+          await this.finishAssistedCommitSelectionReads(run)
+          if (run.selectionReadError !== undefined && !run.finalized) {
+            const metadata = this.showAssistedCommitFailure(
+              run,
+              run.selectionReadError,
+              'refresh',
+              true,
+              false
+            )
+            outcome = { kind: 'error', error: metadata }
+          }
+          this.repositoryStateCache.update(repository, () => ({
+            isCommitting: false,
+            hookProgress: null,
+            subscribeToCommitOutput: null,
+          }))
+          if (
+            verifiedCancellation &&
+            this.repositoryStateCache.get(repository).changesState
+              .assistedCommit.kind !== 'error'
+          ) {
+            this.repositoryStateCache.updateChangesState(repository, () => ({
+              assistedCommit: { kind: 'idle' },
+            }))
+          }
+          if (
+            this.repositoryStateCache.get(repository).changesState
+              .assistedCommit.kind === 'idle' &&
+            this.assistedCommitRuns.get(repository.id) === run
+          ) {
+            this.assistedCommitRuns.delete(repository.id)
+          }
+        } else {
+          this.repositoryStateCache.update(repository, () => ({
+            hookProgress: null,
+            subscribeToCommitOutput: null,
+          }))
+        }
+      } finally {
+        try {
+          const current =
+            this.repositoryStateCache.get(repository).changesState
+              .assistedCommit
+          if (current.kind !== 'error' || current.retry !== 'recovery') {
+            run.lease?.release()
+            run.lease = undefined
+            if (!run.selectionReadersClosed) {
+              await this.finishAssistedCommitSelectionReads(run)
+            }
+            this.repositoryStateCache.update(repository, () => ({
+              isCommitting: false,
+              hookProgress: null,
+              subscribeToCommitOutput: null,
+            }))
+          }
+        } finally {
+          run.finished = true
+          run.settlement.complete()
+          this.updateAssistedCommitErrorSettlement(repository)
+          this.releaseSettledAssistedCommitResources(run)
+        }
+      }
+      if (run.finalized) {
+        try {
+          await this.recordAssistedCommitStats(run)
+        } catch (error) {
+          const failure = new Error(
+            'Commits were created locally, but their usage statistics could not be recorded',
+            { cause: error }
+          )
+          log.error(failure.message, failure)
+          if (!this.assistedCommitRuns.has(repository.id)) {
+            this.assistedCommitRuns.set(repository.id, run)
+          }
+          if (this.assistedCommitRuns.get(repository.id) === run) {
+            this.showAssistedCommitFailure(run, failure, null, false, false)
+          }
+        }
+        try {
+          await this.resumeDeferredAssistedCommitHistory(repository)
+          this.emitUpdate()
+        } catch (error) {
+          log.error('Accepted assisted commits could not be presented', error)
+          if (!this.assistedCommitRuns.has(repository.id)) {
+            this.assistedCommitRuns.set(repository.id, run)
+          }
+          if (this.assistedCommitRuns.get(repository.id) === run) {
+            this.showAssistedCommitFailure(
+              run,
+              new Error(
+                'Commits were accepted locally, but Desktop notification failed',
+                { cause: error }
+              ),
+              null,
+              false,
+              false
+            )
+          }
+        }
+      } else {
+        const presentationError = await this.presentSettledAssistedCommitRun(
+          run
+        )
+        if (presentationError !== undefined) {
+          outcome = { kind: 'error', error: presentationError }
+        }
+      }
+    }
+    return outcome
+  }
+
+  private async presentSettledAssistedCommitRun(
+    run: IAssistedCommitRun
+  ): Promise<ErrorWithMetadata | undefined> {
+    let historyDelivery = true
+    let errorDelivered = false
+    try {
+      const historyError = await this.resumeDeferredAssistedCommitHistory(
+        run.repository
+      )
+      historyDelivery = false
+      if (historyError !== undefined) {
+        errorDelivered = true
+        throw historyError
+      }
+      this.emitUpdate()
+      return undefined
+    } catch (error) {
+      const state = this.repositoryStateCache.get(run.repository).changesState
+        .assistedCommit
+      const ownedError = state.kind === 'error' && state.runId === run.id
+      const failure = ownedError
+        ? new AggregateError(
+            [state.error, error],
+            'Desktop could not present the settled assisted commit error'
+          )
+        : new Error(
+            'Desktop could not present the settled assisted commit changes',
+            { cause: error }
+          )
+      const metadata = new ErrorWithMetadata(failure, {
+        repository: run.repository,
+        gitContext: { kind: 'commit' },
+      })
+      log.error(failure.message, metadata)
+      if (ownedError) {
+        return this.assistedCommitRuns.get(run.repository.id) === run
+          ? this.showAssistedCommitFailure(
+              run,
+              metadata,
+              state.retry,
+              state.selectionNeedsReview,
+              false
+            )
+          : metadata
+      }
+      if (!historyDelivery && !errorDelivered) {
+        try {
+          this.emitError(metadata)
+        } catch (notificationError) {
+          log.error(
+            'Desktop could not deliver the settled assisted commit error',
+            new AggregateError([metadata, notificationError])
+          )
+        }
+      }
+      return undefined
+    }
+  }
+
+  private deferAssistedCommitRefresh(repository: Repository): void {
+    const selected = this.selectedRepository
+    const latest =
+      selected instanceof Repository &&
+      selected.id === repository.id &&
+      selected.path === repository.path
+        ? selected
+        : repository
+    const run = this.assistedCommitRuns.get(repository.id)
+    if (
+      run !== undefined &&
+      run.repository.path === latest.path &&
+      run.repository.hash !== latest.hash
+    ) {
+      this.repositoryStateCache.transferState(run.repository, latest)
+    }
+    this.deferredAssistedCommitRefreshes.set(repository.id, latest)
+  }
+
+  private updateAssistedCommitResourceProtection(
+    run: IAssistedCommitRun,
+    paths: ReadonlyArray<string>
+  ): void {
+    run.protectedPaths = [...new Set([...(run.protectedPaths ?? []), ...paths])]
+    const protection = protectAssistedCommitResources(
+      run.repository.path,
+      run.protectedPaths
+    )
+    run.resourceProtection?.release()
+    run.resourceProtection = protection
+  }
+
+  private async assertUncapturedAssistedCommitSelection(
+    run: IAssistedCommitRun
+  ): Promise<void> {
+    const versions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    if (
+      run.inputVersions !== undefined &&
+      !arrayEquals(versions, run.inputVersions)
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Selected files changed while waiting. Retry refresh and reselect current changes.'
+      )
+    }
+    const head = await readAssistedCommitHead(run.repository)
+    this.assertAssistedCommitCapturedHead(run, head)
+    const bases = new Map<
+      DiffSelection,
+      { readonly index: number; readonly text: string | null }
+    >()
+    for (const [index, file] of run.request.files.entries()) {
+      if (file.selection.getSelectionType() === DiffSelectionType.Partial) {
+        const diff = await this.getAssistedCommitRecoveryDiff(
+          run.repository,
+          file
+        )
+        const originalText =
+          this.workingDirectorySelectionDiffs.get(file.selection)?.text ??
+          this.assistedCommitRestoredSelections.get(file.selection)?.text
+        if (
+          diff === null ||
+          (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
+          originalText === undefined ||
+          originalText !== diff.text
+        ) {
+          throw new AssistedCommitError(
+            'selection-changed',
+            'The original partial diff could not be verified. Review and reselect current changes.'
+          )
+        }
+        bases.set(file.selection, { index, text: diff.text })
+      } else {
+        bases.set(file.selection, { index, text: null })
+      }
+    }
+    const latestHead = await readAssistedCommitHead(run.repository)
+    this.assertAssistedCommitCapturedHead(run, latestHead)
+    const latestVersions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    if (!arrayEquals(versions, latestVersions)) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Selected files changed while checking cancellation. Retry refresh and reselect current changes.'
+      )
+    }
+    for (const [selection, basis] of bases) {
+      this.assistedCommitRestoredSelections.set(selection, {
+        text: basis.text,
+        head: latestHead,
+        version: latestVersions[basis.index],
+      })
+    }
+    run.selectionFence = { head: latestHead, versions: latestVersions }
+  }
+
+  private isAssistedCommitDisclaimerFresh(): boolean {
+    return (
+      this.assistedCommitDisclaimerLastSeen !== null &&
+      offsetFromNow(-30, 'days') <= this.assistedCommitDisclaimerLastSeen
+    )
+  }
+
+  private requestAssistedCommitConsent(
+    run: IAssistedCommitRun
+  ): Promise<boolean> {
+    return new Promise<boolean>(resolve => {
+      const complete = (accepted: boolean) => {
+        const consent = run.consent
+        if (consent === undefined) {
+          return
+        }
+        run.consent = undefined
+        if (consent.popupId !== undefined) {
+          this.popupManager.removePopupById(consent.popupId)
+        }
+        run.controller.signal.removeEventListener('abort', onAbort)
+        if (accepted) {
+          this.assistedCommitDisclaimerLastSeen = Date.now()
+          setNumber(
+            assistedCommitDisclaimerLastSeenKey,
+            this.assistedCommitDisclaimerLastSeen
+          )
+        }
+        resolve(accepted)
+        this.emitUpdate()
+      }
+      const onAbort = () => complete(false)
+      run.consent = { resolve: complete }
+      run.controller.signal.addEventListener('abort', onAbort, { once: true })
+      if (run.controller.signal.aborted) {
+        complete(false)
+        return
+      }
+      this.setAssistedCommitRunState(run, {
+        kind: 'awaiting-consent',
+        runId: run.id,
+        cancelRequested: false,
+      })
+      if (run.consent === undefined) {
+        return
+      }
+      if (
+        this.popupManager.areTherePopupsOfType(
+          PopupType.AssistedCommitDisclaimer
+        )
+      ) {
+        complete(false)
+        return
+      }
+      const popup = this.popupManager.addPopup({
+        type: PopupType.AssistedCommitDisclaimer,
+        repository: run.repository,
+        onAccepted: () => complete(true),
+      })
+      if (popup.id === undefined) {
+        throw new Error('Could not open the assisted commit disclaimer')
+      }
+      run.consent = { popupId: popup.id, resolve: complete }
+      this.emitUpdate()
+    })
+  }
+
+  private setAssistedCommitRunState(
+    run: IAssistedCommitRun,
+    assistedCommit: AssistedCommitRunState
+  ): void {
+    if (this.assistedCommitRuns.get(run.repository.id) !== run) {
+      throw new AssistedCommitError(
+        'disposed',
+        'Assisted commit run was replaced'
+      )
+    }
+    this.repositoryStateCache.updateChangesState(run.repository, () => ({
+      assistedCommit,
+    }))
+    this.emitUpdate()
+  }
+
+  private checkAssistedCommitRun(run: IAssistedCommitRun): void {
+    if (this.assistedCommitRuns.get(run.repository.id) !== run) {
+      throw new AssistedCommitError(
+        'disposed',
+        'Assisted commit run was replaced'
+      )
+    }
+    const account = getAccountForCommitMessageGeneration(
+      this.accounts,
+      run.repository
+    )
+    if (
+      !enableCopilotAssistedCommit() ||
+      account === undefined ||
+      account.token.length === 0 ||
+      !enableCopilotSdkCommitMessageGeneration(account) ||
+      account.copilotLicenseType === CopilotLicenseTypeNoAccess ||
+      account.id !== run.account?.id ||
+      account.endpoint !== run.account?.endpoint ||
+      account.token !== run.account?.token
+    ) {
+      run.authorizationError = new Error(
+        'Copilot access changed. Sign in to an account with Copilot for Desktop enabled and try again.'
+      )
+      run.controller.abort()
+      run.consent?.resolve(false)
+      run.hookFailure?.resolve('abort')
+      throw run.authorizationError
+    }
+    if (
+      run.request.files.length > 0 &&
+      (this.getAssistedCommitProviderDefinition(run.modelSelection) !==
+        run.providerDefinition ||
+        this.getAssistedCommitProviderRevision(run.modelSelection) !==
+          run.providerRevision)
+    ) {
+      run.authorizationError = new Error(
+        'The selected custom Copilot provider, model, or credential changed. Review Copilot settings and try again.'
+      )
+      run.controller.abort()
+      run.consent?.resolve(false)
+      run.hookFailure?.resolve('abort')
+      throw run.authorizationError
+    }
+    checkAssistedCommitCancellation(run.controller.signal)
+  }
+
+  private abortUnauthorizedAssistedCommitRuns(): void {
+    for (const run of this.assistedCommitRuns.values()) {
+      if (
+        run.finalized ||
+        this.repositoryStateCache.get(run.repository).changesState
+          .assistedCommit.kind === 'closing' ||
+        !isAssistedCommitRunBusy(
+          this.repositoryStateCache.get(run.repository).changesState
+            .assistedCommit
+        )
+      ) {
+        continue
+      }
+      try {
+        this.checkAssistedCommitRun(run)
+      } catch (error) {
+        if (isAssistedCommitCancellation(error)) {
+          continue
+        }
+        if (run.authorizationError === undefined) {
+          throw error
+        }
+        this._cancelCopilotAssistedCommits(run.repository, run.id)
+      }
+    }
+  }
+
+  private assertAssistedCommitInputs(run: IAssistedCommitRun): void {
+    this.checkAssistedCommitRun(run)
+    const state = this.repositoryStateCache.get(run.repository)
+    const currentRequest = {
+      ...run.request,
+      files: state.changesState.workingDirectory.files.filter(
+        file => file.selection.getSelectionType() !== DiffSelectionType.None
+      ),
+      skipCommitHooks: state.skipCommitHooks,
+      signOffCommits: state.signOffCommits,
+      allowEmptyCommit: state.allowEmptyCommit,
+    }
+    if (
+      state.changesState.commitMode !== 'copilot' ||
+      run.repository.isTutorialRepository ||
+      state.commitToAmend !== null ||
+      state.multiCommitOperationState !== null ||
+      state.changesState.conflictState !== null ||
+      !assistedCommitRequestsEqual(run.request, currentRequest) ||
+      JSON.stringify(state.changesState.coAuthors) !==
+        JSON.stringify(run.initialState.changesState.coAuthors) ||
+      state.changesState.showCoAuthoredBy !==
+        run.initialState.changesState.showCoAuthoredBy ||
+      !tipEquals(state.branchesState.tip, run.initialState.branchesState.tip) ||
+      !this.assistedCommitHeadMatches(
+        run.initialState.branchesState.tip,
+        state.branchesState.tip
+      )
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'The selected changes or commit options changed. Review your selection and try again.'
+      )
+    }
+    if (run.request.files.length === 0 && !run.request.allowEmptyCommit) {
+      throw new AssistedCommitError(
+        'unsafe-selection',
+        'Select changes or enable Allow empty commit'
+      )
+    }
+  }
+
+  private async assertFreshAssistedCommitInputs(
+    run: IAssistedCommitRun
+  ): Promise<void> {
+    this.assertAssistedCommitInputs(run)
+    const versions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    this.assertAssistedCommitInputs(run)
+    if (
+      run.inputVersions === undefined ||
+      !arrayEquals(versions, run.inputVersions)
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Selected files changed while waiting. Review your selection and try again.'
+      )
+    }
+  }
+
+  private assistedCommitHeadMatches(
+    first: IRepositoryState['branchesState']['tip'],
+    second: IRepositoryState['branchesState']['tip']
+  ): boolean {
+    if (first.kind !== second.kind) {
+      return false
+    }
+    if (first.kind === TipState.Valid && second.kind === TipState.Valid) {
+      return (
+        first.branch.ref === second.branch.ref &&
+        first.branch.tip.sha === second.branch.tip.sha
+      )
+    }
+    if (first.kind === TipState.Unborn && second.kind === TipState.Unborn) {
+      return first.ref === second.ref
+    }
+    if (first.kind === TipState.Detached && second.kind === TipState.Detached) {
+      return first.currentSha === second.currentSha
+    }
+    return false
+  }
+
+  private assertAssistedCommitCapturedHead(
+    run: IAssistedCommitRun,
+    head: IAssistedCommitHead
+  ): void {
+    const tip = run.initialState.branchesState.tip
+    const expected =
+      tip.kind === TipState.Valid
+        ? { ref: tip.branch.ref, sha: tip.branch.tip.sha }
+        : tip.kind === TipState.Unborn
+        ? {
+            ref: tip.ref.startsWith('refs/heads/')
+              ? tip.ref
+              : `refs/heads/${tip.ref}`,
+            sha: null,
+          }
+        : tip.kind === TipState.Detached
+        ? { ref: null, sha: tip.currentSha }
+        : undefined
+    if (
+      expected === undefined ||
+      expected.ref !== head.ref ||
+      expected.sha !== head.sha
+    ) {
+      throw new AssistedCommitError(
+        'repository-changed',
+        'The intended branch or HEAD changed before capture. Review the repository and try again.'
+      )
+    }
+  }
+
+  private assertNoAssistedCommitRun(
+    repository: Repository | CloningRepository
+  ): void {
+    if (hasRepositoryGitOperationAccess(repository.path)) {
+      return
+    }
+    const run = this.assistedCommitRuns.get(repository.id)
+    if (run !== undefined && run.repository.path === repository.path) {
+      const state = this.repositoryStateCache.get(run.repository).changesState
+        .assistedCommit
+      if (
+        !run.finished ||
+        this.assistedCommitSelectionReaders.has(repository.id) ||
+        isAssistedCommitRepositoryLocked(state)
+      ) {
+        throw new ErrorWithMetadata(
+          new AssistedCommitError(
+            'busy',
+            'Finish or cancel the assisted commit run before changing this repository'
+          ),
+          { repository }
+        )
+      }
+    }
+    if (this.assistedCommitSelectionReaders.has(repository.id)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Assisted commit selections are still being verified'
+      )
+    }
+    assertRepositoryGitAvailable(repository.path)
+  }
+
+  private async validateAssistedCommitMessages(
+    run: IAssistedCommitRun,
+    snapshot: IAssistedCommitSnapshot,
+    checked: IValidatedAssistedCommitPlan
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, run.repository)
+    if (!useRepoRulesLogic(account, run.repository)) {
+      return
+    }
+    const rules = run.initialState.changesState.currentRepoRulesInfo
+    const metadata = await getAssistedCommitExecutionMetadata(
+      snapshot,
+      checked,
+      { signal: run.controller.signal }
+    )
+    const author = metadata.author
+    this.checkAssistedCommitRun(run)
+    const branch = snapshot.originalHead.ref?.replace(/^refs\/heads\//, '')
+    if (
+      rules.basicCommitWarning === true ||
+      rules.signedCommitsRequired === true ||
+      rules.pullRequestRequired === true ||
+      (author !== null &&
+        rules.commitAuthorEmailPatterns.getFailedRules(author.email).status ===
+          'fail') ||
+      (metadata.committer !== null &&
+        rules.committerEmailPatterns.getFailedRules(metadata.committer.email)
+          .status === 'fail') ||
+      (run.initialState.aheadBehind === null &&
+        (rules.creationRestricted === true ||
+          (branch !== undefined &&
+            rules.branchNamePatterns.getFailedRules(branch).status === 'fail')))
+    ) {
+      throw new AssistedCommitError(
+        'unsafe-plan',
+        "The commit author, committer or branch does not meet this repository's rules"
+      )
+    }
+    for (const [index, commit] of checked.plan.commits.entries()) {
+      const message = metadata.messages[index]
+      this.checkAssistedCommitRun(run)
+      if (
+        rules.commitMessagePatterns.getFailedRules(message).status === 'fail'
+      ) {
+        throw new AssistedCommitError(
+          'unsafe-plan',
+          `The generated commit message "${commit.title}" does not meet this repository's rules`
+        )
+      }
+    }
+  }
+
+  private onAssistedCommitProgress(
+    run: IAssistedCommitRun,
+    progress: AssistedCommitProgress
+  ): void {
+    if (progress.kind === 'rolling-back') {
+      this.setAssistedCommitRunState(run, {
+        kind: 'rolling-back',
+        runId: run.id,
+      })
+      return
+    }
+    this.checkAssistedCommitRun(run)
+    if (progress.kind === 'committed') {
+      return
+    }
+    this.setAssistedCommitRunState(
+      run,
+      progress.kind === 'committing'
+        ? { ...progress, runId: run.id, cancelRequested: false }
+        : { kind: progress.kind, runId: run.id, cancelRequested: false }
+    )
+  }
+
+  private onAssistedCommitHookFailure(
+    run: IAssistedCommitRun,
+    hookName: string,
+    terminalOutput: TerminalOutput
+  ): Promise<'abort' | 'ignore'> {
+    if (run.controller.signal.aborted) {
+      return Promise.resolve('abort')
+    }
+    return new Promise(resolve => {
+      const complete = (resolution: 'abort' | 'ignore') => {
+        const failure = ownedFailure
+        if (!this.hookFailureQueue.delete(failure)) {
+          return
+        }
+        if (run.hookFailure === failure) {
+          run.hookFailure = undefined
+        }
+        run.controller.signal.removeEventListener('abort', abort)
+        if (failure.popupId !== undefined) {
+          this.popupManager.removePopupById(failure.popupId)
+        }
+        resolve(resolution)
+        this.presentNextAssistedCommitHookFailure()
+        this.emitUpdate()
+      }
+      const abort = () => complete('abort')
+      const ownedFailure: NonNullable<IAssistedCommitRun['hookFailure']> = {
+        resolve: complete,
+        present: () => {
+          const popup = this.popupManager.addPopup({
+            type: PopupType.HookFailed,
+            hookName,
+            terminalOutput,
+            resolve: complete,
+          })
+          if (popup.id === undefined) {
+            complete('abort')
+            return
+          }
+          ownedFailure.popupId = popup.id
+          this.emitUpdate()
+        },
+      }
+      run.hookFailure = ownedFailure
+      run.controller.signal.addEventListener('abort', abort, { once: true })
+      this.hookFailureQueue.add(ownedFailure)
+      this.presentNextAssistedCommitHookFailure()
+    })
+  }
+
+  private presentNextAssistedCommitHookFailure(): void {
+    if (this.popupManager.areTherePopupsOfType(PopupType.HookFailed)) {
+      return
+    }
+    const next = [...this.hookFailureQueue].find(
+      failure => failure.popupId === undefined
+    )
+    next?.present()
+  }
+
+  private settleDismissedAssistedCommitPopup(
+    popupId: number | undefined
+  ): void {
+    if (popupId === undefined) {
+      return
+    }
+    for (const run of this.assistedCommitRuns.values()) {
+      if (run.consent?.popupId === popupId) {
+        run.consent.resolve(false)
+      }
+    }
+    for (const failure of this.hookFailureQueue) {
+      if (failure.popupId === popupId) {
+        failure.resolve('abort')
+      }
+    }
+    this.presentNextAssistedCommitHookFailure()
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _cancelCopilotAssistedCommits(
+    repository: Repository,
+    runId: string
+  ): void {
+    const run = this.assistedCommitRuns.get(repository.id)
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    if (
+      run?.id !== runId ||
+      run.finalized ||
+      state.kind === 'idle' ||
+      state.kind === 'error' ||
+      state.kind === 'rolling-back' ||
+      state.kind === 'refreshing' ||
+      state.kind === 'closing' ||
+      state.cancelRequested
+    ) {
+      return
+    }
+    this.repositoryStateCache.updateChangesState(run.repository, () => ({
+      assistedCommit: { ...state, cancelRequested: true },
+    }))
+    try {
+      run.controller.abort()
+    } finally {
+      try {
+        run.consent?.resolve(false)
+      } finally {
+        try {
+          run.hookFailure?.resolve('abort')
+        } finally {
+          const hook = this.repositoryStateCache.get(repository).hookProgress
+          try {
+            if (hook?.status === 'started') {
+              hook.abort()
+            }
+          } finally {
+            this.emitUpdate()
+          }
+        }
+      }
+    }
+  }
+
+  private async refreshAssistedCommitRepository(
+    repository: Repository,
+    clearPartialState: boolean
+  ): Promise<void> {
+    return withRepositoryGitErrorPropagation(() =>
+      this.refreshAssistedCommitRepositoryCore(repository, clearPartialState)
+    )
+  }
+
+  private async refreshAssistedCommitRepositoryCore(
+    repository: Repository,
+    clearPartialState: boolean
+  ): Promise<void> {
+    const status = await this._loadStatus(repository, clearPartialState, true)
+    if (status === null) {
+      throw new Error('Could not refresh the repository after assisted commits')
+    }
+    if (clearPartialState) {
+      this.repositoryStateCache.updateChangesState(repository, changes => ({
+        workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
+      }))
+    }
+    await this.refreshChangesSection(repository, {
+      includingStatus: false,
+      clearPartialState: false,
+    })
+    await this._refreshRepository(repository)
+    if (clearPartialState) {
+      this.repositoryStateCache.updateChangesState(repository, changes => ({
+        workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
+      }))
+    }
+  }
+
+  private async restoreAssistedCommitSelection(
+    run: IAssistedCommitRun,
+    error: unknown
+  ): Promise<boolean> {
+    await this.refreshAssistedCommitRepository(run.repository, false)
+    const current = this.repositoryStateCache.get(run.repository)
+    const tip = current.branchesState.tip
+    const snapshot = run.snapshotAuthorized === true ? run.snapshot : undefined
+    const sameHead =
+      snapshot !== undefined &&
+      (snapshot.originalHead.sha === null
+        ? tip.kind === TipState.Unborn
+        : getTipSha(tip) === snapshot.originalHead.sha)
+    const versions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    const original = new Map(
+      run.initialState.changesState.workingDirectory.files.map(file => [
+        file.id,
+        file,
+      ])
+    )
+    let needsReview = !sameHead
+    const files: WorkingDirectoryFileChange[] = []
+    const bases = new Map<
+      DiffSelection,
+      { readonly index: number; readonly text: string | null }
+    >()
+    for (const file of current.changesState.workingDirectory.files) {
+      const previous = original.get(file.id)
+      if (
+        previous === undefined ||
+        previous.selection.getSelectionType() === DiffSelectionType.None
+      ) {
+        files.push(file.withIncludeAll(false))
+      } else if (
+        sameHead &&
+        previous.selection.getSelectionType() !== DiffSelectionType.Partial &&
+        run.request.files.some(
+          (selected, index) =>
+            selected.id === file.id &&
+            run.inputVersions?.[index] === versions[index]
+        )
+      ) {
+        bases.set(previous.selection, {
+          index: run.request.files.findIndex(
+            selected => selected.id === file.id
+          ),
+          text: null,
+        })
+        files.push(file.withSelection(previous.selection))
+      } else if (
+        sameHead &&
+        snapshot !== undefined &&
+        run.request.files.some(
+          (selected, index) =>
+            selected.id === file.id &&
+            assistedCommitInputIdentityMatches(
+              run.inputVersions?.[index],
+              versions[index]
+            )
+        )
+      ) {
+        const diff = await this.getAssistedCommitRecoveryDiff(
+          run.repository,
+          file
+        )
+        if (
+          diff !== null &&
+          (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText)
+        ) {
+          const reconciled = reconcileAssistedCommitSelection(
+            snapshot,
+            file,
+            diff
+          )
+          bases.set(reconciled.selection, {
+            index: run.request.files.findIndex(
+              selected => selected.id === file.id
+            ),
+            text: diff.text,
+          })
+          files.push(file.withSelection(reconciled.selection))
+          needsReview ||= reconciled.needsReview
+        } else {
+          files.push(file.withIncludeAll(false))
+          needsReview = true
+        }
+      } else {
+        files.push(file.withIncludeAll(false))
+        needsReview = true
+      }
+    }
+    needsReview ||= run.request.files.some(
+      file => !files.some(current => current.id === file.id)
+    )
+    const latestHead = await readAssistedCommitHead(run.repository)
+    if (
+      snapshot !== undefined &&
+      (latestHead.ref !== snapshot.originalHead.ref ||
+        latestHead.sha !== snapshot.originalHead.sha)
+    ) {
+      throw new AssistedCommitError(
+        'repository-changed',
+        'HEAD changed while restoring selection. Retry refresh after repository changes stop.'
+      )
+    }
+    const latestVersions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    if (!arrayEquals(versions, latestVersions)) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Selected files changed while restoring selection. Retry refresh after editing stops.'
+      )
+    }
+    for (const [selection, basis] of bases) {
+      this.assistedCommitRestoredSelections.set(selection, {
+        text: basis.text,
+        head: latestHead,
+        version: latestVersions[basis.index],
+      })
+    }
+    run.selectionFence = { head: latestHead, versions: latestVersions }
+    const verified = new Map(files.map(file => [file.id, file]))
+    this.repositoryStateCache.updateChangesState(run.repository, changes => ({
+      workingDirectory: WorkingDirectoryStatus.fromFiles(
+        changes.workingDirectory.files.map(file => {
+          const checked = verified.get(file.id)
+          return checked !== undefined &&
+            JSON.stringify(checked.status) === JSON.stringify(file.status)
+            ? file.withSelection(checked.selection)
+            : file.withIncludeAll(false)
+        })
+      ),
+      selection:
+        changes.selection.kind === ChangesSelectionKind.WorkingDirectory
+          ? { ...changes.selection, diff: null }
+          : changes.selection,
+    }))
+    return needsReview
+  }
+
+  private async getAssistedCommitRecoveryDiff(
+    repository: Repository,
+    file: WorkingDirectoryFileChange
+  ): Promise<IDiff | null> {
+    const canonical = await getWorkingDirectoryDiff(repository, file, false, {
+      noTextconv: true,
+    })
+    const displayed = await getWorkingDirectoryDiff(
+      repository,
+      file,
+      this.hideWhitespaceInChangesDiff
+    )
+    if (
+      (canonical.kind === DiffType.Text ||
+        canonical.kind === DiffType.LargeText) &&
+      (displayed.kind === DiffType.Text ||
+        displayed.kind === DiffType.LargeText) &&
+      canonical.text === displayed.text
+    ) {
+      return canonical
+    }
+    return null
+  }
+
+  private async verifyAssistedCommitSelectionFence(
+    run: IAssistedCommitRun
+  ): Promise<void> {
+    const fence = run.selectionFence
+    if (fence === undefined) {
+      return
+    }
+    const head = await readAssistedCommitHead(run.repository)
+    const versions = await getAssistedCommitInputVersions(
+      run.repository,
+      run.request.files
+    )
+    if (
+      head.ref !== fence.head.ref ||
+      head.sha !== fence.head.sha ||
+      !arrayEquals(versions, fence.versions)
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Repository or selected files changed during refresh. Retry refresh before committing.'
+      )
+    }
+  }
+
+  /**
+   * Local acceptance boundary. Layer five can extend this immediately before push.
+   *
+   * No awaited work may separate the final cancellation/auth check from
+   * finalization. Until here, even a successful executor result remains reversible.
+   */
+  private acceptLocalAssistedCommitRun(
+    run: IAssistedCommitRun,
+    result: IAssistedCommitResult
+  ): void {
+    finalizeAssistedCommitTransaction(result)
+    run.finalized = true
+    run.recoveryCapability = undefined
+    this.repositoryStateCache.update(run.repository, state => ({
+      ...state,
+      allowEmptyCommit: false,
+      changesState: {
+        ...state.changesState,
+        assistedCommit: { kind: 'idle' },
+        fileListFilter: {
+          ...state.changesState.fileListFilter,
+          filterText: '',
+        },
+      },
+    }))
+    this.emitUpdate()
+  }
+
+  private async recordAssistedCommitStats(
+    run: IAssistedCommitRun
+  ): Promise<void> {
+    const plan = run.plan
+    const snapshot = run.snapshot
+    if (plan === undefined || snapshot === undefined) {
+      throw new Error('Completed assisted commit run has no validated plan')
+    }
+    for (const commit of plan.plan.commits) {
+      const paths = new Set(
+        snapshot.analysis.changes
+          .filter(change => commit.changeIds.includes(change.id))
+          .map(change => change.path)
+      )
+      const partialSelection = run.request.files.some(
+        file =>
+          paths.has(file.path) &&
+          (file.selection.getSelectionType() === DiffSelectionType.Partial ||
+            snapshot.analysis.changes.some(
+              change =>
+                change.path === file.path &&
+                !commit.changeIds.includes(change.id)
+            ))
+      )
+      await this._recordCommitStats(
+        this.gitStoreCache.get(run.repository),
+        run.repository,
+        run.initialState,
+        {
+          summary: commit.title,
+          description: commit.description ?? '',
+          trailers: run.request.trailers,
+          messageGeneratedByCopilot: snapshot.analysis.changes.length > 0,
+        },
+        run.request.files.filter(file => paths.has(file.path)),
+        false,
+        partialSelection
+      )
+    }
+  }
+
+  private retireAssistedCommitSelectionAuthority(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): void {
+    const ids = new Set(files.map(file => file.id))
+    for (const file of this.repositoryStateCache.get(repository).changesState
+      .workingDirectory.files) {
+      if (ids.has(file.id)) {
+        this.assistedCommitRestoredSelections.delete(file.selection)
+        this.workingDirectorySelectionDiffs.delete(file.selection)
+      }
+    }
+  }
+
+  private showAssistedCommitFailure(
+    run: IAssistedCommitRun,
+    error: unknown,
+    retry: 'recovery' | 'refresh' | null,
+    selectionNeedsReview: boolean,
+    notify: boolean = true
+  ): ErrorWithMetadata {
+    const existing = this.repositoryStateCache.get(run.repository).changesState
+      .assistedCommit
+    const preserved =
+      existing.kind !== 'error'
+        ? error
+        : assistedCommitErrorCauses(error).includes(existing.error)
+        ? error
+        : assistedCommitErrorCauses(existing.error).includes(error)
+        ? existing.error
+        : new AggregateError(
+            [existing.error, error],
+            'Assisted commit run needs attention'
+          )
+    const metadata = new ErrorWithMetadata(
+      preserved instanceof Error
+        ? preserved
+        : new Error('Assisted commit failed', { cause: preserved }),
+      {
+        repository: run.repository,
+        gitContext: { kind: 'commit' },
+      }
+    )
+    log.error('Assisted commit run failed', metadata)
+    const state: AssistedCommitRunState = {
+      kind: 'error',
+      runId: run.id,
+      error: metadata,
+      recovery: run.recovery,
+      retry,
+      selectionNeedsReview,
+      settling: !run.finished,
+    }
+    if (notify) {
+      this.setAssistedCommitRunState(run, state)
+    } else {
+      this.repositoryStateCache.updateChangesState(run.repository, () => ({
+        assistedCommit: state,
+      }))
+    }
+    return metadata
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _retryCopilotAssistedCommitRecovery(
+    repository: Repository,
+    runId: string
+  ): Promise<void> {
+    const run = this.assistedCommitRuns.get(repository.id)
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    if (
+      run?.id !== runId ||
+      !run.finished ||
+      (run.lease === undefined &&
+        this.assistedCommitSelectionReaders.has(repository.id)) ||
+      state.kind !== 'error' ||
+      state.retry === null ||
+      (state.retry === 'recovery' && run.lease === undefined)
+    ) {
+      return
+    }
+    run.finished = false
+    run.selectionReadersClosed = false
+    run.settlement = createAssistedCommitSettlement()
+    run.reconciling = true
+    run.selectionReadError = undefined
+    try {
+      this.setAssistedCommitRunState(run, {
+        kind: state.retry === 'recovery' ? 'rolling-back' : 'refreshing',
+        runId,
+      })
+      const capability = run.recoveryCapability
+      const recover = async () => {
+        if (state.retry === 'recovery') {
+          if (capability !== undefined) {
+            run.recovery = await rollbackAssistedCommitTransaction(capability)
+            run.recoveryCapability = undefined
+          } else if (run.cleanupPending && run.snapshot !== undefined) {
+            await disposeAssistedCommitSnapshot(run.snapshot)
+            run.cleanupPending = false
+          }
+        }
+        return withRepositoryGitErrorPropagation(async () => {
+          const restore = async () => {
+            if (run.finalized) {
+              await this.refreshAssistedCommitRepository(repository, true)
+              return false
+            }
+            return this.restoreAssistedCommitSelection(run, state.error)
+          }
+          const needsReview = await restore()
+          const deferredRepository = this.deferredAssistedCommitRefreshes.get(
+            repository.id
+          )
+          if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
+            await this._refreshRepository(deferredRepository ?? repository)
+          }
+          if (!run.finalized) {
+            await this.verifyAssistedCommitSelectionFence(run)
+          }
+          return needsReview
+        })
+      }
+      const needsReview =
+        run.lease === undefined
+          ? await withRepositoryGitOperation(repository.path, 'read', recover)
+          : await run.lease.run(recover, true)
+      run.lease?.release()
+      run.lease = undefined
+      await this.finishAssistedCommitSelectionReads(run)
+      if (run.selectionReadError !== undefined) {
+        throw run.selectionReadError
+      }
+      run.finished = true
+      this.repositoryStateCache.update(repository, () => ({
+        isCommitting: false,
+      }))
+      run.resourceProtection?.release()
+      run.resourceProtection = undefined
+      run.settlement.complete()
+      if (needsReview) {
+        this.showAssistedCommitFailure(run, state.error, null, true, false)
+      } else {
+        if (this.assistedCommitRuns.get(repository.id) === run) {
+          this.assistedCommitRuns.delete(repository.id)
+        }
+        this.repositoryStateCache.updateChangesState(repository, () => ({
+          assistedCommit: { kind: 'idle' },
+        }))
+      }
+    } catch (error) {
+      run.recovery = getAssistedCommitRecovery(error) ?? run.recovery
+      const capability = run.recoveryCapability
+      if (
+        run.recovery !== undefined &&
+        capability !== undefined &&
+        'snapshotId' in capability
+      ) {
+        run.recovery = Object.freeze({
+          ...run.recovery,
+          retryToken: capability,
+        })
+      }
+      this.showAssistedCommitFailure(
+        run,
+        new AggregateError(
+          [state.error, error],
+          'Assisted commit recovery still needs attention'
+        ),
+        run.recoveryCapability !== undefined || run.cleanupPending
+          ? 'recovery'
+          : 'refresh',
+        state.selectionNeedsReview,
+        false
+      )
+      if (run.recoveryCapability === undefined && !run.cleanupPending) {
+        run.lease?.release()
+        run.lease = undefined
+        this.repositoryStateCache.update(repository, () => ({
+          isCommitting: false,
+        }))
+      }
+    } finally {
+      run.finished = true
+      run.settlement.complete()
+      this.updateAssistedCommitErrorSettlement(repository)
+      this.releaseSettledAssistedCommitResources(run)
+    }
+    await this.presentSettledAssistedCommitRun(run)
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _dismissCopilotAssistedCommitError(
+    repository: Repository,
+    runId: string
+  ): void {
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    const run = this.assistedCommitRuns.get(repository.id)
+    if (
+      state.kind !== 'error' ||
+      state.runId !== runId ||
+      run?.finished === false ||
+      this.assistedCommitSelectionReaders.has(repository.id) ||
+      state.retry !== null
+    ) {
+      return
+    }
+    if (run !== undefined) {
+      run.resourceProtection?.release()
+      run.resourceProtection = undefined
+      if (this.assistedCommitRuns.get(repository.id) === run) {
+        this.assistedCommitRuns.delete(repository.id)
+      }
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        assistedCommit: { kind: 'idle' },
+      }))
+      this.emitUpdate()
+    } else {
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        assistedCommit: { kind: 'idle' },
+      }))
+      this.emitUpdate()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(
     repository: Repository,
     context: ICommitContext
   ): Promise<boolean> {
+    this.assertNoAssistedCommitRun(repository)
+    await this.withAssistedCommitSelectionReader(repository, undefined, () =>
+      this.verifyRestoredAssistedCommitSelections(repository)
+    )
     const state = this.repositoryStateCache.get(repository)
     const files = state.changesState.workingDirectory.files
     const selectedFiles = files.filter(file => {
@@ -3685,12 +6526,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
-    return this.withIsCommitting(repository, async () => {
+    return this.withIsCommitting(repository, selectedFiles, async () => {
       const result = await gitStore.performFailableOperation(
         async () => {
+          const certifiedPartialDiffs =
+            await this.assertManualCommitSelectionAuthority(
+              repository,
+              selectedFiles
+            )
           const message = await formatCommitMessage(repository, context)
           let aborted = false
           return createCommit(repository, message, selectedFiles, {
+            certifiedPartialDiffs,
             amend: context.amend,
             onHookProgress: this.onHookProgress(repository),
             onHookFailure: this.onHookFailure(() => (aborted = true)),
@@ -3709,14 +6556,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (result !== undefined) {
-        await this._recordCommitStats(
-          gitStore,
-          repository,
-          state,
-          context,
-          selectedFiles,
-          context.amend === true
-        )
+        this.retireAssistedCommitSelectionAuthority(repository, selectedFiles)
+      }
+      this.finishManualCommitSelectionConsumption(repository)
+      if (result !== undefined) {
+        try {
+          await this._recordCommitStats(
+            gitStore,
+            repository,
+            state,
+            context,
+            selectedFiles,
+            context.amend === true
+          )
+        } catch (error) {
+          log.error(
+            'Commit succeeded, but usage statistics could not be recorded',
+            error
+          )
+        }
 
         this.repositoryStateCache.update(repository, () => {
           return {
@@ -3778,13 +6636,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repositoryState: IRepositoryState,
     context: ICommitContext,
     selectedFiles: readonly WorkingDirectoryFileChange[],
-    isAmend: boolean
+    isAmend: boolean,
+    partialSelection?: boolean
   ) {
-    this.statsStore.recordCommit()
+    await this.statsStore.recordCommit()
 
-    const includedPartialSelections = selectedFiles.some(
-      file => file.selection.getSelectionType() === DiffSelectionType.Partial
-    )
+    const includedPartialSelections =
+      partialSelection ??
+      selectedFiles.some(
+        file => file.selection.getSelectionType() === DiffSelectionType.Partial
+      )
     if (includedPartialSelections) {
       this.statsStore.increment('partialCommits')
     }
@@ -3861,6 +6722,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       | ReadonlyArray<WorkingDirectoryFileChange>,
     include: boolean
   ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
     const files = Array.isArray(file) ? file : [file]
     const modifiedIds = new Set<string>(files.map(f => f.id))
 
@@ -3884,6 +6746,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     file: WorkingDirectoryFileChange,
     diffSelection: DiffSelection
   ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
+    const state = this.repositoryStateCache.get(repository).changesState
+    const displayed = state.selection
+    const current = state.workingDirectory.findFileWithID(file.id)
+    const basis =
+      displayed.kind === ChangesSelectionKind.WorkingDirectory &&
+      displayed.selectedFileIDs.length === 1 &&
+      displayed.selectedFileIDs[0] === file.id &&
+      displayed.diff !== null &&
+      (displayed.diff.kind === DiffType.Text ||
+        displayed.diff.kind === DiffType.LargeText)
+        ? displayed.diff.text
+        : current === null
+        ? undefined
+        : this.workingDirectorySelectionDiffs.get(current.selection)?.text
+    const type = diffSelection.getSelectionType()
+    if (type !== DiffSelectionType.None) {
+      this.workingDirectorySelectionDiffs.set(diffSelection, {
+        text: basis ?? null,
+        sourceSelectionType: type,
+      })
+    } else {
+      this.workingDirectorySelectionDiffs.delete(diffSelection)
+    }
     this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
     return Promise.resolve()
   }
@@ -3915,6 +6801,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     includeAll: boolean
   ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
     this.repositoryStateCache.updateChangesState(repository, state => {
       const workingDirectory =
         state.workingDirectory.withIncludeAllFiles(includeAll)
@@ -4041,6 +6928,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
+    if (isRepositoryGitPaused(repository.path)) {
+      this.deferAssistedCommitRefresh(repository)
+      return
+    }
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.refreshRepositoryCore(repository)
+    )
+  }
+
+  private async refreshRepositoryCore(repository: Repository): Promise<void> {
     if (repository.missing) {
       return
     }
@@ -4130,11 +7027,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateCurrentPullRequest(repository)
 
     const latestState = this.repositoryStateCache.get(repository)
-    this.updateMenuItemLabels(latestState)
+    if (this.selectedRepository?.id === repository.id) {
+      this.updateMenuItemLabels(latestState)
+    }
 
-    this._initializeCompare(repository)
+    await this._initializeCompare(repository)
 
-    this.updateCurrentTutorialStep(repository)
+    await this.updateCurrentTutorialStep(repository)
   }
 
   private async updateStashEntryCountMetric(
@@ -4185,6 +7084,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Refresh indicator in repository list for a specific repository
    */
   private refreshIndicatorForRepository = async (repository: Repository) => {
+    if (isRepositoryGitPaused(repository.path)) {
+      this.deferAssistedCommitRefresh(repository)
+      return
+    }
+    return withRepositoryGitOperation(repository.path, 'read', () =>
+      this.refreshIndicatorForRepositoryCore(repository)
+    )
+  }
+
+  private async refreshIndicatorForRepositoryCore(
+    repository: Repository
+  ): Promise<void> {
     const lookup = this.localRepositoryStateLookup
 
     if (repository.missing) {
@@ -4397,6 +7308,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public _setCommitMode(repository: Repository, commitMode: CommitMode): void {
+    this.assertNoAssistedCommitRun(repository)
     storeCommitMode(repository, commitMode)
     this.repositoryStateCache.updateChangesState(repository, () => ({
       commitMode,
@@ -4408,6 +7320,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commitOptions: Partial<CommitOptions>
   ): void {
+    this.assertNoAssistedCommitRun(repository)
     this.repositoryStateCache.update(repository, state => ({
       skipCommitHooks: state.skipCommitHooks,
       signOffCommits: state.signOffCommits,
@@ -4433,6 +7346,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (currentPopup === null) {
       return
     }
+    if (popupType === undefined || currentPopup.type === popupType) {
+      this.settleDismissedAssistedCommitPopup(currentPopup.id)
+    }
 
     if (popupType === undefined) {
       this.popupManager.removePopup(currentPopup)
@@ -4445,10 +7361,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this._completeOpenInDesktop(() => Promise.resolve(null))
       }
 
-      this.popupManager.removePopupByType(popupType)
+      if (
+        popupType === PopupType.HookFailed ||
+        popupType === PopupType.AssistedCommitDisclaimer
+      ) {
+        this.popupManager.removePopup(currentPopup)
+      } else {
+        this.popupManager.removePopupByType(popupType)
+      }
     }
 
     this.emitUpdate()
+    this.presentNextAssistedCommitHookFailure()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4456,8 +7380,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.popupManager.currentPopup === null) {
       return
     }
+    this.settleDismissedAssistedCommitPopup(popupId)
 
     this.popupManager.removePopupById(popupId)
+    this.presentNextAssistedCommitHookFailure()
     this.emitUpdate()
   }
 
@@ -4532,6 +7458,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     noTrackOption: boolean = false,
     checkoutBranch: boolean = true
   ): Promise<Branch | undefined> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.createBranchCore(
+          repository,
+          name,
+          startPoint,
+          noTrackOption,
+          checkoutBranch
+        )
+      )
+    })
+  }
+
+  private async createBranchCore(
+    repository: Repository,
+    name: string,
+    startPoint: string | null,
+    noTrackOption: boolean = false,
+    checkoutBranch: boolean = true
+  ): Promise<Branch | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.createBranch(name, startPoint, noTrackOption)
 
@@ -4544,12 +7491,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createTag(repository: Repository, name: string, sha: string) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.createTagCore(repository, name, sha)
+      )
+    })
+  }
+
+  private async createTagCore(
+    repository: Repository,
+    name: string,
+    sha: string
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.createTag(name, sha)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _deleteTag(repository: Repository, name: string) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.deleteTagCore(repository, name)
+      )
+    })
+  }
+
+  private async deleteTagCore(repository: Repository, name: string) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.deleteTag(name)
   }
@@ -4588,6 +7557,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Note: This shouldn't be called directly. See `Dispatcher`.
    */
   public async _checkoutBranch(
+    repository: Repository,
+    branch: Branch,
+    explicitStrategy?: UncommittedChangesStrategy
+  ): Promise<Repository> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.checkoutBranchCore(repository, branch, explicitStrategy)
+      )
+    })
+  }
+
+  private async checkoutBranchCore(
     repository: Repository,
     branch: Branch,
     explicitStrategy?: UncommittedChangesStrategy
@@ -4796,6 +7778,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commit: CommitOneLine
   ): Promise<Repository> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.checkoutCommitCore(repository, commit)
+      )
+    })
+  }
+
+  private async checkoutCommitCore(
+    repository: Repository,
+    commit: CommitOneLine
+  ): Promise<Repository> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { branchesState } = repositoryState
     const { tip } = branchesState
@@ -4844,6 +7838,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *                                dialog if an existing stash exists.
    */
   public async _createStashForCurrentBranch(
+    repository: Repository,
+    showConfirmationDialog: boolean
+  ): Promise<boolean> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.createStashForCurrentBranchCore(repository, showConfirmationDialog)
+      )
+    })
+  }
+
+  private async createStashForCurrentBranchCore(
     repository: Repository,
     showConfirmationDialog: boolean
   ): Promise<boolean> {
@@ -5010,6 +8016,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branch: Branch,
     newName: string
   ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.renameBranchCore(repository, branch, newName)
+      )
+    })
+  }
+
+  private async renameBranchCore(
+    repository: Repository,
+    branch: Branch,
+    newName: string
+  ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(async () => {
       await renameBranch(repository, branch, newName)
@@ -5026,6 +8045,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _deleteBranch(
+    repository: Repository,
+    branch: Branch,
+    includeUpstream?: boolean,
+    toCheckout?: Branch | null
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.deleteBranchCore(repository, branch, includeUpstream, toCheckout)
+      )
+    })
+  }
+
+  private async deleteBranchCore(
     repository: Repository,
     branch: Branch,
     includeUpstream?: boolean,
@@ -5375,30 +8408,53 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async withIsCommitting(
     repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
     fn: () => Promise<boolean>
   ): Promise<boolean> {
-    const state = this.repositoryStateCache.get(repository)
-    // ensure the user doesn't try and commit again
-    if (state.isCommitting) {
-      return false
-    }
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      const state = this.repositoryStateCache.get(repository)
+      // ensure the user doesn't try and commit again
+      if (state.isCommitting) {
+        return false
+      }
 
-    this.repositoryStateCache.update(repository, () => ({
-      isCommitting: true,
-      hookProgress: null,
-      subscribeToCommitOutput: null,
-    }))
-    this.emitUpdate()
+      if (
+        files.some(file =>
+          this.assistedCommitRestoredSelections.has(file.selection)
+        )
+      ) {
+        this.manualCommitSelectionSettlements.set(repository.id, {
+          repositoryPath: repository.path,
+          settlement: createAssistedCommitSettlement(),
+        })
+      }
 
-    try {
-      return await fn()
-    } finally {
-      this.repositoryStateCache.update(repository, () => ({
-        isCommitting: false,
-        hookProgress: null,
-        subscribeToCommitOutput: null,
-      }))
-      this.emitUpdate()
+      try {
+        this.repositoryStateCache.update(repository, () => ({
+          isCommitting: true,
+          hookProgress: null,
+          subscribeToCommitOutput: null,
+        }))
+        this.emitUpdate()
+        return await withRepositoryGitOperation(repository.path, 'mutation', fn)
+      } finally {
+        this.finishManualCommitSelectionConsumption(repository)
+        this.repositoryStateCache.update(repository, () => ({
+          isCommitting: false,
+          hookProgress: null,
+          subscribeToCommitOutput: null,
+        }))
+        this.emitUpdate()
+      }
+    })
+  }
+
+  private finishManualCommitSelectionConsumption(repository: Repository): void {
+    const manual = this.manualCommitSelectionSettlements.get(repository.id)
+    if (manual?.repositoryPath === repository.path) {
+      this.manualCommitSelectionSettlements.delete(repository.id)
+      manual.settlement.complete()
     }
   }
 
@@ -5406,59 +8462,70 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: (signal: AbortSignal) => Promise<boolean>
   ): Promise<boolean> {
-    const state = this.repositoryStateCache.get(repository)
-    // ensure the user doesn't try and commit again
-    if (state.isGeneratingCommitMessage) {
-      return false
-    }
-
-    const abortController = new AbortController()
-
-    this.repositoryStateCache.update(repository, () => ({
-      isGeneratingCommitMessage: true,
-      commitMessageGenerationAbortController: abortController,
-    }))
-    this.emitUpdate()
-
-    try {
-      return await fn(abortController.signal)
-    } finally {
-      const currentState = this.repositoryStateCache.get(repository)
-      if (
-        currentState.commitMessageGenerationAbortController === abortController
-      ) {
-        this.repositoryStateCache.update(repository, () => ({
-          isGeneratingCommitMessage: false,
-          commitMessageGenerationAbortController: null,
-        }))
-        this.emitUpdate()
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      const state = this.repositoryStateCache.get(repository)
+      // ensure the user doesn't try and commit again
+      if (state.isGeneratingCommitMessage) {
+        return false
       }
-    }
+
+      const abortController = new AbortController()
+
+      this.repositoryStateCache.update(repository, () => ({
+        isGeneratingCommitMessage: true,
+        commitMessageGenerationAbortController: abortController,
+      }))
+      this.emitUpdate()
+
+      try {
+        return await withRepositoryGitOperation(
+          repository.path,
+          'mutation',
+          () => fn(abortController.signal)
+        )
+      } finally {
+        const currentState = this.repositoryStateCache.get(repository)
+        if (
+          currentState.commitMessageGenerationAbortController ===
+          abortController
+        ) {
+          this.repositoryStateCache.update(repository, () => ({
+            isGeneratingCommitMessage: false,
+            commitMessageGenerationAbortController: null,
+          }))
+          this.emitUpdate()
+        }
+      }
+    })
   }
 
   private async withPushPullFetch(
     repository: Repository,
     fn: () => Promise<void>
   ): Promise<void> {
-    const state = this.repositoryStateCache.get(repository)
-    // Don't allow concurrent network operations.
-    if (state.isPushPullFetchInProgress) {
-      return
-    }
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      const state = this.repositoryStateCache.get(repository)
+      // Don't allow concurrent network operations.
+      if (state.isPushPullFetchInProgress) {
+        return
+      }
 
-    this.repositoryStateCache.update(repository, () => ({
-      isPushPullFetchInProgress: true,
-    }))
-    this.emitUpdate()
-
-    try {
-      await fn()
-    } finally {
       this.repositoryStateCache.update(repository, () => ({
-        isPushPullFetchInProgress: false,
+        isPushPullFetchInProgress: true,
       }))
       this.emitUpdate()
-    }
+
+      try {
+        await withRepositoryGitOperation(repository.path, 'mutation', fn)
+      } finally {
+        this.repositoryStateCache.update(repository, () => ({
+          isPushPullFetchInProgress: false,
+        }))
+        this.emitUpdate()
+      }
+    })
   }
 
   public async _pull(repository: Repository): Promise<void> {
@@ -5552,20 +8619,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                       value: progress.value * pullWeight,
                     })
                   },
-                  onHookFailure: (hookName, terminalOutput) =>
-                    new Promise(resolve => {
-                      this._showPopup({
-                        type: PopupType.HookFailed,
-                        hookName,
-                        terminalOutput,
-                        resolve: resolution => {
-                          if (resolution === 'abort') {
-                            aborted = true
-                          }
-                          resolve(resolution)
-                        },
-                      })
-                    }),
+                  onHookFailure: this.onHookFailure(() => (aborted = true)),
                 })
                 return true
               },
@@ -5644,6 +8698,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     account: Account,
     org: IAPIOrganization | null
   ): Promise<Repository> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.publishRepositoryCore(
+          repository,
+          name,
+          description,
+          private_,
+          account,
+          org
+        )
+      )
+    })
+  }
+
+  private async publishRepositoryCore(
+    repository: Repository,
+    name: string,
+    description: string,
+    private_: boolean,
+    account: Account,
+    org: IAPIOrganization | null
+  ): Promise<Repository> {
     const api = API.fromAccount(account)
     const apiRepository = await api.createRepository(
       org,
@@ -5710,6 +8787,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     moveToTrash: boolean = true
   ) {
+    this.assertNoAssistedCommitRun(repository)
+    const paths = [
+      ...new Set(
+        files.flatMap(file => [
+          Path.resolve(repository.path, file.path),
+          ...(file.status.kind === AppFileStatusKind.Renamed
+            ? [Path.resolve(repository.path, file.status.oldPath)]
+            : []),
+        ])
+      ),
+    ]
+    const guard = (index: number): Promise<void> =>
+      index === paths.length
+        ? withRepositoryGitOperation(repository.path, 'mutation', () =>
+            this.discardChangesCore(repository, files, moveToTrash)
+          )
+        : this.withAssistedCommitDestructionGuard(paths[index], () =>
+            guard(index + 1)
+          )
+    return guard(0)
+  }
+
+  private async discardChangesCore(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    moveToTrash: boolean = true
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
 
     const { askForConfirmationOnDiscardChangesPermanently } = this.getState()
@@ -5738,6 +8842,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     diff: ITextDiff,
     selection: DiffSelection
   ) {
+    this.assertNoAssistedCommitRun(repository)
+    return this.withAssistedCommitDestructionGuard(
+      Path.resolve(repository.path, filePath),
+      () =>
+        withRepositoryGitOperation(repository.path, 'mutation', () =>
+          this.discardChangesFromSelectionCore(
+            repository,
+            filePath,
+            diff,
+            selection
+          )
+        )
+    )
+  }
+
+  private async discardChangesFromSelectionCore(
+    repository: Repository,
+    filePath: string,
+    diff: ITextDiff,
+    selection: DiffSelection
+  ) {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.discardChangesFromSelection(filePath, diff, selection)
 
@@ -5745,6 +8870,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startAmendingRepository(
+    repository: Repository,
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
+  ) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.startAmendingRepositoryCore(
+          repository,
+          commit,
+          isLocalCommit,
+          continueWithForcePush
+        )
+      )
+    })
+  }
+
+  private async startAmendingRepositoryCore(
     repository: Repository,
     commit: Commit,
     isLocalCommit: boolean,
@@ -5783,6 +8927,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _stopAmendingRepository(repository: Repository) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.stopAmendingRepositoryCore(repository)
+      )
+    })
+  }
+
+  private async stopAmendingRepositoryCore(repository: Repository) {
     this.setRepositoryCommitToAmend(repository, null)
   }
 
@@ -5800,6 +8953,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _undoCommit(
+    repository: Repository,
+    commit: Commit,
+    showConfirmationDialog: boolean
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.undoCommitCore(repository, commit, showConfirmationDialog)
+      )
+    })
+  }
+
+  private async undoCommitCore(
     repository: Repository,
     commit: Commit,
     showConfirmationDialog: boolean
@@ -5845,6 +9011,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     commit: Commit,
     showConfirmationDialog: boolean
   ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.resetToCommitCore(repository, commit, showConfirmationDialog)
+      )
+    })
+  }
+
+  private async resetToCommitCore(
+    repository: Repository,
+    commit: Commit,
+    showConfirmationDialog: boolean
+  ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState } = repositoryState
@@ -5885,6 +9064,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *
    */
   public async _fetchRefspec(
+    repository: Repository,
+    refspec: string
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.fetchRefspecCore(repository, refspec)
+      )
+    })
+  }
+
+  private async fetchRefspecCore(
     repository: Repository,
     refspec: string
   ): Promise<void> {
@@ -6067,6 +9258,68 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     worktree: WorktreeEntry
   ): Promise<Repository> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.switchWorktreeCore(repository, worktree)
+      )
+    })
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _addWorktreeAndSwitch(
+    repository: Repository,
+    path: string,
+    options: IAddWorktreeOptions
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, () =>
+      this.withAssistedCommitDestructionGuard(path, async () => {
+        const canonicalPath = await canonicalMutationPath(path)
+        await addWorktree(repository, canonicalPath, options)
+        const worktree = (await listWorktrees(repository)).find(
+          worktree => worktree.path === Path.normalize(canonicalPath)
+        )
+        if (worktree === undefined) {
+          throw new Error('Failed to find the newly created worktree')
+        }
+        this.statsStore.increment('worktreeCreatedCount')
+        await this._switchWorktree(repository, worktree)
+      })
+    )
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _updateRepositoryCommitter(
+    repository: Repository,
+    name: string | null | undefined,
+    email: string | null | undefined
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      for (const [key, value] of [
+        ['user.name', name],
+        ['user.email', email],
+      ] as const) {
+        await this.updateRepositoryCommitterValue(repository, key, value)
+      }
+    })
+  }
+
+  private async updateRepositoryCommitterValue(
+    repository: Repository,
+    key: 'user.name' | 'user.email',
+    value: string | null | undefined
+  ): Promise<void> {
+    if (value === null) {
+      await removeConfigValue(repository, key)
+    } else if (value !== undefined) {
+      await setConfigValue(repository, key, value)
+    }
+  }
+
+  private async switchWorktreeCore(
+    repository: Repository,
+    worktree: WorktreeEntry
+  ): Promise<Repository> {
     const type = await getRepositoryType(worktree.path).catch(e => {
       log.error('Could not determine repository type', e)
       return { kind: 'missing' } as RepositoryType
@@ -6139,6 +9392,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     worktreePath: string,
     force?: boolean
   ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
+    assertRepositoryGitAvailable(worktreePath)
+    return this.withAssistedCommitDestructionGuard(worktreePath, () =>
+      withRepositoryGitOperation(repository.path, 'mutation', () =>
+        withRepositoryGitOperation(worktreePath, 'mutation', () =>
+          this.deleteWorktreeCore(repository, worktreePath, force)
+        )
+      )
+    )
+  }
+
+  private async deleteWorktreeCore(
+    repository: Repository,
+    worktreePath: string,
+    force?: boolean
+  ): Promise<void> {
     const isDeletingCurrentWorktree = repository.path === worktreePath
     let originalWorktree: WorktreeEntry | null = null
 
@@ -6180,6 +9449,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public async _moveWorktree(
+    repository: Repository,
+    worktreePath: string,
+    newPath: string
+  ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
+    assertRepositoryGitAvailable(worktreePath)
+    return this.withAssistedCommitDestructionGuard(worktreePath, () =>
+      this.withAssistedCommitDestructionGuard(newPath, () =>
+        withRepositoryGitOperation(repository.path, 'mutation', () =>
+          withRepositoryGitOperation(worktreePath, 'mutation', () =>
+            this.moveWorktreeCore(repository, worktreePath, newPath)
+          )
+        )
+      )
+    )
+  }
+
+  private async moveWorktreeCore(
     repository: Repository,
     worktreePath: string,
     newPath: string
@@ -7221,6 +10508,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _applyCopilotConflictResolutions(
     repository: Repository
   ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.applyCopilotConflictResolutionsCore(repository)
+      )
+    })
+  }
+
+  private async applyCopilotConflictResolutionsCore(
+    repository: Repository
+  ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { multiCommitOperationState } = state
     if (multiCommitOperationState === null) {
@@ -7371,21 +10669,55 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onHookFailure = (onAborted: () => void) => {
     return (hookName: string, terminalOutput: TerminalOutput) =>
       new Promise<'abort' | 'ignore'>(resolve => {
-        this._showPopup({
-          type: PopupType.HookFailed,
-          hookName,
-          terminalOutput,
+        const failure: NonNullable<IAssistedCommitRun['hookFailure']> = {
+          present: () => {
+            const popup = this.popupManager.addPopup({
+              type: PopupType.HookFailed,
+              hookName,
+              terminalOutput,
+              resolve: failure.resolve,
+            })
+            if (popup.id === undefined) {
+              throw new Error('Could not open the commit hook failure dialog')
+            }
+            failure.popupId = popup.id
+            this.emitUpdate()
+          },
           resolve: resolution => {
+            if (!this.hookFailureQueue.delete(failure)) {
+              return
+            }
+            if (failure.popupId !== undefined) {
+              this.popupManager.removePopupById(failure.popupId)
+            }
             if (resolution === 'abort') {
               onAborted()
             }
             resolve(resolution)
+            this.presentNextAssistedCommitHookFailure()
+            this.emitUpdate()
           },
-        })
+        }
+        this.hookFailureQueue.add(failure)
+        this.presentNextAssistedCommitHookFailure()
       })
   }
 
   public async _mergeBranch(
+    repository: Repository,
+    sourceBranch: Branch,
+    mergeStatus: MergeTreeResult | null,
+    isSquash: boolean = false
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.mergeBranchCore(repository, sourceBranch, mergeStatus, isSquash)
+      )
+    })
+  }
+
+  private async mergeBranchCore(
     repository: Repository,
     sourceBranch: Branch,
     mergeStatus: MergeTreeResult | null,
@@ -7492,6 +10824,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch,
     targetBranch: Branch
   ): Promise<RebaseResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.rebaseCore(repository, baseBranch, targetBranch)
+      )
+    })
+  }
+
+  private async rebaseCore(
+    repository: Repository,
+    baseBranch: Branch,
+    targetBranch: Branch
+  ): Promise<RebaseResult> {
     const progressCallback =
       this.getMultiCommitOperationProgressCallBack(repository)
     const gitStore = this.gitStoreCache.get(repository)
@@ -7512,6 +10857,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortRebase(repository: Repository) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.abortRebaseCore(repository)
+      )
+    })
+  }
+
+  private async abortRebaseCore(repository: Repository) {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() =>
       abortRebase(repository)
@@ -7520,6 +10874,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _continueRebase(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<RebaseResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.continueRebaseCore(repository, workingDirectory, manualResolutions)
+      )
+    })
+  }
+
+  private async continueRebaseCore(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
@@ -7539,12 +10906,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortMerge(repository: Repository): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.abortMergeCore(repository)
+      )
+    })
+  }
+
+  private async abortMergeCore(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     return await gitStore.performFailableOperation(() => abortMerge(repository))
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortSquashMerge(repository: Repository): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.abortSquashMergeCore(repository)
+      )
+    })
+  }
+
+  private async abortSquashMergeCore(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const {
       branchesState,
@@ -7590,6 +10975,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     workingDirectory: WorkingDirectoryStatus,
     manualResolutions: Map<string, ManualConflictResolution>
   ): Promise<string | undefined> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.finishConflictedMergeCore(
+          repository,
+          workingDirectory,
+          manualResolutions
+        )
+      )
+    })
+  }
+
+  private async finishConflictedMergeCore(
+    repository: Repository,
+    workingDirectory: WorkingDirectoryStatus,
+    manualResolutions: Map<string, ManualConflictResolution>
+  ): Promise<string | undefined> {
     /**
      *  The assumption made here is that all other files that were part of this merge
      *  have already been staged by git automatically (or manually by the user via CLI).
@@ -7616,6 +11018,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setRemoteURL(
+    repository: Repository,
+    name: string,
+    url: string
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.setRemoteURLCore(repository, name, url)
+      )
+    })
+  }
+
+  private async setRemoteURLCore(
     repository: Repository,
     name: string,
     url: string
@@ -7759,6 +11174,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _saveGitIgnore(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.saveGitIgnoreCore(repository, text)
+      )
+    })
+  }
+
+  private async saveGitIgnoreCore(
     repository: Repository,
     text: string
   ): Promise<void> {
@@ -8030,11 +11457,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     pattern: string | string[]
   ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.appendIgnoreRuleCore(repository, pattern)
+      )
+    })
+  }
+
+  private async appendIgnoreRuleCore(
+    repository: Repository,
+    pattern: string | string[]
+  ): Promise<void> {
     await appendIgnoreRule(repository, pattern)
     return this._refreshRepository(repository)
   }
 
   public async _appendIgnoreFile(
+    repository: Repository,
+    filePath: string | string[]
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.appendIgnoreFileCore(repository, filePath)
+      )
+    })
+  }
+
+  private async appendIgnoreFileCore(
     repository: Repository,
     filePath: string | string[]
   ): Promise<void> {
@@ -8203,6 +11654,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _createRepository<T>(
+    path: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return withRepositoryGitResourceMutation([path], () =>
+      this.withAssistedCommitDestructionGuard(path, () =>
+        withRepositoryGitOperation(path, 'mutation', operation)
+      )
+    )
+  }
+
   public async _addRepositories(
     paths: ReadonlyArray<string>
   ): Promise<ReadonlyArray<Repository>> {
@@ -8280,40 +11743,115 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _relocateRepository(repository: Repository): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
+    return this.withAssistedCommitDestructionGuard(repository.path, () =>
+      withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.relocateRepositoryCore(repository)
+      )
+    )
+  }
+
+  private async relocateRepositoryCore(repository: Repository): Promise<void> {
     const path = await showOpenDialog({ properties: ['openDirectory'] })
 
     if (path === null) {
       return
     }
 
-    const rt = await getRepositoryType(path)
+    return this.withAssistedCommitDestructionGuard(path, async () => {
+      const rt = await getRepositoryType(path)
 
-    if (rt.kind === 'regular') {
-      // The repository has moved, so any main worktree we recorded before now
-      // points at where it used to be. Resolve it again from the new location.
-      await this.repositoriesStore.updateRepositoryPath(
-        repository,
-        rt.topLevelWorkingDirectory,
-        rt.gitDir,
-        await this.findMainWorktreePath(rt.topLevelWorkingDirectory)
-      )
-    } else if (rt.kind === 'unsafe') {
-      // Git refuses to run in a repository it considers unsafe, so there's no
-      // resolving the main worktree here. Drop the recorded path rather than
-      // keep one we know is stale.
-      await this.repositoriesStore.updateRepositoryPath(
-        repository,
-        path,
-        undefined,
-        undefined,
-        true
-      )
-    } else {
-      this.emitError(new Error(this.getInvalidRepoPathsMessage([path])))
-    }
+      if (rt.kind === 'regular') {
+        // The repository has moved, so any main worktree we recorded before now
+        // points at where it used to be. Resolve it again from the new location.
+        await this.repositoriesStore.updateRepositoryPath(
+          repository,
+          rt.topLevelWorkingDirectory,
+          rt.gitDir,
+          await this.findMainWorktreePath(rt.topLevelWorkingDirectory)
+        )
+      } else if (rt.kind === 'unsafe') {
+        // Git refuses to run in a repository it considers unsafe, so there's no
+        // resolving the main worktree here. Drop the recorded path rather than
+        // keep one we know is stale.
+        await this.repositoriesStore.updateRepositoryPath(
+          repository,
+          path,
+          undefined,
+          undefined,
+          true
+        )
+      } else {
+        this.emitError(new Error(this.getInvalidRepoPathsMessage([path])))
+      }
+    })
   }
 
   public async _removeRepository(
+    repository: Repository | CloningRepository,
+    moveToTrash: boolean
+  ): Promise<void> {
+    this.assertNoAssistedCommitRun(repository)
+    if (moveToTrash) {
+      return this.withAssistedCommitDestructionGuard(repository.path, () =>
+        withRepositoryGitOperation(repository.path, 'mutation', () =>
+          this.removeRepositoryCore(repository, moveToTrash)
+        )
+      )
+    }
+    return withRepositoryGitOperation(repository.path, 'mutation', () =>
+      this.removeRepositoryCore(repository, moveToTrash)
+    )
+  }
+
+  private async withAssistedCommitMutationResources<T>(
+    repository: Repository | CloningRepository,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    this.assertNoAssistedCommitRun(repository)
+    return withRepositoryGitOperation(repository.path, 'mutation', async () => {
+      const resources = await getAssistedCommitProtectedPaths(repository.path)
+      const paths = [
+        ...new Set(
+          await Promise.all(resources.map(path => canonicalMutationPath(path)))
+        ),
+      ]
+      return withRepositoryGitResourceMutation(paths, operation)
+    })
+  }
+
+  private async withAssistedCommitDestructionGuard<T>(
+    path: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return withRepositoryGitDestruction(path, async () => {
+      const removingPath = await canonicalMutationPath(path)
+      for (const run of this.assistedCommitRuns.values()) {
+        const runState = this.repositoryStateCache.get(run.repository)
+          .changesState.assistedCommit
+        if (
+          run.finished &&
+          !this.assistedCommitSelectionReaders.has(run.repository.id) &&
+          !isAssistedCommitRepositoryLocked(runState)
+        ) {
+          continue
+        }
+        const paths =
+          run.protectedPaths ??
+          (await getAssistedCommitProtectedPaths(run.repository.path))
+        if (paths.some(path => repositoryPathsOverlap(path, removingPath))) {
+          throw new AssistedCommitError(
+            'busy',
+            'An assisted commit run depends on files or Git metadata in this directory'
+          )
+        }
+      }
+      assertRepositoryGitDestructionAvailable(path)
+      return operation()
+    })
+  }
+
+  private async removeRepositoryCore(
     repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
@@ -8426,6 +11964,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _revertCommit(
+    repository: Repository,
+    commit: Commit
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.revertCommitCore(repository, commit)
+      )
+    })
+  }
+
+  private async revertCommitCore(
     repository: Repository,
     commit: Commit
   ): Promise<void> {
@@ -8682,6 +12232,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _updateExistingUpstreamRemote(
     repository: Repository
   ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.updateExistingUpstreamRemoteCore(repository)
+      )
+    })
+  }
+
+  private async updateExistingUpstreamRemoteCore(
+    repository: Repository
+  ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.updateExistingUpstreamRemote()
 
@@ -8717,6 +12278,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _checkoutPullRequest(
+    repository: RepositoryWithGitHubRepository,
+    prNumber: number,
+    headRepoOwner: string,
+    headCloneUrl: string,
+    headRefName: string
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.checkoutPullRequestCore(
+          repository,
+          prNumber,
+          headRepoOwner,
+          headCloneUrl,
+          headRefName
+        )
+      )
+    })
+  }
+
+  private async checkoutPullRequestCore(
     repository: RepositoryWithGitHubRepository,
     prNumber: number,
     headRepoOwner: string,
@@ -8834,6 +12416,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     showCoAuthoredBy: boolean
   ) {
+    this.assertNoAssistedCommitRun(repository)
     this.gitStoreCache.get(repository).setShowCoAuthoredBy(showCoAuthoredBy)
     return Promise.resolve()
   }
@@ -8848,6 +12431,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     coAuthors: ReadonlyArray<Author>
   ) {
+    this.assertNoAssistedCommitRun(repository)
     this.gitStoreCache.get(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
   }
@@ -8998,6 +12582,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.popStashEntryCore(repository, stashEntry)
+      )
+    })
+  }
+
+  private async popStashEntryCore(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
     await popStashEntry(repository, stashEntry.stashSha)
     log.info(
       `[AppStore. _popStashEntry] popped stash with commit id ${stashEntry.stashSha}`
@@ -9009,6 +12605,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _dropStashEntry(
+    repository: Repository,
+    stashEntry: IStashEntry
+  ) {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.dropStashEntryCore(repository, stashEntry)
+      )
+    })
+  }
+
+  private async dropStashEntryCore(
     repository: Repository,
     stashEntry: IStashEntry
   ) {
@@ -9073,6 +12681,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * as its default remote and associated `GitHubRepository`.
    */
   public async _convertRepositoryToFork(
+    repository: RepositoryWithGitHubRepository,
+    fork: IAPIFullRepository
+  ): Promise<Repository> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.convertRepositoryToForkCore(repository, fork)
+      )
+    })
+  }
+
+  private async convertRepositoryToForkCore(
     repository: RepositoryWithGitHubRepository,
     fork: IAPIFullRepository
   ): Promise<Repository> {
@@ -9232,6 +12852,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commits: ReadonlyArray<CommitOneLine>
   ): Promise<CherryPickResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.cherryPickCore(repository, commits)
+      )
+    })
+  }
+
+  private async cherryPickCore(
+    repository: Repository,
+    commits: ReadonlyArray<CommitOneLine>
+  ): Promise<CherryPickResult> {
     if (commits.length === 0) {
       log.error('[_cherryPick] - Unable to cherry-pick. No commits provided.')
       return CherryPickResult.UnableToStart
@@ -9294,6 +12926,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     targetBranch: Branch
   ): Promise<string | undefined> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.checkoutBranchReturnNameCore(repository, targetBranch)
+      )
+    })
+  }
+
+  private async checkoutBranchReturnNameCore(
+    repository: Repository,
+    targetBranch: Branch
+  ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const checkoutSuccessful = await this.withRefreshedGitHubRepository(
@@ -9315,6 +12959,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _abortCherryPick(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.abortCherryPickCore(repository, sourceBranch)
+      )
+    })
+  }
+
+  private async abortCherryPickCore(
     repository: Repository,
     sourceBranch: Branch | null
   ): Promise<void> {
@@ -9359,6 +13015,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     manualResolutions: ReadonlyMap<string, ManualConflictResolution>
   ): Promise<CherryPickResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.continueCherryPickCore(repository, files, manualResolutions)
+      )
+    })
+  }
+
+  private async continueCherryPickCore(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<CherryPickResult> {
     const progressCallback =
       this.getMultiCommitOperationProgressCallBack(repository)
 
@@ -9387,6 +13056,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _clearCherryPickingHead(
+    repository: Repository,
+    sourceBranch: Branch | null
+  ): Promise<void> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.clearCherryPickingHeadCore(repository, sourceBranch)
+      )
+    })
+  }
+
+  private async clearCherryPickingHeadCore(
     repository: Repository,
     sourceBranch: Branch | null
   ): Promise<void> {
@@ -9484,6 +13165,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     beforeCommit: Commit | null,
     lastRetainedCommitRef: string | null
   ): Promise<RebaseResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.reorderCommitsCore(
+          repository,
+          commitsToReorder,
+          beforeCommit,
+          lastRetainedCommitRef
+        )
+      )
+    })
+  }
+
+  private async reorderCommitsCore(
+    repository: Repository,
+    commitsToReorder: ReadonlyArray<Commit>,
+    beforeCommit: Commit | null,
+    lastRetainedCommitRef: string | null
+  ): Promise<RebaseResult> {
     if (commitsToReorder.length === 0) {
       log.error('[_reorder] - Unable to reorder. No commits provided.')
       return RebaseResult.Error
@@ -9507,6 +13207,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _squash(
+    repository: Repository,
+    toSquash: ReadonlyArray<Commit>,
+    squashOnto: Commit,
+    lastRetainedCommitRef: string | null,
+    commitContext: ICommitContext
+  ): Promise<RebaseResult> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.squashCore(
+          repository,
+          toSquash,
+          squashOnto,
+          lastRetainedCommitRef,
+          commitContext
+        )
+      )
+    })
+  }
+
+  private async squashCore(
     repository: Repository,
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
@@ -9538,6 +13259,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _undoMultiCommitOperation(
+    mcos: IMultiCommitOperationState,
+    repository: Repository,
+    commitsCount: number
+  ): Promise<boolean> {
+    return this.withAssistedCommitMutationResources(repository, async () => {
+      this.assertNoAssistedCommitRun(repository)
+      return withRepositoryGitOperation(repository.path, 'mutation', () =>
+        this.undoMultiCommitOperationCore(mcos, repository, commitsCount)
+      )
+    })
+  }
+
+  private async undoMultiCommitOperationCore(
     mcos: IMultiCommitOperationState,
     repository: Repository,
     commitsCount: number
@@ -10451,6 +14185,84 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * {@link CopilotStore.generateCommitMessage}. BYOK provider secrets are
    * read from the OS keychain at call time.
    */
+  private getAssistedCommitProviderDefinition(
+    selection: string | null
+  ): string | null {
+    if (selection === null) {
+      return null
+    }
+    const key = parseModelKey(selection)
+    if (key.kind !== 'byok') {
+      return null
+    }
+    const provider = this.byokProviders.find(
+      provider => provider.id === key.providerId
+    )
+    const model = provider?.models.find(model => model.id === key.modelId)
+    return provider === undefined || model === undefined
+      ? null
+      : JSON.stringify({ ...provider, models: [model] })
+  }
+
+  private getAssistedCommitProviderRevision(selection: string | null): number {
+    const key = selection === null ? null : parseModelKey(selection)
+    return key?.kind === 'byok'
+      ? this.assistedCommitProviderRevisions.get(key.providerId) ?? 0
+      : 0
+  }
+
+  private invalidateAssistedCommitProvider(providerId: string): void {
+    this.assistedCommitProviderRevisions.set(
+      providerId,
+      (this.assistedCommitProviderRevisions.get(providerId) ?? 0) + 1
+    )
+    for (const run of this.assistedCommitRuns.values()) {
+      const key =
+        run.modelSelection === null ? null : parseModelKey(run.modelSelection)
+      if (
+        run.request.files.length > 0 &&
+        !run.finalized &&
+        key?.kind === 'byok' &&
+        key.providerId === providerId &&
+        this.repositoryStateCache.get(run.repository).changesState
+          .assistedCommit.kind !== 'closing'
+      ) {
+        run.authorizationError = new Error(
+          'The selected custom Copilot provider or credential changed. Review Copilot settings and try again.'
+        )
+        run.controller.abort()
+        run.consent?.resolve(false)
+        run.hookFailure?.resolve('abort')
+      }
+    }
+  }
+
+  private async resolveAssistedCommitModelRequest(
+    run: IAssistedCommitRun
+  ): Promise<CopilotModelRequest> {
+    if (
+      run.modelSelection !== null &&
+      parseModelKey(run.modelSelection).kind === 'byok' &&
+      (run.providerDefinition === null ||
+        this.getAssistedCommitProviderDefinition(run.modelSelection) !==
+          run.providerDefinition)
+    ) {
+      throw new Error(
+        'The selected custom Copilot provider or model changed. Review Copilot settings and try again.'
+      )
+    }
+    const request = await this.resolveCopilotModelRequest(run.modelSelection)
+    if (
+      this.getAssistedCommitProviderDefinition(run.modelSelection) !==
+      run.providerDefinition
+    ) {
+      throw new Error(
+        'The selected custom Copilot provider or model changed while reading its credential.'
+      )
+    }
+    return request
+  }
+
   private async resolveCopilotModelRequest(
     selection: string | null
   ): Promise<CopilotModelRequest> {
@@ -10556,6 +14368,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // Treat as add to keep the call idempotent from the UI's perspective.
       return this._addCopilotBYOKProvider(provider, secret ?? null)
     }
+    this.invalidateAssistedCommitProvider(provider.id)
 
     // Apply the keychain change first; if it throws, the persisted provider
     // and its in-memory copy stay consistent with the existing secret.
@@ -10582,6 +14395,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!this.byokProviders.some(p => p.id === id)) {
       return
     }
+    this.invalidateAssistedCommitProvider(id)
 
     // Purge the secret first; on failure we keep the provider visible so the
     // user can retry rather than ending up with an orphaned keychain entry

@@ -1901,6 +1901,28 @@ describe('CommitMessage', () => {
       )
     })
 
+    it('never announces transient assisted commits as completed before acceptance', async () => {
+      const commit = createCommit()
+      const harness = renderWithCommitModes({
+        commitMode: 'copilot',
+        isCreatingCopilotAssistedCommits: true,
+        assistedCommitState: {
+          kind: 'finishing',
+          runId: 'run',
+          cancelRequested: false,
+        },
+        mostRecentLocalCommit: null,
+      })
+      harness.rerender({ mostRecentLocalCommit: commit })
+      await waitFor(() => {
+        const live = harness.view.container.querySelector(
+          'span[aria-live="polite"][aria-atomic="true"]'
+        )
+        assert.ok(live)
+        assert.ok(!live.textContent?.includes('Committed Just now'))
+      })
+    })
+
     it('honors both unknown-coauthor and hidden-file confirmations before dispatch', () => {
       let confirmAuthors: (() => void) | null = null
       let confirmFiles: (() => void) | null = null

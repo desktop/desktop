@@ -8,7 +8,7 @@
   justify-content: center;
   row-gap: var(--spacing);
   padding: var(--spacing) var(--spacing-double);
-  overflow: hidden;
+  overflow: auto;
 
   border: var(--contrast-border);
   border-radius: var(--border-radius);
@@ -97,6 +97,7 @@
   .caption {
     position: relative;
     max-width: 280px;
+    width: 100%;
 
     .title {
       font-weight: var(--font-weight-semibold);
@@ -110,6 +111,26 @@
       @media (max-height: 500px) {
         display: none;
       }
+
+      .commit-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .assisted-commit-error .description {
+        display: block;
+        overflow-wrap: anywhere;
+        user-select: text;
+      }
+    }
+
+    .assisted-commit-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-half);
+      margin-top: var(--spacing);
     }
   }
 

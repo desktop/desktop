@@ -1,6 +1,11 @@
 import { ITrailer } from '../lib/git/interpret-trailers'
 import { WorkingDirectoryFileChange } from './status'
 
+/** Local opaque first-click intent, owned and validated by AppStore before warnings. */
+export interface IAssistedCommitIntent {
+  readonly id: string
+}
+
 /**
  * UI inputs for a Desktop-owned assisted commit operation.
  *
@@ -10,6 +15,8 @@ import { WorkingDirectoryFileChange } from './status'
  * Trailers and options apply to every generated commit.
  */
 export interface ICopilotAssistedCommitRequest {
+  /** Optional UI preflight capability. Never sent to the model or serialized for execution. */
+  readonly intent?: IAssistedCommitIntent
   /** Selected file descriptors from which Desktop must capture a snapshot. */
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   /** User-configured trailers to append to every generated commit. */

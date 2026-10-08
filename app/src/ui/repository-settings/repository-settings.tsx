@@ -18,12 +18,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { GitConfigLocation, GitConfig } from './git-config'
-import {
-  getConfigValue,
-  getGlobalConfigValue,
-  removeConfigValue,
-  setConfigValue,
-} from '../../lib/git/config'
+import { getConfigValue, getGlobalConfigValue } from '../../lib/git/config'
 import {
   gitAuthorNameIsValid,
   InvalidGitAuthorNameMessage,
@@ -346,35 +341,45 @@ export class RepositorySettings extends React.Component<
     const gitLocationChanged =
       this.state.gitConfigLocation !== this.state.initialGitConfigLocation
 
-    if (
-      gitLocationChanged &&
-      this.state.gitConfigLocation === GitConfigLocation.Global
-    ) {
-      // If it's now configured to use the global config, just delete the local
-      // user info in this repository.
-      await removeConfigValue(this.props.repository, 'user.name')
-      await removeConfigValue(this.props.repository, 'user.email')
-
-      shouldRefreshAuthor = true
-    } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
-      // Otherwise, update the local name and email if needed
-      if (this.state.committerName !== this.state.initialCommitterName) {
-        await setConfigValue(
+    try {
+      if (
+        gitLocationChanged &&
+        this.state.gitConfigLocation === GitConfigLocation.Global
+      ) {
+        // If it's now configured to use the global config, just delete the local
+        // user info in this repository.
+        await this.props.dispatcher.updateRepositoryCommitter(
           this.props.repository,
-          'user.name',
-          this.state.committerName
+          null,
+          null
         )
-        shouldRefreshAuthor = true
-      }
 
-      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
-        await setConfigValue(
-          this.props.repository,
-          'user.email',
-          this.state.committerEmail
-        )
         shouldRefreshAuthor = true
+      } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
+        // Otherwise, update the local name and email if needed
+        const name =
+          this.state.committerName !== this.state.initialCommitterName
+            ? this.state.committerName
+            : undefined
+        const email =
+          this.state.committerEmail !== this.state.initialCommitterEmail
+            ? this.state.committerEmail
+            : undefined
+        if (name !== undefined || email !== undefined) {
+          await this.props.dispatcher.updateRepositoryCommitter(
+            this.props.repository,
+            name,
+            email
+          )
+          shouldRefreshAuthor = true
+        }
       }
+    } catch (error) {
+      log.error(
+        `RepositorySettings: unable to update Git identity at ${this.props.repository.path}`,
+        error
+      )
+      errors.push(`Failed updating Git identity: ${error}`)
     }
 
     if (shouldRefreshAuthor) {
