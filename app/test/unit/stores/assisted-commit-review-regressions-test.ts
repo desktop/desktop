@@ -49,6 +49,7 @@ import { TokenStore } from '../../../src/lib/stores/token-store'
 import { UncommittedChangesStrategy } from '../../../src/models/uncommitted-changes-strategy'
 import { clone } from '../../../src/lib/git/clone'
 import { StatsStore } from '../../../src/lib/stats'
+import { isolateGitConfig } from '../../helpers/git-config'
 
 async function partialSelectionFixture(
   t: TestContext,
@@ -87,7 +88,7 @@ async function configurePrefixTextconv(t: TestContext, repository: Repository) {
   const script = join(await createTempDirectory(t), 'prefix-textconv.cjs')
   await writeFile(
     script,
-    "const fs = require('fs'); process.stdout.write(fs.readFileSync(process.argv[2], 'utf8').split(/(?<=\\n)/).slice(0, 20).join(''))"
+    "const fs = require('fs'); process.stdout.write(fs.readFileSync(process.argv[2], 'utf8').replace(/\\r\\n/g, '\\n').split(/(?<=\\n)/).slice(0, 20).join(''))"
   )
   const command = `"${process.execPath.replace(/\\/g, '/')}" "${script.replace(
     /\\/g,
@@ -185,57 +186,83 @@ describe('assisted run hostile review regressions', () => {
     )
   })
 
-  it('retains initial partial lineage through Manual display promotion until explicit whole-file reselection', async t => {
-    const { h, repository } = await partialSelectionFixture(t, 0)
-    h.dispatcher.setCommitMode(repository, 'manual')
-    await configurePrefixTextconv(t, repository)
-    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
-    assert.strictEqual(
-      h.request(repository).files[0].selection.getSelectionType(),
-      DiffSelectionType.All
-    )
-    await rawGit(repository, ['config', '--unset', 'diff.prefix.textconv'])
-    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
-    h.dispatcher.setCommitMode(repository, 'copilot')
-    const stopped = await h.dispatcher.createCopilotAssistedCommits(
-      repository,
-      h.request(repository)
-    )
-    assert.strictEqual(stopped.kind, 'error')
-    assert.strictEqual(h.propose.mock.callCount(), 0)
-    assert.strictEqual(await count(repository), 1)
-    const failure = h.state(repository).changesState.assistedCommit
-    if (failure.kind === 'error' && failure.retry === 'refresh') {
-      await h.dispatcher.retryCopilotAssistedCommitRecovery(
-        repository,
-        failure.runId
+  for (const autocrlf of [false, true]) {
+    it(`retains initial partial lineage through Manual display promotion until explicit whole-file reselection with core.autocrlf=${autocrlf}`, async t => {
+      await isolateGitConfig(t)
+      const { h, repository } = await partialSelectionFixture(t, 0)
+      await rawGit(repository, [
+        'config',
+        '--local',
+        'core.autocrlf',
+        String(autocrlf),
+      ])
+      assert.strictEqual(
+        h.request(repository).files[0].selection.getSelectionType(),
+        DiffSelectionType.Partial
       )
-    }
-    const settled = h.state(repository).changesState.assistedCommit
-    assert.ok(
-      settled.kind === 'idle' ||
-        (settled.kind === 'error' && settled.retry === null)
-    )
-    const current = h
-      .state(repository)
-      .changesState.workingDirectory.files.find(file => file.path === 'file')
-    assert.ok(current !== undefined)
-    await h.dispatcher.changeFileIncluded(repository, current, true)
-    assert.strictEqual(
-      (
-        await h.dispatcher.createCopilotAssistedCommits(
+      h.dispatcher.setCommitMode(repository, 'manual')
+      await configurePrefixTextconv(t, repository)
+      await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+      const displayed = await getWorkingDirectoryDiff(
+        repository,
+        h.request(repository).files[0]
+      )
+      assert.ok(displayed.kind === DiffType.Text)
+      assert.strictEqual(displayed.hunks.length, 1)
+      assert.strictEqual(
+        displayed.hunks[0].lines.filter(line => line.isIncludeableLine())
+          .length,
+        2
+      )
+      assert.match(displayed.text, /selected prefix/)
+      assert.doesNotMatch(displayed.text, /selected suffix|\r/)
+      assert.strictEqual(
+        h.request(repository).files[0].selection.getSelectionType(),
+        DiffSelectionType.All
+      )
+      await rawGit(repository, ['config', '--unset', 'diff.prefix.textconv'])
+      await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+      h.dispatcher.setCommitMode(repository, 'copilot')
+      const stopped = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(stopped.kind, 'error')
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+      assert.strictEqual(await count(repository), 1)
+      const failure = h.state(repository).changesState.assistedCommit
+      if (failure.kind === 'error' && failure.retry === 'refresh') {
+        await h.dispatcher.retryCopilotAssistedCommitRecovery(
           repository,
-          h.request(repository)
+          failure.runId
         )
-      ).kind,
-      'local-ready'
-    )
-    assert.strictEqual(await count(repository), 2)
-    assert.match(
-      await rawGit(repository, ['show', 'HEAD:file']),
-      /selected suffix/
-    )
-  })
+      }
+      const settled = h.state(repository).changesState.assistedCommit
+      assert.ok(
+        settled.kind === 'idle' ||
+          (settled.kind === 'error' && settled.retry === null)
+      )
+      const current = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(file => file.path === 'file')
+      assert.ok(current !== undefined)
+      await h.dispatcher.changeFileIncluded(repository, current, true)
+      assert.strictEqual(
+        (
+          await h.dispatcher.createCopilotAssistedCommits(
+            repository,
+            h.request(repository)
+          )
+        ).kind,
+        'local-ready'
+      )
+      assert.strictEqual(await count(repository), 2)
+      assert.match(
+        await rawGit(repository, ['show', 'HEAD:file']),
+        /selected suffix/
+      )
+    })
+  }
 
   it('does not manufacture an initial partial basis during Manual display refresh', async t => {
     const { h, repository } = await partialSelectionFixture(t)
@@ -762,6 +789,15 @@ describe('assisted run hostile review regressions', () => {
   })
 
   it('validates sign-off against frozen execution configuration, not a changed live committer', async t => {
+    await isolateGitConfig(t)
+    const source = await seed(t, { file: 'before\n' })
+    await rawGit(source, ['config', '--local', 'user.name', 'Original Signer'])
+    await rawGit(source, [
+      'config',
+      '--local',
+      'user.email',
+      'original@example.invalid',
+    ])
     const previousName = process.env.GIT_COMMITTER_NAME
     const previousEmail = process.env.GIT_COMMITTER_EMAIL
     delete process.env.GIT_COMMITTER_NAME
@@ -778,9 +814,10 @@ describe('assisted run hostile review regressions', () => {
         process.env.GIT_COMMITTER_EMAIL = previousEmail
       }
     })
-    const source = await seed(t, { file: 'before\n' })
-    await rawGit(source, ['config', 'user.name', 'Original Signer'])
-    await rawGit(source, ['config', 'user.email', 'original@example.invalid'])
+    assert.match(
+      await rawGit(source, ['var', 'GIT_COMMITTER_IDENT']),
+      /^Original Signer <original@example\.invalid>/
+    )
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const local = await h.register(source)
@@ -804,14 +841,17 @@ describe('assisted run hostile review regressions', () => {
     await h.appStore._loadStatus(repository)
     h.dispatcher.updateCommitOptions(repository, { signOffCommits: true })
     const rules = new RepoRulesInfo()
+    const checkedMessages: string[] = []
     rules.commitMessagePatterns.push({
       enforced: true,
       rulesetId: 1,
       humanDescription: 'requires changed signer',
-      matcher: message =>
-        message.includes(
+      matcher: message => {
+        checkedMessages.push(message)
+        return message.includes(
           'Signed-off-by: Changed Signer <changed@example.invalid>'
-        ),
+        )
+      },
     })
     h.stores.repositoryStateCache.updateChangesState(repository, () => ({
       currentRepoRulesInfo: rules,
@@ -832,6 +872,19 @@ describe('assisted run hostile review regressions', () => {
     assert.strictEqual(outcome.kind, 'error')
     assert.strictEqual(await count(repository), 1)
     assert.strictEqual(h.commits.mock.callCount(), 0)
+    assert.strictEqual(h.propose.mock.callCount(), 1)
+    assert.ok(checkedMessages.length > 0)
+    for (const message of checkedMessages) {
+      assert.match(
+        message,
+        /Signed-off-by: Original Signer <original@example\.invalid>/
+      )
+      assert.doesNotMatch(message, /Changed Signer/)
+    }
+    assert.match(
+      await rawGit(repository, ['var', 'GIT_COMMITTER_IDENT']),
+      /^Changed Signer <changed@example\.invalid>/
+    )
   })
 
   it('locks refresh-only errors until current selections have been reconciled', async t => {
