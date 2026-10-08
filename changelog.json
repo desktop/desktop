@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.6.7-beta3": [
+      "[New] Open the current repository in GitHub Copilot from the Repository menu or with a keyboard shortcut - #22843",
+      "[Fixed] Open repositories in Finder without unnecessary warnings when Spotlight metadata is unavailable - #22924",
+      "[Fixed] Fix VoiceOver and NVDA announcing sandboxed markdown content (such as pull request comments) as an unhelpful \"frame 0\" instead of a meaningful description - #22912",
+      "[Fixed] Show the hidden window when choosing a menu item after closing it on macOS - #22857. Thanks @DylanDevelops!",
+      "[Improved] Prevent Copilot from adding itself as a co-author to generated commit messages - #22815",
+      "[Improved] Show the full issue title in a tooltip when it is truncated in the commit message autocomplete - #8119. Thanks @sukanth!",
+      "[Improved] CI status icons in the pull request list and badge show descriptive tooltips on hover - #22903"
+    ],
     "3.6.7-beta2": [
       "[Added] Keep the current worktree toolbar segment visible with the \"Always show worktree list\" Appearance setting - #22888",
       "[Fixed] Fix a crash that could occur when Git LFS progress tracking encountered a file read error - #22889",
