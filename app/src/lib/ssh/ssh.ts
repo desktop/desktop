@@ -32,7 +32,7 @@ export const isWindowsOpenSSHAvailable = memoizeOne(
 function isWindowsOpenSSHUseEnabled() {
   try {
     return getBoolean(UseWindowsOpenSSHKey, false)
-  } catch (e) {
+  } catch {
     return false
   }
 }

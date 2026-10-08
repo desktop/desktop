@@ -1,9 +1,10 @@
-const { describe, it } = require('node:test')
 // @ts-check
+import { describe, it } from 'node:test'
 
-const RuleTester = require('eslint').RuleTester
-const rule = require('../insecure-random')
+import { RuleTester } from 'eslint'
+import rule from '../insecure-random.js'
 
+/** @type {import('eslint').Linter.ParserOptions} */
 const parserOptions = {
   ecmaVersion: 2015,
   sourceType: 'module',
@@ -12,7 +13,7 @@ const parserOptions = {
 describe('insecure-random', () => {
   it('should complain about Math.random()', () => {
     const ruleTester = new RuleTester({ parserOptions })
-    ruleTester.run('react-no-unbound-dispatcher-props', rule, {
+    ruleTester.run('insecure-random', rule, {
       valid: [
         'const b = crypto.randomBytes();',
         'const b = window.crypto.getRandomValues();',

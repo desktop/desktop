@@ -33,7 +33,7 @@ async function readGUIDFile(): Promise<string | undefined> {
     if (guid.length !== 36) {
       guid = undefined
     }
-  } catch (e) {}
+  } catch {}
 
   return guid
 }

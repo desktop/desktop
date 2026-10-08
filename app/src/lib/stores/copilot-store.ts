@@ -5,6 +5,7 @@ import {
   AssistantMessageEvent,
   MessageOptions,
   SessionConfig,
+  ModelBillingTokenPrices,
   GitHubTokenProvider,
 } from '@github/copilot-sdk'
 import { AccountsStore } from './accounts-store'
@@ -45,11 +46,7 @@ import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
 import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
-import type {
-  AccountQuotaSnapshot,
-  Model,
-  ModelBillingTokenPrices,
-} from '@github/copilot-sdk/dist/generated/rpc'
+import type { AccountQuotaSnapshot, Model } from '../copilot/types'
 import { isGHE } from '../endpoint-capabilities'
 import {
   CopilotConflictResolutionError,
