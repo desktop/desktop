@@ -93,8 +93,8 @@
 
 "@electron-internal/extract-zip@^1.0.1":
   version "1.0.5"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/@electron-internal/extract-zip/-/extract-zip-1.0.5.tgz#6782c0f6066e60b7fd286fe7a5c7600f7650d420"
-  integrity sha1-Z4LA9gZuYLf9KG/npcdgD3ZQ1CA=
+  resolved "https://registry.yarnpkg.com/@electron-internal/extract-zip/-/extract-zip-1.0.5.tgz#6782c0f6066e60b7fd286fe7a5c7600f7650d420"
+  integrity sha512-+bqFCP98pLI0Tt0XQo1TmlXtwjWchISndDOxCkEcIuUgXWpBnLyRI+2DU+mesvnMMX6L1XDqYNA0lXNDHd/yiA==
 
 "@electron/asar@^3.2.1":
   version "3.4.1"
@@ -990,13 +990,6 @@
   resolved "https://registry.yarnpkg.com/@types/which/-/which-3.0.4.tgz#2c3a89be70c56a84a6957a7264639f39ae4340a1"
   integrity sha512-liyfuo/106JdlgSchJzXEQCVArk0CvevqPote8F8HgWgJ3dRCcTHgJIsLDuee0kxk/mhbInzIZk3QWSZJ8R+2w==
 
-"@types/yauzl@^2.9.1":
-  version "2.10.3"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/@types/yauzl/-/yauzl-2.10.3.tgz#e9b2808b4f109504a03cda958259876f61017999"
-  integrity sha1-6bKAi08QlQSgPNqVglmHb2EBeZk=
-  dependencies:
-    "@types/node" "*"
-
 "@typescript-eslint/eslint-plugin@8.21.0", "@typescript-eslint/eslint-plugin@^8.0.0":
   version "8.21.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.21.0.tgz#395014a75112ecdb81142b866ab6bb62e3be0f2a"
@@ -1737,11 +1730,6 @@ browserslist@^4.23.1, browserslist@^4.28.1:
     node-releases "^2.0.53"
     update-browserslist-db "^1.3.0"
 
-buffer-crc32@~0.2.3:
-  version "0.2.13"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/buffer-crc32/-/buffer-crc32-0.2.13.tgz#0d333e3f00eac50aa1454abd30ef8c2a5d9a7242"
-  integrity sha1-DTM+PwDqxQqhRUq9MO+MKl2ackI=
-
 buffer-from@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
@@ -2276,14 +2264,14 @@ electron-winstaller@*, electron-winstaller@^5.0.0:
   optionalDependencies:
     "@electron/windows-sign" "^1.1.2"
 
-electron@42.0.1:
-  version "42.0.1"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-42.0.1.tgz#0f5d7a76d7dbc97db90f9847d9c6c3fa3ea34c99"
-  integrity sha512-d8HnycE970DGESe91Nj30eonFBUcAI9EZ1TwUGJVzSAnJZdh0BkFEinAXjdklvDYst+bVDc8HsksCuqVLrnqdg==
+electron@44.1.1:
+  version "44.1.1"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-44.1.1.tgz#643b87575439e085883fa59a71c28c47de84a80b"
+  integrity sha512-N2WCq2sbOkqQgvXJYx2lS6UiO8bF+Yr67trDnS6JKa2WxTCRQsAjGl57SUtdW9h6r5PlduBFjIhxhgd3dzv1hg==
   dependencies:
+    "@electron-internal/extract-zip" "^1.0.1"
     "@electron/get" "^5.0.0"
     "@types/node" "^24.9.0"
-    extract-zip "^2.0.1"
 
 emoji-regex@^9.2.2:
   version "9.2.2"
@@ -2294,13 +2282,6 @@ emojis-list@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/emojis-list/-/emojis-list-3.0.0.tgz#5570662046ad29e2e916e71aae260abdff4f6a78"
   integrity sha512-/kyM18EfinwXZbno9FyUGeFh87KC8HRQBQGildHZbEuRyWFOmv1U10o9BBp8XVZDVNNuQKyIGIu5ZYAAXJ0V2Q==
-
-end-of-stream@^1.1.0:
-  version "1.4.5"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/end-of-stream/-/end-of-stream-1.4.5.tgz#7344d711dea40e0b74abc2ed49778743ccedb08c"
-  integrity sha1-c0TXEd6kDgt0q8LtSXeHQ8ztsIw=
-  dependencies:
-    once "^1.4.0"
 
 enhanced-resolve@^5.0.0, enhanced-resolve@^5.17.4:
   version "5.20.1"
@@ -2927,17 +2908,6 @@ exponential-backoff@^3.1.1:
   resolved "https://registry.yarnpkg.com/exponential-backoff/-/exponential-backoff-3.1.3.tgz#51cf92c1c0493c766053f9d3abee4434c244d2f6"
   integrity sha512-ZgEeZXj30q+I0EN+CbSSpIyPaJ5HVQD18Z1m+u1FXbAeT94mr1zw50q4q6jiiC447Nl/YTcIYSAftiGqetwXCA==
 
-extract-zip@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/extract-zip/-/extract-zip-2.0.1.tgz#663dca56fe46df890d5f131ef4a06d22bb8ba13a"
-  integrity sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==
-  dependencies:
-    debug "^4.1.1"
-    get-stream "^5.1.0"
-    yauzl "^2.10.0"
-  optionalDependencies:
-    "@types/yauzl" "^2.9.1"
-
 fake-indexeddb@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/fake-indexeddb/-/fake-indexeddb-6.0.0.tgz#3173d5ad141436dace95f8de6e9ecdc3d9787d5d"
@@ -3001,13 +2971,6 @@ fastq@^1.6.0:
   integrity sha512-YpkpUnK8od0o1hmeSc7UUs/eB/vIPWJYjKck2QKIzAf71Vm1AAQ3EbuZB3g2JIy+pg+ERD0vqI79KyZiB2e2Nw==
   dependencies:
     reusify "^1.0.4"
-
-fd-slicer@~1.1.0:
-  version "1.1.0"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/fd-slicer/-/fd-slicer-1.1.0.tgz#25c7c89cb1f9077f8891bbe61d8f390eae256f1e"
-  integrity sha1-JcfInLH5B3+IkbvmHY85Dq4lbx4=
-  dependencies:
-    pend "~1.2.0"
 
 fdir@^6.5.0:
   version "6.5.0"
@@ -3253,13 +3216,6 @@ get-stdin@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/get-stdin/-/get-stdin-6.0.0.tgz#9e09bf712b360ab9225e812048f71fde9c89657b"
   integrity sha512-jp4tHawyV7+fkkSKyvjuLZswblUtz+SQKzSWnBbii16BuZksJlU1wuBYXY75r+duh/llF1ur6oNwi+2ZzjKZ7g==
-
-get-stream@^5.1.0:
-  version "5.2.0"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/get-stream/-/get-stream-5.2.0.tgz#4966a1795ee5ace65e706c4b7beb71257d6e22d3"
-  integrity sha1-SWaheV7lrOZecGxLe+txJX1uItM=
-  dependencies:
-    pump "^3.0.0"
 
 get-symbol-description@^1.0.0:
   version "1.0.0"
@@ -4904,7 +4860,7 @@ object.values@^1.1.6:
     define-properties "^1.2.0"
     es-abstract "^1.22.1"
 
-once@^1.3.0, once@^1.3.1, once@^1.4.0:
+once@^1.3.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/once/-/once-1.4.0.tgz#583b1aa775961d4b113ac17d9c50baef9dd76bd1"
   integrity sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==
@@ -5067,11 +5023,6 @@ pe-library@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/pe-library/-/pe-library-1.0.1.tgz#02735430885a622576a53cd8827658b7d2fada0e"
   integrity sha512-nh39Mo1eGWmZS7y+mK/dQIqg7S1lp38DpRxkyoHf0ZcUs/HDc+yyTjuOtTvSMZHmfSLuSQaX945u05Y2Q6UWZg==
-
-pend@~1.2.0:
-  version "1.2.0"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
-  integrity sha1-elfrVQpng/kRUzH89GY9XI4AelA=
 
 picocolors@^1.0.0:
   version "1.0.1"
@@ -5246,14 +5197,6 @@ prop-types@^15.8.1:
     loose-envify "^1.4.0"
     object-assign "^4.1.1"
     react-is "^16.13.1"
-
-pump@^3.0.0:
-  version "3.0.4"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/pump/-/pump-3.0.4.tgz#1f313430527fa8b905622ebd22fe1444e757ab3c"
-  integrity sha1-HzE0MFJ/qLkFYi69Iv4UROdXqzw=
-  dependencies:
-    end-of-stream "^1.1.0"
-    once "^1.3.1"
 
 punycode.js@^2.3.1:
   version "2.3.1"
@@ -6560,14 +6503,6 @@ yargs-parser@^22.0.0:
   version "22.0.0"
   resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/yargs-parser/-/yargs-parser-22.0.0.tgz#87b82094051b0567717346ecd00fd14804b357c8"
   integrity sha1-h7gglAUbBWdxc0bs0A/RSASzV8g=
-
-yauzl@^2.10.0:
-  version "2.10.0"
-  resolved "https://ms-feed-25.pkgs.visualstudio.com/1es-public/_packaging/npm-public/npm/registry/yauzl/-/yauzl-2.10.0.tgz#c7eb17c93e112cb1086fa6d8e51fb0667b79a5f9"
-  integrity sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk=
-  dependencies:
-    buffer-crc32 "~0.2.3"
-    fd-slicer "~1.1.0"
 
 yn@^2.0.0:
   version "2.0.0"
