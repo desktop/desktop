@@ -12,6 +12,7 @@ import {
   getCredentialUrl,
   getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
+  holdCredentialLease,
   setHasRejectedCredentialsForEndpoint,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
@@ -28,6 +29,7 @@ import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
 import { getAPIEndpoint, isGitHubHost } from '../api'
 import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
+import { AccountRequiresSignInError } from '../credential-sessions'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -47,13 +49,30 @@ const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
 const credWithAccount = (c: Credential, a: IGitAccount | undefined) =>
   a && new Map(c).set('username', a.login).set('password', a.token)
 
-async function getGitHubCredential(cred: Credential, store: AccountsStore) {
+async function getGitHubCredential(
+  cred: Credential,
+  store: AccountsStore,
+  token: string
+) {
   const endpoint = `${getCredentialUrl(cred)}`
   const account = await findGitHubTrampolineAccount(store, endpoint)
   if (account) {
     info(`found GitHub credential for ${endpoint} in store`)
+    try {
+      // Git LFS asks again under its parent Git's trampoline token, so it
+      // gets the token that process holds instead of waiting for it.
+      const lease = await store.leaseAccountToken(account, token)
+      holdCredentialLease(token, lease.release)
+      return credWithAccount(cred, lease.account)
+    } catch (e) {
+      if (!(e instanceof AccountRequiresSignInError)) {
+        throw e
+      }
+      // Fall through to the same path as having no account for the host.
+      info(`GitHub credential for ${endpoint} requires sign in`)
+    }
   }
-  return credWithAccount(cred, account)
+  return undefined
 }
 
 async function promptForCredential(cred: Credential, endpoint: string) {
@@ -92,7 +111,7 @@ async function getExternalCredential(input: Credential, token: string) {
 
 /** Implementation of the 'get' git credential helper command */
 async function getCredential(cred: Credential, store: Store, token: string) {
-  const ghCred = await getGitHubCredential(cred, store)
+  const ghCred = await getGitHubCredential(cred, store, token)
 
   if (ghCred) {
     return ghCred

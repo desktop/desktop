@@ -1,17 +1,18 @@
 // @ts-check
 
-const { describe, it } = require('node:test')
-const { ESLintUtils } = require('@typescript-eslint/experimental-utils')
+import { describe, it } from 'node:test'
+import { fileURLToPath } from 'node:url'
+import { TSESLint } from '@typescript-eslint/utils'
 
-const RuleTester = ESLintUtils.RuleTester
-const rule = require('../react-readonly-props-and-state')
+const RuleTester = TSESLint.RuleTester
+import rule from '../react-readonly-props-and-state.js'
 
 // ------------------------------------------------------------------------------
 // Tests
 // ------------------------------------------------------------------------------
 
 const ruleTester = new RuleTester({
-  parser: '@typescript-eslint/parser',
+  parser: fileURLToPath(import.meta.resolve('@typescript-eslint/parser')),
 })
 describe('react-readonly-props-and-state', () => {
   it("should complain about props and state that aren't readonly", () => {
