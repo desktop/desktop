@@ -1,6 +1,7 @@
 # Working with Packages
 
 Desktop uses the npm version bundled with the Node.js version in `.nvmrc`.
+Use npm 11.17.0 or newer for the package-specific install-script policy.
 Build dependencies live in the root `package.json`; application dependencies
 live in `app/package.json`. Each has its own `package-lock.json`.
 
@@ -93,5 +94,12 @@ Use `npm ci` for reproducible installs and explicit update commands for intentio
 dependency upgrades.
 
 Cross-compilation installs build tools for the host CPU, but application optional
-packages for the target CPU via npm's `--cpu` option. This includes the Copilot
-SDK runtime and Koffi native package.
+packages for the target CPU via npm's `--cpu` option. The application's
+`allowScripts` policy skips only Koffi's install hook, which otherwise tries
+loading a host binary during target installation. Desktop uses the target's
+published Koffi prebuild instead of compiling Koffi from source; missing target
+packages fail the webpack build. Other native install hooks still run normally.
+
+`app/.prebuild-installrc` forces the pinned legacy downloader to attempt prebuilt
+native binaries even though modern npm omits its expected `_from` metadata.
+This setting applies only to prebuild downloads, not npm's dependency checks.

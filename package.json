@@ -60,7 +60,7 @@
   "license": "MIT",
   "engines": {
     "node": ">= 10",
-    "npm": ">= 11"
+    "npm": ">= 11.17.0"
   },
   "overrides": {
     "@types/react-css-transition-replace": {
