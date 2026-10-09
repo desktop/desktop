@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {
   WorktreeEntry,
-  getWorktreeDescription,
+  getWorktreeAriaLabel,
   getWorktreeDisplayName,
 } from '../../models/worktree'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
@@ -99,12 +99,8 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
     return this.getGroupLabel(identifier)
   }
 
-  private getItemAriaLabel = (item: IWorktreeListItem) => {
-    const { worktree } = item
-    return `${getWorktreeDisplayName(worktree)}, ${getWorktreeDescription(
-      worktree
-    )}`
-  }
+  private getItemAriaLabel = (item: IWorktreeListItem) =>
+    getWorktreeAriaLabel(item.worktree)
 
   private renderGroupHeader = (identifier: WorktreeGroupIdentifier) => {
     return (
