@@ -18,6 +18,7 @@ import {
   withoutRepositoryGitAccess,
   withRepositoryGitDestruction,
   withRepositoryGitOperation,
+  withRepositoryGitSpawnFence,
 } from '../../../src/lib/git/repository-operation'
 import { AssistedCommitError } from '../../../src/lib/git/assisted-commit'
 import { optionalBytes, rawGit, seed, tip } from '../../helpers/assisted-commit'
@@ -26,6 +27,214 @@ import { createTempDirectory } from '../../helpers/temp'
 import { Repository } from '../../../src/models/repository'
 
 describe('assisted repository Git coordination', () => {
+  it('checks a retained negative owner fence before waiting on a foreign lease', async t => {
+    const source = await seed(t, { source: 'Source\n' })
+    const foreign = await seed(t, { foreign: 'Foreign\n' })
+    const lease = await acquireAssistedCommitGitLease(foreign.path)
+    t.after(() => lease.release())
+    const refusal = new Error('Original execution alias changed')
+    let stale = false
+    let timer: NodeJS.Timeout | undefined
+    try {
+      await withRepositoryGitOperation(source.path, 'read', () =>
+        withRepositoryGitSpawnFence(
+          () => {
+            if (stale) {
+              throw refusal
+            }
+          },
+          async () => {
+            stale = true
+            await assert.rejects(
+              Promise.race([
+                withRepositoryGitOperation(
+                  foreign.path,
+                  'read',
+                  async () => {}
+                ),
+                new Promise((_, reject) => {
+                  timer = setTimeout(() => {
+                    lease.release()
+                    reject(
+                      new Error(
+                        'Reader waited for foreign lease before ownership verification'
+                      )
+                    )
+                  }, 1000)
+                }),
+              ]),
+              error => error === refusal
+            )
+          }
+        )
+      )
+    } finally {
+      clearTimeout(timer)
+      lease.release()
+    }
+  })
+  it('never rebinds a settling protection owner through later alias rediscovery', async t => {
+    const original = await seed(t, { original: 'Original\n' })
+    const foreign = await seed(t, { foreign: 'Foreign\n' })
+    const alias = join(await createTempDirectory(t), 'checkout')
+    await symlink(original.path, alias, 'junction')
+    const paths = await getAssistedCommitProtectedPaths(alias)
+    const protection = protectAssistedCommitResources(alias, paths)
+    t.after(() => protection.release())
+    const { unlink } = await import('fs/promises')
+    await unlink(alias)
+    await symlink(foreign.path, alias, 'junction')
+    await getAssistedCommitProtectedPaths(alias)
+    const renewed = protectAssistedCommitResources(alias, paths, protection)
+    protection.release()
+    t.after(() => renewed.release())
+    await assert.rejects(
+      acquireAssistedCommitGitLease(foreign.path, [
+        foreign.path,
+        await realpath(join(original.path, '.git', 'config')),
+      ]),
+      error => error instanceof AssistedCommitError && error.code === 'busy'
+    )
+    const cleanup = await acquireAssistedCommitGitLease(
+      await realpath(original.path),
+      paths
+    )
+    t.after(() => cleanup.release())
+  })
+  it('admits the same owner through a certified canonical alias while its readers remain protected', async t => {
+    const source = await seed(t, { source: 'Source\n' })
+    const alias = join(await createTempDirectory(t), 'checkout')
+    await symlink(source.path, alias, 'junction')
+    const resources = await getAssistedCommitProtectedPaths(alias)
+    const protection = protectAssistedCommitResources(alias, resources)
+    t.after(() => protection.release())
+    const lease = await acquireAssistedCommitGitLease(
+      await realpath(alias),
+      resources
+    )
+    t.after(() => lease.release())
+    await lease.run(async () => {
+      await git(['rev-parse', 'HEAD'], source.path, 'same-owner-alias')
+    })
+  })
+  it('retains foreign metadata admission refusal after lease release until reader protection settles', async t => {
+    const source = await seed(t, { source: 'Source\n' })
+    const foreign = await seed(t, { foreign: 'Foreign\n' })
+    const protection = protectAssistedCommitResources(
+      foreign.path,
+      await getAssistedCommitProtectedPaths(foreign.path)
+    )
+    t.after(() => protection.release())
+    const config = join(foreign.path, '.git', 'config')
+    await assert.rejects(
+      acquireAssistedCommitGitLease(source.path, [source.path, config]),
+      error => error instanceof AssistedCommitError && error.code === 'busy'
+    )
+    const own = protectAssistedCommitResources(source.path, [source.path])
+    t.after(() => own.release())
+    protection.release()
+    const lease = await acquireAssistedCommitGitLease(source.path, [
+      source.path,
+      config,
+    ])
+    t.after(() => lease.release())
+    assert.strictEqual(isRepositoryGitPaused(source.path), true)
+  })
+  it('refuses additional metadata under a foreign lease without partially acquiring protection', async t => {
+    const source = await seed(t, { source: 'Source\n' })
+    const foreign = await seed(t, { foreign: 'Foreign\n' })
+    const config = join(foreign.path, '.git', 'config')
+    const paths = [source.path, config, `${config}.lock`]
+    const foreignLease = await acquireAssistedCommitGitLease(
+      foreign.path,
+      await getAssistedCommitProtectedPaths(foreign.path)
+    )
+    t.after(() => foreignLease.release())
+    await assert.rejects(
+      acquireAssistedCommitGitLease(source.path, paths),
+      error => error instanceof AssistedCommitError && error.code === 'busy'
+    )
+    assert.strictEqual(isRepositoryGitPaused(source.path), false)
+    assert.strictEqual(isRepositoryGitPaused(foreign.path), true)
+    foreignLease.release()
+    const lease = await acquireAssistedCommitGitLease(source.path, paths)
+    t.after(() => lease.release())
+    await lease.run(async () => {
+      await git(['rev-parse', 'HEAD'], source.path, 'accepted-extra-metadata')
+    })
+  })
+
+  it('retains every outer negative spawn fence through nested admitted work', async t => {
+    const repository = await seed(t, { file: 'before\n' })
+    const refusal = new Error('Original accepted alias was replaced')
+    let stale = false
+    let outerChecks = 0
+    let innerChecks = 0
+    await withRepositoryGitOperation(repository.path, 'read', () =>
+      withRepositoryGitSpawnFence(
+        () => {
+          outerChecks++
+          if (stale) {
+            throw refusal
+          }
+        },
+        () =>
+          withRepositoryGitSpawnFence(
+            () => {
+              innerChecks++
+            },
+            async () => {
+              assert.strictEqual(
+                (
+                  await git(['rev-parse', 'HEAD'], repository.path, 'valid')
+                ).stdout.trim(),
+                await tip(repository)
+              )
+              const previous = innerChecks
+              stale = true
+              await assert.rejects(
+                git(['rev-parse', 'HEAD'], repository.path, 'stale'),
+                error => error === refusal
+              )
+              assert.strictEqual(innerChecks, previous)
+            }
+          )
+      )
+    )
+    assert.ok(outerChecks > 0)
+    assert.ok(innerChecks > 0)
+  })
+
+  it('admits only literal offline remote URL queries and ref validation as readers', async () => {
+    assert.strictEqual(
+      isReadOnlyGitCommand(['ls-remote', '--get-url', '--', 'origin']),
+      true
+    )
+    assert.strictEqual(
+      isReadOnlyGitCommand([
+        '-c',
+        'transfer.credentialsInUrl=allow',
+        'ls-remote',
+        '--get-url',
+        '--',
+        'origin',
+      ]),
+      true
+    )
+    assert.strictEqual(
+      isReadOnlyGitCommand(['check-ref-format', 'refs/heads/master']),
+      true
+    )
+    for (const args of [
+      ['ls-remote', '--', '--get-url'],
+      ['ls-remote', '--upload-pack', '--get-url', 'origin'],
+      ['ls-remote', '--get-url', 'origin'],
+      ['ls-remote', '--', 'origin'],
+    ]) {
+      assert.strictEqual(isReadOnlyGitCommand(args), false)
+    }
+  })
+
   it('drains the complete in-flight operation before capture, including later commands', async t => {
     const repository = await seed(t, { 'file.txt': 'before\n' })
     const firstCommand = deferred<void>()
