@@ -4224,6 +4224,22 @@ export class Dispatcher {
     return this.appStore._testPruneBranches()
   }
 
+  /** Read the current account's token-expiration metadata for the test dialog. */
+  public getAccountTokenExpirationForTesting(account: Account) {
+    return this.appStore._getAccountTokenExpirationForTesting(account)
+  }
+
+  /** Change local token expiry for testing, or reset it by passing undefined. */
+  public setAccountTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ) {
+    return this.appStore._setAccountTokenExpirationForTesting(
+      account,
+      expiresAt
+    )
+  }
+
   public editGlobalGitConfig() {
     return this.appStore._editGlobalGitConfig()
   }
