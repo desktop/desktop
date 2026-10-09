@@ -13,6 +13,7 @@ import { deserializeAccountCredential } from '../account-credential'
 import {
   AccountRequiresSignInError,
   CredentialSessions,
+  IAccountTokenExpiration,
   refreshMargin,
 } from '../credential-sessions'
 
@@ -179,6 +180,23 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** Whether an account owns a rotating credential pair. */
   public isRefreshable(account: Account): boolean {
     return this.credentials.isRefreshable(account)
+  }
+
+  /** Read test-dialog expiry metadata without acquiring or refreshing a token. */
+  public async getTokenExpirationForTesting(
+    account: Account
+  ): Promise<IAccountTokenExpiration> {
+    await this.loadingPromise
+    return this.credentials.getTokenExpirationForTesting(account)
+  }
+
+  /** Apply or reset a session-only access-token expiry override for testing. */
+  public async setTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ): Promise<IAccountTokenExpiration> {
+    await this.loadingPromise
+    return this.credentials.setTokenExpirationForTesting(account, expiresAt)
   }
 
   /**

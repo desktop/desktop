@@ -26,6 +26,52 @@ describe('AccountsStore', () => {
     })
   })
 
+  it('edits expiry without publishing an account change or triggering renewal', async t => {
+    const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreview
+      }
+    })
+    const now = Date.now()
+    const account = new Account(
+      'octocat',
+      'https://api.github.com',
+      'test-access',
+      [],
+      '',
+      1,
+      'Octocat'
+    )
+    await accountsStore.addAccount(account, {
+      accessToken: account.token,
+      refreshToken: 'test-refresh',
+      expiresAt: now + 8 * 60 * 60_000,
+    })
+    const [current] = await accountsStore.getAll()
+    assert.ok(current)
+    const getter = accountsStore.createTokenGetter(current, 0)
+    let updates = 0
+    const subscription = accountsStore.onDidUpdate(() => {
+      updates++
+    })
+    t.after(() => subscription.dispose())
+
+    await accountsStore.setTokenExpirationForTesting(current, now + 5 * 60_000)
+    assert.equal((await getter()).expiresAt, now + 5 * 60_000)
+    assert.equal(
+      (await accountsStore.getTokenExpirationForTesting(current)).isOverridden,
+      true
+    )
+    await accountsStore.setTokenExpirationForTesting(current, undefined)
+    assert.equal((await getter()).expiresAt, now + 8 * 60 * 60_000)
+    assert.equal(updates, 0)
+    assert.equal((await accountsStore.getAll())[0], current)
+  })
+
   describe('loading persisted users', () => {
     it('migrates .ghe.com users still using /api/v3 to api. subdomain', async () => {
       const dataStore = new InMemoryStore()
