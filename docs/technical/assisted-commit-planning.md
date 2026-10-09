@@ -150,10 +150,13 @@ Callers reuse the existing commit-message feature's account selection,
 organization entitlement gate, consent and model preference. No new picker or
 persisted preference is added. Explicit built-in model IDs remain unchanged
 when metadata is unavailable; planning borrows already cached metadata and never
-starts an unowned shared-cache fetch. Reasoning effort is sent only when known model
-capabilities support it. `auto` receives no effort. BYOK model, provider and
-declared effort pass through unchanged. Configured timeouts must be finite,
-positive and within the runtime timer range, otherwise they fail explicitly.
+starts an unowned shared-cache fetch. Built-in models, including `auto`, leave
+reasoning effort undefined so the SDK/model default applies, rather than selecting
+the lowest supported effort. BYOK model, provider and explicit effort pass through
+unchanged; an absent BYOK effort also retains the SDK/provider default. Ordinary
+commit-message generation keeps its existing lowest-effort behavior.
+Configured timeouts must be finite, positive and within the runtime timer range,
+otherwise they fail explicitly.
 
 ## Limits, errors and lifecycle
 
