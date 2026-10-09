@@ -1,0 +1,114 @@
+openapi: 3.0.3
+
+info:
+  title: GitHub Desktop Workflow API
+  version: 1.0.0
+  description: |
+    Conceptual API model documenting repository and Git workflows
+    represented by GitHub Desktop.
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+
+  /repositories/{repository}/branches:
+    get:
+      summary: List repository branches
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Branch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+
+  /repositories/{repository}/commits:
+    post:
+      summary: Create a commit
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommitRequest'
+
+      responses:
+        '201':
+          description: Commit created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commit'
+
+        '400':
+          description: Invalid request
+
+        '401':
+          description: Authentication required
+
+        '500':
+          description: Git operation failed
+
+components:
+
+  schemas:
+
+    Branch:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: feature/api-documentation
+
+        current:
+          type: boolean
+          example: true
+
+    CreateCommitRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Update API documentation
+
+        files:
+          type: array
+          items:
+            type: string
+          example:
+            - docs/api/overview.md
+
+    Commit:
+      type: object
+      properties:
+        sha:
+          type: string
+          example: a1b2c3d4
+
+        message:
+          type: string
+          example: Update API documentation
+
+        branch:
+          type: string
+          example: feature/api-documentation
