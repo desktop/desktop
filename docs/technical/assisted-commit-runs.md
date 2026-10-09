@@ -412,6 +412,17 @@ recheck original physical/routing identity immediately before execution, includi
 after earlier follow-up commands complete. Retargeting an execution alias cannot
 borrow the cached original lease to mutate another checkout; acknowledged push
 success remains intact and follow-up work stops with a refresh error.
+Accepted repository refresh verifies ownership before operation admission and
+uses the frozen canonical checkout for admission. Deferred History uses that same
+canonical owner. A substituted alias cannot wait behind another repository's
+recovery lease before the retained ownership check runs.
+The negative admission certificate follows those reads into operation admission:
+it is checked before and after awaited pathname resolution and after lease waits.
+Replacing even the canonical checkout between initial verification and admission
+cannot register work behind an unowned repository's recovery lease.
+Push-retry discovery and lease-free accepted refresh recovery carry that same
+negative admission certificate. Outstanding publication cleanup retains its
+separate cleanup-first admission over the originally owned resources.
 The lease retains that negative spawn check for later admitted work too; recovery,
 deferred refresh and selection-reader settlement scopes carry it after network
 completion. Retry refresh cannot install a retargeted checkout's status/history

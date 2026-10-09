@@ -535,16 +535,20 @@ export function withRepositoryGitErrorPropagation<T>(operation: () => T): T {
  *
  * A lease drains operations already admitted before capture. New readers wait
  * until release, while new mutations fail rather than silently running later.
+ * An optional negative admission check cannot grant access or bypass a lease.
  */
 export async function withRepositoryGitOperation<T>(
   path: string,
   kind: 'read' | 'mutation',
   operation: () => Promise<T>,
-  trackNested: boolean = false
+  trackNested: boolean = false,
+  beforeAdmission?: () => void
 ): Promise<T> {
   verifyRepositoryGitSpawnFence()
+  beforeAdmission?.()
   const repository = await repositoryOperations(path)
   verifyRepositoryGitSpawnFence()
+  beforeAdmission?.()
   const admitted = hasAccess(repository)
   if (
     !admitted &&
@@ -570,6 +574,8 @@ export async function withRepositoryGitOperation<T>(
     repository.waiters++
     try {
       await repository.lease.released
+      verifyRepositoryGitSpawnFence()
+      beforeAdmission?.()
     } finally {
       repository.waiters--
     }
