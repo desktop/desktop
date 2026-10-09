@@ -824,6 +824,9 @@ export interface IChangesState {
   /** The repository's preferred commit mode, even when assisted commits are unavailable. */
   readonly commitMode: CommitMode
 
+  /** Explicit per-repository opt-in. Does not affect manual commits. */
+  readonly pushAfterAssistedCommit: boolean
+
   /** The repository's awaited assisted run, independent of the selected repository and mounted UI. */
   readonly assistedCommit: AssistedCommitRunState
 
