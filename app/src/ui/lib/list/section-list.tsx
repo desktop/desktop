@@ -1368,9 +1368,11 @@ export class SectionList extends React.Component<
       const sectionHeight = this.getSectionHeight(section)
       const offset = this.getSectionScrollOffset(section)
 
+      const visibleHeight = Math.min(sectionHeight, height)
+
       const relativeScrollTop = Math.max(
         0,
-        Math.min(sectionHeight, this.state.scrollTop - offset)
+        Math.min(sectionHeight - visibleHeight, this.state.scrollTop - offset)
       )
 
       return (
