@@ -31,6 +31,7 @@ interface IRepositoryOperationContext {
   readonly readOnly?: boolean
   readonly parent?: IRepositoryOperationContext
   readonly propagateErrors?: boolean
+  readonly beforeSpawn?: () => void
 }
 
 /** Exclusive Desktop Git ownership, retained until completion or verified recovery. */
@@ -57,6 +58,14 @@ const destructiveContexts =
   createRepositoryOperationContext<ReadonlyMap<string, object>>()
 const repositoryResourcePaths = new Map<string, ReadonlyArray<string>>()
 const resourceProtections = new Set<ReadonlySet<string>>()
+const resourceProtectionOwners = new WeakMap<
+  ReadonlySet<string>,
+  ReadonlySet<string>
+>()
+const protectionIdentities = new WeakMap<
+  IRepositoryGitResourceProtection,
+  ReadonlySet<string>
+>()
 const mutationReservations = new Set<ReadonlySet<string>>()
 
 function pendingOperation(
@@ -237,11 +246,25 @@ export function protectAssistedCommitResources(
   path: string,
   paths: ReadonlyArray<string> = repositoryResourcePaths.get(pathKey(path)) ?? [
     path,
-  ]
+  ],
+  originalProtection?: IRepositoryGitResourceProtection
 ): IRepositoryGitResourceProtection {
   const protection = new Set(paths.map(pathKey))
+  const ownerPaths = repositoryResourcePaths.get(pathKey(path))
+  const canonicalOwner = ownerPaths?.[ownerPaths.length / 2]
+  const originalOwner =
+    originalProtection === undefined
+      ? undefined
+      : protectionIdentities.get(originalProtection)
+  if (originalProtection !== undefined && originalOwner === undefined) {
+    throw new Error('Original repository resource protection is unavailable')
+  }
+  const identity = originalOwner ?? new Set([pathKey(canonicalOwner ?? path)])
+  resourceProtectionOwners.set(protection, identity)
   resourceProtections.add(protection)
-  return { release: () => resourceProtections.delete(protection) }
+  const handle = { release: () => resourceProtections.delete(protection) }
+  protectionIdentities.set(handle, identity)
+  return handle
 }
 
 /** Reject assisted admission before it can interrupt a pre-admitted mutation. */
@@ -383,6 +406,17 @@ function parseAlternateObjectDirectory(value: string): string {
 export async function getAssistedCommitProtectedPaths(
   path: string
 ): Promise<ReadonlyArray<string>> {
+  return (await getAssistedCommitProtectedResources(path)).paths
+}
+
+/** Discover admitted paths and the complete native alternate-object routing graph together. */
+export async function getAssistedCommitProtectedResources(
+  path: string
+): Promise<{
+  readonly paths: ReadonlyArray<string>
+  readonly objectDirectories: ReadonlyArray<string>
+  readonly objectRoutingDiagnostics: string
+}> {
   const directory = await git(
     ['rev-parse', '--absolute-git-dir'],
     path,
@@ -405,15 +439,18 @@ export async function getAssistedCommitProtectedPaths(
     path,
     'assistedCommitAlternateObjectDirectories'
   )
-  const original = [
-    path,
-    directory.stdout.replace(/\r?\n$/, ''),
-    common.stdout.replace(/\r?\n$/, ''),
+  const objectDirectories = [
     objects.stdout.replace(/\r?\n$/, ''),
     ...alternates.stdout
       .split(/\r?\n/)
       .filter(line => line.startsWith('alternate: '))
       .map(line => parseAlternateObjectDirectory(line.slice(11))),
+  ]
+  const original = [
+    path,
+    directory.stdout.replace(/\r?\n$/, ''),
+    common.stdout.replace(/\r?\n$/, ''),
+    ...objectDirectories,
   ]
   const paths = [
     ...original,
@@ -421,7 +458,17 @@ export async function getAssistedCommitProtectedPaths(
   ]
   repositoryResourcePaths.set(pathKey(path), paths)
   repositoryResourcePaths.set(pathKey(paths[original.length]), paths)
-  return paths
+  return {
+    paths,
+    objectDirectories,
+    // Garbage warnings describe non-object entries, not omitted routing edges.
+    objectRoutingDiagnostics: alternates.stderr
+      .split(/\r?\n/)
+      .filter(
+        line => line.length > 0 && !line.startsWith('warning: garbage found: ')
+      )
+      .join('\n'),
+  }
 }
 
 /** Observers and UI callbacks must never inherit transaction or draining-operation access. */
@@ -436,6 +483,32 @@ export function getRepositoryGitReadEnvironment():
   return contexts.getStore()?.readOnly === true
     ? { GIT_OPTIONAL_LOCKS: '0' }
     : undefined
+}
+
+/** Additional certification never grants access beyond the current admitted operation. */
+export function withRepositoryGitSpawnFence<T>(
+  beforeSpawn: () => void,
+  operation: () => T
+): T {
+  const current = contexts.getStore()
+  if (current === undefined) {
+    throw new Error('Git spawn certification requires an owned operation scope')
+  }
+  return contexts.run(
+    {
+      ...current,
+      beforeSpawn: () => {
+        current.beforeSpawn?.()
+        beforeSpawn()
+      },
+    },
+    operation
+  )
+}
+
+/** Check scoped ownership immediately before native execution. */
+export function verifyRepositoryGitSpawnFence(): void {
+  contexts.getStore()?.beforeSpawn?.()
 }
 
 /** Required assisted reconciliation must never turn Git failures into undefined. */
@@ -469,7 +542,9 @@ export async function withRepositoryGitOperation<T>(
   operation: () => Promise<T>,
   trackNested: boolean = false
 ): Promise<T> {
+  verifyRepositoryGitSpawnFence()
   const repository = await repositoryOperations(path)
+  verifyRepositoryGitSpawnFence()
   const admitted = hasAccess(repository)
   if (
     !admitted &&
@@ -509,6 +584,7 @@ export async function withRepositoryGitOperation<T>(
         readOnly: contexts.getStore()?.readOnly,
         parent: contexts.getStore(),
         propagateErrors: contexts.getStore()?.propagateErrors,
+        beforeSpawn: contexts.getStore()?.beforeSpawn,
       },
       operation
     )
@@ -519,21 +595,38 @@ export async function withRepositoryGitOperation<T>(
   }
 }
 
-/** Acquire before snapshot capture and release only after local completion or recovery. */
-export async function acquireAssistedCommitGitLease(
+/** Additional metadata must not borrow another live operation's ownership. */
+export function assertAssistedCommitGitResourceAdmission(
   path: string,
-  protectedPaths: ReadonlyArray<string> = [path]
-): Promise<IAssistedCommitGitLease> {
-  const repository = await repositoryOperations(path)
-  if (repository.lease !== undefined) {
-    throw new AssistedCommitError(
-      'busy',
-      'An assisted commit run already owns this repository'
-    )
-  }
+  protectedPaths: ReadonlyArray<string>
+): void {
+  const owner = lookup(path)
+  const requestedPaths = repositoryResourcePaths.get(pathKey(path))
+  const requestedOwner = pathKey(
+    requestedPaths?.[requestedPaths.length / 2] ?? path
+  )
   for (const protectedPath of protectedPaths) {
     const key = pathKey(protectedPath)
     if (
+      [...resourceProtections].some(resources => {
+        return (
+          resourceProtectionOwners.get(resources)?.has(requestedOwner) !==
+            true &&
+          [...resources].some(
+            resource =>
+              containsPath(resource, key) || containsPath(key, resource)
+          )
+        )
+      }) ||
+      [...new Set(repositories.values())].some(
+        repository =>
+          repository !== owner &&
+          repository.lease !== undefined &&
+          [...repository.protectedPaths, ...repository.aliases].some(
+            resource =>
+              containsPath(resource, key) || containsPath(key, resource)
+          )
+      ) ||
       [...destructiveOperations.keys()].some(
         removing => containsPath(removing, key) || containsPath(key, removing)
       ) ||
@@ -545,10 +638,33 @@ export async function acquireAssistedCommitGitLease(
     ) {
       throw new AssistedCommitError(
         'busy',
-        'The repository or its shared Git metadata is being removed'
+        'Another Git operation owns repository metadata needed for assisted push'
       )
     }
-    repository.protectedPaths.add(key)
+  }
+}
+
+/** Acquire before snapshot capture and release only after local completion or recovery. */
+export async function acquireAssistedCommitGitLease(
+  path: string,
+  protectedPaths: ReadonlyArray<string> = [path],
+  beforeSpawn?: () => void
+): Promise<IAssistedCommitGitLease> {
+  const repository = await repositoryOperations(path)
+  if (repository.lease !== undefined) {
+    throw new AssistedCommitError(
+      'busy',
+      'An assisted commit run already owns this repository'
+    )
+  }
+  try {
+    assertAssistedCommitGitResourceAdmission(path, protectedPaths)
+  } catch (error) {
+    forget(repository)
+    throw error
+  }
+  for (const protectedPath of protectedPaths) {
+    repository.protectedPaths.add(pathKey(protectedPath))
   }
   const pending = pendingOperation()
   const lease: IRepositoryLease = {
@@ -569,7 +685,10 @@ export async function acquireAssistedCommitGitLease(
           'Assisted commit Git ownership was released'
         )
       }
-      return contexts.run({ repository, owner: lease, readOnly }, operation)
+      return contexts.run(
+        { repository, owner: lease, readOnly, beforeSpawn },
+        operation
+      )
     },
     release: () => {
       if (repository.lease === lease) {
@@ -689,6 +808,13 @@ export function isReadOnlyGitCommand(args: ReadonlyArray<string>): boolean {
       parameters[0] === 'get-url'
     )
   }
+  if (command === 'ls-remote') {
+    return (
+      parameters.length === 3 &&
+      parameters[0] === '--get-url' &&
+      parameters[1] === '--'
+    )
+  }
   if (command === 'symbolic-ref') {
     return (
       parameters.filter(parameter => !parameter.startsWith('-')).length === 1 &&
@@ -713,6 +839,7 @@ export function isReadOnlyGitCommand(args: ReadonlyArray<string>): boolean {
       'merge-base',
       'check-ignore',
       'check-attr',
+      'check-ref-format',
       'describe',
       'name-rev',
       'rev-list',
