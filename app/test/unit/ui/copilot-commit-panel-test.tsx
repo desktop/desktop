@@ -7,6 +7,105 @@ import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 describe('Copilot commit run panel', () => {
+  it('announces real push progress and removes rollback Cancel at native push entry', async () => {
+    const view = render(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'preparing-push',
+          runId: 'run',
+          cancelRequested: false,
+          canCancel: true,
+        }}
+        onCancel={() => {}}
+      />
+    )
+    assert.ok(screen.getByRole('button', { name: 'Cancel' }))
+    view.rerender(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'pushing',
+          runId: 'run',
+          phase: 'push',
+          progress: {
+            kind: 'push',
+            title: 'Pushing to origin',
+            value: 0.5,
+            remote: 'origin',
+            branch: 'master',
+            description: 'Writing objects: 50%',
+          },
+        }}
+        onCancel={() => {}}
+      />
+    )
+    assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
+    assert.ok(screen.getByText('Writing objects: 50%'))
+    assert.match(
+      view.container.querySelector('[aria-live="polite"]')?.textContent ?? '',
+      /Pushing commits/
+    )
+    assert.ok(view.container.querySelector('.copilot-commit-panel.working'))
+  })
+
+  it('keeps push-only Retry reachable with no Changes selection and never exposes destructive recovery', async () => {
+    let pushed = 0
+    let rolledBack = 0
+    let dismissed = 0
+    const props = {
+      filesSelectedCount: 0,
+      isWorking: false,
+      onRetryPush: () => pushed++,
+      onRetryRecovery: () => rolledBack++,
+      onDismissError: () => dismissed++,
+      onCancel: () => rolledBack++,
+    }
+    const state: AssistedCommitRunState = {
+      kind: 'push-error',
+      runId: 'run',
+      error: new ErrorWithMetadata(new Error('Native pre-push failure'), {}),
+      attempted: true,
+      settling: false,
+    }
+    const view = render(<CopilotCommitPanel {...props} runState={state} />)
+    assert.ok(screen.getByRole('alert'))
+    assert.ok(screen.getByText('Native pre-push failure'))
+    assert.ok(screen.getByText('All commits from this run were kept locally.'))
+    const retry = screen.getByRole('button', { name: 'Retry push' })
+    retry.focus()
+    assert.strictEqual(document.activeElement, retry)
+    fireEvent.click(retry)
+    assert.strictEqual(pushed, 1)
+    assert.strictEqual(rolledBack, 0)
+    assert.strictEqual(
+      screen.queryByRole('button', { name: /Retry rollback|Cancel/ }),
+      null
+    )
+    view.rerender(
+      <CopilotCommitPanel {...props} runState={{ ...state, settling: true }} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Retry push' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    assert.strictEqual(pushed, 1)
+    assert.strictEqual(dismissed, 0)
+    view.rerender(
+      <CopilotCommitPanel
+        {...props}
+        isWorking={true}
+        runState={{
+          kind: 'preparing-push',
+          runId: 'run',
+          cancelRequested: false,
+          canCancel: false,
+        }}
+      />
+    )
+    assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
+  })
+
   for (const [kind, caption] of [
     ['preparing', 'Preparing selected changes'],
     ['capturing', 'Freezing selected changes'],

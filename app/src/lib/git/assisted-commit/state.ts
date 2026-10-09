@@ -28,6 +28,11 @@ export type CapturedFileState =
 export interface IIndexState {
   readonly bytes: Buffer | null
   readonly mode: number
+  /** Preserve the original index's racy-stat epoch when restoring its bytes. */
+  readonly timestamps?: {
+    readonly atimeMs: number
+    readonly mtimeMs: number
+  }
 }
 
 export interface IFrozenHunk {

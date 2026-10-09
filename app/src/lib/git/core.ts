@@ -24,6 +24,7 @@ import {
   isReadOnlyGitCommand,
   withRepositoryGitOperation,
   withoutRepositoryGitAccess,
+  verifyRepositoryGitSpawnFence,
 } from './repository-operation'
 
 export const isMaxBufferExceededError = (
@@ -112,6 +113,14 @@ export interface IGitExecutionOptions
   readonly fallbackAccount?: IAccountIdentity
 
   readonly interceptHooks?: string[]
+
+  /**
+   * Prepare a trusted ownership fence after hooks and credentials are ready.
+   *
+   * The returned synchronous check runs immediately before invoking native Git.
+   * Unlike observers, this callback retains the admitted operation context.
+   */
+  readonly prepareForSpawn?: () => Promise<() => void>
 }
 
 /**
@@ -306,9 +315,15 @@ export async function git(
         withTrampolineEnv(
           async env => {
             const commandName = `${name}: git ${args.join(' ')}`
+            const enter =
+              opts.prepareForSpawn === undefined
+                ? undefined
+                : await opts.prepareForSpawn()
 
-            const result = await GitPerf.measure(commandName, () =>
-              exec(args, path, {
+            const result = await GitPerf.measure(commandName, () => {
+              verifyRepositoryGitSpawnFence()
+              enter?.()
+              return exec(args, path, {
                 ...opts,
                 env: {
                   // Explicitly set TERM to 'dumb' so that if Desktop was launched
@@ -322,12 +337,14 @@ export async function git(
                   ...env,
                 },
               })
-            ).catch(err => {
+            }).catch(err => {
               // If this is an exception thrown by Node.js (as opposed to
               // dugite) let's keep the salient details but include the name of
               // the operation.
               if (isErrnoException(err)) {
-                throw new Error(`Failed to execute ${name}: ${err.code}`)
+                throw new Error(`Failed to execute ${name}: ${err.code}`, {
+                  cause: err,
+                })
               }
 
               if (isMaxBufferExceededError(err)) {

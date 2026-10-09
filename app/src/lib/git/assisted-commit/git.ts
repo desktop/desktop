@@ -141,7 +141,11 @@ export async function readIndexState(path: string): Promise<IIndexState> {
       'The real Git index is not a regular file'
     )
   }
-  return { bytes: await readFile(path), mode: stat.mode & 0o777 }
+  return {
+    bytes: await readFile(path),
+    mode: stat.mode & 0o777,
+    timestamps: { atimeMs: stat.atimeMs, mtimeMs: stat.mtimeMs },
+  }
 }
 
 export function indexStatesEqual(a: IIndexState, b: IIndexState): boolean {
@@ -358,7 +362,9 @@ export async function verifySelectedFiles(
 }
 
 /** Non-yielding final backing fence after all awaited selected content/metadata reads. */
-function verifySelectedFileVersionsSync(data: IAssistedCommitData): void {
+export function verifySelectedFileVersionsSync(
+  data: IAssistedCommitData
+): void {
   for (const file of data.files) {
     let current: Stats | null
     try {
@@ -398,7 +404,8 @@ function verifySelectedFileVersionsSync(data: IAssistedCommitData): void {
   }
 }
 
-function quoteConfig(value: string): string {
+/** Escape a value inside a quoted Git configuration entry. */
+export function quoteConfig(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
@@ -827,6 +834,12 @@ export async function installIndex(
   await lock.handle.writeFile(next.bytes)
   guard.assertHeld()
   await lock.handle.chmod(next.mode)
+  if (next.timestamps !== undefined) {
+    await lock.handle.utimes(
+      next.timestamps.atimeMs / 1000,
+      next.timestamps.mtimeMs / 1000
+    )
+  }
   await lock.handle.sync()
   guard.assertHeld()
   await verifyOwnedLock(lock)

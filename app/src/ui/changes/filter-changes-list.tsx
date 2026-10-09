@@ -178,6 +178,7 @@ interface IFilterChangesListProps {
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
   readonly commitMode: CommitMode
+  readonly pushAfterAssistedCommit?: boolean
 
   /** Provided only when a real Desktop-owned assisted commit executor is available. */
   readonly onCreateCopilotAssistedCommits?: (
@@ -988,6 +989,8 @@ export class FilterChangesList extends React.Component<
         commitMessage={this.props.commitMessage}
         commitMode={this.props.commitMode}
         onCommitModeChanged={this.onCommitModeChanged}
+        pushAfterAssistedCommit={this.props.pushAfterAssistedCommit}
+        onPushAfterAssistedCommitChanged={this.onPushAfterAssistedCommitChanged}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
@@ -1052,6 +1055,7 @@ export class FilterChangesList extends React.Component<
         onRetryCopilotAssistedCommitRecovery={
           this.onRetryCopilotAssistedCommitRecovery
         }
+        onRetryCopilotAssistedCommitPush={this.onRetryCopilotAssistedCommitPush}
         onDismissCopilotAssistedCommitError={
           this.onDismissCopilotAssistedCommitError
         }
@@ -1091,6 +1095,12 @@ export class FilterChangesList extends React.Component<
 
   private onCommitModeChanged = (commitMode: CommitMode) =>
     this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
+
+  private onPushAfterAssistedCommitChanged = (enabled: boolean) =>
+    this.props.dispatcher.setPushAfterAssistedCommit(
+      this.props.repository,
+      enabled
+    )
 
   private onGenerateCommitMessage = (
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
@@ -1135,9 +1145,19 @@ export class FilterChangesList extends React.Component<
     }
   }
 
+  private onRetryCopilotAssistedCommitPush = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'push-error') {
+      this.props.dispatcher.retryCopilotAssistedCommitPush(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
   private onDismissCopilotAssistedCommitError = () => {
     const state = this.props.assistedCommitState
-    if (state?.kind === 'error') {
+    if (state?.kind === 'error' || state?.kind === 'push-error') {
       this.props.dispatcher.dismissCopilotAssistedCommitError(
         this.props.repository,
         state.runId
@@ -1147,7 +1167,12 @@ export class FilterChangesList extends React.Component<
 
   private onAssistedCommitErrorDetails = () => {
     const state = this.props.assistedCommitState
-    if (state?.kind === 'error') {
+    if (state?.kind === 'push-error') {
+      this.props.dispatcher.showPopup({
+        type: PopupType.Error,
+        error: state.error,
+      })
+    } else if (state?.kind === 'error') {
       this.props.dispatcher.postError(state.error)
     }
   }
