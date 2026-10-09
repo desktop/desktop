@@ -169,7 +169,7 @@ Before proceeding, ask the user what they want to do with the dugite update:
 
 **Important**: Desktop has a nested package structure. The dugite dependency
 lives in `app/package.json`, not the root `package.json`. Do NOT run
-`yarn upgrade dugite` from the repo root — it will add dugite to the wrong
+`npm install dugite` from the repo root — it will add dugite to the wrong
 package.json.
 
 ```bash
@@ -177,9 +177,9 @@ cd <desktop-repo-path>
 git checkout development && git pull
 git checkout -b update-dugite-<NEW_VERSION>
 # Edit app/package.json to set dugite to "^<NEW_VERSION>"
-cd app && yarn install && cd ..
-yarn why dugite
-git add app/package.json app/yarn.lock
+npm install --prefix app
+npm explain --prefix app dugite
+git add app/package.json app/package-lock.json
 git commit -m "Update dugite to <NEW_VERSION>"
 git push origin HEAD
 gh pr create --title "Update dugite to <NEW_VERSION> (Git <GIT_VERSION>)" \
@@ -201,7 +201,7 @@ like `release-3.5.6-beta1`):
    ```
 2. Draft the production release:
    ```bash
-   yarn draft-release production
+   npm run draft-release -- production
    ```
    This will:
    - Determine the next production version
@@ -212,7 +212,7 @@ like `release-3.5.6-beta1`):
    (see note below about the nested package structure):
    ```bash
    # Edit app/package.json to set dugite to "^<NEW_VERSION>"
-   cd app && yarn install && cd ..
+   npm install --prefix app
    ```
 4. Review the generated changelog — ensure the dugite/Git update is mentioned
    (e.g., `[Improved] Update Git for Windows to <GFW_VERSION>`) and that
@@ -220,7 +220,7 @@ like `release-3.5.6-beta1`):
    beta
 5. Commit all changes:
    ```bash
-   git add app/package.json app/yarn.lock changelog.json
+   git add app/package.json app/package-lock.json changelog.json
    git commit -m "Bump version and add changelog"
    ```
 6. Push the branch — GitHub Actions will automatically create a release PR
@@ -238,8 +238,8 @@ the release on.
    git checkout development && git pull
    git checkout -b update-dugite-<NEW_VERSION>
    # Edit app/package.json to set dugite to "^<NEW_VERSION>"
-   cd app && yarn install && cd ..
-   git add app/package.json app/yarn.lock
+   npm install --prefix app
+   git add app/package.json app/package-lock.json
    git commit -m "Update dugite to <NEW_VERSION>"
    git push origin HEAD
    gh pr create --title "Update dugite to <NEW_VERSION> (Git <GIT_VERSION>)" \
@@ -248,7 +248,7 @@ the release on.
    Merge the PR once CI passes.
 2. Then draft the beta release:
    ```bash
-   yarn draft-release beta
+   npm run draft-release -- beta
    ```
    This will:
    - Determine the next beta version (incrementing beta number or starting a

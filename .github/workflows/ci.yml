@@ -65,11 +65,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: yarn
-      - run: yarn
-      - run: yarn validate-electron-version
-      - run: yarn lint
-      - run: yarn validate-changelog
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+            vendor/*/package-lock.json
+      - run: npm ci
+      - run: npm run validate-electron-version
+      - run: npm run lint
+      - run: npm run validate-changelog
       - name: Ensure a clean working directory
         run: git diff --name-status --exit-code
   build:
@@ -104,14 +108,14 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: Validate macOS version
         if: runner.os == 'macOS'
-        run: yarn validate-macos-version
+        run: npm run validate-macos-version
       - name: Run desktop-trampoline tests
         run: |
           cd vendor/desktop-trampoline
-          yarn install
-          yarn test
+          npm ci
+          npm test
       - name: Build production app
-        run: yarn build:prod
+        run: npm run build:prod
         env:
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
           DESKTOP_OAUTH_CLIENT_SECRET:
@@ -124,15 +128,15 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
-        run: yarn test:setup
+        run: npm run test:setup
         env:
           npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: |
           (runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64')
-        run: yarn test:unit
+        run: npm run test:unit
       - name: Run script tests
-        run: yarn test:script
+        run: npm run test:script
       - if: runner.os == 'Windows'
         uses: ./.github/actions/setup-windows-signing
         with:
@@ -140,7 +144,7 @@ jobs:
           azure-client-id: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           azure-tenant-id: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
       - name: Package production app
-        run: yarn package
+        run: npm run package
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
@@ -190,7 +194,7 @@ jobs:
           arch: ${{ matrix.arch }}
           install-ffmpeg: 'true'
       - name: Build production app
-        run: yarn build:prod
+        run: npm run build:prod
         env:
           DESKTOP_E2E_UPDATES_URL: http://127.0.0.1:51789/update
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
@@ -204,7 +208,7 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
-        run: yarn test:setup
+        run: npm run test:setup
         env:
           npm_config_arch: ${{ matrix.arch }}
       - if: runner.os == 'Windows'
@@ -214,7 +218,7 @@ jobs:
           azure-client-id: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           azure-tenant-id: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
       - name: Package production app
-        run: yarn package
+        run: npm run package
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
@@ -273,7 +277,7 @@ jobs:
 
           Add-Content -Path $env:GITHUB_ENV -Value "DESKTOP_E2E_APP_PATH=$installedExe"
       - name: Run packaged E2E smoke tests
-        run: yarn test:e2e:run:packaged
+        run: npm run test:e2e:run:packaged
       - name: Upload E2E artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

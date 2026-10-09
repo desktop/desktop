@@ -30,9 +30,9 @@ The Desktop repository includes a list of recommended extensions:
 When running the app in development mode, the Chrome Dev Tools are also launched, to assist with debugging and poking at the live application.
 
 ```shellsession
-$ yarn
-$ yarn build:dev
-$ yarn start
+$ npm ci
+$ npm run build:dev
+$ npm start
 ```
 
 At a basic level, the logs from the running app are displayed in the **Console** tab, but other features include:

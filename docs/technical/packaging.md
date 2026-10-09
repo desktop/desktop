@@ -40,7 +40,7 @@ bundled, even if cross-compilation setup installed optional packages for other
 platforms. The architecture comes from `getDistArchitecture()` (including its
 `npm_config_arch` override), not necessarily the build machine's architecture.
 The target package must be installed; a missing package fails the build.
-`yarn test:script` verifies that multiple installed Koffi packages produce only
+`npm run test:script` verifies that multiple installed Koffi packages produce only
 the target's `koffi.node`, without filename collisions.
 
 ## `app/package.json`

@@ -3,7 +3,7 @@ dist/
 vendor/
 tslint-rules/*.js
 npm-debug.log
-yarn-error.log
+**/package-lock.json
 .DS_Store
 .awcache
 .idea/

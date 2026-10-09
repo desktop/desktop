@@ -39,7 +39,7 @@ terminateNotifications()
 ```shellsession
 $ git clone https://github.com/desktop/desktop-notifications
 $ cd desktop-notifications
-$ yarn
+$ npm install
 ```
 
 As this project builds a native module, you'll need these dependencies along

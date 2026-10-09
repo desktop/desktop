@@ -28,10 +28,10 @@ How to write a plugin is out of scope for this documentation, but I've added som
 
 ## Checking locally
 
-The custom ESLint rules are annotated with TypeScript types wherever available, and can be checked through `yarn`:
+The custom ESLint rules are annotated with TypeScript types wherever available, and can be checked through npm:
 
 ```
-$ yarn check:eslint
+$ npm run check:eslint
 ```
 
 The `eslint-rules/tsconfig.json` is setup to guide `tsc` to understand the environment for running the ESlint rules, and each rule is annotated
@@ -41,10 +41,10 @@ tests are checked in strict mode. TypeScript-aware rules use the `TSESTree` and
 
 ## Testing locally
 
-Tests are added alongside each rule in the `eslint-rules/tests/` section, and can be run from the project root through `yarn`:
+Tests are added alongside each rule in the `eslint-rules/tests/` section, and can be run from the project root through npm:
 
 ```
-$ yarn test:eslint
+$ npm run test:eslint
 ```
 
 Each test suite is designed to exercise the relevant rule against code snippets that illustrate both valid and invalid code, and indicate which messages should be reported in case of failure.
@@ -56,7 +56,7 @@ TypeScript parser with
 `fileURLToPath(import.meta.resolve('@typescript-eslint/parser'))`.
 
 The recommended TypeScript lint preset remains enabled. When updating it,
-compare the effective configuration (`yarn eslint --print-config <file>`)
+compare the effective configuration (`npm run eslint -- --print-config <file>`)
 before and after the upgrade, retaining checks removed from the preset and
 using replacements for renamed rules. For example, `no-empty-object-type` with
 `allowInterfaces: never` and `allowObjectTypes: always` preserves
@@ -76,7 +76,7 @@ If you wish to debug the rules using VSCode, add this action to the `configurati
 
 ```json
 {
-  "command": "yarn test:eslint",
+  "command": "npm run test:eslint",
   "name": "Test ESLint scripts",
   "request": "launch",
   "type": "node-terminal"

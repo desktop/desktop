@@ -137,25 +137,25 @@ Validate all compiler projects, development and production builds, the unit and
 script suites, and custom ESLint rule tests:
 
 ```shell
-yarn tsc --noEmit
-yarn compile:script
-yarn tsc -p app/src/highlighter --noEmit
-yarn check:eslint
-yarn compile:dev
-yarn compile:prod
-yarn test
-yarn test:script
-yarn test:eslint
-yarn lint
+npm exec -- tsc --noEmit
+npm run compile:script
+npm exec -- tsc -p app/src/highlighter --noEmit
+npm run check:eslint
+npm run compile:dev
+npm run compile:prod
+npm test
+npm run test:script
+npm run test:eslint
+npm run lint
 ```
 
-Also run `yarn build` in each TypeScript-based native module and `yarn test` in
+Also run `npm run build` in each TypeScript-based native module and `npm test` in
 `vendor/desktop-trampoline`.
 
 Check emitted paths, not only successful compilation: a `rootDir` change can
 move output away from a package's published entry points. For example,
 `desktop-notifications` uses `lib/` as its source root to emit `dist/index.js`,
-not `dist/lib/index.js`. The native-module output tests in `yarn test:script`
+not `dist/lib/index.js`. The native-module output tests in `npm run test:script`
 capture fresh compiler output in memory so stale build files cannot hide this
 regression.
 

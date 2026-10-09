@@ -7,8 +7,8 @@
   "scripts": {
     "install": "node-gyp rebuild && tsc",
     "build": "tsc",
-    "pretest": "yarn build",
-    "prettify": "yarn prettier --write \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
+    "pretest": "npm run build",
+    "prettify": "prettier --write \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
     "check-prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\""
   },
   "devDependencies": {

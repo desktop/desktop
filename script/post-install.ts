@@ -3,8 +3,7 @@
 import * as Path from 'path'
 import { spawnSync, SpawnSyncOptions } from 'child_process'
 
-import glob from 'glob'
-import { forceUnwrap } from '../app/src/lib/fatal-error'
+import { getAppInstallCommands, getNpmCommand } from './npm'
 
 const root = Path.dirname(__dirname)
 
@@ -27,79 +26,64 @@ const playwrightCliPath = Path.join(
   'cli.js'
 )
 
-function findYarnVersion(callback: (path: string) => void) {
-  glob('vendor/yarn-*.js', (error, files) => {
-    if (error != null) {
-      throw error
-    }
-
-    // this ensures the paths returned by glob are sorted alphabetically
-    files.sort()
-
-    // use the latest version here if multiple are found
-    callback(forceUnwrap('Missing vendored yarn', files.at(-1)))
-  })
+for (const args of getAppInstallCommands()) {
+  const appInstall = getNpmCommand(args)
+  const result = spawnSync(appInstall.executable, appInstall.args, options)
+  if (result.status !== 0) {
+    console.error(result.error ?? 'Failed to install application dependencies')
+    process.exit(result.status || 1)
+  }
 }
 
-findYarnVersion(path => {
-  let result = spawnSync(
-    'node',
-    [path, '--cwd', 'app', 'install', '--force'],
-    options
+// Electron >= 42 no longer downloads its prebuilt binary in its own
+// postinstall; do it eagerly so scripts that read node_modules/electron/dist
+// (e.g. validate-macos-version) keep working without first requiring electron.
+const electronInstallScript = require.resolve('electron/install.js')
+let result = spawnSync(process.execPath, [electronInstallScript], options)
+
+if (result.status !== 0) {
+  process.exit(result.status || 1)
+}
+
+result = spawnSync(
+  'git',
+  ['submodule', 'update', '--recursive', '--init'],
+  options
+)
+
+if (result.status !== 0) {
+  process.exit(result.status || 1)
+}
+
+const compileScript = getNpmCommand(['run', 'compile:script'])
+result = spawnSync(compileScript.executable, compileScript.args, options)
+
+if (result.status !== 0) {
+  console.error(result.error ?? 'Failed to compile build scripts')
+  process.exit(result.status || 1)
+}
+
+// Capture output here so CI failures include the Playwright-specific error.
+result = spawnSync(
+  process.execPath,
+  [playwrightCliPath, 'install', 'ffmpeg'],
+  captureOutputOptions
+)
+
+if (result.status !== 0) {
+  console.error(
+    'Error: failed to install Playwright ffmpeg (video recording may not work)',
+    '\nplatform:',
+    process.platform,
+    '\nstatus:',
+    result.status,
+    '\nsignal:',
+    result.signal,
+    '\nerror:',
+    result.error,
+    '\nstdout:',
+    result.stdout,
+    '\nstderr:',
+    result.stderr
   )
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
-  // Electron >= 42 no longer downloads its prebuilt binary in its own
-  // postinstall; do it eagerly so scripts that read node_modules/electron/dist
-  // (e.g. validate-macos-version) keep working without first requiring electron.
-  const electronInstallScript = require.resolve('electron/install.js')
-  result = spawnSync(process.execPath, [electronInstallScript], options)
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
-  result = spawnSync(
-    'git',
-    ['submodule', 'update', '--recursive', '--init'],
-    options
-  )
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
-  result = spawnSync('node', [path, 'compile:script'], options)
-
-  if (result.status !== 0) {
-    process.exit(result.status || 1)
-  }
-
-  // Capture output here so CI failures include the Playwright-specific error.
-  result = spawnSync(
-    process.execPath,
-    [playwrightCliPath, 'install', 'ffmpeg'],
-    captureOutputOptions
-  )
-
-  if (result.status !== 0) {
-    console.error(
-      'Error: failed to install Playwright ffmpeg (video recording may not work)',
-      '\nplatform:',
-      process.platform,
-      '\nstatus:',
-      result.status,
-      '\nsignal:',
-      result.signal,
-      '\nerror:',
-      result.error,
-      '\nstdout:',
-      result.stdout,
-      '\nstderr:',
-      result.stderr
-    )
-  }
-})
+}
