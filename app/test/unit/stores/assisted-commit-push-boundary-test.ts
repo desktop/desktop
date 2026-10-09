@@ -2685,6 +2685,294 @@ describe('assisted native push boundary', () => {
     }
   })
 
+  for (const reader of ['refresh', 'status'] as const) {
+    it(`rejects a substituted accepted ${reader} alias before waiting on a foreign lease`, async t => {
+      reset()
+      t.after(reset)
+      const source = await fixtures.seed(t, { file: 'before\n' })
+      const remote = await remotes.addBareRemote(t, source)
+      const foreign = await fixtures.seed(t, { foreign: 'Foreign checkout\n' })
+      const alias = join(
+        await temporary.createTempDirectory(t),
+        'execution-alias'
+      )
+      await FileSystem.symlink(source.path, alias, 'junction')
+      await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
+      const h = await harness.createAssistedCommitRunHarness(t)
+      const repository = await h.register(
+        new repositories.Repository(alias, source.id, null, false)
+      )
+      h.appStore['selectedRepository'] = repository
+      let renderedRetry: string | null | undefined
+      let renderedError: Error | undefined
+      const subscription = h.appStore.onDidUpdate(state => {
+        const selected = state.selectedState
+        if (selected?.type === selectionStates.SelectionType.Repository) {
+          const assisted = selected.state.changesState.assistedCommit
+          if (assisted.kind === 'error') {
+            renderedRetry = assisted.retry
+            renderedError = assisted.error
+          }
+        }
+      })
+      t.after(() => subscription.dispose())
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      const failure = new Error('Synthetic acknowledged refresh failure')
+      afterPush = async () => {
+        afterPush = undefined
+        statusFailure = failure
+      }
+      capturePushes = true
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.ok(outcome.kind === 'pushed')
+      assert.ok(outcome.refreshError)
+      const state = h.state(repository).changesState.assistedCommit
+      assert.ok(state.kind === 'error')
+      assert.strictEqual(state.retry, 'refresh')
+      assert.strictEqual(renderedRetry, 'refresh')
+      await FileSystem.unlink(alias)
+      await FileSystem.symlink(foreign.path, alias, 'junction')
+      const lease = await operations.acquireAssistedCommitGitLease(foreign.path)
+      let timer: NodeJS.Timeout | undefined
+      const refresh =
+        reader === 'refresh'
+          ? h.appStore._refreshRepository(repository)
+          : h.appStore._loadStatus(repository)
+      try {
+        const error = await Promise.race([
+          refresh.then(
+            () => undefined,
+            error => error
+          ),
+          new Promise<Error>(resolve => {
+            timer = setTimeout(
+              () =>
+                resolve(new Error('Accepted refresh waited on foreign lease')),
+              2000
+            )
+          }),
+        ])
+        assert.ok(error instanceof Error)
+        assert.notStrictEqual(
+          error.message,
+          'Accepted refresh waited on foreign lease'
+        )
+        assert.ok(
+          errors
+            .assistedCommitErrorCauses(error)
+            .some(
+              cause =>
+                cause instanceof Error &&
+                cause.message.includes('original repository owner changed')
+            )
+        )
+        const settled = h.state(repository).changesState.assistedCommit
+        assert.ok(settled.kind === 'error')
+        assert.strictEqual(settled.retry, null)
+        assert.strictEqual(renderedRetry, null)
+        assert.strictEqual(renderedError, settled.error)
+        assert.strictEqual(await remote.tip(), outcome.result.head.sha)
+        assert.strictEqual(await fixtures.count(source), 2)
+        assert.strictEqual(pushArguments.length, 1)
+        assert.strictEqual(h.propose.mock.callCount(), 1)
+        assert.strictEqual(
+          h.appStore['assistedCommitSelectionReaders'].has(repository.id),
+          false
+        )
+      } finally {
+        clearTimeout(timer)
+        lease.release()
+        await refresh.catch(() => {})
+      }
+      assert.strictEqual(await fixtures.count(foreign), 1)
+    })
+  }
+
+  it('rejects canonical checkout substitution during accepted reader registration before foreign admission', async t => {
+    reset()
+    t.after(reset)
+    const source = await fixtures.seed(t, { file: 'before\n' })
+    const remote = await remotes.addBareRemote(t, source)
+    const foreign = await fixtures.seed(t, { foreign: 'Foreign checkout\n' })
+    const alias = join(
+      await temporary.createTempDirectory(t),
+      'execution-alias'
+    )
+    await FileSystem.symlink(source.path, alias, 'junction')
+    await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
+    const h = await harness.createAssistedCommitRunHarness(t)
+    const repository = await h.register(
+      new repositories.Repository(alias, source.id, null, false)
+    )
+    h.appStore['selectedRepository'] = repository
+    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    afterPush = async () => {
+      afterPush = undefined
+      statusFailure = new Error('Synthetic acknowledged refresh failure')
+    }
+    capturePushes = true
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.ok(outcome.kind === 'pushed')
+    assert.ok(outcome.refreshError)
+    const state = h.state(repository).changesState.assistedCommit
+    assert.ok(state.kind === 'error')
+    assert.strictEqual(state.retry, 'refresh')
+    const lease = await operations.acquireAssistedCommitGitLease(foreign.path)
+    const parked = `${source.path}-original`
+    let moved = false
+    const subscription = h.appStore.onDidUpdate(() => {
+      if (
+        !moved &&
+        h.appStore['assistedCommitSelectionReaders'].has(repository.id)
+      ) {
+        FileSystemSync.renameSync(source.path, parked)
+        FileSystemSync.symlinkSync(foreign.path, source.path, 'junction')
+        moved = true
+      }
+    })
+    let timer: NodeJS.Timeout | undefined
+    const reading = h.appStore._loadStatus(repository)
+    try {
+      const error = await Promise.race([
+        reading.then(
+          () => undefined,
+          error => error
+        ),
+        new Promise<Error>(resolve => {
+          timer = setTimeout(
+            () =>
+              resolve(new Error('Registered reader waited on foreign lease')),
+            2000
+          )
+        }),
+      ])
+      assert.strictEqual(moved, true)
+      assert.ok(error instanceof Error)
+      assert.notStrictEqual(
+        error.message,
+        'Registered reader waited on foreign lease'
+      )
+      assert.strictEqual(
+        h.appStore['assistedCommitSelectionReaders'].has(repository.id),
+        false
+      )
+      assert.strictEqual(await remote.tip(), outcome.result.head.sha)
+      assert.strictEqual(pushArguments.length, 1)
+      assert.strictEqual(h.propose.mock.callCount(), 1)
+    } finally {
+      clearTimeout(timer)
+      subscription.dispose()
+      if (moved) {
+        await FileSystem.unlink(source.path)
+        await FileSystem.rename(parked, source.path)
+      }
+      lease.release()
+      await reading.catch(() => {})
+    }
+    assert.strictEqual(await fixtures.count(source), 2)
+    assert.strictEqual(await fixtures.count(foreign), 1)
+  })
+
+  for (const retry of ['push', 'refresh'] as const) {
+    it(`refuses canonical substitution during ${retry} retry admission without waiting on foreign recovery`, async t => {
+      reset()
+      t.after(reset)
+      const source = await fixtures.seed(t, { file: 'before\n' })
+      const remote = await remotes.addBareRemote(t, source)
+      const foreign = await fixtures.seed(t, { foreign: 'Foreign checkout\n' })
+      const alias = join(
+        await temporary.createTempDirectory(t),
+        'execution-alias'
+      )
+      await FileSystem.symlink(source.path, alias, 'junction')
+      await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
+      const h = await harness.createAssistedCommitRunHarness(t)
+      const repository = await h.register(
+        new repositories.Repository(alias, source.id, null, false)
+      )
+      h.appStore['selectedRepository'] = repository
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      if (retry === 'push') {
+        reportPushFailure = new Error('Synthetic remote response lost')
+      } else {
+        afterPush = async () => {
+          afterPush = undefined
+          statusFailure = new Error('Synthetic acknowledged refresh failure')
+        }
+      }
+      capturePushes = true
+      const initial = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(
+        initial.kind,
+        retry === 'push' ? 'push-error' : 'pushed'
+      )
+      const state = h.state(repository).changesState.assistedCommit
+      assert.ok(state.kind === 'push-error' || state.kind === 'error')
+      const lease = await operations.acquireAssistedCommitGitLease(foreign.path)
+      const parked = `${source.path}-original`
+      let moved = false
+      const subscription = h.appStore.onDidUpdate(() => {
+        const current = h.state(repository).changesState.assistedCommit
+        if (
+          !moved &&
+          current.kind === (retry === 'push' ? 'preparing-push' : 'refreshing')
+        ) {
+          FileSystemSync.renameSync(source.path, parked)
+          FileSystemSync.symlinkSync(foreign.path, source.path, 'junction')
+          moved = true
+        }
+      })
+      let timer: NodeJS.Timeout | undefined
+      const retrying =
+        retry === 'push'
+          ? h.dispatcher.retryCopilotAssistedCommitPush(repository, state.runId)
+          : h.dispatcher.retryCopilotAssistedCommitRecovery(
+              repository,
+              state.runId
+            )
+      try {
+        const completed = await Promise.race([
+          retrying.then(() => true),
+          new Promise<boolean>(resolve => {
+            timer = setTimeout(() => resolve(false), 2000)
+          }),
+        ])
+        assert.strictEqual(moved, true)
+        assert.strictEqual(
+          completed,
+          true,
+          'Retry waited on foreign recovery lease'
+        )
+        const settled = h.state(repository).changesState.assistedCommit
+        assert.ok(settled.kind === 'push-error' || settled.kind === 'error')
+        assert.strictEqual(settled.settling, false)
+        assert.strictEqual(pushArguments.length, 1)
+        assert.strictEqual(h.propose.mock.callCount(), 1)
+      } finally {
+        clearTimeout(timer)
+        subscription.dispose()
+        if (moved) {
+          await FileSystem.unlink(source.path)
+          await FileSystem.rename(parked, source.path)
+        }
+        lease.release()
+        await retrying
+      }
+      assert.strictEqual(await fixtures.count(source), 2)
+      assert.strictEqual(await fixtures.count(foreign), 1)
+      assert.strictEqual(await remote.tip(), await fixtures.tip(source))
+    })
+  }
+
   it('never resumes accepted deferred History through a substituted execution alias', async t => {
     reset()
     t.after(reset)
