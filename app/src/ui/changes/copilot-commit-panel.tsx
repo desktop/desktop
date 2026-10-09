@@ -35,6 +35,7 @@ interface ICopilotCommitPanelProps {
   readonly runState?: AssistedCommitRunState
   readonly onCancel?: () => void
   readonly onRetryRecovery?: () => void
+  readonly onRetryPush?: () => void
   readonly onDismissError?: () => void
   readonly onErrorDetails?: () => void
 }
@@ -214,6 +215,41 @@ export class CopilotCommitPanel extends React.Component<
   private renderCaption() {
     const { isWorking, filesSelectedCount, allowEmptyCommit } = this.props
     const state = this.props.runState
+    if (state?.kind === 'push-error') {
+      return (
+        <div className="assisted-commit-error" role="alert">
+          <div className="title">Push stopped</div>
+          <div className="description">{state.error.message}</div>
+          <div className="description">
+            All commits from this run were kept locally.
+          </div>
+          {state.settling && (
+            <div className="description">Finishing repository refresh…</div>
+          )}
+          <div className="assisted-commit-actions">
+            {this.props.onRetryPush !== undefined && (
+              <Button
+                onClick={this.props.onRetryPush}
+                disabled={state.settling}
+              >
+                Retry push
+              </Button>
+            )}
+            {this.props.onDismissError !== undefined && (
+              <Button
+                onClick={this.props.onDismissError}
+                disabled={state.settling}
+              >
+                Dismiss
+              </Button>
+            )}
+            {this.props.onErrorDetails !== undefined && (
+              <Button onClick={this.props.onErrorDetails}>Details</Button>
+            )}
+          </div>
+        </div>
+      )
+    }
     if (state?.kind === 'error') {
       return (
         <div className="assisted-commit-error" role="alert">
@@ -260,20 +296,28 @@ export class CopilotCommitPanel extends React.Component<
           {state.kind === 'committing' && (
             <div className="description commit-title">{state.title}</div>
           )}
-          {this.props.onCancel !== undefined && (
-            <div className="assisted-commit-actions">
-              <Button
-                onClick={this.props.onCancel}
-                disabled={
-                  state.kind === 'rolling-back' ||
-                  state.kind === 'refreshing' ||
-                  state.kind === 'closing'
-                }
-              >
-                Cancel
-              </Button>
+          {state.kind === 'pushing' && (
+            <div className="description">
+              {state.progress?.description ??
+                'Local commits will be kept, even if pushing stops.'}
             </div>
           )}
+          {this.props.onCancel !== undefined &&
+            state.kind !== 'pushing' &&
+            (state.kind !== 'preparing-push' || state.canCancel) && (
+              <div className="assisted-commit-actions">
+                <Button
+                  onClick={this.props.onCancel}
+                  disabled={
+                    state.kind === 'rolling-back' ||
+                    state.kind === 'refreshing' ||
+                    state.kind === 'closing'
+                  }
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
         </>
       )
     }
@@ -375,6 +419,8 @@ function getRunStatus(
   state: Exclude<AssistedCommitRunState, { readonly kind: 'idle' }>
 ): string {
   if (
+    state.kind !== 'push-error' &&
+    state.kind !== 'pushing' &&
     state.kind !== 'error' &&
     state.kind !== 'rolling-back' &&
     state.kind !== 'refreshing' &&
@@ -408,6 +454,14 @@ function getRunStatus(
       return 'Finalizing local commits…'
     case 'finishing':
       return 'Refreshing local commits…'
+    case 'preparing-push':
+      return 'Preparing to push commits…'
+    case 'pushing':
+      return state.phase === 'push'
+        ? 'Pushing commits…'
+        : 'Refreshing pushed commits…'
+    case 'push-error':
+      return `Push stopped; local commits kept: ${state.error.message}`
     case 'error':
       return `Commit run stopped: ${state.error.message}`
     default:

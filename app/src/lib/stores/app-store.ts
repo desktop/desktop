@@ -154,9 +154,22 @@ import {
   withAssistedCommitSnapshot,
   getAssistedCommitExecutionMetadata,
   readAssistedCommitHead,
+  prepareAssistedCommitTransactionForPush,
 } from '../git/assisted-commit'
 import {
+  AssistedCommitPushDestination,
+  AssistedCommitPushError,
+  prepareAssistedCommitPushDestination,
+  prepareAssistedCommitPushOwner,
+  readAssistedCommitPushDestination,
+  completeAssistedCommitPushPublication,
+  IAssistedCommitPublicationResources,
+  verifyAssistedCommitPushOwner,
+} from '../git/assisted-commit-push'
+import {
   acquireAssistedCommitGitLease,
+  withRepositoryGitSpawnFence,
+  verifyRepositoryGitSpawnFence,
   assertRepositoryGitAvailable,
   IAssistedCommitGitLease,
   hasRepositoryGitOperationAccess,
@@ -176,10 +189,12 @@ import {
   repositoryPathsOverlap,
 } from '../git/repository-operation'
 import { storeCommitMode } from './helpers/commit-mode-storage'
+import { storePushAfterAssistedCommit } from './helpers/assisted-commit-push-storage'
 import {
   Progress,
   ICheckoutProgress,
   IFetchProgress,
+  IPushProgress,
   IRevertProgress,
   IMultiCommitOperationProgress,
 } from '../../models/progress'
@@ -677,24 +692,32 @@ interface IAssistedCommitPreparedIntent {
   readonly providerDefinition: string | null
   readonly providerRevision: number
   readonly versions: ReadonlyArray<string>
+  readonly pushDestination?: AssistedCommitPushDestination
 }
+
+type PushBranchOutcome =
+  | { readonly kind: 'pushed'; readonly refreshError?: unknown }
+  | { readonly kind: 'error' | 'aborted'; readonly error: unknown }
 
 interface IAssistedCommitRun {
   readonly id: string
   readonly repository: Repository
   readonly request: ICopilotAssistedCommitRequest
   readonly initialState: IRepositoryState
+  readonly pushAfterAssistedCommit: boolean
   readonly account: Account | undefined
   readonly modelSelection: string | null
   readonly providerDefinition: string | null
   readonly providerRevision: number
   readonly controller: AbortController
+  readonly publicationResources: IAssistedCommitPublicationResources
   readonly selectionReaders: Set<Promise<void>>
   settlement: IAssistedCommitSettlement
   selectionReadersClosed: boolean
   resourceProtection?: IRepositoryGitResourceProtection
   inputVersions?: ReadonlyArray<string>
   protectedPaths?: ReadonlyArray<string>
+  originalResourceProtection?: IRepositoryGitResourceProtection
   lease?: IAssistedCommitGitLease
   snapshot?: IAssistedCommitSnapshot
   snapshotAuthorized?: boolean
@@ -722,6 +745,11 @@ interface IAssistedCommitRun {
     readonly versions: ReadonlyArray<string>
   }
   cleanupPending?: boolean
+  pushDestination?: AssistedCommitPushDestination
+  pushAttempted?: boolean
+  pushSucceeded?: boolean
+  pushPublicationPending?: boolean
+  pushRetry?: Promise<AssistedCommitRunOutcome | undefined>
 }
 
 interface IRestoredAssistedCommitSelection {
@@ -1944,12 +1972,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async resumeDeferredAssistedCommitHistory(
-    repository: Repository
+    repository: Repository,
+    retainedRun?: IAssistedCommitRun
   ): Promise<ErrorWithMetadata | undefined> {
     const deferred = this.deferredAssistedCommitHistorySelections.get(
       repository.id
     )
     const assisted = this.assistedCommitRuns.get(repository.id)
+    const accepted =
+      retainedRun?.finalized &&
+      retainedRun.pushDestination?.kind === 'configured'
+        ? retainedRun
+        : assisted?.finalized && assisted.pushDestination?.kind === 'configured'
+        ? assisted
+        : undefined
     if (
       deferred === undefined ||
       this.assistedCommitHistoryReaders.has(repository.id) ||
@@ -1958,12 +1994,42 @@ export class AppStore extends TypedBaseStore<IAppState> {
     ) {
       return
     }
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    if (
+      accepted !== undefined &&
+      state.kind === 'error' &&
+      state.runId === accepted.id &&
+      state.retry === null &&
+      assistedCommitErrorCauses(state.error).some(
+        cause =>
+          cause instanceof AssistedCommitPushError && cause.publicationStale
+      )
+    ) {
+      if (
+        this.deferredAssistedCommitHistorySelections.get(repository.id) ===
+        deferred
+      ) {
+        this.deferredAssistedCommitHistorySelections.delete(repository.id)
+      }
+      return state.error
+    }
     this.assistedCommitHistoryReaders.add(repository.id)
     try {
-      await withRepositoryGitOperation(deferred.path, 'read', () =>
+      this.verifyAcceptedAssistedCommitOwner(accepted)
+      const execution = accepted?.repository ?? deferred
+      const read = () =>
         withRepositoryGitErrorPropagation(() =>
-          this._loadChangedFilesForCurrentSelection(deferred)
+          this._loadChangedFilesForCurrentSelection(execution)
         )
+      await withRepositoryGitOperation(execution.path, 'read', () =>
+        accepted === undefined
+          ? read()
+          : this.withAcceptedAssistedCommitAliasFence(
+              accepted,
+              [deferred],
+              read
+            )
       )
       if (
         this.deferredAssistedCommitHistorySelections.get(repository.id) ===
@@ -1979,6 +2045,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
           : new Error('Could not load deferred History', { cause: error }),
         { repository: deferred }
       )
+      if (accepted !== undefined) {
+        const stale = assistedCommitErrorCauses(error).some(
+          cause =>
+            (cause instanceof AssistedCommitPushError &&
+              cause.publicationStale) ||
+            (cause instanceof GitError &&
+              cause.result.gitError === DugiteError.NotAGitRepository)
+        )
+        if (
+          stale &&
+          this.deferredAssistedCommitHistorySelections.get(repository.id) ===
+            deferred
+        ) {
+          this.deferredAssistedCommitHistorySelections.delete(repository.id)
+        }
+        const current = this.assistedCommitRuns.get(repository.id)
+        if (current === undefined) {
+          this.assistedCommitRuns.set(repository.id, accepted)
+        }
+        return current === undefined || current === accepted
+          ? this.showAssistedCommitFailure(
+              accepted,
+              metadata,
+              stale ? null : 'refresh',
+              false,
+              false
+            )
+          : metadata
+      }
       try {
         this.emitError(metadata)
       } catch (notificationError) {
@@ -2335,6 +2430,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? changesetData.files[0]
         : commitSelection.file
 
+    verifyRepositoryGitSpawnFence()
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file: firstFileOrDefault,
       changesetData,
@@ -2368,6 +2464,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
+    verifyRepositoryGitSpawnFence()
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       file,
       diff: null,
@@ -2423,6 +2520,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    verifyRepositoryGitSpawnFence()
     this.repositoryStateCache.updateCommitSelection(repository, () => ({
       diff,
     }))
@@ -3310,14 +3408,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     const assistedRun = currentRun
     return this.withAssistedCommitSelectionReader(repository, assistedRun, () =>
-      withRepositoryGitOperation(repository.path, 'read', () =>
-        this.loadStatusCore(
-          repository,
-          clearPartialState && !excludeNewFiles,
-          propagateErrors,
-          assistedRun,
-          excludeNewFiles
-        )
+      withRepositoryGitOperation(
+        assistedRun?.finalized &&
+          assistedRun.pushDestination?.kind === 'configured'
+          ? assistedRun.pushDestination.path
+          : repository.path,
+        'read',
+        () =>
+          this.loadStatusCore(
+            repository,
+            clearPartialState && !excludeNewFiles,
+            propagateErrors,
+            assistedRun,
+            excludeNewFiles
+          )
       )
     )
   }
@@ -3344,6 +3448,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await manual.settlement.done
       return this.withAssistedCommitSelectionReader(repository, run, operation)
     }
+    try {
+      this.verifyAcceptedAssistedCommitOwner(run)
+    } catch (error) {
+      this.invalidateAssistedCommitSelection(repository, run, error)
+      throw error
+    }
+    const executionPath =
+      run?.finalized && run.pushDestination?.kind === 'configured'
+        ? run.pushDestination.path
+        : repository.path
     const state = this.repositoryStateCache.get(repository)
     if (
       run === undefined &&
@@ -3369,9 +3483,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.updateAssistedCommitErrorSettlement(repository)
     try {
       this.emitUpdate()
-      return await withRepositoryGitOperation(repository.path, 'read', () =>
-        withRepositoryGitErrorPropagation(operation)
+      const result = await withRepositoryGitOperation(
+        executionPath,
+        'read',
+        () =>
+          withRepositoryGitErrorPropagation(() =>
+            this.withAcceptedAssistedCommitSpawnFence(run, operation)
+          )
       )
+      this.verifyAcceptedAssistedCommitOwner(run)
+      return result
     } catch (error) {
       this.invalidateAssistedCommitSelection(repository, run, error)
       throw error
@@ -3393,11 +3514,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private verifyAcceptedAssistedCommitOwner(
+    run: IAssistedCommitRun | undefined
+  ): void {
+    if (run?.finalized && run.pushDestination?.kind === 'configured') {
+      verifyAssistedCommitPushOwner(run.pushDestination)
+    }
+  }
+
+  private withAcceptedAssistedCommitSpawnFence<T>(
+    run: IAssistedCommitRun | undefined,
+    operation: () => T
+  ): T {
+    return run?.finalized && run.pushDestination?.kind === 'configured'
+      ? withRepositoryGitSpawnFence(
+          () => this.verifyAcceptedAssistedCommitOwner(run),
+          operation
+        )
+      : operation()
+  }
+
+  private async withAcceptedAssistedCommitAliasFence<T>(
+    run: IAssistedCommitRun,
+    repositories: ReadonlyArray<Repository>,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    if (!run.finalized || run.pushDestination?.kind !== 'configured') {
+      return operation()
+    }
+    const destination = run.pushDestination
+    const aliases = await Promise.all(
+      repositories.map(repository =>
+        prepareAssistedCommitPushOwner(repository, destination)
+      )
+    )
+    const verify = () => {
+      this.verifyAcceptedAssistedCommitOwner(run)
+      for (const alias of aliases) {
+        alias()
+      }
+    }
+    const result = await withRepositoryGitSpawnFence(verify, operation)
+    verify()
+    return result
+  }
+
   private updateAssistedCommitErrorSettlement(repository: Repository): void {
     const run = this.assistedCommitRuns.get(repository.id)
     const state =
       this.repositoryStateCache.get(repository).changesState.assistedCommit
-    if (run !== undefined && state.kind === 'error' && state.runId === run.id) {
+    if (
+      run !== undefined &&
+      (state.kind === 'error' || state.kind === 'push-error') &&
+      state.runId === run.id
+    ) {
       this.repositoryStateCache.updateChangesState(repository, () => ({
         assistedCommit: {
           ...state,
@@ -3457,6 +3627,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     run: IAssistedCommitRun
   ): Promise<void> {
     try {
+      this.verifyAcceptedAssistedCommitOwner(run)
       await this.updateChangesWorkingDirectoryDiff(run.repository)
       do {
         while (run.selectionReaders.size > 0) {
@@ -4409,6 +4580,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const newSelection =
       currentlySelectedFile.selection.withSelectableLines(selectableLines)
+    verifyRepositoryGitSpawnFence()
     if (basis !== undefined) {
       this.assistedCommitRestoredSelections.set(newSelection, basis)
     }
@@ -4647,12 +4819,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.getAssistedCommitProviderDefinition(modelSelection)
     const providerRevision =
       this.getAssistedCommitProviderRevision(modelSelection)
-    const versions = await this.withAssistedCommitSelectionReader(
-      repository,
-      undefined,
-      () =>
-        this.verifyRequestedAssistedCommitSelection(repository, frozen.files)
-    )
+    const { versions, pushDestination } =
+      await this.withAssistedCommitSelectionReader(
+        repository,
+        undefined,
+        async () => ({
+          pushDestination: initialState.changesState.pushAfterAssistedCommit
+            ? await this.readAssistedCommitPushDestination(
+                repository,
+                initialState
+              )
+            : undefined,
+          versions: await this.verifyRequestedAssistedCommitSelection(
+            repository,
+            frozen.files
+          ),
+        })
+      )
     const intent = Object.freeze({ id: randomUUID() })
     this.assistedCommitIntents.set(intent, {
       repository,
@@ -4663,6 +4846,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       providerDefinition,
       providerRevision,
       versions,
+      pushDestination,
     })
     return Object.freeze({ ...frozen, intent })
   }
@@ -4712,9 +4896,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       request: freezeAssistedCommitRequest(request),
       initialState,
+      pushAfterAssistedCommit:
+        initialState.changesState.pushAfterAssistedCommit,
+      pushDestination: prepared?.pushDestination,
       account,
       modelSelection,
       controller: new AbortController(),
+      publicationResources: { locks: [] },
       selectionReaders: new Set<Promise<void>>(),
       settlement: createAssistedCommitSettlement(),
       selectionReadersClosed: false,
@@ -4734,6 +4922,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       this.assistedCommitRuns.set(repository.id, run)
       run.resourceProtection = protectAssistedCommitResources(repository.path)
+      run.originalResourceProtection = run.resourceProtection
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: true,
         hookProgress: null,
@@ -4767,11 +4956,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const verifiedVersions = await this.withAssistedCommitSelectionReader(
         repository,
         run,
-        () =>
-          this.verifyRequestedAssistedCommitSelection(
+        async () => {
+          if (
+            run.pushAfterAssistedCommit &&
+            run.pushDestination === undefined
+          ) {
+            run.pushDestination = await this.readAssistedCommitPushDestination(
+              repository,
+              run.initialState
+            )
+          }
+          return this.verifyRequestedAssistedCommitSelection(
             repository,
             run.request.files
           )
+        }
       )
       if (run.inputVersions === undefined) {
         run.inputVersions = verifiedVersions
@@ -4824,7 +5023,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.checkAssistedCommitRun(run)
       run.lease = await acquireAssistedCommitGitLease(
         repository.path,
-        run.protectedPaths
+        run.protectedPaths,
+        () => this.verifyAcceptedAssistedCommitOwner(run)
       )
       await this.assertFreshAssistedCommitInputs(run)
       await run.lease.run(
@@ -4988,12 +5188,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
         runId: run.id,
         cancelRequested: false,
       })
+      this.checkAssistedCommitRun(run)
       // Keep the result capability through awaited UI reconciliation. Cancel
       // here must still roll back even though the executor returned success.
       await run.lease.run(
         () => this.refreshAssistedCommitRepository(repository, true),
         true
       )
+      this.checkAssistedCommitRun(run)
       const deferredBeforeAcceptance = this.deferredAssistedCommitRefreshes.get(
         repository.id
       )
@@ -5009,36 +5211,60 @@ export class AppStore extends TypedBaseStore<IAppState> {
           workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
         }))
       }
-      await run.lease.run(
-        () =>
-          acceptVerifiedAssistedCommitTransaction(
-            result,
-            () => {
-              this.checkAssistedCommitRun(run)
-              this.setAssistedCommitRunState(run, {
-                kind: 'closing',
-                runId: run.id,
-              })
-            },
-            options
-          ),
-        true
-      )
-      this.acceptLocalAssistedCommitRun(run, result)
-      outcome = { kind: 'local-ready', result }
+      if (run.pushAfterAssistedCommit) {
+        outcome = await this.pushAssistedCommitRun(run, result)
+      } else {
+        await run.lease.run(
+          () =>
+            acceptVerifiedAssistedCommitTransaction(
+              result,
+              () => {
+                this.checkAssistedCommitRun(run)
+                this.setAssistedCommitRunState(run, {
+                  kind: 'closing',
+                  runId: run.id,
+                })
+              },
+              options
+            ),
+          true
+        )
+        this.acceptLocalAssistedCommitRun(run, result)
+        outcome = { kind: 'local-ready', result }
+      }
     } catch (originalError) {
       if (run.finalized && run.result !== undefined) {
-        this.showAssistedCommitFailure(
-          run,
-          new Error(
-            'Commits were accepted locally, but Desktop presentation failed',
-            { cause: originalError }
-          ),
-          'refresh',
-          false,
-          false
-        )
-        outcome = { kind: 'local-ready', result: run.result }
+        if (run.pushAfterAssistedCommit && !run.pushSucceeded) {
+          const error = this.showAssistedCommitPushFailure(run, originalError)
+          outcome = {
+            kind: 'push-error',
+            result: run.result,
+            error,
+            attempted: run.pushAttempted === true,
+          }
+        } else {
+          const error = this.showAssistedCommitFailure(
+            run,
+            new Error(
+              run.pushSucceeded
+                ? 'Commits were pushed, but Desktop presentation failed'
+                : 'Commits were accepted locally, but Desktop presentation failed',
+              { cause: originalError }
+            ),
+            assistedCommitErrorCauses(originalError).some(
+              error =>
+                error instanceof AssistedCommitPushError &&
+                error.publicationStale
+            )
+              ? null
+              : 'refresh',
+            false,
+            false
+          )
+          outcome = run.pushSucceeded
+            ? { kind: 'pushed', result: run.result, refreshError: error }
+            : { kind: 'local-ready', result: run.result }
+        }
       } else {
         run.reconciling = true
         let error = originalError
@@ -5164,6 +5390,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } finally {
       run.reconciling = true
       try {
+        this.repositoryStateCache.update(repository, () => ({
+          isPushPullFetchInProgress: false,
+          pushPullFetchProgress: null,
+        }))
         run.consent?.resolve(false)
         run.hookFailure?.resolve('abort')
         const state =
@@ -5177,12 +5407,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
             try {
               const refresh = () =>
-                withRepositoryGitErrorPropagation(async () => {
-                  await this._refreshRepository(
-                    deferredRepository ?? repository
-                  )
-                  await this.verifyAssistedCommitSelectionFence(run)
-                })
+                this.withAcceptedAssistedCommitAliasFence(
+                  run,
+                  [deferredRepository ?? repository],
+                  () =>
+                    withRepositoryGitErrorPropagation(async () => {
+                      await this._refreshRepository(
+                        run.finalized
+                          ? run.repository
+                          : deferredRepository ?? repository
+                      )
+                      await this.verifyAssistedCommitSelectionFence(run)
+                    })
+                )
               if (run.lease !== undefined) {
                 await run.lease.run(refresh, true)
               } else {
@@ -5205,7 +5442,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 true,
                 false
               )
-              if (!run.finalized) {
+              if (run.pushSucceeded && run.result !== undefined) {
+                outcome = {
+                  kind: 'pushed',
+                  result: run.result,
+                  refreshError: metadata,
+                }
+              } else if (!run.finalized) {
                 outcome = { kind: 'error', error: metadata }
               }
             }
@@ -5213,7 +5456,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           run.lease?.release()
           run.lease = undefined
           await this.finishAssistedCommitSelectionReads(run)
-          if (run.selectionReadError !== undefined && !run.finalized) {
+          if (
+            run.selectionReadError !== undefined &&
+            (!run.finalized || run.pushSucceeded)
+          ) {
             const metadata = this.showAssistedCommitFailure(
               run,
               run.selectionReadError,
@@ -5221,7 +5467,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
               true,
               false
             )
-            outcome = { kind: 'error', error: metadata }
+            outcome =
+              run.pushSucceeded && run.result !== undefined
+                ? {
+                    kind: 'pushed',
+                    result: run.result,
+                    refreshError: metadata,
+                  }
+                : { kind: 'error', error: metadata }
           }
           this.repositoryStateCache.update(repository, () => ({
             isCommitting: false,
@@ -5291,7 +5544,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
         try {
-          await this.resumeDeferredAssistedCommitHistory(repository)
+          const historyError = await this.resumeDeferredAssistedCommitHistory(
+            repository,
+            run
+          )
+          if (
+            historyError !== undefined &&
+            run.pushSucceeded &&
+            run.result !== undefined
+          ) {
+            outcome = {
+              kind: 'pushed',
+              result: run.result,
+              refreshError: historyError,
+            }
+          }
           this.emitUpdate()
         } catch (error) {
           log.error('Accepted assisted commits could not be presented', error)
@@ -5330,7 +5597,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let errorDelivered = false
     try {
       const historyError = await this.resumeDeferredAssistedCommitHistory(
-        run.repository
+        run.repository,
+        run
       )
       historyDelivery = false
       if (historyError !== undefined) {
@@ -5342,7 +5610,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } catch (error) {
       const state = this.repositoryStateCache.get(run.repository).changesState
         .assistedCommit
-      const ownedError = state.kind === 'error' && state.runId === run.id
+      const ownedError =
+        (state.kind === 'error' || state.kind === 'push-error') &&
+        state.runId === run.id
       const failure = ownedError
         ? new AggregateError(
             [state.error, error],
@@ -5362,8 +5632,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ? this.showAssistedCommitFailure(
               run,
               metadata,
-              state.retry,
-              state.selectionNeedsReview,
+              state.kind === 'error' ? state.retry : null,
+              state.kind === 'error' ? state.selectionNeedsReview : false,
               false
             )
           : metadata
@@ -5405,10 +5675,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     run: IAssistedCommitRun,
     paths: ReadonlyArray<string>
   ): void {
-    run.protectedPaths = [...new Set([...(run.protectedPaths ?? []), ...paths])]
+    run.protectedPaths = [
+      ...new Set([
+        ...(run.protectedPaths ?? []),
+        ...paths,
+        ...(run.pushDestination?.kind === 'configured'
+          ? run.pushDestination.admissionPaths
+          : []),
+      ]),
+    ]
     const protection = protectAssistedCommitResources(
       run.repository.path,
-      run.protectedPaths
+      run.protectedPaths,
+      run.originalResourceProtection
     )
     run.resourceProtection?.release()
     run.resourceProtection = protection
@@ -5659,6 +5938,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       state.multiCommitOperationState !== null ||
       state.changesState.conflictState !== null ||
       !assistedCommitRequestsEqual(run.request, currentRequest) ||
+      state.changesState.pushAfterAssistedCommit !==
+        run.pushAfterAssistedCommit ||
       JSON.stringify(state.changesState.coAuthors) !==
         JSON.stringify(run.initialState.changesState.coAuthors) ||
       state.changesState.showCoAuthoredBy !==
@@ -5954,6 +6235,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       run.finalized ||
       state.kind === 'idle' ||
       state.kind === 'error' ||
+      state.kind === 'push-error' ||
+      state.kind === 'pushing' ||
       state.kind === 'rolling-back' ||
       state.kind === 'refreshing' ||
       state.kind === 'closing' ||
@@ -6213,8 +6496,567 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private readAssistedCommitPushDestination(
+    repository: Repository,
+    state: IRepositoryState
+  ): Promise<AssistedCommitPushDestination> {
+    const tip = state.branchesState.tip
+    const ref =
+      tip.kind === TipState.Valid
+        ? tip.branch.ref
+        : tip.kind === TipState.Unborn
+        ? tip.ref.startsWith('refs/heads/')
+          ? tip.ref
+          : `refs/heads/${tip.ref}`
+        : null
+    return readAssistedCommitPushDestination(repository, ref)
+  }
+
+  private showAssistedCommitPushFailure(
+    run: IAssistedCommitRun,
+    error: unknown
+  ): ErrorWithMetadata {
+    const existing = this.repositoryStateCache.get(run.repository).changesState
+      .assistedCommit
+    const cause =
+      existing.kind === 'push-error' &&
+      !assistedCommitErrorCauses(error).includes(existing.error)
+        ? new AggregateError([existing.error, error])
+        : error
+    const failure =
+      cause === error && error instanceof Error
+        ? error
+        : new Error(error instanceof Error ? error.message : 'Push failed', {
+            cause,
+          })
+    const metadata = new ErrorWithMetadata(failure, {
+      repository: run.repository,
+    })
+    log.error('Assisted commit push failed; local commits were kept', metadata)
+    this.repositoryStateCache.updateChangesState(run.repository, () => ({
+      assistedCommit: {
+        kind: 'push-error',
+        runId: run.id,
+        error: metadata,
+        attempted: run.pushAttempted === true,
+        settling: !run.finished,
+      },
+    }))
+    this.emitUpdate()
+    return metadata
+  }
+
+  private async pushAssistedCommitRun(
+    run: IAssistedCommitRun,
+    result: IAssistedCommitResult,
+    requestedRepository: Repository = run.repository
+  ): Promise<AssistedCommitRunOutcome> {
+    const lease = run.lease
+    if (lease === undefined) {
+      throw new AssistedCommitError(
+        'disposed',
+        'Assisted push has no Git owner'
+      )
+    }
+    this.setAssistedCommitRunState(run, {
+      kind: 'preparing-push',
+      runId: run.id,
+      cancelRequested: false,
+      canCancel: !run.finalized,
+    })
+    if (!run.finalized) {
+      this.checkAssistedCommitRun(run)
+    }
+    let outcome: PushBranchOutcome
+    try {
+      const destination = run.pushDestination
+      if (destination === undefined) {
+        throw new AssistedCommitPushError(
+          'The original push destination is unavailable'
+        )
+      }
+      if (destination.kind === 'unavailable') {
+        throw destination.error
+      }
+      const expectedTip = result.head.sha
+      if (expectedTip === null || result.head.ref !== destination.branchRef) {
+        throw new AssistedCommitPushError(
+          'The completed run has no pushable original branch'
+        )
+      }
+      const branch = new Branch(
+        destination.branchRef.slice('refs/heads/'.length),
+        destination.publishBranch
+          ? null
+          : `${destination.remote.name}/${destination.remoteRef.slice(
+              'refs/heads/'.length
+            )}`,
+        { sha: expectedTip },
+        BranchType.Local,
+        destination.branchRef
+      )
+      outcome = await lease.run(() =>
+        withRepositoryGitErrorPropagation(async () => {
+          if (
+            this.repositoryStateCache.get(run.repository)
+              .isPushPullFetchInProgress
+          ) {
+            throw new AssistedCommitPushError(
+              'Finish the current network operation before retrying push'
+            )
+          }
+          this.repositoryStateCache.update(run.repository, () => ({
+            isPushPullFetchInProgress: true,
+          }))
+          return this.withRefreshedGitHubRepository(
+            run.repository,
+            async repository => {
+              if (
+                repository.id !== run.repository.id ||
+                repository.path !== run.repository.path
+              ) {
+                throw new AssistedCommitPushError(
+                  'Repository identity changed while preparing push'
+                )
+              }
+              return this.performPushBranch(
+                repository,
+                branch,
+                destination.remote,
+                {
+                  assistedCommit: {
+                    expectedTip,
+                    remoteRef: destination.remoteRef,
+                    pushURL: destination.pushURL,
+                    rawPushURL: destination.rawPushURL,
+                    pushURLSource: destination.pushURLSource,
+                    prepareForSpawn: async () => {
+                      const verifyDestination = async () => {
+                        const requested =
+                          requestedRepository.path === repository.path
+                            ? undefined
+                            : await prepareAssistedCommitPushOwner(
+                                requestedRepository,
+                                destination
+                              )
+                        const execution =
+                          await prepareAssistedCommitPushDestination(
+                            repository,
+                            destination,
+                            result.head
+                          )
+                        return () => {
+                          requested?.()
+                          execution()
+                        }
+                      }
+                      const enter = run.finalized
+                        ? await verifyDestination()
+                        : await prepareAssistedCommitTransactionForPush(
+                            result,
+                            verifyDestination,
+                            { signal: run.controller.signal }
+                          )
+                      return () => {
+                        if (
+                          this.assistedCommitRuns.get(run.repository.id) !== run
+                        ) {
+                          throw new AssistedCommitPushError(
+                            'Push retry belongs to an expired run'
+                          )
+                        }
+                        if (!run.finalized) {
+                          this.checkAssistedCommitRun(run)
+                        }
+                        enter()
+                        if (!run.finalized) {
+                          this.markAssistedCommitRunAccepted(run, {
+                            kind: 'pushing',
+                            runId: run.id,
+                            phase: 'push',
+                            progress: null,
+                          })
+                        } else {
+                          this.repositoryStateCache.updateChangesState(
+                            run.repository,
+                            () => ({
+                              assistedCommit: {
+                                kind: 'pushing',
+                                runId: run.id,
+                                phase: 'push',
+                                progress: null,
+                              },
+                            })
+                          )
+                        }
+                        run.pushAttempted = true
+                      }
+                    },
+                  },
+                  onHookProgress: this.onHookProgress(run.repository),
+                  onHookFailure: (name, output) =>
+                    withoutRepositoryGitAccess(() =>
+                      this.onAssistedCommitHookFailure(run, name, output)
+                    ),
+                  onTerminalOutputAvailable: subscribeToCommitOutput => {
+                    this.repositoryStateCache.update(run.repository, () => ({
+                      subscribeToCommitOutput,
+                    }))
+                    this.emitUpdate()
+                  },
+                },
+                {
+                  onProgress: progress => {
+                    const state = this.repositoryStateCache.get(run.repository)
+                      .changesState.assistedCommit
+                    if (state.kind === 'pushing' && state.runId === run.id) {
+                      this.setAssistedCommitRunState(run, {
+                        ...state,
+                        progress,
+                      })
+                    }
+                  },
+                  onPushed: () => {
+                    run.pushSucceeded = true
+                    run.pushPublicationPending = destination.publishBranch
+                    this.setAssistedCommitRunState(run, {
+                      kind: 'pushing',
+                      runId: run.id,
+                      phase: 'refresh',
+                      progress: null,
+                    })
+                  },
+                  completePublication: () =>
+                    this.completeAssistedCommitPublication(run, repository),
+                  verifyFollowUpOwner: () =>
+                    verifyAssistedCommitPushOwner(destination),
+                }
+              )
+            }
+          )
+        })
+      )
+    } catch (error) {
+      outcome = { kind: 'error', error }
+    }
+    if (outcome.kind !== 'pushed') {
+      if (!run.finalized) {
+        const unsafe = assistedCommitErrorCauses(outcome.error).some(
+          error => error instanceof AssistedCommitError && error.code !== 'busy'
+        )
+        if (
+          unsafe ||
+          run.authorizationError !== undefined ||
+          run.controller.signal.aborted
+        ) {
+          throw outcome.error
+        }
+        await lease.run(
+          () =>
+            acceptVerifiedAssistedCommitTransaction(
+              result,
+              () => {
+                this.checkAssistedCommitRun(run)
+                this.setAssistedCommitRunState(run, {
+                  kind: 'closing',
+                  runId: run.id,
+                })
+              },
+              { signal: run.controller.signal }
+            ),
+          true
+        )
+        this.acceptLocalAssistedCommitRun(run, result)
+      }
+      const error = this.showAssistedCommitPushFailure(run, outcome.error)
+      return {
+        kind: 'push-error',
+        result,
+        error,
+        attempted: run.pushAttempted === true,
+      }
+    }
+    let refreshError = outcome.refreshError
+    try {
+      this.statsStore.recordPush(
+        getAccountForRepository(this.accounts, run.repository)
+      )
+    } catch (error) {
+      refreshError =
+        refreshError === undefined
+          ? error
+          : new AggregateError(
+              [refreshError, error],
+              'Pushed commits need refresh or statistics attention'
+            )
+    }
+    if (refreshError !== undefined) {
+      const error = this.showAssistedCommitFailure(
+        run,
+        new Error(
+          'Commits were pushed, but Desktop could not finish refreshing them',
+          { cause: refreshError }
+        ),
+        assistedCommitErrorCauses(refreshError).some(
+          error =>
+            error instanceof AssistedCommitPushError && error.publicationStale
+        )
+          ? null
+          : 'refresh',
+        false,
+        false
+      )
+      return { kind: 'pushed', result, refreshError: error }
+    }
+    this.setAssistedCommitRunState(run, { kind: 'idle' })
+    return { kind: 'pushed', result }
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _retryCopilotAssistedCommitPush(
+    repository: Repository,
+    runId: string
+  ): Promise<AssistedCommitRunOutcome | undefined> {
+    const run = this.assistedCommitRuns.get(repository.id)
+    if (run?.id === runId && run.pushRetry !== undefined) {
+      return run.pushRetry
+    }
+    const state =
+      this.repositoryStateCache.get(repository).changesState.assistedCommit
+    if (
+      run?.id !== runId ||
+      !run.finished ||
+      !run.finalized ||
+      run.result === undefined ||
+      state.kind !== 'push-error' ||
+      state.runId !== runId ||
+      state.settling
+    ) {
+      return Promise.resolve(undefined)
+    }
+    const result = run.result
+    const retry = Promise.resolve()
+      .then(() => this.retryAssistedCommitPush(run, result, repository))
+      .finally(() => {
+        if (run.pushRetry === retry) {
+          run.pushRetry = undefined
+        }
+      })
+    run.pushRetry = retry
+    return retry
+  }
+
+  private async retryAssistedCommitPush(
+    run: IAssistedCommitRun,
+    result: IAssistedCommitResult,
+    requestedRepository: Repository
+  ): Promise<AssistedCommitRunOutcome> {
+    const repository = run.repository
+    if (this.assistedCommitRuns.get(repository.id) !== run) {
+      return { kind: 'busy' }
+    }
+    const destination = run.pushDestination
+    if (destination?.kind !== 'configured') {
+      const error = this.showAssistedCommitPushFailure(
+        run,
+        destination?.error ??
+          new AssistedCommitPushError(
+            'The original push destination is unavailable'
+          )
+      )
+      return {
+        kind: 'push-error',
+        result,
+        error,
+        attempted: run.pushAttempted === true,
+      }
+    }
+    let verifyAliases: ReadonlyArray<() => void>
+    try {
+      verifyAliases = await Promise.all(
+        [
+          repository,
+          ...(requestedRepository.path === repository.path
+            ? []
+            : [requestedRepository]),
+        ].map(alias => prepareAssistedCommitPushOwner(alias, destination))
+      )
+      for (const verify of verifyAliases) {
+        verify()
+      }
+    } catch (error) {
+      if (this.assistedCommitRuns.get(repository.id) !== run) {
+        return { kind: 'busy' }
+      }
+      return {
+        kind: 'push-error',
+        result,
+        error: this.showAssistedCommitPushFailure(run, error),
+        attempted: run.pushAttempted === true,
+      }
+    }
+    if (this.assistedCommitRuns.get(repository.id) !== run) {
+      return { kind: 'busy' }
+    }
+    const verifyOwner = () => {
+      for (const verify of verifyAliases) {
+        verify()
+      }
+    }
+    const state = this.repositoryStateCache.get(repository)
+    if (
+      state.isCommitting ||
+      state.isPushPullFetchInProgress ||
+      state.checkoutProgress !== null ||
+      isRepositoryGitMutationInProgress(repository.path) ||
+      isRepositoryAffectedByAssistedCommit(repository.path) ||
+      this.assistedCommitSelectionReaders.has(repository.id)
+    ) {
+      const error = this.showAssistedCommitPushFailure(
+        run,
+        new AssistedCommitPushError(
+          'Finish the current Git operation before retrying push'
+        )
+      )
+      return {
+        kind: 'push-error',
+        result,
+        error,
+        attempted: run.pushAttempted === true,
+      }
+    }
+    run.finished = false
+    run.reconciling = false
+    run.selectionReadError = undefined
+    run.selectionReadersClosed = false
+    run.settlement = createAssistedCommitSettlement()
+    let outcome: AssistedCommitRunOutcome
+    try {
+      run.resourceProtection = protectAssistedCommitResources(
+        repository.path,
+        undefined,
+        run.originalResourceProtection
+      )
+      this.repositoryStateCache.update(repository, () => ({
+        isCommitting: true,
+      }))
+      this.setAssistedCommitRunState(run, {
+        kind: 'preparing-push',
+        runId: run.id,
+        cancelRequested: false,
+        canCancel: false,
+      })
+      this.updateAssistedCommitResourceProtection(
+        run,
+        await withRepositoryGitOperation(destination.path, 'read', () =>
+          withRepositoryGitSpawnFence(verifyOwner, () =>
+            getAssistedCommitProtectedPaths(destination.path)
+          )
+        )
+      )
+      verifyOwner()
+      run.lease = await acquireAssistedCommitGitLease(
+        destination.path,
+        run.protectedPaths,
+        verifyOwner
+      )
+      outcome = await this.pushAssistedCommitRun(
+        run,
+        result,
+        requestedRepository
+      )
+    } catch (error) {
+      const metadata = this.showAssistedCommitPushFailure(run, error)
+      outcome = {
+        kind: 'push-error',
+        result,
+        error: metadata,
+        attempted: run.pushAttempted === true,
+      }
+    } finally {
+      run.reconciling = true
+      try {
+        verifyOwner()
+        run.hookFailure?.resolve('abort')
+        const deferredRepository = this.deferredAssistedCommitRefreshes.get(
+          repository.id
+        )
+        if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
+          const refresh = () =>
+            this.withAcceptedAssistedCommitAliasFence(
+              run,
+              [requestedRepository, deferredRepository ?? repository],
+              () =>
+                withRepositoryGitErrorPropagation(() =>
+                  this._refreshRepository(run.repository)
+                )
+            )
+          if (run.lease === undefined) {
+            await withRepositoryGitOperation(destination.path, 'read', refresh)
+          } else {
+            await run.lease.run(refresh, true)
+          }
+        }
+        run.lease?.release()
+        run.lease = undefined
+        await this.finishAssistedCommitSelectionReads(run)
+        if (run.selectionReadError !== undefined) {
+          throw run.selectionReadError
+        }
+      } catch (error) {
+        if (run.pushSucceeded) {
+          const metadata = this.showAssistedCommitFailure(
+            run,
+            new Error(
+              'Commits were pushed, but Desktop could not refresh them',
+              { cause: error }
+            ),
+            'refresh',
+            false,
+            false
+          )
+          outcome = { kind: 'pushed', result, refreshError: metadata }
+        } else {
+          const metadata = this.showAssistedCommitPushFailure(run, error)
+          outcome = {
+            kind: 'push-error',
+            result,
+            error: metadata,
+            attempted: run.pushAttempted === true,
+          }
+        }
+      } finally {
+        run.lease?.release()
+        run.lease = undefined
+        run.finished = true
+        run.settlement.complete()
+        this.repositoryStateCache.update(repository, () => ({
+          isCommitting: false,
+          isPushPullFetchInProgress: false,
+          pushPullFetchProgress: null,
+          hookProgress: null,
+          subscribeToCommitOutput: null,
+        }))
+        this.updateAssistedCommitErrorSettlement(repository)
+        this.releaseSettledAssistedCommitResources(run)
+        if (
+          this.repositoryStateCache.get(repository).changesState.assistedCommit
+            .kind === 'idle' &&
+          this.assistedCommitRuns.get(repository.id) === run
+        ) {
+          this.assistedCommitRuns.delete(repository.id)
+        }
+      }
+    }
+    const presentationError = await this.presentSettledAssistedCommitRun(run)
+    if (presentationError !== undefined && run.pushSucceeded) {
+      outcome = { kind: 'pushed', result, refreshError: presentationError }
+    }
+    return outcome
+  }
+
   /**
-   * Local acceptance boundary. Layer five can extend this immediately before push.
+   * Accept a local-only result after its final verification fence.
    *
    * No awaited work may separate the final cancellation/auth check from
    * finalization. Until here, even a successful executor result remains reversible.
@@ -6224,21 +7066,62 @@ export class AppStore extends TypedBaseStore<IAppState> {
     result: IAssistedCommitResult
   ): void {
     finalizeAssistedCommitTransaction(result)
+    this.markAssistedCommitRunAccepted(run, { kind: 'idle' })
+    this.emitUpdate()
+  }
+
+  private markAssistedCommitRunAccepted(
+    run: IAssistedCommitRun,
+    assistedCommit: AssistedCommitRunState
+  ): void {
     run.finalized = true
     run.recoveryCapability = undefined
+    run.recovery = undefined
+    run.cleanupPending = false
     this.repositoryStateCache.update(run.repository, state => ({
       ...state,
       allowEmptyCommit: false,
       changesState: {
         ...state.changesState,
-        assistedCommit: { kind: 'idle' },
+        assistedCommit,
         fileListFilter: {
           ...state.changesState.fileListFilter,
           filterText: '',
         },
       },
     }))
-    this.emitUpdate()
+  }
+
+  private async completeAssistedCommitPublication(
+    run: IAssistedCommitRun,
+    repository: Repository = run.repository
+  ): Promise<void> {
+    if (!run.pushPublicationPending) {
+      return
+    }
+    if (run.pushDestination === undefined || run.result === undefined) {
+      throw new Error('Accepted push has no retained publication intent')
+    }
+    try {
+      await completeAssistedCommitPushPublication(
+        repository,
+        run.pushDestination,
+        run.result.head,
+        run.publicationResources
+      )
+    } catch (error) {
+      if (
+        error instanceof AssistedCommitPushError &&
+        error.publicationStale &&
+        run.publicationResources.locks.every(
+          lock => lock.closed && lock.consumed
+        )
+      ) {
+        run.pushPublicationPending = false
+      }
+      throw error
+    }
+    run.pushPublicationPending = false
   }
 
   private async recordAssistedCommitStats(
@@ -6305,6 +7188,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): ErrorWithMetadata {
     const existing = this.repositoryStateCache.get(run.repository).changesState
       .assistedCommit
+    if (existing.kind === 'push-error' && run.finalized) {
+      return this.showAssistedCommitPushFailure(
+        run,
+        new Error(existing.error.message, {
+          cause: new AggregateError([existing.error, error]),
+        })
+      )
+    }
     const preserved =
       existing.kind !== 'error'
         ? error
@@ -6331,7 +7222,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       runId: run.id,
       error: metadata,
       recovery: run.recovery,
-      retry,
+      pushed: run.pushSucceeded === true,
+      retry: run.pushPublicationPending
+        ? 'refresh'
+        : run.finalized &&
+          assistedCommitErrorCauses(error).some(
+            cause =>
+              cause instanceof AssistedCommitPushError && cause.publicationStale
+          )
+        ? null
+        : retry,
       selectionNeedsReview,
       settling: !run.finished,
     }
@@ -6374,7 +7274,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
         kind: state.retry === 'recovery' ? 'rolling-back' : 'refreshing',
         runId,
       })
+      if (
+        run.finalized &&
+        run.pushPublicationPending &&
+        run.lease === undefined
+      ) {
+        if (run.protectedPaths === undefined) {
+          throw new Error(
+            'Accepted publication has no retained Git resource admission'
+          )
+        }
+        if (run.pushDestination?.kind !== 'configured') {
+          throw new Error(
+            'Accepted publication has no frozen repository admission'
+          )
+        }
+        this.updateAssistedCommitResourceProtection(run, run.protectedPaths)
+        run.lease = await acquireAssistedCommitGitLease(
+          run.pushDestination.path,
+          run.protectedPaths,
+          () => this.verifyAcceptedAssistedCommitOwner(run)
+        )
+      }
       const capability = run.recoveryCapability
+      let verifyRecoveryAlias: (() => void) | undefined
       const recover = async () => {
         if (state.retry === 'recovery') {
           if (capability !== undefined) {
@@ -6386,29 +7309,63 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         }
         return withRepositoryGitErrorPropagation(async () => {
+          if (run.finalized) {
+            await this.completeAssistedCommitPublication(run)
+            if (run.pushDestination?.kind === 'configured') {
+              verifyRecoveryAlias = await prepareAssistedCommitPushOwner(
+                repository,
+                run.pushDestination
+              )
+            }
+          }
           const restore = async () => {
             if (run.finalized) {
-              await this.refreshAssistedCommitRepository(repository, true)
+              await this.refreshAssistedCommitRepository(run.repository, true)
               return false
             }
             return this.restoreAssistedCommitSelection(run, state.error)
           }
-          const needsReview = await restore()
-          const deferredRepository = this.deferredAssistedCommitRefreshes.get(
-            repository.id
-          )
-          if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
-            await this._refreshRepository(deferredRepository ?? repository)
+          const restoreAndRefresh = async () => {
+            const needsReview = await restore()
+            const deferredRepository = this.deferredAssistedCommitRefreshes.get(
+              repository.id
+            )
+            if (this.deferredAssistedCommitRefreshes.delete(repository.id)) {
+              await this.withAcceptedAssistedCommitAliasFence(
+                run,
+                [deferredRepository ?? repository],
+                () =>
+                  this._refreshRepository(
+                    run.finalized
+                      ? run.repository
+                      : deferredRepository ?? repository
+                  )
+              )
+            }
+            if (!run.finalized) {
+              await this.verifyAssistedCommitSelectionFence(run)
+            }
+            return needsReview
           }
-          if (!run.finalized) {
-            await this.verifyAssistedCommitSelectionFence(run)
-          }
-          return needsReview
+          return verifyRecoveryAlias === undefined
+            ? restoreAndRefresh()
+            : withRepositoryGitSpawnFence(
+                verifyRecoveryAlias,
+                restoreAndRefresh
+              )
         })
       }
       const needsReview =
         run.lease === undefined
-          ? await withRepositoryGitOperation(repository.path, 'read', recover)
+          ? await withRepositoryGitOperation(
+              run.finalized
+                ? run.pushDestination?.kind === 'configured'
+                  ? run.pushDestination.path
+                  : run.repository.path
+                : repository.path,
+              'read',
+              () => this.withAcceptedAssistedCommitSpawnFence(run, recover)
+            )
           : await run.lease.run(recover, true)
       run.lease?.release()
       run.lease = undefined
@@ -6416,6 +7373,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (run.selectionReadError !== undefined) {
         throw run.selectionReadError
       }
+      verifyRecoveryAlias?.()
       run.finished = true
       this.repositoryStateCache.update(repository, () => ({
         isCommitting: false,
@@ -6454,6 +7412,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ),
         run.recoveryCapability !== undefined || run.cleanupPending
           ? 'recovery'
+          : assistedCommitErrorCauses(error).some(
+              cause =>
+                cause instanceof AssistedCommitPushError &&
+                cause.publicationStale
+            )
+          ? null
           : 'refresh',
         state.selectionNeedsReview,
         false
@@ -6483,11 +7447,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.repositoryStateCache.get(repository).changesState.assistedCommit
     const run = this.assistedCommitRuns.get(repository.id)
     if (
-      state.kind !== 'error' ||
+      (state.kind !== 'error' && state.kind !== 'push-error') ||
       state.runId !== runId ||
       run?.finished === false ||
       this.assistedCommitSelectionReaders.has(repository.id) ||
-      state.retry !== null
+      (state.kind === 'error' && state.retry !== null)
     ) {
       return
     }
@@ -6932,8 +7896,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.deferAssistedCommitRefresh(repository)
       return
     }
+    const run = this.getAssistedCommitSelectionOwner(repository)
     return withRepositoryGitOperation(repository.path, 'read', () =>
-      this.refreshRepositoryCore(repository)
+      this.withAcceptedAssistedCommitSpawnFence(run, () =>
+        this.refreshRepositoryCore(repository)
+      )
     )
   }
 
@@ -7312,6 +8279,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     storeCommitMode(repository, commitMode)
     this.repositoryStateCache.updateChangesState(repository, () => ({
       commitMode,
+    }))
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _setPushAfterAssistedCommit(
+    repository: Repository,
+    enabled: boolean
+  ): void {
+    this.assertNoAssistedCommitRun(repository)
+    storePushAfterAssistedCommit(repository, enabled)
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      pushAfterAssistedCommit: enabled,
     }))
     this.emitUpdate()
   }
@@ -8201,9 +9181,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     options?: PushOptions
   ): Promise<void> {
-    return this.withRefreshedGitHubRepository(repository, repository => {
-      return this.performPush(repository, options)
-    })
+    return this.withAssistedCommitMutationResources(repository, () =>
+      this.withRefreshedGitHubRepository(repository, repository =>
+        this.performPush(repository, options)
+      )
+    )
   }
 
   private getBranchToPush(
@@ -8257,32 +9239,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const remoteName = branch.upstreamRemoteName || remote.name
 
-      const pushTitle = `Pushing to ${remoteName}`
-
-      // Emit an initial progress even before our push begins
-      // since we're doing some work to get remotes up front.
-      this.updatePushPullFetchProgress(repository, {
-        kind: 'push',
-        title: pushTitle,
-        value: 0,
-        remote: remoteName,
-        branch: branch.name,
-      })
-
-      // Let's say that a push takes roughly twice as long as a fetch,
-      // this is of course highly inaccurate.
-      let pushWeight = 2.5
-      let fetchWeight = 1
-
-      // Let's leave 10% at the end for refreshing
-      const refreshWeight = 0.1
-
-      // Scale pull and fetch weights to be between 0 and 0.9.
-      const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
-
-      pushWeight *= scale
-      fetchWeight *= scale
-
       const retryAction: RetryAction = {
         type: RetryActionType.Push,
         repository,
@@ -8329,64 +9285,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const gitStore = this.gitStoreCache.get(repository)
       await gitStore.performFailableOperation(
         async () => {
-          let aborted = false
-          await pushRepo(
+          const outcome = await this.performPushBranch(
             repository,
+            branch,
             safeRemote,
-            branch.name,
-            branch.upstreamWithoutRemote,
-            gitStore.tagsToPush,
-            {
-              onHookFailure: this.onHookFailure(() => (aborted = true)),
-              ...options,
-            },
-            progress => {
-              this.updatePushPullFetchProgress(repository, {
-                ...progress,
-                title: pushTitle,
-                value: pushWeight * progress.value,
-              })
-            }
-          ).catch(err => (aborted ? undefined : Promise.reject(err)))
-
-          if (aborted) {
-            return
+            options
+          )
+          if (outcome.kind === 'error') {
+            throw outcome.error
           }
-
-          gitStore.clearTagsToPush()
-
-          await gitStore.fetchRemotes([safeRemote], false, fetchProgress => {
-            this.updatePushPullFetchProgress(repository, {
-              ...fetchProgress,
-              value: pushWeight + fetchProgress.value * fetchWeight,
-            })
-          })
-
-          const refreshTitle = __DARWIN__
-            ? 'Refreshing Repository'
-            : 'Refreshing repository'
-          const refreshStartProgress = pushWeight + fetchWeight
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            description: 'Fast-forwarding branches',
-            value: refreshStartProgress,
-          })
-
-          await this.fastForwardBranches(repository)
-
-          this.updatePushPullFetchProgress(repository, {
-            kind: 'generic',
-            title: refreshTitle,
-            value: refreshStartProgress + refreshWeight * 0.5,
-          })
-
-          // manually refresh branch protections after the push, to ensure
-          // any new branch will immediately report as protected
-          await this.refreshBranchProtectionState(repository)
-
-          await this._refreshRepository(repository)
+          if (outcome.kind === 'pushed' && outcome.refreshError !== undefined) {
+            throw outcome.refreshError
+          }
         },
         { retryAction }
       )
@@ -8404,6 +9314,182 @@ export class AppStore extends TypedBaseStore<IAppState> {
         options
       )
     })
+  }
+
+  /** Shared native push pipeline with actual Git outcome, separate from fallible presentation. */
+  private async performPushBranch(
+    repository: Repository,
+    branch: Branch,
+    remote: IRemote,
+    options?: PushOptions,
+    assistedObserver?: {
+      readonly onProgress: (progress: IPushProgress) => void
+      readonly onPushed: () => void
+      readonly completePublication?: () => Promise<void>
+      readonly verifyFollowUpOwner?: () => void
+    }
+  ): Promise<PushBranchOutcome> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const pushTitle = `Pushing to ${remote.name}`
+    const pushWeight = (2.5 / 3.5) * 0.9
+    const fetchWeight = (1 / 3.5) * 0.9
+    const observerErrors: unknown[] = []
+    const observe = (action: () => void) => {
+      if (options?.assistedCommit === undefined) {
+        action()
+        return
+      }
+      try {
+        withoutRepositoryGitAccess(action)
+      } catch (error) {
+        observerErrors.push(error)
+      }
+    }
+    observe(() =>
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'push',
+        title: pushTitle,
+        value: 0,
+        remote: remote.name,
+        branch: branch.name,
+      })
+    )
+    let aborted = false
+    const hookFailure =
+      options?.onHookFailure ?? this.onHookFailure(() => (aborted = true))
+    try {
+      await pushRepo(
+        repository,
+        remote,
+        branch.name,
+        branch.upstreamWithoutRemote,
+        gitStore.tagsToPush,
+        {
+          ...options,
+          onHookFailure: async (name, output) => {
+            try {
+              const resolution = await hookFailure(name, output)
+              if (
+                options?.assistedCommit !== undefined &&
+                resolution === 'abort'
+              ) {
+                aborted = true
+              }
+              return resolution
+            } catch (error) {
+              if (options?.assistedCommit !== undefined) {
+                observerErrors.push(error)
+              }
+              throw error
+            }
+          },
+          onHookProgress: progress =>
+            observe(() => options?.onHookProgress?.(progress)),
+          onTerminalOutputAvailable: subscribe =>
+            observe(() => options?.onTerminalOutputAvailable?.(subscribe)),
+        },
+        progress => {
+          observe(() =>
+            this.updatePushPullFetchProgress(repository, {
+              ...progress,
+              title: pushTitle,
+              value: pushWeight * progress.value,
+            })
+          )
+          observe(() => assistedObserver?.onProgress(progress))
+        }
+      )
+    } catch (error) {
+      return {
+        kind: aborted ? 'aborted' : 'error',
+        error:
+          observerErrors.length === 0
+            ? error
+            : new Error(
+                error instanceof Error ? error.message : 'Push failed',
+                {
+                  cause: new AggregateError([error, ...observerErrors]),
+                }
+              ),
+      }
+    }
+    if (aborted) {
+      return {
+        kind: 'aborted',
+        error: new Error('The pre-push hook was declined', {
+          cause:
+            observerErrors.length === 0
+              ? undefined
+              : new AggregateError(observerErrors),
+        }),
+      }
+    }
+    observe(() => assistedObserver?.onPushed())
+    let refreshError: unknown
+    try {
+      const refresh = async () => {
+        if (options?.assistedCommit === undefined) {
+          gitStore.clearTagsToPush()
+        }
+        await assistedObserver?.completePublication?.()
+        await gitStore.fetchRemotes(
+          [remote],
+          false,
+          progress => {
+            observe(() =>
+              this.updatePushPullFetchProgress(repository, {
+                ...progress,
+                value: pushWeight + progress.value * fetchWeight,
+              })
+            )
+          },
+          options?.assistedCommit === undefined
+        )
+        const title = __DARWIN__
+          ? 'Refreshing Repository'
+          : 'Refreshing repository'
+        observe(() =>
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title,
+            description: 'Fast-forwarding branches',
+            value: pushWeight + fetchWeight,
+          })
+        )
+        await this.fastForwardBranches(
+          repository,
+          options?.assistedCommit !== undefined
+        )
+        observe(() =>
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title,
+            value: 0.95,
+          })
+        )
+        await this.refreshBranchProtectionState(repository)
+        await this._refreshRepository(repository)
+      }
+      if (assistedObserver?.verifyFollowUpOwner === undefined) {
+        await refresh()
+      } else {
+        await withRepositoryGitSpawnFence(
+          assistedObserver.verifyFollowUpOwner,
+          refresh
+        )
+      }
+    } catch (error) {
+      refreshError = error
+    }
+    if (observerErrors.length > 0) {
+      refreshError = new AggregateError(
+        refreshError === undefined
+          ? observerErrors
+          : [refreshError, ...observerErrors],
+        'Commits were pushed, but Desktop presentation failed'
+      )
+    }
+    return { kind: 'pushed', refreshError }
   }
 
   private async withIsCommitting(
@@ -8529,9 +9615,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _pull(repository: Repository): Promise<void> {
-    return this.withRefreshedGitHubRepository(repository, repository => {
-      return this.performPull(repository)
-    })
+    return this.withAssistedCommitMutationResources(repository, () =>
+      this.withRefreshedGitHubRepository(repository, repository =>
+        this.performPull(repository)
+      )
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -8677,15 +9765,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  private async fastForwardBranches(repository: Repository) {
+  private async fastForwardBranches(
+    repository: Repository,
+    assistedCommit: boolean = false
+  ) {
     try {
       const eligibleBranches = await getBranchesDifferingFromUpstream(
         repository
       )
 
-      await fastForwardBranches(repository, eligibleBranches)
+      await fastForwardBranches(repository, eligibleBranches, !assistedCommit)
     } catch (e) {
       log.error('Branch fast-forwarding failed', e)
+      if (assistedCommit) {
+        throw e
+      }
     }
   }
 

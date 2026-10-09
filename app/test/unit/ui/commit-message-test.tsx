@@ -36,6 +36,7 @@ import {
   UserHit,
 } from '../../../src/ui/autocompletion'
 import { CommitOptions } from '../../../src/lib/app-state'
+import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
 import { ISerializableMenuItem } from '../../../src/lib/menu-item'
 import {
   getCommitMode,
@@ -1737,6 +1738,109 @@ describe('CommitMessage', () => {
         }),
         null
       )
+    })
+
+    it('exposes the repository push choice as an assisted-only checkbox and freezes it while busy', async t => {
+      const { menus, select } = captureOptionsMenu(t)
+      const choices: boolean[] = []
+      const { rerender } = renderWithCommitModes({
+        commitMode: 'copilot',
+        pushAfterAssistedCommit: true,
+        onPushAfterAssistedCommitChanged: enabled => choices.push(enabled),
+      })
+      select('Push after committing')
+      await waitFor(() => assert.deepStrictEqual(choices, [false]))
+      const item = menus[0].find(item => item.label === 'Push after committing')
+      assert.ok(item)
+      assert.strictEqual(item.type, 'checkbox')
+      assert.strictEqual(item.checked, true)
+      rerender({ isCreatingCopilotAssistedCommits: true })
+      const button = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.strictEqual(button.getAttribute('aria-disabled'), 'true')
+      fireEvent.click(button)
+      assert.strictEqual(menus.length, 1)
+      rerender({
+        commitMode: 'manual',
+        isCreatingCopilotAssistedCommits: false,
+      })
+      select('Push after committing')
+      await waitFor(() => assert.strictEqual(menus.length, 2))
+      assert.strictEqual(
+        menus[1].some(item => item.label === 'Push after committing'),
+        false
+      )
+      assert.deepStrictEqual(choices, [false])
+    })
+
+    it('keeps push retry reachable with no selection, manual preference, and no AI account', async () => {
+      let retried = 0
+      let generated = 0
+      renderWithCommitModes({
+        commitMode: 'manual',
+        accounts: [],
+        repositoryAccount: null,
+        anyFilesSelected: false,
+        filesSelected: [],
+        assistedCommitState: {
+          kind: 'push-error',
+          runId: 'push-run',
+          error: new ErrorWithMetadata(new Error('Actual push rejection'), {}),
+          attempted: true,
+          settling: false,
+        },
+        onRetryCopilotAssistedCommitPush: () => retried++,
+        onCreateCopilotAssistedCommits: () => generated++,
+      })
+      assert.ok(screen.getByRole('alert'))
+      assert.ok(screen.getByText('Actual push rejection'))
+      fireEvent.click(screen.getByRole('button', { name: 'Retry push' }))
+      assert.strictEqual(retried, 1)
+      assert.strictEqual(generated, 0)
+      assert.strictEqual(
+        screen.queryByRole('button', { name: 'Retry rollback' }),
+        null
+      )
+    })
+
+    it('keeps acknowledged push errors and Dismiss visible without changing Manual preference or requiring AI', () => {
+      const repository = createMountableRepository()
+      storeCommitMode(repository, 'manual')
+      let dismissed = 0
+      let details = 0
+      const { rerender } = renderWithCommitModes({
+        repository,
+        commitMode: 'manual',
+        accounts: [],
+        repositoryAccount: null,
+        anyFilesSelected: false,
+        filesSelected: [],
+        assistedCommitState: {
+          kind: 'error',
+          runId: 'acknowledged-push',
+          error: new ErrorWithMetadata(
+            new Error('Actual stale refresh refusal'),
+            {}
+          ),
+          pushed: true,
+          retry: null,
+          selectionNeedsReview: false,
+          settling: false,
+        },
+        onDismissCopilotAssistedCommitError: () => dismissed++,
+        onAssistedCommitErrorDetails: () => details++,
+      })
+      assert.ok(screen.getByRole('alert'))
+      assert.ok(screen.getByText('Actual stale refresh refusal'))
+      fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+      assert.strictEqual(details, 1)
+      assert.strictEqual(dismissed, 1)
+      assert.strictEqual(getCommitMode(repository), 'manual')
+      rerender({ assistedCommitState: { kind: 'idle' } })
+      assert.ok(screen.getByRole('combobox', { name: 'Commit summary' }))
+      assert.strictEqual(getCommitMode(repository), 'manual')
     })
 
     it('keeps co-author editing reachable and includes trailers and options in assisted requests', () => {
