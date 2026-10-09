@@ -37,6 +37,28 @@ progress. Model output and these callbacks never imply committed history.
 Observer failures stop the operation, including errors whose code happens to
 be `unsafe-plan`.
 
+## Grouping guidance and unit limits
+
+Normal planning enumerates reasons selected units belong together: one feature
+or user-facing capability, one bug/root cause, a cohesive module/subsystem concern,
+a shared prerequisite, meaningful ordered steps of a complex change, or a
+coordinated contract/migration/rename/interface change. Related implementation,
+UI, tests, docs, styles and config follow their purpose when the units permit.
+Common folders or a shared app are evidence, not reasons to merge unrelated
+features. Dependency ordering can yield separate coherent commits; it does not
+require one large commit. There is no minimum count or per-file/folder/step quota.
+
+Every supplied ID remains indivisible, including a whole-file addition hunk
+or a shared README/UI/style unit spanning multiple features. Such a unit is
+assigned once and may prevent an ideal per-feature split. The prompt asks for
+only necessary linked grouping, not collapse of every independent feature
+because it shares a path. It cannot change snapshot granularity or divide IDs.
+One commit remains correct for a single purpose or unavoidable indivisibility.
+Whole-selection fallback omits partitioning reasons and still requires one
+fresh message covering all selected units. Schema, ownership and validation
+rules are unchanged. Synthetic tests verify this prompt contract and complete
+input preservation, not measured model grouping quality.
+
 ## Outcomes and the only fallback
 
 The wire protocol has three exact shapes:
