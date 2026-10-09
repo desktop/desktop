@@ -2041,14 +2041,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
         withRepositoryGitErrorPropagation(() =>
           this._loadChangedFilesForCurrentSelection(execution)
         )
-      await withRepositoryGitOperation(execution.path, 'read', () =>
-        accepted === undefined
-          ? read()
-          : this.withAcceptedAssistedCommitAliasFence(
-              accepted,
-              [deferred],
-              read
-            )
+      await withRepositoryGitOperation(
+        accepted?.pushDestination?.kind === 'configured'
+          ? accepted.pushDestination.path
+          : execution.path,
+        'read',
+        () =>
+          accepted === undefined
+            ? read()
+            : this.withAcceptedAssistedCommitAliasFence(
+                accepted,
+                [deferred],
+                read
+              ),
+        false,
+        () => this.verifyAcceptedAssistedCommitOwner(accepted)
       )
       if (
         this.deferredAssistedCommitHistorySelections.get(repository.id) ===
@@ -3443,7 +3450,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
             propagateErrors,
             assistedRun,
             excludeNewFiles
-          )
+          ),
+        false,
+        () => this.verifyAcceptedAssistedCommitOwner(assistedRun)
       )
     )
   }
@@ -3474,6 +3483,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.verifyAcceptedAssistedCommitOwner(run)
     } catch (error) {
       this.invalidateAssistedCommitSelection(repository, run, error)
+      try {
+        this.emitUpdate()
+      } catch (notificationError) {
+        throw new AggregateError(
+          [error, notificationError],
+          'Desktop could not present the accepted repository ownership error'
+        )
+      }
       throw error
     }
     const executionPath =
@@ -3511,7 +3528,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         () =>
           withRepositoryGitErrorPropagation(() =>
             this.withAcceptedAssistedCommitSpawnFence(run, operation)
-          )
+          ),
+        false,
+        () => this.verifyAcceptedAssistedCommitOwner(run)
       )
       this.verifyAcceptedAssistedCommitOwner(run)
       return result
@@ -5439,9 +5458,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 await run.lease.run(refresh, true)
               } else {
                 await withRepositoryGitOperation(
-                  repository.path,
+                  run.finalized && run.pushDestination?.kind === 'configured'
+                    ? run.pushDestination.path
+                    : repository.path,
                   'read',
-                  refresh
+                  refresh,
+                  false,
+                  () => this.verifyAcceptedAssistedCommitOwner(run)
                 )
               }
             } catch (error) {
@@ -7010,10 +7033,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
       this.updateAssistedCommitResourceProtection(
         run,
-        await withRepositoryGitOperation(destination.path, 'read', () =>
-          withRepositoryGitSpawnFence(verifyOwner, () =>
-            getAssistedCommitProtectedPaths(destination.path)
-          )
+        await withRepositoryGitOperation(
+          destination.path,
+          'read',
+          () =>
+            withRepositoryGitSpawnFence(verifyOwner, () =>
+              getAssistedCommitProtectedPaths(destination.path)
+            ),
+          false,
+          verifyOwner
         )
       )
       verifyOwner()
@@ -7054,7 +7082,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 )
             )
           if (run.lease === undefined) {
-            await withRepositoryGitOperation(destination.path, 'read', refresh)
+            await withRepositoryGitOperation(
+              destination.path,
+              'read',
+              refresh,
+              false,
+              verifyOwner
+            )
           } else {
             await run.lease.run(refresh, true)
           }
@@ -7444,7 +7478,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   : run.repository.path
                 : repository.path,
               'read',
-              () => this.withAcceptedAssistedCommitSpawnFence(run, recover)
+              () => this.withAcceptedAssistedCommitSpawnFence(run, recover),
+              false,
+              () => this.verifyAcceptedAssistedCommitOwner(run)
             )
           : await run.lease.run(recover, true)
       run.lease?.release()
@@ -7989,15 +8025,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
-    if (isRepositoryGitPaused(repository.path)) {
+    const run = this.getAssistedCommitSelectionOwner(repository)
+    try {
+      this.verifyAcceptedAssistedCommitOwner(run)
+    } catch (error) {
+      this.invalidateAssistedCommitSelection(repository, run, error)
+      try {
+        this.emitUpdate()
+      } catch (notificationError) {
+        throw new AggregateError(
+          [error, notificationError],
+          'Desktop could not present the accepted repository ownership error'
+        )
+      }
+      throw error
+    }
+    const executionPath =
+      run?.finalized && run.pushDestination?.kind === 'configured'
+        ? run.pushDestination.path
+        : repository.path
+    if (isRepositoryGitPaused(executionPath)) {
       this.deferAssistedCommitRefresh(repository)
       return
     }
-    const run = this.getAssistedCommitSelectionOwner(repository)
-    return withRepositoryGitOperation(repository.path, 'read', () =>
-      this.withAcceptedAssistedCommitSpawnFence(run, () =>
-        this.refreshRepositoryCore(repository)
-      )
+    return withRepositoryGitOperation(
+      executionPath,
+      'read',
+      () =>
+        this.withAcceptedAssistedCommitSpawnFence(run, () =>
+          this.refreshRepositoryCore(repository)
+        ),
+      false,
+      () => this.verifyAcceptedAssistedCommitOwner(run)
     )
   }
 
