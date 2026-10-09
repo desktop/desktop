@@ -210,6 +210,7 @@ export abstract class AutocompletingTextInput<
   }
 
   public componentWillUnmount() {
+    this.autocompletionRequestID++
     if (this.state.uniqueInternalElementId) {
       releaseUniqueId(this.state.uniqueInternalElementId)
     }
@@ -222,6 +223,11 @@ export abstract class AutocompletingTextInput<
   public componentDidUpdate(
     prevProps: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
   ) {
+    if (this.props.readOnly === true && prevProps.readOnly !== true) {
+      this.close()
+      return
+    }
+
     if (
       this.props.autocompleteItemFilter !== prevProps.autocompleteItemFilter &&
       this.state.autocompletionState !== null
@@ -261,7 +267,7 @@ export abstract class AutocompletingTextInput<
 
   private renderAutocompletions() {
     const state = this.state.autocompletionState
-    if (!state) {
+    if (!state || this.props.readOnly === true) {
       return null
     }
 
@@ -412,7 +418,7 @@ export abstract class AutocompletingTextInput<
   private getActiveAutocompleteItemId(): string | undefined {
     const { autocompletionState } = this.state
 
-    if (autocompletionState === null) {
+    if (autocompletionState === null || this.props.readOnly === true) {
       return undefined
     }
 
@@ -435,7 +441,9 @@ export abstract class AutocompletingTextInput<
     const { autocompletionState } = this.state
 
     const autocompleteVisible =
-      autocompletionState !== null && autocompletionState.items.length > 0
+      this.props.readOnly !== true &&
+      autocompletionState !== null &&
+      autocompletionState.items.length > 0
 
     const props = {
       type: 'text',
@@ -545,7 +553,9 @@ export abstract class AutocompletingTextInput<
 
   private onRef = (ref: ElementType | null) => {
     this.element = ref
-    this.updateCaretCoordinates()
+    if (ref !== null) {
+      this.updateCaretCoordinates()
+    }
     if (this.props.onElementRef) {
       this.props.onElementRef(ref)
     }
@@ -570,7 +580,10 @@ export abstract class AutocompletingTextInput<
     )
     const { label, screenReaderLabel } = this.props
 
-    const autoCompleteItems = this.state.autocompletionState?.items ?? []
+    const autoCompleteItems =
+      this.props.readOnly === true
+        ? []
+        : this.state.autocompletionState?.items ?? []
 
     const suggestionsMessage =
       autoCompleteItems.length === 1
@@ -610,8 +623,15 @@ export abstract class AutocompletingTextInput<
     item: AutocompleteItemType,
     source: 'mouseclick' | 'keyboard'
   ) {
-    const element = this.element!
-    const autocompletionState = this.state.autocompletionState!
+    const element = this.element
+    const autocompletionState = this.state.autocompletionState
+    if (
+      this.props.readOnly === true ||
+      element === null ||
+      autocompletionState === null
+    ) {
+      return
+    }
     const originalText = element.value
     const range = autocompletionState.range
     const autoCompleteText =
@@ -671,7 +691,7 @@ export abstract class AutocompletingTextInput<
       this.props.onKeyDown(event)
     }
 
-    if (event.defaultPrevented) {
+    if (event.defaultPrevented || this.props.readOnly === true) {
       return
     }
 
@@ -729,6 +749,7 @@ export abstract class AutocompletingTextInput<
   }
 
   private close() {
+    this.autocompletionRequestID++
     this.setState({ autocompletionState: null })
   }
 
@@ -785,6 +806,10 @@ export abstract class AutocompletingTextInput<
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {
+    if (this.props.readOnly === true) {
+      return
+    }
+
     const str = event.currentTarget.value
 
     if (this.props.onValueChanged) {
@@ -799,7 +824,7 @@ export abstract class AutocompletingTextInput<
   private async open(str: string) {
     const element = this.element
 
-    if (element === null) {
+    if (element === null || this.props.readOnly === true) {
       return
     }
 
@@ -817,7 +842,11 @@ export abstract class AutocompletingTextInput<
 
     // If another autocompletion request is in flight, then ignore these
     // results.
-    if (requestID !== this.autocompletionRequestID) {
+    if (
+      requestID !== this.autocompletionRequestID ||
+      this.props.readOnly ||
+      this.element === null
+    ) {
       return
     }
 
