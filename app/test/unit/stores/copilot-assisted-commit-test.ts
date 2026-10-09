@@ -88,12 +88,13 @@ describe('CopilotStore constrained assisted planner', () => {
     assert.strictEqual(mock.listenerCount(), 0)
   })
 
-  for (const [supports, efforts, expected] of [
-    [true, ['medium', 'high'], 'medium'],
-    [false, ['low'], undefined],
-    [true, undefined, undefined],
+  for (const [supports, efforts] of [
+    [true, ['low', 'medium', 'high']],
+    [true, ['medium', 'high']],
+    [false, ['low']],
+    [true, undefined],
   ] as const) {
-    it(`uses truthful model capabilities (supports=${supports}, efforts=${efforts})`, async t => {
+    it(`leaves built-in reasoning effort at the SDK default (supports=${supports}, efforts=${efforts})`, async t => {
       const mock = createMockPlanner(t)
       mock.cachedModels.mock.mockImplementation(() => [
         makeModel(
@@ -103,21 +104,75 @@ describe('CopilotStore constrained assisted planner', () => {
         ),
         makeModel('other-model', false),
       ])
-      await mock.store.proposeAssistedCommitPlan(
-        account,
-        syntheticAnalysis,
-        repositoryPath,
-        {
-          request: { kind: 'copilot', modelId: 'chosen-model' },
-        }
-      )
-      const config = mock.createSession.mock.calls[0].arguments[0]
-      assert.strictEqual(config.model, 'chosen-model')
-      assert.strictEqual(config.reasoningEffort, expected)
-      assert.strictEqual(config.provider, undefined)
+      for (const mode of ['plan', 'single-commit'] as const) {
+        await mock.store.proposeAssistedCommitPlan(
+          account,
+          syntheticAnalysis,
+          repositoryPath,
+          {
+            request: { kind: 'copilot', modelId: 'chosen-model' },
+            mode,
+          }
+        )
+      }
+      for (const call of mock.createSession.mock.calls) {
+        const config = call.arguments[0]
+        assert.strictEqual(config.model, 'chosen-model')
+        assert.strictEqual(config.reasoningEffort, undefined)
+        assert.strictEqual(config.provider, undefined)
+      }
+      assert.strictEqual(mock.createSession.mock.callCount(), 2)
       assert.strictEqual(mock.listModels.mock.callCount(), 0)
     })
   }
+
+  it('keeps a reasoning-capable preferred default model without overriding its SDK effort default', async t => {
+    const mock = createMockPlanner(t)
+    mock.cachedModels.mock.mockImplementation(() => [
+      makeModel('preferred-model', true, ['low', 'medium', 'high']),
+    ])
+    await mock.store.proposeAssistedCommitPlan(
+      account,
+      syntheticAnalysis,
+      repositoryPath
+    )
+    const config = mock.createSession.mock.calls[0].arguments[0]
+    assert.strictEqual(config.model, 'preferred-model')
+    assert.strictEqual(config.reasoningEffort, undefined)
+  })
+
+  it('preserves an absent BYOK reasoning effort without inventing an override', async t => {
+    const mock = createMockPlanner(t)
+    const request = syntheticBYOKRequest()
+    assert.ok(request.kind === 'byok')
+    await mock.store.proposeAssistedCommitPlan(
+      account,
+      syntheticAnalysis,
+      repositoryPath,
+      { request: { ...request, reasoningEffort: undefined } }
+    )
+    const config = mock.createSession.mock.calls[0].arguments[0]
+    assert.strictEqual(config.model, request.modelId)
+    assert.strictEqual(config.provider, request.provider)
+    assert.strictEqual(config.reasoningEffort, undefined)
+    assert.strictEqual(mock.cachedModels.mock.callCount(), 0)
+    assert.strictEqual(mock.listModels.mock.callCount(), 0)
+  })
+
+  it('preserves a configured built-in model and default effort when cached metadata is absent', async t => {
+    const mock = createMockPlanner(t)
+    mock.cachedModels.mock.mockImplementation(() => null)
+    await mock.store.proposeAssistedCommitPlan(
+      account,
+      syntheticAnalysis,
+      repositoryPath,
+      { request: { kind: 'copilot', modelId: 'configured-model' } }
+    )
+    const config = mock.createSession.mock.calls[0].arguments[0]
+    assert.strictEqual(config.model, 'configured-model')
+    assert.strictEqual(config.reasoningEffort, undefined)
+    assert.strictEqual(mock.listModels.mock.callCount(), 0)
+  })
 
   it('keeps an explicitly selected unknown model rather than silently downgrading or inventing effort', async t => {
     const mock = createMockPlanner(t)

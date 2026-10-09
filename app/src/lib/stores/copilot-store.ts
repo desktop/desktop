@@ -1157,11 +1157,7 @@ export class CopilotStore extends BaseStore {
           ? models?.find(model => model.id === requested)
           : getPreferredDefaultModel(models ?? [])
         modelId = resolved?.id ?? requested ?? DefaultCopilotModel
-        reasoningEffort =
-          modelId !== DefaultCopilotModel &&
-          resolved?.capabilities.supports?.reasoningEffort === true
-            ? getLowestReasoningEffort(resolved)
-            : undefined
+        reasoningEffort = undefined
       }
       throwIfCancelled()
       client = await awaitCancellableCopilotOperation(
