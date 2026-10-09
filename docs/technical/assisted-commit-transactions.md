@@ -74,6 +74,18 @@ if (options.signal?.aborted) {
 }
 ```
 
+For an opted-in push, AppStore instead calls
+`prepareAssistedCommitTransactionForPush` from the native push spawn preparation.
+It verifies the retained result and destination under real HEAD/ref/index fences,
+awaits owned fence cleanup, then returns a one-shot synchronous acceptance check.
+The backup remains reversible until that check runs immediately before native
+push invocation. A cleanup, selected-file, index, ref, authorization or signal
+failure cannot launch a push. Once invoked, finalization has revoked rollback:
+even an aborted hook or unknown remote outcome retains every created local commit.
+The surrounding Desktop lease, not native file locks, protects the full network
+operation and its ordinary post-push side effects. Push retry has its own frozen
+intent and never uses a recovery token.
+
 Execution consumes the accepted snapshot and removes its private files. The
 opaque result retains an in-memory original-index backup for cancellation after
 the last local commit but before a future push. `rollbackAssistedCommitTransaction`
@@ -253,6 +265,9 @@ guard. It never uses hard reset, checkout, stash, amend, push or deletion of com
 objects. The original real index is kept, or restored from the in-memory backup
 only while its installed bytes are still owned by the run. If external history
 owns HEAD, recovery also refuses to replace the index beneath it.
+Restoration retains the original index-file timestamp. Reinstalling identical
+stat-cache entries with a newer file timestamp would defeat Git's racy-stat
+protection and could hide same-second, same-size selected working changes.
 Exclusive-lock initialization is exception-safe: cleanup closes the handle and
 removes only a verified owned inode, surfacing any failure rather than leaving
 a success-shaped orphan.
