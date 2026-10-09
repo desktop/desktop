@@ -9,7 +9,7 @@ This repository contains GitHub Desktop, an open-source Electron-based GitHub ap
 - **Runtime**: Electron > 38.x (see `app/.npmrc` for specific version)
 - **Build Tool**: Webpack with parallel builds
 - **Package Manager**: npm (bundled with the Node.js version in `.nvmrc`)
-- **Node Version**: >= 22 (see `.nvmrc` for specific version)
+- **Node Version**: >= 22.12.0 (see `.nvmrc` for the recommended version)
 - **Testing**: Node.js built-in test runner (run using `npm test`, optionally providing one or more test files e.g `npm test -- app/test/unit/repository-list-test.ts`)
 
 ## Code Style & Conventions

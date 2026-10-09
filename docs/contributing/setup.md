@@ -14,6 +14,9 @@ Experimental support for building Desktop is also available for these platforms:
 
 ## Verification
 
+Node.js 22.12.0 or newer and npm 11.17.0 or newer are required. Use the
+recommended Node.js version in `.nvmrc` for development.
+
 Verify you have these commands available in your shell and that the found
 versions look similar to the below output:
 
