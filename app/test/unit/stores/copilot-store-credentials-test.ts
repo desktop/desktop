@@ -102,13 +102,11 @@ async function setup(
     'stop',
     async () => []
   )
-  // Bypass model discovery, not production client or session creation.
   const generate = (
     original = account,
     request: CopilotModelRequest = {
-      kind: 'byok',
-      modelId: 'test-model',
-      provider: { type: 'openai', baseUrl: 'https://example.com' },
+      kind: 'copilot',
+      modelId: 'auto',
     },
     signal?: AbortSignal
   ) =>
@@ -159,9 +157,8 @@ function resolveConflicts(store: CopilotStore, signal: AbortSignal) {
     },
     '/repository',
     {
-      kind: 'byok',
-      modelId: 'test-model',
-      provider: { type: 'openai', baseUrl: 'https://example.com' },
+      kind: 'copilot',
+      modelId: 'auto',
     },
     undefined,
     signal
@@ -474,6 +471,29 @@ describe('CopilotStore session credential wiring', () => {
     assert.equal(createSession.mock.callCount(), 1)
     const config = createSession.mock.calls[0].arguments[0]
     assert.ok(config)
+    assert.equal(config.gitHubTokenProvider, undefined)
+    assert.equal(config.gitHubToken, undefined)
+    assert.equal(renewals(), 0)
+  })
+
+  it('omits GitHub token providers for BYOK sessions with refreshable credentials', async t => {
+    const { createSession, generate, sessionCreationStopped, renewals } =
+      await setup(t, {
+        accessToken: account.token,
+        refreshToken: 'old-refresh',
+        expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+      })
+    const request: CopilotModelRequest = {
+      kind: 'byok',
+      modelId: 'test-model',
+      provider: { type: 'openai', baseUrl: 'https://example.com' },
+    }
+
+    await assert.rejects(generate(account, request), sessionCreationStopped)
+    assert.equal(createSession.mock.callCount(), 1)
+    const config = createSession.mock.calls[0].arguments[0]
+    assert.ok(config)
+    assert.deepEqual(config.provider, request.provider)
     assert.equal(config.gitHubTokenProvider, undefined)
     assert.equal(config.gitHubToken, undefined)
     assert.equal(renewals(), 0)

@@ -146,6 +146,38 @@ describe('Refreshing Copilot session credentials', () => {
     assert.equal(createCopilotTokenProvider(store, account), undefined)
   })
 
+  for (const [endpoint, host] of [
+    ['https://api.github.com', 'https://github.com'],
+    ['https://api.octocat.ghe.com', 'https://octocat.ghe.com'],
+    ['https://github.example.com/api/v3', 'https://github.example.com'],
+  ]) {
+    it(`accepts the runtime's HTTPS credential host for ${endpoint}`, async () => {
+      const store = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore()
+      )
+      const hostedAccount = new Account(
+        account.login,
+        endpoint,
+        account.token,
+        [],
+        '',
+        account.id,
+        account.name
+      )
+      await store.addAccount(hostedAccount, {
+        ...renewed(),
+        accessToken: hostedAccount.token,
+      })
+      const provider = createCopilotTokenProvider(store, hostedAccount)
+      assert.ok(provider)
+
+      const result = await provider({ host, reason: 'initial' })
+      assert.ok(result.kind === 'token')
+      assert.equal(result.accessToken, hostedAccount.token)
+    })
+  }
+
   it('satisfies the SDK one-hour refresh margin without exporting refresh tokens', async () => {
     const { store, renewals } = await setup({
       accessToken: account.token,
@@ -169,7 +201,7 @@ describe('Refreshing Copilot session credentials', () => {
     const { store, renewals } = await setup({
       accessToken: account.token,
       refreshToken: 'old-refresh',
-      expiresAt: now + 3661 * 1000,
+      expiresAt: now + 3662 * 1000,
     })
     const firstProvider = createCopilotTokenProvider(store, account)
     const secondProvider = createCopilotTokenProvider(store, account)
@@ -201,11 +233,11 @@ describe('Refreshing Copilot session credentials', () => {
     assert.ok(initialSecond.kind === 'token')
     assert.equal(refreshedFirst.accessToken, 'new-access')
     assert.equal(initialSecond.accessToken, refreshedFirst.accessToken)
-    assert.equal(first.expiresIn, 3601)
+    assert.equal(first.expiresIn, 3602)
     assert.equal(renewals(), 1)
   })
 
-  it('keeps fractional lifetimes above the SDK rejection boundary', async t => {
+  it('renews when rounding down would reach the SDK rejection boundary', async t => {
     t.mock.method(Date, 'now', () => now)
     const { store, renewals } = await setup({
       accessToken: account.token,
@@ -217,17 +249,34 @@ describe('Refreshing Copilot session credentials', () => {
 
     const result = await provider({ host: 'github.com', reason: 'initial' })
     assert.ok(result.kind === 'token')
-    assert.equal(result.accessToken, account.token)
-    assert.equal(result.expiresIn, 3600.5)
-    assert.equal(renewals(), 0)
+    assert.equal(result.accessToken, 'new-access')
+    assert.equal(result.expiresIn, 8 * 60 * 60 - 60)
+    assert.equal(renewals(), 1)
   })
 
-  it('renews at the inclusive SDK margin plus safety buffer', async t => {
+  it('reports whole seconds without overstating the buffered token lifetime', async t => {
     t.mock.method(Date, 'now', () => now)
     const { store, renewals } = await setup({
       accessToken: account.token,
       refreshToken: 'old-refresh',
-      expiresAt: now + 3660 * 1000,
+      expiresAt: now + 3_661_500,
+    })
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    const result = await provider({ host: 'github.com', reason: 'initial' })
+    assert.ok(result.kind === 'token')
+    assert.equal(result.accessToken, account.token)
+    assert.equal(result.expiresIn, 3601)
+    assert.equal(renewals(), 0)
+  })
+
+  it('renews at the inclusive SDK margin plus safety and rounding buffers', async t => {
+    t.mock.method(Date, 'now', () => now)
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: now + 3661 * 1000,
     })
     const provider = createCopilotTokenProvider(store, account)
     assert.ok(provider)
@@ -239,24 +288,26 @@ describe('Refreshing Copilot session credentials', () => {
     assert.equal(renewals(), 1)
   })
 
-  it('rejects renewed credentials whose buffered lifetime is too short for the SDK', async t => {
-    t.mock.method(Date, 'now', () => now)
-    const { store, renewals } = await setup(undefined, async () => ({
-      ...renewed(),
-      expiresAt: now + 3660 * 1000,
-    }))
-    const provider = createCopilotTokenProvider(store, account)
-    assert.ok(provider)
+  for (const lifetime of [3660, 3660.5, NaN, Infinity]) {
+    it(`rejects renewed credentials with an unusable lifetime of ${lifetime} seconds`, async t => {
+      t.mock.method(Date, 'now', () => now)
+      const { store, renewals } = await setup(undefined, async () => ({
+        ...renewed(),
+        expiresAt: now + lifetime * 1000,
+      }))
+      const provider = createCopilotTokenProvider(store, account)
+      assert.ok(provider)
 
-    await assert.rejects(
-      async () => provider({ host: 'github.com', reason: 'initial' }),
-      {
-        message:
-          'GitHub returned credentials without enough lifetime for a Copilot session.',
-      }
-    )
-    assert.equal(renewals(), 1)
-  })
+      await assert.rejects(
+        async () => provider({ host: 'github.com', reason: 'initial' }),
+        {
+          message:
+            'GitHub returned credentials without enough lifetime for a Copilot session.',
+        }
+      )
+      assert.equal(renewals(), 1)
+    })
+  }
 
   it('rejects renewed credentials without a known lifetime', async () => {
     const { store } = await setup(undefined, async () => ({
@@ -423,10 +474,18 @@ describe('Refreshing Copilot session credentials', () => {
     const { store, renewals } = await setup()
     const provider = createCopilotTokenProvider(store, account)
     assert.ok(provider)
-    await assert.rejects(
-      async () => provider({ host: 'attacker.example', reason: 'initial' }),
-      /unexpected GitHub host/
-    )
+    for (const host of [
+      'attacker.example',
+      'https://attacker.example',
+      'http://github.com',
+      'https://github.com/attacker',
+      'https://github.com@attacker.example',
+    ]) {
+      await assert.rejects(
+        async () => provider({ host, reason: 'initial' }),
+        /unexpected GitHub host/
+      )
+    }
     assert.equal(renewals(), 0)
     await store.removeAccount(account)
     await assert.rejects(
