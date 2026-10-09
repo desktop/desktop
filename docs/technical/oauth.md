@@ -91,11 +91,11 @@ work that needs a renewal can therefore wait for a long Git operation.
 Private images use bounded, sender-checked IPC.
 
 Refreshable Copilot sessions use the SDK's token-provider callback. Desktop
-requires more than 61 minutes of validity and subtracts the one-minute safety
-buffer from the reported lifetime, aligning the SDK's one-hour cached-token
-preflight with Desktop's renewal deadline. Fractional seconds are preserved so a
-valid token is not rounded onto the SDK's rejection boundary. Unknown lifetimes,
-or buffered lifetimes of an hour or less, fail explicitly. Only access tokens and
+requires more than 61 minutes and one second of validity and subtracts the
+one-minute safety buffer from the reported lifetime. Lifetimes are rounded down
+to whole seconds, as required by the SDK; the extra renewal second prevents
+rounding from crossing its one-hour rejection boundary. Unknown, invalid, or
+buffered lifetimes of an hour or less fail explicitly. Only access tokens and
 remaining lifetimes cross that boundary.
 
 Each client's static authentication and SDK provider bind to the same originating
@@ -122,6 +122,32 @@ and credential renewal continue, and cancellation does not release another
 operation's token lease. Clients and sessions returned after cancellation are
 stopped or disconnected once. Conflict cancellation remains an abort rather than
 a transport failure or a retry.
+
+### Testing token expiration manually
+
+When the test menu is enabled, open **Help > Show popup > Token expiration**.
+It is available in development and test builds, and when
+`GITHUB_DESKTOP_PREVIEW_FEATURES=1` is set, using the same gate as the other
+test dialogs.
+
+Select a signed-in account with a refreshable token. Choose an expiration date
+and time in your local timezone, or use a preset and adjust it further. Presets
+only change the selected date; **Apply expiry** installs the override.
+**Reset override** restores the original expiration.
+
+The override only changes the current credential session's in-memory access-token
+expiry. It never changes GitHub's actual token lifetime, the refresh token's expiry,
+or secure storage. It clears on successful token renewal, sign-out, replacement
+sign-in, or app restart. Non-refreshable tokens cannot be overridden, and changes
+are rejected while renewal is in progress.
+
+Applying an override does not start an authenticated operation. Existing operations
+waiting on a token lease recheck the new expiry. Start an authenticated operation
+to exercise the normal renewal logic: ordinary callers use the ten-minute margin,
+while Copilot session creation uses 61 minutes and one second. For example,
+**In 62 min** allows about a minute before Copilot preflight renews the token.
+Already-running SDK sessions can retain their cached expiry until their next
+token-provider callback; start a new generation to exercise the new metadata.
 
 ### Failure and recovery
 

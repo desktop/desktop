@@ -106,6 +106,7 @@ export enum PopupType {
   TestAbout = 'TestAbout',
   TestCLIAction = 'TestCLIAction',
   TestCopilotSnapshotCard = 'TestCopilotSnapshotCard',
+  TestTokenExpiration = 'TestTokenExpiration',
   PushProtectionError = 'PushProtectionError',
   BypassPushProtection = 'BypassPushProtection',
   GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
@@ -485,6 +486,9 @@ export type PopupDetail =
     }
   | {
       type: PopupType.TestCopilotSnapshotCard
+    }
+  | {
+      type: PopupType.TestTokenExpiration
     }
   | {
       type: PopupType.PushProtectionError
