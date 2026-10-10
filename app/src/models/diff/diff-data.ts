@@ -20,6 +20,8 @@ export enum DiffType {
   LargeText,
   /** Diff that will not be rendered */
   Unrenderable,
+  /** Changes to a Git LFS pointer file — real content must be fetched on demand */
+  LFSText,
 }
 
 type LineEnding = 'CR' | 'LF' | 'CRLF'
@@ -118,6 +120,10 @@ export interface IUnrenderableDiff {
   readonly kind: DiffType.Unrenderable
 }
 
+export interface ILFSTextDiff extends ITextDiffData {
+  readonly kind: DiffType.LFSText
+}
+
 /** The union of diff types that can be rendered in Desktop */
 export type IDiff =
   | ITextDiff
@@ -126,3 +132,4 @@ export type IDiff =
   | ISubmoduleDiff
   | ILargeTextDiff
   | IUnrenderableDiff
+  | ILFSTextDiff

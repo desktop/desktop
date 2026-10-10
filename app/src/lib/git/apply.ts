@@ -68,6 +68,10 @@ export async function applyPatchToIndex(
         throw new Error(
           `Can't create partial commit in binary file: ${file.path}`
         )
+      case DiffType.LFSText:
+        throw new Error(
+          `Can't create partial commit for Git LFS pointer diff: ${file.path}`
+        )
       case DiffType.Unrenderable:
         throw new Error(
           `File diff is too large to generate a partial commit: ${file.path}`
