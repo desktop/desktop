@@ -1,11 +1,18 @@
 /** History shortcuts also work inside the read-only diff's hidden textarea. */
 export function getHistoryNavigation(event: KeyboardEvent) {
+  const direction =
+    event.code === 'ArrowUp' || event.key === 'ArrowUp'
+      ? -1
+      : event.code === 'ArrowDown' || event.key === 'ArrowDown'
+        ? 1
+        : null
+
   if (
     event.isComposing ||
     event.altKey ||
     event.ctrlKey ||
     event.metaKey ||
-    (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')
+    direction === null
   ) {
     return null
   }
@@ -29,6 +36,6 @@ export function getHistoryNavigation(event: KeyboardEvent) {
   }
   return {
     kind: event.shiftKey ? ('commit' as const) : ('file' as const),
-    direction: event.key === 'ArrowUp' ? -1 : 1,
+    direction,
   }
 }
