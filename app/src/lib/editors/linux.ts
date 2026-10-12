@@ -1,3 +1,5 @@
+import * as Path from 'path'
+import { homedir } from 'os'
 import { pathExists } from '../path-exists'
 import { IFoundEditor } from './found-editor'
 
@@ -213,7 +215,11 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'Athas',
-    paths: ['/usr/bin/athas', '/opt/Athas/bin/athas', '~/.local/bin/athas'],
+    paths: [
+      '/usr/bin/athas',
+      '/opt/Athas/bin/athas',
+      Path.join(homedir(), '.local/bin/athas'),
+    ],
   },
 ]
 
