@@ -80,7 +80,8 @@ signed in. It shouldn't be passed merely because an account is available.
   uses only the account selected in that tab's picker. Desktop never falls back
   to another account on the same endpoint, so the clone fails if the selected
   account lacks access. Publishing likewise uses the account selected in its
-  picker.
+  picker, which starts out on the repository's assigned account when that
+  account is signed in.
 - **Account-dependent caches (included):** isolate repository permissions, pull request
   metadata, and check subscriptions between assigned identities.
 - **SSH identity selection (deferred):** SSH continues to use the user's SSH

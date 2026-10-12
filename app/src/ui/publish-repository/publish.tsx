@@ -85,6 +85,24 @@ interface IPublishState {
 }
 
 /**
+ * The signed-in account assigned to the repository, if any.
+ *
+ * A repository whose remote has been removed keeps its account assignment, so
+ * publishing it again starts out with that account selected.
+ */
+function getAssignedAccount(
+  repository: Repository,
+  accounts: ReadonlyArray<Account>
+): Account | null {
+  const { gitHubRepository, login } = repository
+  if (gitHubRepository === null || login === null) {
+    return null
+  }
+  const assigned = { endpoint: gitHubRepository.endpoint, login }
+  return accounts.find(a => isSameAccount(a, assigned)) ?? null
+}
+
+/**
  * The Publish component.
  */
 export class Publish extends React.Component<IPublishProps, IPublishState> {
@@ -100,10 +118,15 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const hasDotComAccount = props.accounts.some(isDotComAccount)
     const hasEnterpriseAccount = props.accounts.some(isEnterpriseAccount)
-    let startingTab = PublishTab.DotCom
-    if (!hasDotComAccount && hasEnterpriseAccount) {
-      startingTab = PublishTab.Enterprise
-    }
+    const assignedAccount = getAssignedAccount(props.repository, props.accounts)
+    const startingTab =
+      assignedAccount !== null
+        ? isDotComAccount(assignedAccount)
+          ? PublishTab.DotCom
+          : PublishTab.Enterprise
+        : !hasDotComAccount && hasEnterpriseAccount
+        ? PublishTab.Enterprise
+        : PublishTab.DotCom
 
     const publicationSettings = {
       name: props.repository.name,
@@ -119,7 +142,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         org: null,
       },
       error: null,
-      selectedAccount: null,
+      selectedAccount:
+        startingTab === PublishTab.DotCom ? assignedAccount : null,
     }
 
     const enterpriseTabState: IEnterpriseTabState = {
@@ -130,7 +154,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         org: null,
       },
       error: null,
-      selectedAccount: null,
+      selectedAccount:
+        startingTab === PublishTab.Enterprise ? assignedAccount : null,
     }
 
     this.state = {

@@ -15,6 +15,7 @@ import {
   createMockAPIIdentity,
   createMockAPIRepository,
 } from '../../helpers/mock-api'
+import { gitHubRepoFixture } from '../../helpers/github-repo-builder'
 import { createTempDirectory } from '../../helpers/temp'
 import { fireEvent, render, screen, waitFor } from '../../helpers/ui/render'
 
@@ -114,6 +115,59 @@ describe('account pickers with multiple accounts on one endpoint', () => {
       assert.strictEqual(publishRepository.mock.callCount(), 1)
     )
     assert.strictEqual(publishRepository.mock.calls[0].arguments[4], bob)
+  })
+
+  it("selects the repository's assigned account when publishing", async t => {
+    await setup(t)
+    const enterpriseEndpoint = 'https://ghe.example.com/api/v3'
+    const enterpriseAlice = new Account(
+      'alice',
+      enterpriseEndpoint,
+      'ghe-token',
+      [],
+      '',
+      3,
+      ''
+    )
+    const enterpriseBob = new Account(
+      'bob',
+      enterpriseEndpoint,
+      'ghe-bob-token',
+      [],
+      '',
+      4,
+      ''
+    )
+    const gitHubRepository = gitHubRepoFixture({
+      owner: 'bob',
+      name: 'repo',
+      endpoint: enterpriseEndpoint,
+    })
+    const view = render(
+      <Publish
+        dispatcher={{} as Dispatcher}
+        repository={
+          new Repository(
+            '/does-not-exist',
+            1,
+            gitHubRepository,
+            false,
+            null,
+            {},
+            false,
+            undefined,
+            undefined,
+            'BOB'
+          )
+        }
+        accounts={[alice, bob, enterpriseAlice, enterpriseBob]}
+        onDismissed={t.mock.fn()}
+      />
+    )
+
+    const selectedTab = view.container.querySelector('.tab-bar-item.selected')
+    assert.strictEqual(selectedTab?.textContent, 'GitHub Enterprise')
+    assert.strictEqual(selectedLogin(view.container), '@bob')
   })
 
   it('clones with the selected account', async t => {
