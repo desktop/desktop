@@ -225,8 +225,7 @@ export class RepositorySettings extends React.Component<
       case RepositorySettingsTab.Remote: {
         const remote = this.state.remote
         return (
-          <>
-            {this.renderAccount()}
+          <DialogContent>
             {remote ? (
               <Remote
                 remote={remote}
@@ -235,7 +234,8 @@ export class RepositorySettings extends React.Component<
             ) : (
               <NoRemote onPublish={this.onPublish} />
             )}
-          </>
+            {this.renderAccount()}
+          </DialogContent>
         )
       }
       case RepositorySettingsTab.IgnoredFiles: {
@@ -315,7 +315,7 @@ export class RepositorySettings extends React.Component<
     const signedOut = login !== null && this.selectedAccount === null
 
     return (
-      <DialogContent>
+      <div className="repository-account">
         <Select
           label="Account"
           value={this.selectedAccount?.login ?? login ?? ''}
@@ -333,11 +333,11 @@ export class RepositorySettings extends React.Component<
             </option>
           ))}
         </Select>
-        <p>
+        <p className="repository-account-description">
           The account used for GitHub API requests and HTTPS authentication.
           This does not change your Git author name or email.
         </p>
-      </DialogContent>
+      </div>
     )
   }
 
