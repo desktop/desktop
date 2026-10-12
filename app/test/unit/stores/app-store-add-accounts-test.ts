@@ -215,6 +215,28 @@ describe('AppStore explicitly adding repositories', () => {
     assert.strictEqual(added[0].login, null)
   })
 
+  it('assigns the account selected for a clone before its metadata is known', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(
+      stores.cloningRepositoriesStore,
+      'takeCompletedAssignment',
+      () => ({ name: 'repo', owner: 'owner', account: bob })
+    )
+    t.mock.method(API, 'fromAccount', () =>
+      assert.fail('The account was chosen in the clone dialog')
+    )
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added[0].login, 'bob')
+    assert.strictEqual(added[0].gitHubRepository?.endpoint, endpoint)
+    assert.strictEqual(added[0].gitHubRepository?.fullName, 'owner/repo')
+    assert.strictEqual(
+      (await stores.repositoriesStore.getAll()).find(
+        repo => repo.id === added[0].id
+      )?.login,
+      'bob'
+    )
+  })
+
   it('preserves the account selected during clone without prompting again', async t => {
     const repository = await setupRepository(t)
     t.mock.method(
@@ -236,18 +258,10 @@ describe('AppStore explicitly adding repositories', () => {
   })
 
   describe('cloning with an explicitly selected account', () => {
-    async function chooseForClone(
-      t: TestContext,
-      accessible: ReadonlyArray<string>
-    ) {
-      const probed = new Array<string>()
-      t.mock.method(API, 'fromAccount', (account: Account) => {
-        probed.push(account.login)
-        return createMockAPI({
-          fetchRepository: async () =>
-            accessible.includes(account.login) ? apiRepository : null,
-        })
-      })
+    async function chooseForClone(t: TestContext, login: string) {
+      t.mock.method(API, 'fromAccount', () =>
+        assert.fail('The selected account must be used without probing')
+      )
       t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
         assert.fail('The selected account must be used without prompting')
       )
@@ -266,24 +280,22 @@ describe('AppStore explicitly adding repositories', () => {
         }
       )
       appStore._clone('https://github.com/owner/repo', '/clone', {
-        account: { endpoint, login: 'BOB' },
+        account: { endpoint, login },
       })
       assert.ok(choose)
-      return { assignment: await choose(), probed }
+      return choose()
     }
 
-    it('assigns the selected account when it has access', async t => {
-      const { assignment, probed } = await chooseForClone(t, ['alice', 'bob'])
-      assert.deepStrictEqual(probed, ['bob'])
-      assert.ok(assignment !== null && typeof assignment === 'object')
-      assert.ok('account' in assignment)
-      assert.deepStrictEqual(assignment.account, bob)
+    it('assigns the selected account without probing for access', async t => {
+      assert.deepStrictEqual(await chooseForClone(t, 'BOB'), {
+        name: 'repo',
+        owner: 'owner',
+        account: bob,
+      })
     })
 
-    it('never uses another account when the selected one has no access', async t => {
-      const { assignment, probed } = await chooseForClone(t, ['alice'])
-      assert.deepStrictEqual(probed, ['bob'])
-      assert.strictEqual(assignment, null)
+    it('assigns nothing when the selected account is no longer signed in', async t => {
+      assert.strictEqual(await chooseForClone(t, 'carol'), null)
     })
   })
 

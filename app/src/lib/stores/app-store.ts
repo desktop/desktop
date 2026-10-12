@@ -257,6 +257,7 @@ import { updateMenuState } from '../menu-update'
 import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
+  isAccessibleRepository,
   matchGitHubRepository,
   matchExistingRepository,
   urlMatchesRemote,
@@ -5831,22 +5832,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       path,
       options,
       async () => {
-        const {
-          chooseAccountForRemoteRepository,
-          probeRemoteRepositoryAccounts,
-        } = await import('../repository-matching')
+        const { chooseAccountForRemoteRepository } = await import(
+          '../repository-matching'
+        )
         const accounts = await this.accountsStore.getAll()
         const { account } = options
         if (account !== undefined) {
-          // Only the account the user chose may be used, even if it turns out
-          // not to have access and another account would.
+          // The user picked this repository from the list of repositories
+          // visible to this account, so there's no need to probe for access.
+          // If access has since been lost the clone fails and nothing is
+          // assigned. Never fall back to another account.
           const selected = accounts.filter(
             a =>
               a.endpoint === account.endpoint &&
               caseInsensitiveEquals(a.login, account.login)
           )
-          const [match] = await probeRemoteRepositoryAccounts(selected, url)
-          return match ?? null
+          return matchGitHubRepository(selected, url)
         }
         return chooseAccountForRemoteRepository(
           accounts,
@@ -8663,12 +8664,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
               )
         let refreshedRepo = addedRepo
         if (assignment != null) {
-          const gitHubRepository =
-            await this.repositoriesStore.upsertGitHubRepository(
-              assignment.account.endpoint,
-              assignment.apiRepository,
-              assignment.account.login
-            )
+          const gitHubRepository = isAccessibleRepository(assignment)
+            ? await this.repositoriesStore.upsertGitHubRepository(
+                assignment.account.endpoint,
+                assignment.apiRepository,
+                assignment.account.login
+              )
+            : await this.repositoriesStore.upsertGitHubRepositoryFromMatch(
+                assignment
+              )
           refreshedRepo = await this.repositoriesStore.setGitHubRepository(
             addedRepo,
             gitHubRepository

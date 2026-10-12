@@ -19,6 +19,22 @@ export interface IAccessibleRepository extends IMatchedGitHubRepository {
   readonly apiRepository: IAPIFullRepository
 }
 
+/**
+ * The account to assign to a freshly cloned repository.
+ *
+ * Includes the repository's API metadata when the account's access was
+ * verified by probing. When the user picked the account in the clone dialog
+ * there's nothing to verify, and the metadata is fetched on the next refresh.
+ */
+export type CloneAssignment = IAccessibleRepository | IMatchedGitHubRepository
+
+/** Whether the assignment's access was verified and its metadata is known. */
+export function isAccessibleRepository(
+  assignment: CloneAssignment
+): assignment is IAccessibleRepository {
+  return 'apiRepository' in assignment
+}
+
 /** Discover remote metadata using each matching account, without assigning one. */
 export async function probeRemoteRepositoryAccounts(
   accounts: ReadonlyArray<Account>,

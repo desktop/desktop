@@ -9,7 +9,7 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { clone as cloneRepo } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
-import { IAccessibleRepository } from '../repository-matching'
+import { CloneAssignment } from '../repository-matching'
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore extends BaseStore {
@@ -17,7 +17,7 @@ export class CloningRepositoriesStore extends BaseStore {
   private readonly stateByID = new Map<number, ICloneProgress>()
   private readonly completedAssignments = new Map<
     string,
-    IAccessibleRepository | null
+    CloneAssignment | null
   >()
 
   /** Consume the account selected for a successfully completed clone. */
@@ -36,7 +36,7 @@ export class CloningRepositoriesStore extends BaseStore {
     url: string,
     path: string,
     options: CloneRepositoryOptions,
-    chooseAccount?: () => Promise<IAccessibleRepository | null | undefined>
+    chooseAccount?: () => Promise<CloneAssignment | null | undefined>
   ): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
