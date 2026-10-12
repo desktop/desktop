@@ -68,6 +68,7 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
@@ -231,6 +232,11 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
+  }
+
+  /** Set and persist the preferred commit mode for this repository. */
+  public setCommitMode(repository: Repository, commitMode: CommitMode): void {
+    this.appStore._setCommitMode(repository, commitMode)
   }
 
   public updateCommitOptions(

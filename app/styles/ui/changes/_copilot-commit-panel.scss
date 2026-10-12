@@ -1,0 +1,200 @@
+/** The panel shown instead of the commit message fields in Copilot commit mode */
+.copilot-commit-panel {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: var(--spacing);
+  padding: var(--spacing) var(--spacing-double);
+  overflow: hidden;
+
+  border: var(--contrast-border);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+
+  text-align: center;
+  user-select: none;
+
+  transition: border-color 300ms ease-out, box-shadow 300ms ease-out;
+
+  // A soft glow which follows the mouse around
+  .glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(180px circle at var(--pointer-x, 50%) var(--pointer-y, 35%), var(--copilot-commit-glow-color), transparent 70%);
+    opacity: 0.6;
+    transition: opacity 300ms ease-out;
+  }
+
+  &.pointer-inside .glow {
+    opacity: 1;
+  }
+
+  .copilot-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: copilot-commit-panel-pop-in 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 100ms both;
+  }
+
+  // Copilot leans towards the mouse pointer
+  .copilot-head {
+    position: relative;
+    cursor: pointer;
+    color: var(--text-color);
+    transform: translate(calc(var(--look-x, 0) * 6px), calc(var(--look-y, 0) * 4px)) rotate(calc(var(--look-x, 0) * 8deg));
+    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .copilot-shadow {
+    width: 30px;
+    height: 4px;
+    margin-top: 2px;
+    border-radius: 50%;
+    background: var(--text-color);
+    opacity: 0.1;
+    transform: translateX(calc(var(--look-x, 0) * 5px));
+    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .sparkles {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    color: var(--copilot-commit-accent-color);
+  }
+
+  .sparkle {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    opacity: 0;
+    animation: copilot-commit-panel-sparkle 900ms ease-out 250ms both;
+
+    .octicon {
+      display: block;
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  // Each sparkle flies out in a different direction
+  @each $index, $dx, $dy, $delay in (0, -44px, -14px, 0ms), (1, -30px, -32px, 60ms), (2, -8px, -40px, 30ms), (3, 14px, -38px, 90ms), (4, 34px, -28px, 20ms), (5, 46px, -8px, 70ms) {
+    .sparkle-#{$index} {
+      --sparkle-dx: #{$dx};
+      --sparkle-dy: #{$dy};
+      animation-delay: calc(250ms + #{$delay});
+    }
+  }
+
+  .caption {
+    position: relative;
+    max-width: 280px;
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .description {
+      margin-top: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+
+      @media (max-height: 500px) {
+        display: none;
+      }
+    }
+  }
+
+  &.working {
+    border-color: var(--copilot-commit-accent-color);
+    animation: copilot-commit-panel-pulse 2s ease-in-out infinite;
+
+    .title {
+      background: linear-gradient(90deg, var(--text-color) 0%, var(--text-color) 35%, var(--copilot-commit-accent-color) 50%, var(--text-color) 65%, var(--text-color) 100%);
+      background-size: 200% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: copilot-commit-panel-shimmer 1.8s linear infinite;
+    }
+
+    .copilot-head {
+      cursor: default;
+    }
+  }
+
+  @media (prefers-reduced-motion) {
+    .copilot-stage,
+    &.working,
+    &.working .title {
+      animation: none;
+    }
+
+    .copilot-head,
+    .copilot-shadow {
+      transform: none;
+      transition: none;
+    }
+
+    .sparkles {
+      display: none;
+    }
+  }
+}
+
+@keyframes copilot-commit-panel-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.4);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes copilot-commit-panel-sparkle {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--sparkle-dx), var(--sparkle-dy)) scale(1) rotate(90deg);
+  }
+}
+
+@keyframes copilot-commit-panel-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--copilot-commit-glow-color);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px var(--copilot-commit-glow-color);
+  }
+}
+
+@keyframes copilot-commit-panel-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
