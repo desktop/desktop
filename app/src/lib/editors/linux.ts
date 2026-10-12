@@ -211,6 +211,10 @@ const editors: ILinuxExternalEditor[] = [
       '/usr/bin/zed',
     ],
   },
+  {
+    name: 'Athas',
+    paths: ['/usr/bin/athas', '/opt/Athas/bin/athas', '~/.local/bin/athas'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {

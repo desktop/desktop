@@ -51,6 +51,7 @@ These editors are currently supported:
  - [Pulsar](https://pulsar-edit.dev/)
  - [Cursor](https://www.cursor.com/)
  - [Windsurf](https://www.codeium.com/windsurf)
+ - [Athas](https://athas.dev/)
 
 
 These are defined in a list at the top of the file:
@@ -287,6 +288,7 @@ These editors are currently supported:
  - [Pulsar](https://pulsar-edit.dev/)
  - [Cursor](https://www.cursor.com/)
  - [Zed](https://zed.dev/)
+ - [Athas](https://athas.dev/)
 
 These are defined in a list at the top of the file:
 
@@ -375,6 +377,7 @@ These editors are currently supported:
  - [Pulsar](https://pulsar-edit.dev/)
  - [Pluma](https://github.com/mate-desktop/pluma)
  - [Zed](https://zed.dev/)
+ - [Athas](https://athas.dev/)
 
 These are defined in a list at the top of the file:
 

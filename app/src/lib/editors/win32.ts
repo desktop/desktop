@@ -511,6 +511,13 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefixes: ['Zed'],
     publishers: ['Zed Industries'],
   },
+  {
+    name: 'Athas',
+    registryKeys: [CurrentUserUninstallKey('Athas')],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefixes: ['Athas'],
+    publishers: ['athasdev'],
+  },
 ]
 
 function getKeyOrEmpty(
