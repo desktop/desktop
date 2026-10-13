@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.6.8-beta2": [
+      "[Added] Add syntax highlighting for Svelte files - #22969. Thanks @Klaynight-dev!",
+      "[Fixed] Flag worktrees whose folder is missing with a clear warning and offer to remove them instead of failing with a raw git error when switching branches or worktrees - #22607. Thanks @francisrath!",
+      "[Fixed] Fix SSH host key confirmation prompts with newer OpenSSH versions - #22881"
+    ],
     "3.6.8-beta1": [
       "[New] Use short-lived tokens for new logged-in users - #22943"
     ],
