@@ -176,10 +176,19 @@ async function packageApp() {
   }
 
   // get notarization deets, unless we're not going to publish this
-  const osxNotarize =
-    isPublishableBuild && process.platform === 'darwin'
-      ? getNotarizationOptions()
-      : undefined
+  const osxNotarize = isPublishableBuild ? getNotarizationOptions() : undefined
+
+  if (
+    isPublishableBuild &&
+    isGitHubActions() &&
+    process.platform === 'darwin' &&
+    osxNotarize === undefined
+  ) {
+    // we can't publish a mac build without these
+    throw new Error(
+      'Unable to retrieve appleApiKey, appleApiKeyId, and/or appleApiIssuer to notarize macOS build'
+    )
+  }
 
   const iconPath = getIconDirectory()
   const assetsCarPath = join(iconPath, 'Assets.car')
@@ -503,18 +512,23 @@ ${licenseText}`
   rmSync(chooseALicense, { recursive: true, force: true })
 }
 
-function getNotarizationOptions(): IOSXNotarizeOptions {
+function getNotarizationOptions(): IOSXNotarizeOptions | undefined {
   const {
     APPLE_API_KEY_PATH: appleApiKey,
     APPLE_API_KEY_ID: appleApiKeyId,
     APPLE_API_ISSUER: appleApiIssuer,
   } = process.env
 
-  if (!appleApiKey || !appleApiKeyId || !appleApiIssuer) {
+  if (
+    (appleApiKey || appleApiKeyId || appleApiIssuer) &&
+    (!appleApiKey || !appleApiKeyId || !appleApiIssuer)
+  ) {
     throw new Error(
-      'Missing or incomplete notarization API-key configuration: set APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER together'
+      'Incomplete notarization API-key configuration: set APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER together'
     )
   }
 
-  return { appleApiKey, appleApiKeyId, appleApiIssuer }
+  return appleApiKey && appleApiKeyId && appleApiIssuer
+    ? { appleApiKey, appleApiKeyId, appleApiIssuer }
+    : undefined
 }
