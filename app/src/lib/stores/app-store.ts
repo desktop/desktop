@@ -1046,7 +1046,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
-    this.accountsStore.onOAuthRefresh(event => {
+    this.accountsStore.onOAuthRefreshEvent(event => {
       void this.statsStore.recordOAuthRefresh(event).catch(error => {
         log.error('Failed recording OAuth renewal stats', error)
       })

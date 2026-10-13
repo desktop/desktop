@@ -75,7 +75,7 @@ export type OAuthRefreshEvent =
 /** Account-list changes that credential sessions ask their owner to perform. */
 export interface ICredentialSessionsDelegate {
   /** A renewal lifecycle event; excludes expiry-override testing. */
-  readonly onOAuthRefresh?: (event: OAuthRefreshEvent) => void
+  readonly onOAuthRefreshEvent?: (event: OAuthRefreshEvent) => void
 
   /**
    * Sign the account out because its credential can no longer be used.
@@ -660,7 +660,7 @@ export class CredentialSessions {
     const reportEvents = session.expirationOverride === undefined
     const record = (event: OAuthRefreshEvent) => {
       if (reportEvents) {
-        this.delegate.onOAuthRefresh?.(event)
+        this.delegate.onOAuthRefreshEvent?.(event)
       }
     }
     const requireSignIn = async () => {

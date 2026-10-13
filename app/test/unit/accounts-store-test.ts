@@ -53,7 +53,7 @@ describe('AccountsStore', () => {
       expiresAt: 0,
     })
     const events: OAuthRefreshEvent[] = []
-    const subscription = store.onOAuthRefresh(event => events.push(event))
+    const subscription = store.onOAuthRefreshEvent(event => events.push(event))
     t.after(() => subscription.dispose())
     await store.getAccountWithFreshToken(account)
     assert.deepEqual(events, ['attempt', 'success'])
@@ -87,7 +87,7 @@ describe('AccountsStore', () => {
       expiresAt: 0,
     })
     const events: OAuthRefreshEvent[] = []
-    const subscription = store.onOAuthRefresh(event => events.push(event))
+    const subscription = store.onOAuthRefreshEvent(event => events.push(event))
     t.after(() => subscription.dispose())
     const deletion = t.mock.method(secure, 'deleteItem', async () => {
       throw new Error('Secure deletion failed')

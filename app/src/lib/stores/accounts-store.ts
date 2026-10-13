@@ -101,7 +101,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         requireSignIn: this.requireSignIn,
         onTokenRenewed: this.onTokenRenewed,
         onSignedIn: this.onSignedIn,
-        onOAuthRefresh: event => this.emitter.emit('oauth-refresh', event),
+        onOAuthRefreshEvent: event => this.emitter.emit('oauth-refresh', event),
       },
       renewToken,
       now,
@@ -125,7 +125,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   /** Subscribe to credential-free renewal events, excluding debug overrides. */
-  public onOAuthRefresh(
+  public onOAuthRefreshEvent(
     callback: (event: OAuthRefreshEvent) => void
   ): Disposable {
     return this.emitter.on('oauth-refresh', callback)

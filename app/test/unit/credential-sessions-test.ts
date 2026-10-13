@@ -58,7 +58,7 @@ function setup(
       },
       onTokenRenewed: (endpoint, token) => renewals.push([endpoint, token]),
       onSignedIn: () => {},
-      onOAuthRefresh: event => refreshEvents.push(event),
+      onOAuthRefreshEvent: event => refreshEvents.push(event),
     },
     renew,
     clock,
