@@ -30,6 +30,12 @@ interface IDesktopPackagerModule {
   readonly packager: (options: object) => Promise<ReadonlyArray<string>>
 }
 
+interface IOSXNotarizeOptions {
+  readonly appleApiKey: string
+  readonly appleApiKeyId: string
+  readonly appleApiIssuer: string
+}
+
 import {
   getBundleID,
   getCompanyName,
@@ -61,7 +67,6 @@ import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 import { join } from 'path'
 import assert from 'assert'
 import { copyCopilotDependency } from './copilot'
-import { getNotarizationOptions } from './notarization'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
@@ -173,7 +178,7 @@ async function packageApp() {
   // get notarization deets, unless we're not going to publish this
   const osxNotarize =
     isPublishableBuild && process.platform === 'darwin'
-      ? getNotarizationOptions(process.env)
+      ? getNotarizationOptions()
       : undefined
 
   const iconPath = getIconDirectory()
@@ -496,4 +501,20 @@ ${licenseText}`
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   rmSync(chooseALicense, { recursive: true, force: true })
+}
+
+function getNotarizationOptions(): IOSXNotarizeOptions {
+  const {
+    APPLE_API_KEY_PATH: appleApiKey,
+    APPLE_API_KEY_ID: appleApiKeyId,
+    APPLE_API_ISSUER: appleApiIssuer,
+  } = process.env
+
+  if (!appleApiKey || !appleApiKeyId || !appleApiIssuer) {
+    throw new Error(
+      'Missing or incomplete notarization API-key configuration: set APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER together'
+    )
+  }
+
+  return { appleApiKey, appleApiKeyId, appleApiIssuer }
 }

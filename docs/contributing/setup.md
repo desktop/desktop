@@ -62,43 +62,6 @@ If you're still encountering issues with building, refer to our
 [troubleshooting](troubleshooting.md) guide for more common
 problems.
 
-### macOS release notarization
-
-Publishable macOS builds (`production`, `beta`, and `test` release channels)
-require App Store Connect **team API keys** for notarization. For local builds,
-set all three environment variables:
-
-| Variable | Value |
-| --- | --- |
-| `APPLE_API_KEY_PATH` | Path to the API key's `.p8` private key file |
-| `APPLE_API_KEY_ID` | App Store Connect API key ID |
-| `APPLE_API_ISSUER` | App Store Connect issuer ID |
-
-The reusable CI workflow accepts these three secrets:
-
-- `GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID`
-- `GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID`
-- `GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY` (base64-encoded `.p8`)
-
-Both the build and E2E jobs materialize the private key on macOS using the pinned
-`nodeselector/setup-apple-codesign` action and pass its outputs to the build.
-Gatewatcher provisions these secrets in protected release environments. Both CI
-jobs already select `inputs.environment`, so environment-scoped credentials
-are available without exporting secrets through another job. Existing API keys
-provisioned by Gatewatcher can be reused; no manual key creation is needed.
-Configure or reconfigure the target release environment through Gatewatcher if its API-key
-secrets are missing. Callers using repository or organization secrets instead
-must forward all three (or use `secrets: inherit`). Keep the `.p8` file and its
-encoded contents out of the repository and logs.
-
-Missing or partial API-key configuration fails explicitly for every publishable
-macOS build, including local builds. Apple Account authentication is not
-supported; legacy Apple ID, password, and team ID credentials are ignored.
-
-Code signing is unchanged: CI still requires `APPLE_APPLICATION_CERT` and
-`APPLE_APPLICATION_CERT_PASSWORD`. Development builds do not notarize, and
-Windows builds do not use these notarization credentials.
-
 ## Running tests
 
 - `yarn test` - Alias for `yarn test:unit`
