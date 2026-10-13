@@ -7,6 +7,8 @@ import { mockNotification } from '../helpers/mock-notification'
 import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { fakePost } from '../fake-stats-post'
+import { TokenRefreshEvent } from '../../src/lib/credential-sessions'
+import { buildStatsPayload } from '../../src/lib/stats/stats-store'
 
 describe('StatsStore', () => {
   async function createStatsDb() {
@@ -84,6 +86,117 @@ describe('StatsStore', () => {
 
     const statsEntry = await statsDb.dailyMeasures.limit(1).first()
     assert.strictEqual(statsEntry?.openInCopilotAppCount, 1)
+  })
+
+  it('persists token refresh counters and serializes short-lived usage as a dimension', async () => {
+    statsDb = await createStatsDb()
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    const payloads: ReturnType<typeof buildStatsPayload>[] = []
+    const store = new StatsStore(
+      statsDb,
+      new TestActivityMonitor(),
+      async body => {
+        payloads.push(buildStatsPayload(body))
+        return new Response(null, { status: 200 })
+      }
+    )
+    const events: ReadonlyArray<TokenRefreshEvent> = [
+      'attempt',
+      'success',
+      'transient-failure',
+      'non-transient-failure',
+      'abandoned',
+      'required-sign-in',
+    ]
+    await Promise.all(events.map(event => store.recordTokenRefreshEvent(event)))
+    store.setUsesShortLivedToken(true)
+    await store.sendStats([], [])
+    const entry = await statsDb.dailyMeasures.limit(1).first()
+    const fields = [
+      'tokenRefreshAttemptCount',
+      'tokenRefreshSuccessCount',
+      'tokenRefreshTransientFailureCount',
+      'tokenRefreshNonTransientFailureCount',
+      'tokenRefreshAbandonedCount',
+      'tokenRefreshRequiredSignInCount',
+    ] as const
+    for (const field of fields) {
+      assert.strictEqual(entry?.[field], 1)
+      assert.strictEqual(payloads[0].events[0].measures?.[field], 1)
+    }
+    assert.strictEqual(
+      payloads[0].events[0].dimensions.usesShortLivedToken,
+      'true'
+    )
+    assert.strictEqual(
+      'usesShortLivedToken' in (payloads[0].events[0].measures ?? {}),
+      false
+    )
+    store.setUsesShortLivedToken(false)
+    await store.sendStats([], [])
+    assert.strictEqual(
+      payloads[1].events[0].dimensions.usesShortLivedToken,
+      'false'
+    )
+    await store.clearDailyStats()
+    await store.sendStats([], [])
+    for (const field of fields) {
+      assert.strictEqual(payloads[2].events[0].measures?.[field], 0)
+    }
+  })
+
+  it('includes zero token refresh counters when reading existing daily records', async () => {
+    statsDb = await createStatsDb()
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    const store = new StatsStore(
+      statsDb,
+      new TestActivityMonitor(),
+      async body => {
+        if (body.eventType === 'usage') {
+          assert.strictEqual(body.tokenRefreshAttemptCount, 0)
+          assert.strictEqual(body.tokenRefreshSuccessCount, 0)
+          assert.strictEqual(body.tokenRefreshTransientFailureCount, 0)
+          assert.strictEqual(body.tokenRefreshNonTransientFailureCount, 0)
+          assert.strictEqual(body.tokenRefreshAbandonedCount, 0)
+          assert.strictEqual(body.tokenRefreshRequiredSignInCount, 0)
+          assert.strictEqual(body.usesShortLivedToken, false)
+        }
+        return new Response(null, { status: 200 })
+      }
+    )
+    await store.increment('commits')
+    await statsDb.dailyMeasures.toCollection().modify(record => {
+      Reflect.deleteProperty(record, 'tokenRefreshAttemptCount')
+      Reflect.deleteProperty(record, 'tokenRefreshSuccessCount')
+      Reflect.deleteProperty(record, 'tokenRefreshTransientFailureCount')
+      Reflect.deleteProperty(record, 'tokenRefreshNonTransientFailureCount')
+      Reflect.deleteProperty(record, 'tokenRefreshAbandonedCount')
+      Reflect.deleteProperty(record, 'tokenRefreshRequiredSignInCount')
+    })
+    assert.strictEqual(await store.sendStats([], []), true)
+  })
+
+  it('does not submit token refresh counters or usage dimensions when opted out', async () => {
+    statsDb = await createStatsDb()
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    localStorage.setItem('stats-opt-out', '1')
+    try {
+      let posted = 0
+      const store = new StatsStore(
+        statsDb,
+        new TestActivityMonitor(),
+        async () => {
+          posted++
+          return new Response(null, { status: 200 })
+        }
+      )
+      store.setUsesShortLivedToken(true)
+      await store.recordTokenRefreshEvent('attempt')
+      assert.strictEqual(await store.sendStats([], []), false)
+      assert.strictEqual(posted, 0)
+    } finally {
+      localStorage.removeItem('stats-opt-out')
+    }
   })
 
   it('persists eligible and shown notification counts separately', async () => {

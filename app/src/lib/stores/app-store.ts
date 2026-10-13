@@ -1028,6 +1028,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
+      this.statsStore.setUsesShortLivedToken(
+        accounts.some(account => this.accountsStore.isRefreshable(account))
+      )
       this.syncCopilotModelsFromCache()
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
@@ -1043,6 +1046,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
+    this.accountsStore.onTokenRefreshEvent(event => {
+      void this.statsStore.recordTokenRefreshEvent(event).catch(error => {
+        log.error('Failed recording token refresh stats', error)
+      })
+    })
     this.accountsStore.onTokenInvalidated(account => {
       this._showPopup({ type: PopupType.InvalidatedToken, account })
     })
@@ -2429,6 +2437,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    this.statsStore.setUsesShortLivedToken(
+      accounts.some(account => this.accountsStore.isRefreshable(account))
+    )
     this.alwaysShowWorktreeList = getBoolean(alwaysShowWorktreeListKey, false)
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
