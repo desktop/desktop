@@ -7,7 +7,7 @@ import { mockNotification } from '../helpers/mock-notification'
 import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { fakePost } from '../fake-stats-post'
-import { OAuthRefreshEvent } from '../../src/lib/credential-sessions'
+import { TokenRefreshEvent } from '../../src/lib/credential-sessions'
 import { buildStatsPayload } from '../../src/lib/stats/stats-store'
 
 describe('StatsStore', () => {
@@ -88,7 +88,7 @@ describe('StatsStore', () => {
     assert.strictEqual(statsEntry?.openInCopilotAppCount, 1)
   })
 
-  it('persists OAuth renewal counters and serializes short-lived usage as a dimension', async () => {
+  it('persists token refresh counters and serializes short-lived usage as a dimension', async () => {
     statsDb = await createStatsDb()
     localStorage.setItem('has-sent-stats-opt-in-ping', '1')
     const payloads: ReturnType<typeof buildStatsPayload>[] = []
@@ -100,7 +100,7 @@ describe('StatsStore', () => {
         return new Response(null, { status: 200 })
       }
     )
-    const events: ReadonlyArray<OAuthRefreshEvent> = [
+    const events: ReadonlyArray<TokenRefreshEvent> = [
       'attempt',
       'success',
       'transient-failure',
@@ -108,17 +108,17 @@ describe('StatsStore', () => {
       'abandoned',
       'required-sign-in',
     ]
-    await Promise.all(events.map(event => store.recordOAuthRefreshEvent(event)))
+    await Promise.all(events.map(event => store.recordTokenRefreshEvent(event)))
     store.setUsesShortLivedToken(true)
     await store.sendStats([], [])
     const entry = await statsDb.dailyMeasures.limit(1).first()
     const fields = [
-      'oAuthRefreshAttemptCount',
-      'oAuthRefreshSuccessCount',
-      'oAuthRefreshTransientFailureCount',
-      'oAuthRefreshNonTransientFailureCount',
-      'oAuthRefreshAbandonedCount',
-      'oAuthRefreshRequiredSignInCount',
+      'tokenRefreshAttemptCount',
+      'tokenRefreshSuccessCount',
+      'tokenRefreshTransientFailureCount',
+      'tokenRefreshNonTransientFailureCount',
+      'tokenRefreshAbandonedCount',
+      'tokenRefreshRequiredSignInCount',
     ] as const
     for (const field of fields) {
       assert.strictEqual(entry?.[field], 1)
@@ -145,7 +145,7 @@ describe('StatsStore', () => {
     }
   })
 
-  it('includes zero OAuth counters when reading existing daily records', async () => {
+  it('includes zero token refresh counters when reading existing daily records', async () => {
     statsDb = await createStatsDb()
     localStorage.setItem('has-sent-stats-opt-in-ping', '1')
     const store = new StatsStore(
@@ -153,12 +153,12 @@ describe('StatsStore', () => {
       new TestActivityMonitor(),
       async body => {
         if (body.eventType === 'usage') {
-          assert.strictEqual(body.oAuthRefreshAttemptCount, 0)
-          assert.strictEqual(body.oAuthRefreshSuccessCount, 0)
-          assert.strictEqual(body.oAuthRefreshTransientFailureCount, 0)
-          assert.strictEqual(body.oAuthRefreshNonTransientFailureCount, 0)
-          assert.strictEqual(body.oAuthRefreshAbandonedCount, 0)
-          assert.strictEqual(body.oAuthRefreshRequiredSignInCount, 0)
+          assert.strictEqual(body.tokenRefreshAttemptCount, 0)
+          assert.strictEqual(body.tokenRefreshSuccessCount, 0)
+          assert.strictEqual(body.tokenRefreshTransientFailureCount, 0)
+          assert.strictEqual(body.tokenRefreshNonTransientFailureCount, 0)
+          assert.strictEqual(body.tokenRefreshAbandonedCount, 0)
+          assert.strictEqual(body.tokenRefreshRequiredSignInCount, 0)
           assert.strictEqual(body.usesShortLivedToken, false)
         }
         return new Response(null, { status: 200 })
@@ -166,17 +166,17 @@ describe('StatsStore', () => {
     )
     await store.increment('commits')
     await statsDb.dailyMeasures.toCollection().modify(record => {
-      Reflect.deleteProperty(record, 'oAuthRefreshAttemptCount')
-      Reflect.deleteProperty(record, 'oAuthRefreshSuccessCount')
-      Reflect.deleteProperty(record, 'oAuthRefreshTransientFailureCount')
-      Reflect.deleteProperty(record, 'oAuthRefreshNonTransientFailureCount')
-      Reflect.deleteProperty(record, 'oAuthRefreshAbandonedCount')
-      Reflect.deleteProperty(record, 'oAuthRefreshRequiredSignInCount')
+      Reflect.deleteProperty(record, 'tokenRefreshAttemptCount')
+      Reflect.deleteProperty(record, 'tokenRefreshSuccessCount')
+      Reflect.deleteProperty(record, 'tokenRefreshTransientFailureCount')
+      Reflect.deleteProperty(record, 'tokenRefreshNonTransientFailureCount')
+      Reflect.deleteProperty(record, 'tokenRefreshAbandonedCount')
+      Reflect.deleteProperty(record, 'tokenRefreshRequiredSignInCount')
     })
     assert.strictEqual(await store.sendStats([], []), true)
   })
 
-  it('does not submit OAuth counters or usage dimensions when opted out', async () => {
+  it('does not submit token refresh counters or usage dimensions when opted out', async () => {
     statsDb = await createStatsDb()
     localStorage.setItem('has-sent-stats-opt-in-ping', '1')
     localStorage.setItem('stats-opt-out', '1')
@@ -191,7 +191,7 @@ describe('StatsStore', () => {
         }
       )
       store.setUsesShortLivedToken(true)
-      await store.recordOAuthRefreshEvent('attempt')
+      await store.recordTokenRefreshEvent('attempt')
       assert.strictEqual(await store.sendStats([], []), false)
       assert.strictEqual(posted, 0)
     } finally {

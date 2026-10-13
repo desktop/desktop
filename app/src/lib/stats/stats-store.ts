@@ -47,7 +47,7 @@ import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
 import { getSystemNotificationsPermission } from '../notifications/notification-permission'
-import { OAuthRefreshEvent } from '../credential-sessions'
+import { TokenRefreshEvent } from '../credential-sessions'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -103,12 +103,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   openInCopilotAppCount: 0,
-  oAuthRefreshAttemptCount: 0,
-  oAuthRefreshSuccessCount: 0,
-  oAuthRefreshTransientFailureCount: 0,
-  oAuthRefreshNonTransientFailureCount: 0,
-  oAuthRefreshAbandonedCount: 0,
-  oAuthRefreshRequiredSignInCount: 0,
+  tokenRefreshAttemptCount: 0,
+  tokenRefreshSuccessCount: 0,
+  tokenRefreshTransientFailureCount: 0,
+  tokenRefreshNonTransientFailureCount: 0,
+  tokenRefreshAbandonedCount: 0,
+  tokenRefreshRequiredSignInCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,
@@ -713,16 +713,16 @@ export class StatsStore implements IStatsStore {
     this.usesShortLivedToken = value
   }
 
-  /** Count a single OAuth renewal lifecycle event without credential metadata. */
-  public recordOAuthRefreshEvent(event: OAuthRefreshEvent): Promise<void> {
-    const measures: Readonly<Record<OAuthRefreshEvent, keyof NumericMeasures>> =
+  /** Count a single token refresh lifecycle event without credential metadata. */
+  public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
+    const measures: Readonly<Record<TokenRefreshEvent, keyof NumericMeasures>> =
       {
-        attempt: 'oAuthRefreshAttemptCount',
-        success: 'oAuthRefreshSuccessCount',
-        'transient-failure': 'oAuthRefreshTransientFailureCount',
-        'non-transient-failure': 'oAuthRefreshNonTransientFailureCount',
-        abandoned: 'oAuthRefreshAbandonedCount',
-        'required-sign-in': 'oAuthRefreshRequiredSignInCount',
+        attempt: 'tokenRefreshAttemptCount',
+        success: 'tokenRefreshSuccessCount',
+        'transient-failure': 'tokenRefreshTransientFailureCount',
+        'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
+        abandoned: 'tokenRefreshAbandonedCount',
+        'required-sign-in': 'tokenRefreshRequiredSignInCount',
       }
     return this.increment(measures[event])
   }

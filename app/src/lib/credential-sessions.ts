@@ -63,8 +63,8 @@ export interface IAccountTokenExpiration {
   readonly isOverridden: boolean
 }
 
-/** Credential-free lifecycle events for actual OAuth renewal exchanges. */
-export type OAuthRefreshEvent =
+/** Credential-free lifecycle events for actual token refresh exchanges. */
+export type TokenRefreshEvent =
   | 'attempt'
   | 'success'
   | 'transient-failure'
@@ -75,7 +75,7 @@ export type OAuthRefreshEvent =
 /** Account-list changes that credential sessions ask their owner to perform. */
 export interface ICredentialSessionsDelegate {
   /** A renewal lifecycle event; excludes expiry-override testing. */
-  readonly onOAuthRefreshEvent?: (event: OAuthRefreshEvent) => void
+  readonly onTokenRefreshEvent?: (event: TokenRefreshEvent) => void
 
   /**
    * Sign the account out because its credential can no longer be used.
@@ -658,9 +658,9 @@ export class CredentialSessions {
       throw new Error('Cannot renew a credential without a refresh token.')
     }
     const reportEvents = session.expirationOverride === undefined
-    const notifyRefreshEvent = (event: OAuthRefreshEvent) => {
+    const notifyRefreshEvent = (event: TokenRefreshEvent) => {
       if (reportEvents) {
-        this.delegate.onOAuthRefreshEvent?.(event)
+        this.delegate.onTokenRefreshEvent?.(event)
       }
     }
     const requireSignInAfterRefreshFailure = async () => {

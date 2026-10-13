@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
-import { OAuthRefreshEvent } from '../../src/lib/credential-sessions'
+import { TokenRefreshEvent } from '../../src/lib/credential-sessions'
 import { OAuthRefreshRejectedError } from '../../src/lib/oauth-token'
 
 describe('AccountsStore', () => {
@@ -52,8 +52,8 @@ describe('AccountsStore', () => {
       refreshToken: 'old-refresh',
       expiresAt: 0,
     })
-    const events: OAuthRefreshEvent[] = []
-    const subscription = store.onOAuthRefreshEvent(event => events.push(event))
+    const events: TokenRefreshEvent[] = []
+    const subscription = store.onTokenRefreshEvent(event => events.push(event))
     t.after(() => subscription.dispose())
     await store.getAccountWithFreshToken(account)
     assert.deepEqual(events, ['attempt', 'success'])
@@ -86,8 +86,8 @@ describe('AccountsStore', () => {
       refreshToken: 'old-refresh',
       expiresAt: 0,
     })
-    const events: OAuthRefreshEvent[] = []
-    const subscription = store.onOAuthRefreshEvent(event => events.push(event))
+    const events: TokenRefreshEvent[] = []
+    const subscription = store.onTokenRefreshEvent(event => events.push(event))
     t.after(() => subscription.dispose())
     const deletion = t.mock.method(secure, 'deleteItem', async () => {
       throw new Error('Secure deletion failed')

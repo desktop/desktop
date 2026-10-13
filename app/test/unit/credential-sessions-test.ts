@@ -4,7 +4,7 @@ import { Account } from '../../src/models/account'
 import {
   AccountRequiresSignInError,
   CredentialSessions,
-  OAuthRefreshEvent,
+  TokenRefreshEvent,
 } from '../../src/lib/credential-sessions'
 import {
   IOAuthToken,
@@ -47,7 +47,7 @@ function setup(
   const signedOut: Account[] = []
   const renewals: Array<[string, string]> = []
   const revoked: string[] = []
-  const refreshEvents: OAuthRefreshEvent[] = []
+  const refreshEvents: TokenRefreshEvent[] = []
   const sessions: CredentialSessions = new CredentialSessions(
     secure,
     {
@@ -58,7 +58,7 @@ function setup(
       },
       onTokenRenewed: (endpoint, token) => renewals.push([endpoint, token]),
       onSignedIn: () => {},
-      onOAuthRefreshEvent: event => refreshEvents.push(event),
+      onTokenRefreshEvent: event => refreshEvents.push(event),
     },
     renew,
     clock,
@@ -70,7 +70,7 @@ function setup(
   return { sessions, secure, signedOut, renewals, revoked, refreshEvents }
 }
 
-describe('CredentialSessions renewal lifecycle events', () => {
+describe('CredentialSessions token refresh lifecycle events', () => {
   it('counts one attempt and success for concurrent callers only after installation', async () => {
     let complete: (credential: IOAuthToken) => void = () => {
       throw new Error('Renewal not started')

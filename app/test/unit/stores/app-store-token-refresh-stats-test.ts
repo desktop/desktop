@@ -7,7 +7,7 @@ import type { TestStatsDatabase } from '../../helpers/databases/test-stats-datab
 import { Account } from '../../../src/models/account'
 import { OAuthRefreshRejectedError } from '../../../src/lib/oauth-token'
 
-describe('AppStore OAuth usage stats wiring', () => {
+describe('AppStore token refresh usage stats wiring', () => {
   let appStore: AppStore
   let accountsStore: AccountsStore
   let statsStore: StatsStore
@@ -110,7 +110,7 @@ describe('AppStore OAuth usage stats wiring', () => {
 
   it('keeps adoption in sync across legacy sign-in, renewal, and required sign-out', async t => {
     const adoption = t.mock.method(statsStore, 'setUsesShortLivedToken')
-    const record = t.mock.method(statsStore, 'recordOAuthRefreshEvent')
+    const record = t.mock.method(statsStore, 'recordTokenRefreshEvent')
     const legacy = new Account(
       'legacy',
       'https://api.github.com',
@@ -147,7 +147,7 @@ describe('AppStore OAuth usage stats wiring', () => {
     )
     assert.equal(adoption.mock.calls.at(-1)?.arguments[0], true)
     assert.equal(
-      (await statsDb.dailyMeasures.limit(1).first())?.oAuthRefreshSuccessCount,
+      (await statsDb.dailyMeasures.limit(1).first())?.tokenRefreshSuccessCount,
       1
     )
 
@@ -176,7 +176,7 @@ describe('AppStore OAuth usage stats wiring', () => {
     )
     assert.equal(
       (await statsDb.dailyMeasures.limit(1).first())
-        ?.oAuthRefreshRequiredSignInCount,
+        ?.tokenRefreshRequiredSignInCount,
       1
     )
     assert.deepEqual(
@@ -189,7 +189,7 @@ describe('AppStore OAuth usage stats wiring', () => {
     rejectRenewal = false
     const error = new Error('Stats database unavailable')
     const logger = t.mock.method(log, 'error')
-    t.mock.method(statsStore, 'recordOAuthRefreshEvent', async () => {
+    t.mock.method(statsStore, 'recordTokenRefreshEvent', async () => {
       throw error
     })
     const account = new Account(

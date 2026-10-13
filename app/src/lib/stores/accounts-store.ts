@@ -14,7 +14,7 @@ import {
   AccountRequiresSignInError,
   CredentialSessions,
   IAccountTokenExpiration,
-  OAuthRefreshEvent,
+  TokenRefreshEvent,
   refreshMargin,
 } from '../credential-sessions'
 
@@ -101,7 +101,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         requireSignIn: this.requireSignIn,
         onTokenRenewed: this.onTokenRenewed,
         onSignedIn: this.onSignedIn,
-        onOAuthRefreshEvent: event => this.emitter.emit('oauth-refresh', event),
+        onTokenRefreshEvent: event => this.emitter.emit('token-refresh', event),
       },
       renewToken,
       now,
@@ -125,10 +125,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   /** Subscribe to credential-free renewal events, excluding debug overrides. */
-  public onOAuthRefreshEvent(
-    callback: (event: OAuthRefreshEvent) => void
+  public onTokenRefreshEvent(
+    callback: (event: TokenRefreshEvent) => void
   ): Disposable {
-    return this.emitter.on('oauth-refresh', callback)
+    return this.emitter.on('token-refresh', callback)
   }
 
   /** Handle a rejected API token without leaving unhandled callback errors. */
