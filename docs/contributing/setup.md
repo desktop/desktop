@@ -65,7 +65,7 @@ problems.
 ### macOS release notarization
 
 Publishable macOS builds (`production`, `beta`, and `test` release channels)
-support App Store Connect **team API keys** for notarization. For local builds,
+require App Store Connect **team API keys** for notarization. For local builds,
 set all three environment variables:
 
 | Variable | Value |
@@ -91,12 +91,9 @@ secrets are missing. Callers using repository or organization secrets instead
 must forward all three (or use `secrets: inherit`). Keep the `.p8` file and its
 encoded contents out of the repository and logs.
 
-API-key authentication takes precedence over Apple Account authentication.
-Partial API-key configuration fails explicitly, even if legacy credentials are
-present. When no API credentials are configured, the existing `APPLE_ID`,
-`APPLE_ID_PASSWORD` (app-specific password), and `APPLE_TEAM_ID` credentials
-continue to work. Keep those secrets during rollout until an authenticated
-release build successfully notarizes with the API key.
+Missing or partial API-key configuration fails explicitly for every publishable
+macOS build, including local builds. Apple Account authentication is not
+supported; legacy Apple ID, password, and team ID credentials are ignored.
 
 Code signing is unchanged: CI still requires `APPLE_APPLICATION_CERT` and
 `APPLE_APPLICATION_CERT_PASSWORD`. Development builds do not notarize, and

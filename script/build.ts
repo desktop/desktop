@@ -176,18 +176,6 @@ async function packageApp() {
       ? getNotarizationOptions(process.env)
       : undefined
 
-  if (
-    isPublishableBuild &&
-    isGitHubActions() &&
-    process.platform === 'darwin' &&
-    osxNotarize === undefined
-  ) {
-    // we can't publish a mac build without these
-    throw new Error(
-      'Unable to retrieve credentials to notarize macOS build: configure APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER, or APPLE_ID, APPLE_ID_PASSWORD, and APPLE_TEAM_ID'
-    )
-  }
-
   const iconPath = getIconDirectory()
   const assetsCarPath = join(iconPath, 'Assets.car')
   assert(

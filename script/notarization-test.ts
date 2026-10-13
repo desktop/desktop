@@ -22,41 +22,38 @@ describe('getNotarizationOptions', () => {
     })
   })
 
-  it('prefers API-key credentials over legacy credentials', () => {
+  it('ignores legacy credentials when API-key credentials are configured', () => {
     assert.deepStrictEqual(
       getNotarizationOptions({ ...legacyCredentials, ...apiCredentials }),
       getNotarizationOptions(apiCredentials)
     )
   })
 
-  it('retains legacy authentication when no API credentials are configured', () => {
-    assert.deepStrictEqual(getNotarizationOptions(legacyCredentials), {
-      appleId: legacyCredentials.APPLE_ID,
-      appleIdPassword: legacyCredentials.APPLE_ID_PASSWORD,
-      teamId: legacyCredentials.APPLE_TEAM_ID,
-    })
-  })
-
-  it('treats empty API credentials as unconfigured', () => {
-    assert.deepStrictEqual(
-      getNotarizationOptions({
-        ...legacyCredentials,
-        APPLE_API_KEY_PATH: '',
-        APPLE_API_KEY_ID: '',
-        APPLE_API_ISSUER: '',
-      }),
-      getNotarizationOptions(legacyCredentials)
+  it('rejects legacy credentials without API-key credentials', () => {
+    assert.throws(
+      () => getNotarizationOptions(legacyCredentials),
+      /Missing or incomplete notarization API-key configuration/
     )
   })
 
-  it('returns undefined without complete legacy credentials', () => {
-    assert.strictEqual(getNotarizationOptions({}), undefined)
-    for (const key of Object.keys(legacyCredentials)) {
-      assert.strictEqual(
-        getNotarizationOptions({ ...legacyCredentials, [key]: '' }),
-        undefined
-      )
-    }
+  it('rejects empty API credentials even with legacy credentials', () => {
+    assert.throws(
+      () =>
+        getNotarizationOptions({
+          ...legacyCredentials,
+          APPLE_API_KEY_PATH: '',
+          APPLE_API_KEY_ID: '',
+          APPLE_API_ISSUER: '',
+        }),
+      /Missing or incomplete notarization API-key configuration/
+    )
+  })
+
+  it('rejects absent credentials', () => {
+    assert.throws(
+      () => getNotarizationOptions({}),
+      /Missing or incomplete notarization API-key configuration/
+    )
   })
 
   const keys = Object.keys(apiCredentials)
@@ -71,7 +68,7 @@ describe('getNotarizationOptions', () => {
       for (const env of [partial, { ...legacyCredentials, ...partial }]) {
         assert.throws(
           () => getNotarizationOptions(env),
-          /Incomplete notarization API-key configuration/
+          /Missing or incomplete notarization API-key configuration/
         )
       }
     })
