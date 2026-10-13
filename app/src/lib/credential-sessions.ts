@@ -658,21 +658,21 @@ export class CredentialSessions {
       throw new Error('Cannot renew a credential without a refresh token.')
     }
     const reportEvents = session.expirationOverride === undefined
-    const record = (event: OAuthRefreshEvent) => {
+    const notifyRefreshEvent = (event: OAuthRefreshEvent) => {
       if (reportEvents) {
         this.delegate.onOAuthRefreshEvent?.(event)
       }
     }
-    const requireSignIn = async () => {
+    const requireSignInAfterRefreshFailure = async () => {
       const wasRetired = session.retired
       const signOut = this.requireSignIn(session)
       // The delegate retires the session synchronously, before deleting storage.
       if (!wasRetired && session.retired) {
-        record('required-sign-in')
+        notifyRefreshEvent('required-sign-in')
       }
       await signOut
     }
-    record('attempt')
+    notifyRefreshEvent('attempt')
     let renewed: IOAuthToken
     try {
       renewed = await this.renewToken(
@@ -685,10 +685,10 @@ export class CredentialSessions {
           e instanceof OAuthRefreshRejectedError ||
           e instanceof OAuthTokenResponseError
         ) {
-          record('non-transient-failure')
-          await requireSignIn()
+          notifyRefreshEvent('non-transient-failure')
+          await requireSignInAfterRefreshFailure()
         } else {
-          record('transient-failure')
+          notifyRefreshEvent('transient-failure')
           log.warn(
             'OAuth renewal failed; retaining credentials for a later retry.'
           )
@@ -697,13 +697,13 @@ export class CredentialSessions {
           )
         }
       } else {
-        record('abandoned')
+        notifyRefreshEvent('abandoned')
       }
       throw e
     }
 
     if (session.retired) {
-      record('abandoned')
+      notifyRefreshEvent('abandoned')
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
@@ -720,9 +720,9 @@ export class CredentialSessions {
       })
     } catch {
       if (!session.retired) {
-        await requireSignIn()
+        await requireSignInAfterRefreshFailure()
       } else {
-        record('abandoned')
+        notifyRefreshEvent('abandoned')
       }
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new Error(
@@ -730,7 +730,7 @@ export class CredentialSessions {
       )
     }
     if (session.retired) {
-      record('abandoned')
+      notifyRefreshEvent('abandoned')
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
@@ -741,7 +741,7 @@ export class CredentialSessions {
       session
     )
     this.delegate.onTokenRenewed(account.endpoint, renewed.accessToken)
-    record('success')
+    notifyRefreshEvent('success')
     log.info('OAuth credentials renewed and saved.')
     return renewed.accessToken
   }
