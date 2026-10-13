@@ -199,6 +199,7 @@ import { ConfirmCommitFilteredChanges } from './changes/confirm-commit-filtered-
 import { AboutTestDialog } from './about/about-test-dialog'
 import { TestCLIActionDialog } from './cli-action/test-cli-action-dialog'
 import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapshot-card-dialog'
+import { TestTokenExpirationDialog } from './preferences/test-token-expiration-dialog'
 import {
   enableCopilotSdkCommitMessageGeneration,
   enableCopilotAppHandoff,
@@ -2840,6 +2841,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           <TestCopilotSnapshotCardDialog
             key="test-copilot-snapshot-card"
             accounts={this.state.accounts}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.TestTokenExpiration:
+        return (
+          <TestTokenExpirationDialog
+            key="test-token-expiration"
+            accounts={this.state.accounts}
+            dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
           />
         )
