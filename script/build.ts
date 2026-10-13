@@ -30,12 +30,6 @@ interface IDesktopPackagerModule {
   readonly packager: (options: object) => Promise<ReadonlyArray<string>>
 }
 
-interface IOSXNotarizeOptions {
-  readonly appleId: string
-  readonly appleIdPassword: string
-  readonly teamId: string
-}
-
 import {
   getBundleID,
   getCompanyName,
@@ -67,6 +61,7 @@ import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 import { join } from 'path'
 import assert from 'assert'
 import { copyCopilotDependency } from './copilot'
+import { getNotarizationOptions } from './notarization'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
@@ -176,7 +171,10 @@ async function packageApp() {
   }
 
   // get notarization deets, unless we're not going to publish this
-  const osxNotarize = isPublishableBuild ? getNotarizationOptions() : undefined
+  const osxNotarize =
+    isPublishableBuild && process.platform === 'darwin'
+      ? getNotarizationOptions(process.env)
+      : undefined
 
   if (
     isPublishableBuild &&
@@ -186,7 +184,7 @@ async function packageApp() {
   ) {
     // we can't publish a mac build without these
     throw new Error(
-      'Unable to retreive appleId and/or appleIdPassword to notarize macOS build'
+      'Unable to retrieve credentials to notarize macOS build: configure APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER, or APPLE_ID, APPLE_ID_PASSWORD, and APPLE_TEAM_ID'
     )
   }
 
@@ -510,16 +508,4 @@ ${licenseText}`
 
   // sweep up the choosealicense directory as the important bits have been bundled in the app
   rmSync(chooseALicense, { recursive: true, force: true })
-}
-
-function getNotarizationOptions(): IOSXNotarizeOptions | undefined {
-  const {
-    APPLE_ID: appleId,
-    APPLE_ID_PASSWORD: appleIdPassword,
-    APPLE_TEAM_ID: teamId,
-  } = process.env
-
-  return appleId && appleIdPassword && teamId
-    ? { appleId, appleIdPassword, teamId }
-    : undefined
 }

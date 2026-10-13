@@ -39,6 +39,9 @@ on:
       APPLE_ID:
       APPLE_ID_PASSWORD:
       APPLE_TEAM_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
 
@@ -110,6 +113,38 @@ jobs:
           cd vendor/desktop-trampoline
           yarn install
           yarn test
+      - name: Validate notarization API-key secrets
+        if: runner.os == 'macOS'
+        id: notarization-secrets
+        shell: bash
+        env:
+          API_KEY_ID: ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          API_PRIVATE_KEY:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
+        run: |
+          if [[ -n "$API_KEY_ID" || -n "$API_ISSUER_ID" || -n "$API_PRIVATE_KEY" ]]; then
+            if [[ -z "$API_KEY_ID" || -z "$API_ISSUER_ID" || -z "$API_PRIVATE_KEY" ]]; then
+              echo "::error::Set all three GATEWATCHER_APP_STORE_CONNECT_API secrets together."
+              exit 1
+            fi
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up notarization API key
+        if:
+          runner.os == 'macOS' && steps.notarization-secrets.outputs.configured
+          == 'true'
+        id: notarization-key
+        uses: nodeselector/setup-apple-codesign@6b2173bdcb7dd4057e0396ccfa28ebfa4d90affa
+        with:
+          asset-type: app-store-connect-api-key
+          app-store-connect-api-key-key-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          app-store-connect-api-key-issuer-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          app-store-connect-api-key-base64-private-key:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
       - name: Build production app
         run: yarn build:prod
         env:
@@ -119,6 +154,16 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_PATH:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-key-path }}
+          APPLE_API_KEY_ID:
+            ${{ steps.notarization-key.outputs.app-store-connect-api-key-key-id
+            }}
+          APPLE_API_ISSUER:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-issuer-id
+            }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
@@ -189,6 +234,38 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           arch: ${{ matrix.arch }}
           install-ffmpeg: 'true'
+      - name: Validate notarization API-key secrets
+        if: runner.os == 'macOS'
+        id: notarization-secrets
+        shell: bash
+        env:
+          API_KEY_ID: ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          API_PRIVATE_KEY:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
+        run: |
+          if [[ -n "$API_KEY_ID" || -n "$API_ISSUER_ID" || -n "$API_PRIVATE_KEY" ]]; then
+            if [[ -z "$API_KEY_ID" || -z "$API_ISSUER_ID" || -z "$API_PRIVATE_KEY" ]]; then
+              echo "::error::Set all three GATEWATCHER_APP_STORE_CONNECT_API secrets together."
+              exit 1
+            fi
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up notarization API key
+        if:
+          runner.os == 'macOS' && steps.notarization-secrets.outputs.configured
+          == 'true'
+        id: notarization-key
+        uses: nodeselector/setup-apple-codesign@6b2173bdcb7dd4057e0396ccfa28ebfa4d90affa
+        with:
+          asset-type: app-store-connect-api-key
+          app-store-connect-api-key-key-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          app-store-connect-api-key-issuer-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          app-store-connect-api-key-base64-private-key:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
       - name: Build production app
         run: yarn build:prod
         env:
@@ -199,6 +276,16 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_PATH:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-key-path }}
+          APPLE_API_KEY_ID:
+            ${{ steps.notarization-key.outputs.app-store-connect-api-key-key-id
+            }}
+          APPLE_API_ISSUER:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-issuer-id
+            }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
