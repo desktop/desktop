@@ -37,6 +37,7 @@ export type MenuEvent =
   | 'install-windows-cli'
   | 'uninstall-windows-cli'
   | 'open-external-editor'
+  | 'open-in-copilot-app'
   | 'open-with-external-editor'
   | 'select-all'
   | 'show-stashed-changes'
@@ -78,9 +79,11 @@ const TestMenuEvents = [
   'test-re-authorization-required',
   'test-release-notes-popup',
   'test-reorder-banner',
+  'test-send-stats',
   'test-showcase-update-banner',
   'test-thank-you-banner',
   'test-thank-you-popup',
+  'test-token-expiration',
   'test-unable-to-locate-git',
   'test-unable-to-open-shell',
   'test-undone-banner',

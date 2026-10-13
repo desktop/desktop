@@ -11,8 +11,8 @@ import {
   fetchUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  requestOAuthToken,
   getOAuthAuthorizationURL,
+  getHTMLURL,
 } from '../../lib/api'
 
 import { TypedBaseStore } from './base-store'
@@ -20,6 +20,8 @@ import { IOAuthAction } from '../parse-app-url'
 import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
+import { isGHES } from '../endpoint-capabilities'
+import { exchangeOAuthToken } from '../oauth-token'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -120,6 +122,9 @@ export interface IAuthenticationState extends ISignInState {
    */
   readonly endpoint: string
 
+  /** Whether Git supplied this unfamiliar Enterprise Server endpoint. */
+  readonly isUnrecognizedEnterpriseServer?: boolean
+
   readonly resultCallback: (result: SignInResult) => void
 
   readonly oauthState?: {
@@ -155,6 +160,7 @@ export type SignInResult =
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
+  private resolvingOAuthState: string | undefined
 
   private accounts: ReadonlyArray<Account> = []
 
@@ -289,6 +295,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
+        isUnrecognizedEnterpriseServer:
+          currentState.kind === SignInStep.Authentication
+            ? currentState.isUnrecognizedEnterpriseServer
+            : undefined,
         resultCallback,
         error: null,
         loading: true,
@@ -302,7 +312,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
     })
       .then(account => {
-        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+        if (
+          this.state?.kind !== SignInStep.Authentication ||
+          this.state.oauthState?.state !== csrfToken
+        ) {
           // Looks like the sign in flow has been aborted
           log.warn('[SignInStore] account resolved but session has changed')
           return
@@ -345,16 +358,54 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint } = this.state
-    const token = await requestOAuthToken(endpoint, action.code)
-
-    if (token) {
-      const account = await fetchUser(endpoint, token)
-      this.state.oauthState.onAuthCompleted(account)
-    } else {
-      this.state.oauthState.onAuthError(
-        new Error('Failed retrieving authenticated user')
+    const { endpoint, oauthState } = this.state
+    if (this.resolvingOAuthState === oauthState.state) {
+      return
+    }
+    this.resolvingOAuthState = oauthState.state
+    // False once the user cancels, restarts, or leaves this browser sign-in.
+    const isSignInAttemptActive = () =>
+      this.state?.kind === SignInStep.Authentication &&
+      this.state.oauthState === oauthState
+    let unpublishedToken: string | undefined
+    try {
+      const credential = await exchangeOAuthToken(
+        getHTMLURL(endpoint),
+        action.code
       )
+      unpublishedToken = credential.accessToken
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const account = await fetchUser(endpoint, credential.accessToken, true)
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const stored = await this.accountStore.addAccount(account, credential)
+      if (stored !== null) {
+        unpublishedToken = undefined
+      }
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      if (stored === null) {
+        throw new Error(
+          'Unable to save your GitHub credentials. Please try signing in again.'
+        )
+      }
+      oauthState.onAuthCompleted(stored)
+    } catch (e) {
+      oauthState.onAuthError(e)
+    } finally {
+      if (this.resolvingOAuthState === oauthState.state) {
+        this.resolvingOAuthState = undefined
+      }
+      if (unpublishedToken !== undefined) {
+        void this.accountStore.revokeUnusedToken({
+          endpoint,
+          token: unpublishedToken,
+        })
+      }
     }
   }
 
@@ -379,19 +430,16 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   /**
-   * Attempt to advance from the EndpointEntry step with the given endpoint
-   * url. This method must only be called when the store is in the authentication
-   * step or an error will be thrown.
+   * Select an endpoint from the entry or existing-account step.
    *
-   * The provided endpoint url will be validated for syntactic correctness as
-   * well as connectivity before the promise resolves. If the endpoint url is
-   * invalid or the host can't be reached the promise will be rejected and the
-   * sign in state updated with an error to be presented to the user.
-   *
-   * If validation is successful the store will advance to the authentication
-   * step.
+   * Invalid URLs leave the current step with an error. When isEndpointFromGit
+   * is true, the authentication state records unfamiliar Enterprise Server
+   * endpoints so the UI can explain how to verify them.
    */
-  public async setEndpoint(url: string): Promise<void> {
+  public async setEndpoint(
+    url: string,
+    isEndpointFromGit = false
+  ): Promise<void> {
     const currentState = this.state
 
     if (
@@ -451,6 +499,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
+        isUnrecognizedEnterpriseServer: isEndpointFromGit && isGHES(endpoint),
         error: null,
         loading: false,
         resultCallback: currentState.resultCallback,

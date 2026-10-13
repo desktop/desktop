@@ -26,11 +26,13 @@ function getCheckoutArgs(progressCallback?: ProgressCallback) {
 }
 
 async function getBranchCheckoutArgs(branch: Branch) {
+  // Remote refs are starting points for -b: use the canonical ref so a leading
+  // dash isn't parsed as an option. Local branches need their short name to
+  // avoid detaching HEAD. The trailing -- separates paths, not branch targets.
   return [
-    branch.name,
     ...(branch.type === BranchType.Remote
-      ? ['-b', branch.nameWithoutRemote]
-      : []),
+      ? ['-b', branch.nameWithoutRemote, branch.ref]
+      : [branch.name]),
     '--',
   ]
 }

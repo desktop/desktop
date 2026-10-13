@@ -73,3 +73,37 @@ this standard.
 
 For scripts we should favor synchronous APIs as the asynchronous benefits are
 not so important there, and  it makes the code easier to read.
+
+## Git command arguments
+
+Use the shared Git helpers and pass arguments as an array. Choose argument
+boundaries according to the specific Git command rather than inserting a
+separator mechanically:
+
+- Put options and their values before the operand separator. For commands such
+  as `fetch` and `push`, use `--` before remote names and refspecs.
+- Commands such as `log`, `diff`, and `rev-list` use `--` to separate revisions
+  from paths. Use `--end-of-options` before explicit revision operands and keep
+  the trailing `--` where needed to distinguish revisions from paths.
+- Preserve ordering-sensitive options. For example, `--not` changes the meaning
+  of subsequent revisions; moving it before an explicit revision can change
+  which commits are included.
+- Prefer canonical remote refs (`refs/remotes/<remote>/<branch>`) when using a
+  remote branch as a starting point for checkout or worktree branch creation.
+  Local checkout targets should retain their short branch names so that HEAD
+  remains attached. Checkout's trailing `--` separates paths, not branch targets.
+- Check commands that invoke other Git commands. An outer separator is not
+  necessarily forwarded to a child command. Verify behavior with the bundled
+  Git version and the actual arguments supplied by application callers before
+  adding special handling.
+
+Tests should use realistic caller inputs and verify resulting commits, tracking
+configuration, file contents, and expected errors, not only successful exit
+codes. Cover ordinary names as well as supported leading-dash names. Document
+command-specific exceptions near the code that handles them.
+
+When consuming Git output, prefer machine-readable formats with explicit record
+delimiters, such as `git config --null`, over human-readable listings. Preserve
+whitespace in values: split only on the documented delimiters and remove only
+terminators added by Git. Cover embedded delimiters and URL rewrites in tests
+when changing remote discovery.

@@ -53,6 +53,10 @@ export function showTestUI(
       return dispatcher.showPopup({
         type: PopupType.TestCopilotSnapshotCard,
       })
+    case 'test-token-expiration':
+      return dispatcher.showPopup({
+        type: PopupType.TestTokenExpiration,
+      })
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':
@@ -101,6 +105,8 @@ export function showTestUI(
       return showFakeReleaseNotesPopup()
     case 'test-reorder-banner':
       return showFakeReorderBanner()
+    case 'test-send-stats':
+      return dispatcher.sendStats()
     case 'test-showcase-update-banner':
       return showFakeUpdateBanner({ isShowcase: true })
     case 'test-thank-you-banner':

@@ -2,7 +2,7 @@ import type { CopilotClient, CopilotSession } from '@github/copilot-sdk'
 import type {
   AccountQuotaSnapshot,
   Model,
-} from '@github/copilot-sdk/dist/generated/rpc'
+} from '../../../src/lib/copilot/types'
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import { getDotComAPIEndpoint } from '../../../src/lib/api'
@@ -24,6 +24,12 @@ import {
   runConflictResolutionTurn,
 } from '../../../src/lib/stores/copilot-store'
 import { Account } from '../../../src/models/account'
+import {
+  CopilotConflictResolutionError,
+  type CopilotConflictResolutionFailureStage,
+  type CopilotConflictResolutionRetryState,
+} from '../../../src/lib/copilot-conflict-resolution-error'
+import type { IConflictResolutionContext } from '../../../src/lib/copilot-conflict-context'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 const PreviewFeaturesEnv = 'GITHUB_DESKTOP_PREVIEW_FEATURES'
@@ -55,6 +61,13 @@ interface ITestableCommitMessageCopilotStore {
 
 interface ITestableQuotaCopilotStore {
   createClient(account: Account): Promise<CopilotClient>
+}
+
+interface ITestableConflictResolutionCopilotStore {
+  createClient(
+    account: Account,
+    repositoryPath?: string
+  ): Promise<CopilotClient>
 }
 
 type TestQuotaSnapshot = AccountQuotaSnapshot & {
@@ -133,27 +146,37 @@ function createCopilotStoreWithModels(
 }
 
 function createCopilotStoreWithQuotaSnapshots(
-  quotaSnapshots: Readonly<Record<string, TestQuotaSnapshot | undefined>>
+  quotaSnapshots: Readonly<Record<string, TestQuotaSnapshot | undefined>>,
+  onStart: () => Promise<void> = async () => {}
 ): {
   readonly accountsStore: AccountsStore
   readonly store: CopilotStore
+  readonly quotaTokens: ReadonlyArray<string | undefined>
+  readonly stopCount: () => number
 } {
   const accountsStore = createAccountsStore()
   const store = new CopilotStore(accountsStore)
+  const quotaTokens: Array<string | undefined> = []
+  let stopCount = 0
   const testableStore = store as unknown as ITestableQuotaCopilotStore
 
   testableStore.createClient = async () =>
     ({
-      start: async () => {},
-      stop: async () => {},
+      start: onStart,
+      stop: async () => {
+        stopCount++
+      },
       rpc: {
         account: {
-          getQuota: async () => ({ quotaSnapshots }),
+          getQuota: async (request: { gitHubToken?: string }) => {
+            quotaTokens.push(request.gitHubToken)
+            return { quotaSnapshots }
+          },
         },
       },
     } as unknown as CopilotClient)
 
-  return { accountsStore, store }
+  return { accountsStore, store, quotaTokens, stopCount: () => stopCount }
 }
 
 function makeQuotaSnapshot(): AccountQuotaSnapshot {
@@ -193,6 +216,17 @@ function createBYOKRequest(): CopilotModelRequest {
 
 function assertCommitMessageGenerationCancelled(error: unknown): boolean {
   assert.ok(error instanceof CommitMessageGenerationCancelledError)
+  return true
+}
+
+function assertConflictResolutionFailure(
+  error: unknown,
+  stage: CopilotConflictResolutionFailureStage,
+  retryState: CopilotConflictResolutionRetryState
+): error is CopilotConflictResolutionError {
+  assert.ok(error instanceof CopilotConflictResolutionError)
+  assert.strictEqual(error.stage, stage)
+  assert.strictEqual(error.retryState, retryState)
   return true
 }
 
@@ -456,6 +490,62 @@ describe('CopilotStore quota snapshots', () => {
     )
     assert.strictEqual(snapshots?.has('missing'), false)
   })
+
+  it('requests quota with a renewed token for an expiring account', async () => {
+    const account = makeAccount({ token: 'old-access' })
+    const accountsStore = new AccountsStore(
+      new InMemoryStore(),
+      new AsyncInMemoryStore(),
+      async () => ({
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+        expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+      })
+    )
+    const store = new CopilotStore(accountsStore)
+    const quotaTokens: Array<string | undefined> = []
+    const testableStore = store as unknown as ITestableQuotaCopilotStore
+    testableStore.createClient = async () =>
+      ({
+        start: async () => {},
+        stop: async () => {},
+        rpc: {
+          account: {
+            getQuota: async (request: { gitHubToken?: string }) => {
+              quotaTokens.push(request.gitHubToken)
+              return { quotaSnapshots: { chat: makeQuotaSnapshot() } }
+            },
+          },
+        },
+      } as unknown as CopilotClient)
+
+    await accountsStore.addAccount(account, {
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: Date.now(),
+    })
+
+    const snapshots = await store.getQuotaSnapshots(account)
+    assert.strictEqual(snapshots?.size, 1)
+    assert.deepStrictEqual(quotaTokens, ['new-access'])
+  })
+
+  it('does not request quota under a replacement sign-in during client startup', async () => {
+    const account = makeAccount()
+    const { accountsStore, store, quotaTokens, stopCount } =
+      createCopilotStoreWithQuotaSnapshots(
+        { chat: makeQuotaSnapshot() },
+        async () => {
+          await accountsStore.removeAccount(account)
+          await accountsStore.addAccount(account)
+        }
+      )
+    await accountsStore.addAccount(account)
+
+    assert.strictEqual(await store.getQuotaSnapshots(account), null)
+    assert.deepStrictEqual(quotaTokens, [])
+    assert.strictEqual(stopCount(), 1)
+  })
 })
 
 describe('CopilotStore commit message generation cancellation', () => {
@@ -474,11 +564,33 @@ describe('CopilotStore commit message generation cancellation', () => {
     }
   })
 
+  it('honors already-aborted generation before requiring account credentials', async () => {
+    const account = makeAccount()
+    const { store, createClientAccounts } = createCopilotStoreWithModels(
+      () => []
+    )
+    const controller = new AbortController()
+    controller.abort()
+
+    await assert.rejects(
+      store.generateCommitMessage(
+        account,
+        'diff --git a/file b/file',
+        '/path/to/repository',
+        null,
+        [],
+        controller.signal
+      ),
+      assertCommitMessageGenerationCancelled
+    )
+    assert.strictEqual(createClientAccounts.length, 0)
+  })
+
   it('does not create a commit-message client after cancellation during model resolution', async () => {
     const account = makeAccount()
     const models = [makeModel({ id: DefaultCopilotModel, name: 'Default' })]
     const deferred = createDeferred<ReadonlyArray<Model>>()
-    const { accountsStore, store, createClientAccounts } =
+    const { accountsStore, store, createClientAccounts, stopCount } =
       createCopilotStoreWithModels(() => deferred.promise)
 
     await accountsStore.addAccount(account)
@@ -493,17 +605,32 @@ describe('CopilotStore commit message generation cancellation', () => {
       controller.signal
     )
 
+    const sharedDiscovery = store.listModels(account)
+    let cancelled = false
+    const cancellation = assert
+      .rejects(generation, assertCommitMessageGenerationCancelled)
+      .then(() => {
+        cancelled = true
+      })
     controller.abort()
-    deferred.resolve(models)
+    try {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.strictEqual(cancelled, true)
+      assert.strictEqual(stopCount(), 0)
+    } finally {
+      deferred.resolve(models)
+      await cancellation
+    }
 
-    await assert.rejects(generation, assertCommitMessageGenerationCancelled)
-
+    assert.strictEqual(await sharedDiscovery, models)
     assert.strictEqual(createClientAccounts.length, 1)
+    assert.strictEqual(stopCount(), 1)
   })
 
   it('stops the client without creating a session after cancellation before session creation', async () => {
     const account = makeAccount()
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const controller = new AbortController()
     let createSessionCount = 0
@@ -543,6 +670,7 @@ describe('CopilotStore commit message generation cancellation', () => {
     const account = makeAccount()
     const repositoryPath = '/path/to/repository'
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const createSessionStarted = createDeferred<void>()
     const sessionCreation = createDeferred<CopilotSession>()
@@ -593,6 +721,7 @@ describe('CopilotStore commit message generation cancellation', () => {
     const account = makeAccount()
     const repositoryPath = '/path/to/repository'
     const accountsStore = createAccountsStore()
+    await accountsStore.addAccount(account)
     const store = new CopilotStore(accountsStore)
     const sendStarted = createDeferred<void>()
     const controller = new AbortController()
@@ -966,6 +1095,54 @@ function createFakeSession() {
   }
 }
 
+function createResponseSession(response: string): CopilotSession {
+  const handlers: Record<string, Array<(event: unknown) => void>> = {}
+
+  return {
+    on(event: string, handler: (event: unknown) => void) {
+      handlers[event] = handlers[event] ?? []
+      handlers[event].push(handler)
+      return () => {}
+    },
+    send() {
+      queueMicrotask(() => {
+        for (const handler of handlers['assistant.message'] ?? []) {
+          handler({ data: { content: response } })
+        }
+      })
+      return Promise.resolve()
+    },
+    disconnect() {
+      return Promise.resolve()
+    },
+  } as unknown as CopilotSession
+}
+
+function makeConflictResolutionContext(): IConflictResolutionContext {
+  return {
+    ourLabel: 'main',
+    theirLabel: 'feature',
+    files: [
+      {
+        path: 'conflicted.txt',
+        hunks: [
+          {
+            oursContent: 'ours',
+            theirsContent: 'theirs',
+            baseContent: null,
+            contextBefore: '',
+            contextAfter: '',
+          },
+        ],
+        rawContent: '<<<<<<< main\nours\n=======\ntheirs\n>>>>>>> feature\n',
+      },
+    ],
+    pullRequests: [],
+    ourCommits: [],
+    theirCommits: [],
+  }
+}
+
 describe('runConflictResolutionTurn', () => {
   it('rejects as aborted and tears down the session when cancelled mid-turn', async () => {
     const fake = createFakeSession()
@@ -1044,5 +1221,124 @@ describe('runConflictResolutionTurn', () => {
       'Looking at both sides.',
       'Now comparing changes.',
     ])
+  })
+})
+
+describe('CopilotStore conflict resolution', () => {
+  it('returns an empty result when every conflicted file was skipped', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const controller = new AbortController()
+    controller.abort()
+    const result = await store.resolveConflicts(
+      makeAccount(),
+      {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'large-file.txt',
+            hunks: [],
+            skippedReason: 'File too large to resolve automatically',
+          },
+        ],
+        pullRequests: [],
+        ourCommits: [],
+        theirCommits: [],
+      },
+      '/repository',
+      undefined,
+      undefined,
+      controller.signal
+    )
+
+    assert.deepStrictEqual(result, {
+      resolutions: [],
+      summary: null,
+      references: [],
+    })
+  })
+
+  it('reports session creation failures without retrying', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const sessionError = new Error('Session transport failed')
+    let createSessionCount = 0
+    const client = {
+      createSession: async () => {
+        createSessionCount++
+        throw sessionError
+      },
+      stop: async () => {},
+    } as unknown as CopilotClient
+    const testableStore =
+      store as unknown as ITestableConflictResolutionCopilotStore
+    testableStore.createClient = async () => client
+
+    await assert.rejects(
+      store.resolveConflicts(
+        makeAccount(),
+        makeConflictResolutionContext(),
+        '/repository',
+        createBYOKRequest()
+      ),
+      error => {
+        assert.ok(
+          assertConflictResolutionFailure(
+            error,
+            'create-session',
+            'not-retried'
+          )
+        )
+        assert.strictEqual(error.underlyingError, sessionError)
+        return true
+      }
+    )
+    assert.strictEqual(createSessionCount, 1)
+  })
+
+  it('reports the final validation stage after one retry', async () => {
+    const store = new CopilotStore(createAccountsStore())
+    const responses = [
+      'not valid JSON',
+      JSON.stringify({
+        resolutions: [
+          {
+            path: 'unexpected.txt',
+            hunks: [{ resolvedContent: 'resolved' }],
+            reasoning: 'test',
+          },
+        ],
+      }),
+    ]
+    let createSessionCount = 0
+    const client = {
+      createSession: async () => {
+        const response = responses[createSessionCount]
+        createSessionCount++
+        if (response === undefined) {
+          throw new Error('Unexpected extra validation retry')
+        }
+        return createResponseSession(response)
+      },
+      stop: async () => {},
+    } as unknown as CopilotClient
+    const testableStore =
+      store as unknown as ITestableConflictResolutionCopilotStore
+    testableStore.createClient = async () => client
+
+    await assert.rejects(
+      store.resolveConflicts(
+        makeAccount(),
+        makeConflictResolutionContext(),
+        '/repository',
+        createBYOKRequest()
+      ),
+      error =>
+        assertConflictResolutionFailure(
+          error,
+          'validate-response',
+          'failed-after-validation-retry'
+        )
+    )
+    assert.strictEqual(createSessionCount, 2)
   })
 })

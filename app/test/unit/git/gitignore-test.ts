@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, symlink, writeFile } from 'fs/promises'
 import { pathExists } from '../../../src/lib/path-exists'
 import * as Path from 'path'
 import { exec } from 'dugite'
@@ -38,6 +38,31 @@ describe('gitignore', () => {
       const gitignore = await readGitIgnoreAtRoot(repo)
 
       assert.equal(gitignore, expected)
+    })
+
+    it('rejects a symbolic link', async t => {
+      const repo = await setupEmptyRepository(t)
+      const targetPath = Path.join(repo.path, 'target')
+
+      await writeFile(targetPath, 'target contents')
+      await symlink(targetPath, Path.join(repo.path, '.gitignore'))
+
+      await assert.rejects(
+        readGitIgnoreAtRoot(repo),
+        /Cannot use a symbolic link as the root .gitignore file/
+      )
+    })
+
+    it('rejects a dangling symbolic link', async t => {
+      const repo = await setupEmptyRepository(t)
+      const targetPath = Path.join(repo.path, 'missing-target')
+
+      await symlink(targetPath, Path.join(repo.path, '.gitignore'))
+
+      await assert.rejects(
+        readGitIgnoreAtRoot(repo),
+        /Cannot use a symbolic link as the root .gitignore file/
+      )
     })
 
     it('when autocrlf=true and safecrlf=true, appends CRLF to file', async t => {
@@ -100,6 +125,32 @@ describe('gitignore', () => {
       const exists = await pathExists(`${repo.path}/.gitignore`)
 
       assert(exists)
+    })
+
+    it('rejects a symbolic link without modifying its target', async t => {
+      const repo = await setupEmptyRepository(t)
+      const targetPath = Path.join(repo.path, 'target')
+
+      await writeFile(targetPath, 'target contents')
+      await symlink(targetPath, Path.join(repo.path, '.gitignore'))
+
+      await assert.rejects(
+        saveGitIgnore(repo, 'node_modules\n'),
+        /Cannot use a symbolic link as the root .gitignore file/
+      )
+      assert.equal(await readFile(targetPath, 'utf8'), 'target contents')
+    })
+
+    it('rejects a dangling symbolic link', async t => {
+      const repo = await setupEmptyRepository(t)
+      const targetPath = Path.join(repo.path, 'missing-target')
+
+      await symlink(targetPath, Path.join(repo.path, '.gitignore'))
+
+      await assert.rejects(
+        saveGitIgnore(repo, 'node_modules\n'),
+        /Cannot use a symbolic link as the root .gitignore file/
+      )
     })
 
     it('deletes gitignore file when no entries provided', async t => {

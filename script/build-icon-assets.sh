@@ -8,7 +8,7 @@ set -e
 set -x
 
 function compile() {
-  rm -f Assets.car icon-logo.icns
+  rm -f Assets.car icon-logo.icns icon-logo-legacy.icns
 
   echo "`pwd`"
 
@@ -28,7 +28,9 @@ function compile() {
   --platform macosx
 
   mv $OUTDIR/Assets.car ./
-  mv $OUTDIR/icon-logo.icns ./
+  # Keep a distinct basename so Electron Packager does not find icon-logo.icon
+  # and try to compile it, which requires a macOS 26 build host.
+  mv $OUTDIR/icon-logo.icns ./icon-logo-legacy.icns
   rm -rf $OUTDIR
 }
 

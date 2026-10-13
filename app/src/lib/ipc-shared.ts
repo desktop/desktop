@@ -67,6 +67,12 @@ export type RequestChannels = {
   focus: () => void
   blur: () => void
   'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
+  'resolve-image-token': (
+    requestId: number,
+    endpoint: string,
+    token: string
+  ) => void
+  'resolved-image-token': (requestId: number, token: string | null) => void
   'quit-and-install-updates': () => void
   'quit-app': () => void
   'minimize-window': () => void
@@ -105,6 +111,8 @@ export type RequestResponseChannels = {
   'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-item-in-folder': (path: string) => Promise<void>
+  'write-clipboard-text': (text: string) => Promise<void>
+  'confirm-reveal-directory': () => Promise<boolean>
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>,
     addSpellCheckMenu: boolean

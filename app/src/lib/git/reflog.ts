@@ -38,7 +38,7 @@ export async function getRecentBranches(
 
   const lines = result.stdout.split('\n')
   const names = new Set<string>()
-  const excludedNames = new Set<String>()
+  const excludedNames = new Set<string>()
 
   for (const line of lines) {
     const result = regex.exec(line)

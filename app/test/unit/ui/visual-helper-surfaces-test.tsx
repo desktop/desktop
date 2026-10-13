@@ -11,7 +11,12 @@ import {
 import * as octicons from '../../../src/ui/octicons/octicons.generated'
 import { Octicon } from '../../../src/ui/octicons/octicon'
 import { createOcticonElement } from '../../../src/ui/octicons/octicon'
-import { render, screen } from '../../helpers/ui/render'
+import { fireEvent, render, screen } from '../../helpers/ui/render'
+import {
+  advanceTimersBy,
+  enableTestTimers,
+  resetTestTimers,
+} from '../../helpers/ui/timers'
 
 function createBranch(
   name: string,
@@ -23,6 +28,32 @@ function createBranch(
 }
 
 describe('visual helper surfaces', () => {
+  it('shows an octicon tooltip without duplicating its accessible label', t => {
+    enableTestTimers(['setTimeout'])
+    t.after(resetTestTimers)
+
+    const view = render(
+      <Octicon symbol={octicons.check} title="Checks: Successful" />
+    )
+    const icon = view.container.querySelector('svg')
+    assert.ok(icon)
+    assert.strictEqual(icon.getAttribute('aria-label'), 'Checks: Successful')
+    assert.strictEqual(icon.getAttribute('aria-hidden'), null)
+
+    fireEvent.mouseEnter(icon, { clientX: 20, clientY: 20 })
+    advanceTimersBy(400)
+
+    const tooltip = screen.getByRole('tooltip', { hidden: true })
+    assert.strictEqual(tooltip.textContent, 'Checks: Successful')
+    assert.notStrictEqual(tooltip.style.visibility, 'hidden')
+    assert.strictEqual(icon.getAttribute('aria-describedby'), null)
+
+    fireEvent.mouseLeave(icon)
+    assert.strictEqual(screen.queryByRole('tooltip', { hidden: true }), null)
+    assert.strictEqual(icon.getAttribute('aria-label'), 'Checks: Successful')
+    assert.strictEqual(icon.getAttribute('aria-describedby'), null)
+  })
+
   it('renders octicons and creates octicon wrapper elements', () => {
     const view = render(
       <Octicon symbol={octicons.alert} className="warning-mark" />

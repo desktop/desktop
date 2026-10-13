@@ -11,6 +11,7 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
 import { PathText } from '../lib/path-text'
 import { assertNever } from '../../lib/fatal-error'
+import { PopupType } from '../../models/popup'
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -59,7 +60,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         id="local-changes-overwritten"
         loading={this.state.stashing}
         disabled={this.state.stashing}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissPopup}
         onSubmit={this.onSubmit}
         type="error"
         role="alertdialog"
@@ -160,6 +161,20 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 
     if (createdStash) {
       await dispatcher.performRetry(retryAction)
+    }
+  }
+
+  /**
+   * on Dismiss, abort rebase if the retryAction is rebase, then call the onDismissed callback
+   */
+  private onDismissPopup = async () => {
+    const { dispatcher, retryAction, onDismissed } = this.props
+    // default dismiss handler , closes the popup via onPopupDismissedFn
+    onDismissed()
+
+    // Rebase flow is interrupted, user aborting due to unstashed changes, close outer multi commit operation popup
+    if (retryAction.type === RetryActionType.Rebase) {
+      dispatcher.closePopup(PopupType.MultiCommitOperation)
     }
   }
 

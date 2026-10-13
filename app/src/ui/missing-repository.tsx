@@ -37,15 +37,18 @@ export class MissingRepository extends React.Component<
     const { unsafePath } = this.state
     const { repository } = this.props
 
-    if (unsafePath) {
-      await addSafeDirectory(unsafePath)
-      const type = await getRepositoryType(repository.path)
-
-      this.setState({ isTrustingPath: false })
-
-      if (type.kind !== 'unsafe') {
-        this.checkAgain()
+    try {
+      if (unsafePath) {
+        await addSafeDirectory(unsafePath)
+        const type = await getRepositoryType(repository.path)
+        if (type.kind !== 'unsafe') {
+          this.checkAgain()
+        }
       }
+    } catch (error) {
+      this.props.dispatcher.postError(error)
+    } finally {
+      this.setState({ isTrustingPath: false })
     }
   }
 

@@ -123,6 +123,10 @@ export function buildTestMenu() {
       click: emit('test-cli-action'),
     },
     {
+      label: 'Send stats',
+      click: emit('test-send-stats'),
+    },
+    {
       label: 'Show popup',
       submenu: [
         {
@@ -148,6 +152,10 @@ export function buildTestMenu() {
         {
           label: 'Copilot snapshot card',
           click: emit('test-copilot-snapshot-card'),
+        },
+        {
+          label: 'Token expiration',
+          click: emit('test-token-expiration'),
         },
       ],
     },

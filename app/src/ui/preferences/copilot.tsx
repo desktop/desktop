@@ -12,13 +12,14 @@ import {
   type CopilotQuotaSnapshots,
 } from '../../lib/stores/copilot-store'
 import {
+  CopilotLicenseTypeNoAccess,
   isDotComAccount,
   isEnterpriseAccount,
   type Account,
 } from '../../models/account'
 import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { CallToAction } from '../lib/call-to-action'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../../lib/copilot/types'
 import { CopilotUserSettings } from './copilot-user-settings'
 import { SnapshotCard } from './snapshot-card'
 
@@ -51,7 +52,6 @@ type CopilotAccessState =
   | 'no-license'
   | 'desktop-disabled'
 
-const CopilotLicenseTypeNoAccess = 'NO_ACCESS'
 export class CopilotPreferences extends React.Component<ICopilotPreferencesProps> {
   public render() {
     const accounts = this.getCopilotSettingsAccounts()

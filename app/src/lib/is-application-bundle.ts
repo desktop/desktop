@@ -1,6 +1,34 @@
 import { execFile } from './exec-file'
 
 /**
+ * Determines whether Spotlight metadata identifies an application bundle.
+ *
+ * Throws when the primary content type does not conclusively identify either
+ * an application or a plain directory.
+ */
+export function isApplicationBundleFromMetadata(metadata: string): boolean {
+  const probableBundleIdentifiers = [
+    'com.apple.application-bundle',
+    'com.apple.application',
+    'public.executable',
+  ]
+
+  if (probableBundleIdentifiers.some(id => metadata.includes(`"${id}"`))) {
+    return true
+  }
+
+  const primaryContentType = metadata.match(
+    /^[ \t]*kMDItemContentType\s*=\s*"([^"]+)"\s*$/m
+  )?.[1]
+
+  if (primaryContentType === 'public.folder') {
+    return false
+  }
+
+  throw new Error('Metadata did not conclusively identify a directory')
+}
+
+/**
  * Attempts to determine if the provided path is an application bundle or not.
  *
  * macOS differs from the other platforms we support in that a directory can
@@ -37,11 +65,5 @@ export async function isApplicationBundle(path: string): Promise<boolean> {
     path,
   ])
 
-  const probableBundleIdentifiers = [
-    'com.apple.application-bundle',
-    'com.apple.application',
-    'public.executable',
-  ]
-
-  return probableBundleIdentifiers.some(id => stdout.includes(`"${id}"`))
+  return isApplicationBundleFromMetadata(stdout)
 }

@@ -54,15 +54,8 @@ export async function push(
   options?: PushOptions,
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
-  const args = [
-    'push',
-    remote.name,
-    remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
-  ]
+  const args = ['push']
 
-  if (tagsToPush !== null) {
-    args.push(...tagsToPush)
-  }
   if (!remoteBranch) {
     args.push('--set-upstream')
   } else if (options?.forceWithLease) {
@@ -113,6 +106,16 @@ export async function push(
       remote: remote.name,
       branch: localBranch,
     })
+  }
+
+  args.push(
+    '--',
+    remote.name,
+    remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch
+  )
+
+  if (tagsToPush !== null) {
+    args.push(...tagsToPush)
   }
 
   await git(args, repository.path, 'push', opts)

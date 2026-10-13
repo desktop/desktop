@@ -52,6 +52,7 @@ export enum PopupType {
   CLIInstalled = 'CLIInstalled',
   GenericGitAuthentication = 'GenericGitAuthentication',
   ExternalEditorFailed = 'ExternalEditorFailed',
+  CopilotAppNotFound = 'CopilotAppNotFound',
   OpenWithExternalEditor = 'OpenWithExternalEditor',
   OpenShellFailed = 'OpenShellFailed',
   InitializeLFS = 'InitializeLFS',
@@ -105,6 +106,7 @@ export enum PopupType {
   TestAbout = 'TestAbout',
   TestCLIAction = 'TestCLIAction',
   TestCopilotSnapshotCard = 'TestCopilotSnapshotCard',
+  TestTokenExpiration = 'TestTokenExpiration',
   PushProtectionError = 'PushProtectionError',
   BypassPushProtection = 'BypassPushProtection',
   GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
@@ -226,6 +228,7 @@ export type PopupDetail =
       onDismiss: () => void
     }
   | { type: PopupType.OpenWithExternalEditor }
+  | { type: PopupType.CopilotAppNotFound }
   | {
       type: PopupType.ExternalEditorFailed
       message: string
@@ -483,6 +486,9 @@ export type PopupDetail =
     }
   | {
       type: PopupType.TestCopilotSnapshotCard
+    }
+  | {
+      type: PopupType.TestTokenExpiration
     }
   | {
       type: PopupType.PushProtectionError

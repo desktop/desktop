@@ -10,7 +10,7 @@ if (isGitHubActions() && process.platform === 'darwin' && isPublishable()) {
   try {
     console.log('validating signature of Desktop app')
     cp.execSync(`codesign --verbose=4 --deep --strict '${archive}'`)
-  } catch (err) {
+  } catch {
     process.exit(1)
   }
   console.log('\n\n')

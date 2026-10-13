@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert'
 import { Repository } from '../../../src/models/repository'
 import {
@@ -15,8 +15,11 @@ import {
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { exec } from 'dugite'
 import { setConfigValue } from '../../../src/lib/git'
+import { isolateGitConfig } from '../../helpers/git-config'
 
 describe('git/remote', () => {
+  beforeEach(isolateGitConfig)
+
   describe('getRemotes', () => {
     it('should return both remotes', async t => {
       const testRepoPath = await setupFixtureRepository(
@@ -26,8 +29,6 @@ describe('git/remote', () => {
       const repository = new Repository(testRepoPath, -1, null, false)
       await addRemote(repository, 'spaces-in-path', '/path/with spaces/foo')
 
-      // NB: We don't check for exact URL equality because CircleCI's git config
-      // rewrites HTTPS URLs to SSH.
       const nwo = 'shiftkey/friendly-bassoon.git'
 
       const result = await getRemotes(repository)

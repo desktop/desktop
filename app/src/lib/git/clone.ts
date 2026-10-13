@@ -4,6 +4,49 @@ import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { envForRemoteOperation } from './environment'
+import { homedir } from 'os'
+import * as Path from 'path'
+
+const unsupportedCloneProtocols: ReadonlyArray<string> = ['ext', 'ext.exe']
+
+/**
+ * Check whether a resolved clone path targets a sensitive location that
+ * should never be used as a clone destination. This is a backstop against
+ * path traversal attacks where a crafted URL tricks the UI into deriving
+ * a clone path outside the intended base directory.
+ */
+function isClonePathSensitive(unresolvedClonePath: string): boolean {
+  const clonePath = Path.resolve(unresolvedClonePath).toLowerCase()
+  const home = Path.resolve(homedir()).toLowerCase()
+
+  if (clonePath === home) {
+    return true
+  }
+
+  const sensitiveLocations = [
+    Path.join(home, '.ssh'),
+    Path.join(home, '.gnupg'),
+    Path.join(home, '.config'),
+    Path.join(home, '.config', 'git'),
+    Path.join(home, '.gitconfig'),
+  ]
+
+  if (__WIN32__) {
+    const appData = process.env.APPDATA
+    if (appData) {
+      sensitiveLocations.push(appData.toLowerCase())
+      sensitiveLocations.push(Path.join(appData, 'gnupg').toLowerCase())
+    }
+  }
+
+  for (const sensitive of sensitiveLocations) {
+    if (clonePath === sensitive || clonePath.startsWith(sensitive + Path.sep)) {
+      return true
+    }
+  }
+
+  return false
+}
 
 /**
  * Clones a repository from a given url into to the specified path.
@@ -30,9 +73,29 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
+  const unsupportedProtocol = unsupportedCloneProtocols.find(protocol =>
+    url.startsWith(`${protocol}::`)
+  )
+  if (unsupportedProtocol !== undefined) {
+    throw new Error(
+      `The "${unsupportedProtocol}" transport is not supported for cloning in ${__APP_NAME__}.`
+    )
+  }
+
+  if (isClonePathSensitive(path)) {
+    throw new Error(
+      `The clone destination "${path}" targets a sensitive system location. ` +
+        'Cloning into this directory is not allowed.'
+    )
+  }
+
   const env = {
     ...(await envForRemoteOperation(url)),
     GIT_CLONE_PROTECTION_ACTIVE: 'false',
+    // Git's environment allowlist takes precedence over protocol configuration.
+    GIT_ALLOW_PROTOCOL: process.env.GIT_ALLOW_PROTOCOL?.split(':')
+      .filter(protocol => !unsupportedCloneProtocols.includes(protocol))
+      .join(':'),
   }
 
   const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
@@ -40,6 +103,11 @@ export async function clone(
   const args = [
     '-c',
     `init.defaultBranch=${defaultBranch}`,
+    // Apply the same policy after Git expands configured URL rewrites.
+    ...unsupportedCloneProtocols.flatMap(protocol => [
+      '-c',
+      `protocol.${protocol}.allow=never`,
+    ]),
     'clone',
     '--recursive',
   ]

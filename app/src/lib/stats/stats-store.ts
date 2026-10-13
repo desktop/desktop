@@ -43,8 +43,10 @@ import { ValidNotificationPullRequestReviewState } from '../valid-notification-p
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
+import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
+import { getSystemNotificationsPermission } from '../notifications/notification-permission'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -53,16 +55,21 @@ type PullRequestReviewStatFieldInfix =
 
 type PullRequestReviewStatFieldSuffix =
   | 'NotificationCount'
+  | 'NotificationShownCount'
   | 'NotificationClicked'
   | 'DialogSwitchToPullRequestCount'
 
 type PullRequestReviewStatField =
   `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
-const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
+const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
+
+const StatsEndpoint =
+  'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
 
 /** The URL to the stats samples page. */
-export const SamplesURL = 'https://desktop.github.com/usage-data/'
+export const SamplesURL =
+  'https://github.com/desktop/desktop/blob/development/docs/process/usage-data.md'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
@@ -94,6 +101,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
   partialCommits: 0,
   openShellCount: 0,
+  openInCopilotAppCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,
@@ -213,6 +221,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationShownCount: 0,
   checksFailedNotificationFromRecentRepoCount: 0,
   checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
@@ -222,15 +231,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewNotificationFromRecentRepoCount: 0,
   pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationShownCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationShownCount: 0,
   pullRequestReviewCommentedNotificationClicked: 0,
   pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationShownCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
   pullRequestCommentNotificationCount: 0,
+  pullRequestCommentNotificationShownCount: 0,
   pullRequestCommentNotificationClicked: 0,
   pullRequestCommentNotificationFromRecentRepoCount: 0,
   pullRequestCommentNotificationFromNonRecentRepoCount: 0,
@@ -272,6 +285,9 @@ const DefaultDailyMeasures: IDailyMeasures = {
   copilotConflictResolutionWithOverridesCount: 0,
   copilotConflictResolutionSwitchToManualCount: 0,
   copilotConflictResolutionStoppedCount: 0,
+  copilotConflictResolutionNoConflictStateCount: 0,
+  copilotConflictResolutionNoConflictedFilesCount: 0,
+  copilotConflictResolutionAllFilesSkippedCount: 0,
   copilotConflictResolutionErrorCount: 0,
   copilotConflictResolutionOver15sCount: 0,
   copilotConflictResolutionOver30sCount: 0,
@@ -429,6 +445,9 @@ interface ICalculatedStats {
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
 
+  /** Whether OS permission allows notifications, or null if unavailable or unknown. */
+  readonly notificationsPermission: boolean | null
+
   /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean
 
@@ -455,8 +474,27 @@ interface ICalculatedStats {
 
 type DailyStats = ICalculatedStats &
   ILaunchStats &
-  IDailyMeasures &
+  Omit<IDailyMeasures, 'id'> &
   IOnboardingStats
+
+interface IOptInStatusPing {
+  readonly eventType: 'ping'
+  readonly optIn: boolean
+  readonly previousOptInValue: boolean | null
+}
+
+type StatsPayload = DailyStats | IOptInStatusPing
+
+interface ITelemetryEvent {
+  readonly app: 'desktop'
+  readonly event_type: 'usage' | 'ping'
+  readonly dimensions: Readonly<Record<string, string>>
+  readonly measures?: Readonly<Record<string, number>>
+}
+
+interface ITelemetryPayload {
+  readonly events: ReadonlyArray<ITelemetryEvent>
+}
 
 /**
  * Testable interface for StatsStore
@@ -469,8 +507,145 @@ export interface IStatsStore {
   increment: (k: keyof NumericMeasures, n?: number) => Promise<void>
 }
 
-const defaultPostImplementation = (body: Record<string, any>) =>
-  fetch(StatsEndpoint, {
+function stringifyDimensions<
+  T extends { readonly [K in keyof T]: string | boolean | null }
+>(dimensions: T): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(dimensions).map(([key, value]) => [key, String(value)])
+  )
+}
+
+/**
+ * Transform the flat payload accepted by Central into CAFE's TelemetryAPI
+ * event format. CAFE expects `eventType` as `event_type`, dimensions encoded
+ * as strings, and measures encoded as integers inside an `events` array.
+ * Central previously performed the string conversion and integer rounding
+ * server-side, so the CAFE payload must perform those conversions here.
+ *
+ * This conversion stays at the HTTP boundary so the legacy Central path can
+ * continue sending the original payload unchanged.
+ */
+export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
+  if (body.eventType === 'ping') {
+    return {
+      events: [
+        {
+          app: 'desktop',
+          event_type: body.eventType,
+          dimensions: stringifyDimensions({
+            optIn: body.optIn,
+            previousOptInValue: body.previousOptInValue,
+          }),
+        },
+      ],
+    }
+  }
+
+  const {
+    eventType,
+    version,
+    osVersion,
+    platform,
+    architecture,
+    guid,
+    theme,
+    selectedTerminalEmulator,
+    selectedTextEditor,
+    diffMode,
+    dotComAccount,
+    enterpriseAccount,
+    notificationsEnabled,
+    notificationsPermission,
+    launchedFromApplicationsFolder,
+    linkUnderlinesVisible,
+    diffCheckMarksVisible,
+    useExternalCredentialHelper,
+    filteringChangesEnabled,
+    gitHooksEnvEnabled,
+    copilotConflictResolutionModel,
+    active,
+    tutorialStarted,
+    tutorialRepoCreated,
+    tutorialEditorInstalled,
+    tutorialBranchCreated,
+    tutorialFileEdited,
+    tutorialCommitCreated,
+    tutorialBranchPushed,
+    tutorialPrCreated,
+    tutorialCompleted,
+    mainReadyTime,
+    loadTime,
+    rendererReadyTime,
+    ...remainingMeasures
+  } = body
+
+  // Central converted dimension values to strings for us.
+  const dimensions = stringifyDimensions({
+    version,
+    osVersion,
+    platform,
+    architecture,
+    guid,
+    theme,
+    selectedTerminalEmulator,
+    selectedTextEditor,
+    diffMode,
+    dotComAccount,
+    enterpriseAccount,
+    notificationsEnabled,
+    notificationsPermission,
+    launchedFromApplicationsFolder,
+    linkUnderlinesVisible,
+    diffCheckMarksVisible,
+    useExternalCredentialHelper: useExternalCredentialHelper ?? null,
+    filteringChangesEnabled,
+    gitHooksEnvEnabled,
+    copilotConflictResolutionModel,
+    active,
+    tutorialStarted,
+    tutorialRepoCreated,
+    tutorialEditorInstalled,
+    tutorialBranchCreated,
+    tutorialFileEdited,
+    tutorialCommitCreated,
+    tutorialBranchPushed,
+    tutorialPrCreated,
+    tutorialCompleted,
+  })
+
+  // Central rounded decimal measures to integers for us.
+  const measures = {
+    ...remainingMeasures,
+    mainReadyTime: Math.round(mainReadyTime),
+    loadTime: Math.round(loadTime),
+    rendererReadyTime: Math.round(rendererReadyTime),
+  }
+
+  return {
+    events: [
+      {
+        app: 'desktop',
+        event_type: eventType,
+        dimensions,
+        measures,
+      },
+    ],
+  }
+}
+
+const defaultPostImplementation = (body: StatsPayload) => {
+  if (enableNewStatsEndpoint()) {
+    return fetch(StatsEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'user-agent': getUserAgent(),
+      },
+      body: JSON.stringify(buildStatsPayload(body)),
+    })
+  }
+
+  return fetch(LegacyStatsEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -478,6 +653,7 @@ const defaultPostImplementation = (body: Record<string, any>) =>
     },
     body: JSON.stringify(body),
   })
+}
 
 /** The store for the app's stats. */
 export class StatsStore implements IStatsStore {
@@ -544,6 +720,25 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
+
+    if (await this.sendStats(accounts, repositories)) {
+      await this.clearDailyStats()
+      setNumber(LastDailyStatsReportKey, now)
+    }
+  }
+
+  /**
+   * Send the current stats immediately without clearing them or updating the
+   * daily reporting schedule.
+   */
+  public async sendStats(
+    accounts: ReadonlyArray<Account>,
+    repositories: ReadonlyArray<Repository>
+  ): Promise<boolean> {
+    if (this.optOut) {
+      return false
+    }
+
     const payload = await this.getDailyStats(accounts, repositories)
 
     try {
@@ -555,11 +750,10 @@ export class StatsStore implements IStatsStore {
       }
 
       log.info('Stats reported.')
-
-      await this.clearDailyStats()
-      setNumber(LastDailyStatsReportKey, now)
+      return true
     } catch (e) {
       log.error('Error reporting stats:', e)
+      return false
     }
   }
 
@@ -648,7 +842,7 @@ export class StatsStore implements IStatsStore {
 
     return {
       eventType: 'usage',
-      version: getVersion(),
+      version: __RELEASE_CHANNEL__ === 'development' ? 'dev' : getVersion(),
       osVersion: getOS(),
       platform: process.platform,
       architecture: await getAppArchitecture(),
@@ -656,6 +850,7 @@ export class StatsStore implements IStatsStore {
       selectedTerminalEmulator,
       selectedTextEditor,
       notificationsEnabled: getNotificationsEnabled(),
+      notificationsPermission: await getSystemNotificationsPermission(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -1177,10 +1372,21 @@ export class StatsStore implements IStatsStore {
     return this.increment(statField)
   }
 
-  public recordPullRequestReviewNotificationShown(
+  /** Records a PR review Alive event eligible for a notification. */
+  public recordPullRequestReviewNotification(
     reviewType: ValidNotificationPullRequestReviewState
   ): Promise<void> {
     return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  /** Records a PR review notification accepted with OS permission. */
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'NotificationShownCount'
+    )
   }
 
   public recordPullRequestReviewNotificationClicked(

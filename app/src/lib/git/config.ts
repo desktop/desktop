@@ -1,6 +1,7 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { normalize } from 'path'
+import { isAbsolute, normalize } from 'path'
+import { realpath } from 'fs/promises'
 
 /**
  * Look up a config value by name in the repository.
@@ -174,11 +175,23 @@ export async function addGlobalConfigValue(
 }
 
 /**
- * Adds a path to the `safe.directories` configuration variable if it's not
- * already present. Adding a path to `safe.directory` will cause Git to ignore
- * if the path is owner by a different user than the current.
+ * Adds an existing absolute directory to `safe.directory` if it's not already
+ * present, allowing Git to use that directory when it belongs to another user.
+ *
+ * Resolves the canonical path and rejects values that Git would interpret as
+ * an exception for multiple directories.
  */
 export async function addSafeDirectory(path: string) {
+  if (!isAbsolute(path)) {
+    throw new Error('A directory exception requires an absolute path.')
+  }
+
+  path = await realpath(path)
+  path = __WIN32__ ? path.replaceAll('\\', '/') : path
+  if (path.endsWith('/*')) {
+    throw new Error('A directory exception must refer to a single directory.')
+  }
+
   // UNC-paths on Windows need to be prefixed with `%(prefix)/`, see
   // https://github.com/git-for-windows/git/commit/e394a16023cbb62784e380f70ad8a833fb960d68
   if (__WIN32__ && path[0] === '/') {
@@ -194,7 +207,7 @@ export async function addGlobalConfigValueIfMissing(
   value: string
 ): Promise<void> {
   const { stdout, exitCode } = await git(
-    ['config', '--global', '-z', '--get-all', name, value],
+    ['config', '--global', '-z', '--fixed-value', '--get-all', name, value],
     __dirname,
     'addGlobalConfigValue',
     { successExitCodes: new Set([0, 1]) }

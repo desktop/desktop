@@ -2,7 +2,74 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import { Repository } from '../../models/repository'
 import { getConfigValue } from './config'
-import { writeFile } from 'fs/promises'
+import { lstat, open, type FileHandle } from 'fs/promises'
+import { isErrnoException } from '../errno-exception'
+
+const symbolicLinkErrorMessage =
+  'Cannot use a symbolic link as the root .gitignore file'
+
+function createSymbolicLinkError(): Error {
+  return new Error(symbolicLinkErrorMessage)
+}
+
+async function ensureGitIgnoreIsNotSymbolicLink(
+  ignorePath: string
+): Promise<void> {
+  try {
+    const stats = await lstat(ignorePath)
+    if (stats.isSymbolicLink()) {
+      throw createSymbolicLinkError()
+    }
+  } catch (error) {
+    if (!isErrnoException(error) || error.code !== 'ENOENT') {
+      throw error
+    }
+  }
+}
+
+async function openExistingGitIgnore(
+  ignorePath: string,
+  flags: number
+): Promise<FileHandle | null> {
+  let file: FileHandle
+
+  try {
+    file = await open(ignorePath, flags | FS.constants.O_NOFOLLOW)
+  } catch (error) {
+    if (isErrnoException(error)) {
+      if (error.code === 'ENOENT') {
+        await ensureGitIgnoreIsNotSymbolicLink(ignorePath)
+        return null
+      }
+
+      if (error.code === 'ELOOP') {
+        throw createSymbolicLinkError()
+      }
+    }
+
+    throw error
+  }
+
+  try {
+    const [fileStats, pathStats] = await Promise.all([
+      file.stat(),
+      lstat(ignorePath),
+    ])
+
+    if (
+      pathStats.isSymbolicLink() ||
+      fileStats.dev !== pathStats.dev ||
+      fileStats.ino !== pathStats.ino
+    ) {
+      throw createSymbolicLinkError()
+    }
+
+    return file
+  } catch (error) {
+    await file.close()
+    throw error
+  }
+}
 
 /**
  * Read the contents of the repository .gitignore.
@@ -15,20 +82,17 @@ export async function readGitIgnoreAtRoot(
   repository: Repository
 ): Promise<string | null> {
   const ignorePath = Path.join(repository.path, '.gitignore')
+  const file = await openExistingGitIgnore(ignorePath, FS.constants.O_RDONLY)
 
-  return new Promise<string | null>((resolve, reject) => {
-    FS.readFile(ignorePath, 'utf8', (err, data) => {
-      if (err) {
-        if (err.code === 'ENOENT') {
-          resolve(null)
-        } else {
-          reject(err)
-        }
-      } else {
-        resolve(data)
-      }
-    })
-  })
+  if (file === null) {
+    return null
+  }
+
+  try {
+    return await file.readFile('utf8')
+  } finally {
+    await file.close()
+  }
 }
 
 /**
@@ -44,19 +108,30 @@ export async function saveGitIgnore(
   const ignorePath = Path.join(repository.path, '.gitignore')
 
   if (text === '') {
+    await ensureGitIgnoreIsNotSymbolicLink(ignorePath)
+
     return new Promise<void>((resolve, reject) => {
-      FS.unlink(ignorePath, err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve()
-        }
-      })
+      FS.unlink(ignorePath, err => (err === null ? resolve() : reject(err)))
     })
   }
 
   const fileContents = await formatGitIgnoreContents(text, repository)
-  await writeFile(ignorePath, fileContents)
+  const file =
+    (await openExistingGitIgnore(ignorePath, FS.constants.O_WRONLY)) ??
+    (await open(
+      ignorePath,
+      FS.constants.O_CREAT |
+        FS.constants.O_EXCL |
+        FS.constants.O_WRONLY |
+        FS.constants.O_NOFOLLOW
+    ))
+
+  try {
+    await file.truncate(0)
+    await file.writeFile(fileContents)
+  } finally {
+    await file.close()
+  }
 }
 
 /** Add the given pattern or patterns to the root gitignore file */

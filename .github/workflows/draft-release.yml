@@ -23,6 +23,7 @@ on:
         default: false
 
 permissions:
+  copilot-requests: write
   contents: write
   pull-requests: write
 
@@ -72,7 +73,7 @@ jobs:
           instructions: .github/release-notes-instructions.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
 
       - name: Parse changelog entries
         id: changelog

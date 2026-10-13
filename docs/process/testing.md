@@ -155,7 +155,7 @@
       - [ ] `Save` button saves any changes made
       - [ ] `Cancel` button does not save any changes made; modal closed
       - [ ] Shared usage data option; selection carried through from Welcome flow
-        - [ ] `anonymous usage data` link opens https://desktop.github.com/usage-data/
+        - [ ] `anonymous usage data` link opens https://github.com/desktop/desktop/blob/development/docs/process/usage-data.md
         - [ ] Verify positive `stats-opt-out` value in Dev Tools > Application > Local storage > file://
   - [ ] Install command line tool installs tool at `/usr/local/bin/github` (Mac only as Windows done automagically; Helper may require password, else error message)
     - [ ] If already installed, user sees: "The command line tool has been installed at /usr/local/bin/github"
