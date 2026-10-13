@@ -137,7 +137,11 @@ import {
   IFileResolution,
   ICopilotResolutionSummary,
 } from '../../lib/copilot-conflict-resolution'
-import { WorktreeEntry } from '../../models/worktree'
+import {
+  IDeferredCheckout,
+  IDeleteWorktreeOptions,
+  WorktreeEntry,
+} from '../../models/worktree'
 
 /**
  * An error handler function.
@@ -1055,10 +1059,10 @@ export class Dispatcher {
   public async deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options?: IDeleteWorktreeOptions
   ): Promise<void> {
     await this.appStore
-      ._deleteWorktree(repository, worktreePath, force)
+      ._deleteWorktree(repository, worktreePath, options)
       .catch(e => this.postError(e))
   }
 
@@ -1068,9 +1072,10 @@ export class Dispatcher {
    */
   public requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    checkout?: IDeferredCheckout
   ): void {
-    this.appStore._requestDeleteWorktree(repository, worktreePath)
+    this.appStore._requestDeleteWorktree(repository, worktreePath, checkout)
   }
 
   /**
