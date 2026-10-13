@@ -110,7 +110,7 @@ describe('AppStore OAuth usage stats wiring', () => {
 
   it('keeps adoption in sync across legacy sign-in, renewal, and required sign-out', async t => {
     const adoption = t.mock.method(statsStore, 'setUsesShortLivedToken')
-    const record = t.mock.method(statsStore, 'recordOAuthRefresh')
+    const record = t.mock.method(statsStore, 'recordOAuthRefreshEvent')
     const legacy = new Account(
       'legacy',
       'https://api.github.com',
@@ -189,7 +189,7 @@ describe('AppStore OAuth usage stats wiring', () => {
     rejectRenewal = false
     const error = new Error('Stats database unavailable')
     const logger = t.mock.method(log, 'error')
-    t.mock.method(statsStore, 'recordOAuthRefresh', async () => {
+    t.mock.method(statsStore, 'recordOAuthRefreshEvent', async () => {
       throw error
     })
     const account = new Account(

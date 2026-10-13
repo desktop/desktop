@@ -108,7 +108,7 @@ describe('StatsStore', () => {
       'abandoned',
       'required-sign-in',
     ]
-    await Promise.all(events.map(event => store.recordOAuthRefresh(event)))
+    await Promise.all(events.map(event => store.recordOAuthRefreshEvent(event)))
     store.setUsesShortLivedToken(true)
     await store.sendStats([], [])
     const entry = await statsDb.dailyMeasures.limit(1).first()
@@ -191,7 +191,7 @@ describe('StatsStore', () => {
         }
       )
       store.setUsesShortLivedToken(true)
-      await store.recordOAuthRefresh('attempt')
+      await store.recordOAuthRefreshEvent('attempt')
       assert.strictEqual(await store.sendStats([], []), false)
       assert.strictEqual(posted, 0)
     } finally {

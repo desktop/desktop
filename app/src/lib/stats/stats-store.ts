@@ -714,7 +714,7 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Count a single OAuth renewal lifecycle event without credential metadata. */
-  public recordOAuthRefresh(event: OAuthRefreshEvent): Promise<void> {
+  public recordOAuthRefreshEvent(event: OAuthRefreshEvent): Promise<void> {
     const measures: Readonly<Record<OAuthRefreshEvent, keyof NumericMeasures>> =
       {
         attempt: 'oAuthRefreshAttemptCount',
