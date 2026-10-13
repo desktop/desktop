@@ -1,5 +1,8 @@
 import { trampolineServer } from './trampoline-server'
-import { withTrampolineToken } from './trampoline-tokens'
+import {
+  isValidTrampolineToken,
+  withTrampolineToken,
+} from './trampoline-tokens'
 import * as Path from 'path'
 import { getSSHEnvironment } from '../ssh/ssh'
 import {
@@ -34,6 +37,28 @@ export const getHasRejectedCredentialsForEndpoint = (
     false
   )
 }
+const credentialLeases = new Map<string, Array<() => void>>()
+
+/**
+ * Hold a credential lease until the Git process using this trampoline token
+ * exits. Releases it right away if that process has already finished.
+ */
+export const holdCredentialLease = (
+  trampolineToken: string,
+  release: () => void
+) => {
+  if (!isValidTrampolineToken(trampolineToken)) {
+    release()
+    return
+  }
+  const leases = credentialLeases.get(trampolineToken)
+  if (leases) {
+    leases.push(release)
+  } else {
+    credentialLeases.set(trampolineToken, [release])
+  }
+}
+
 const isBackgroundTaskEnvironment = new Map<string, boolean>()
 const trampolineEnvironmentPath = new Map<string, string>()
 
@@ -194,6 +219,8 @@ export async function withTrampolineEnv<T>(
       throw e
     } finally {
       removeMostRecentSSHCredential(token)
+      credentialLeases.get(token)?.forEach(release => release())
+      credentialLeases.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)

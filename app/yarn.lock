@@ -77,63 +77,63 @@
     "@github/multimap" "^1.0.0"
     "@github/stable-socket" "^1.1.0"
 
-"@github/copilot-sdk-darwin-arm64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-darwin-arm64/-/copilot-sdk-darwin-arm64-1.0.13.tgz#1350bb3ad57bf1489ff5a709b6489531870ec27a"
-  integrity sha512-AvBV5dzjNWpGwgoCnttrETnt7rLI4pTFQsRSM7GU5TK+YqShauffdMU06Bn/d+IDX2fj1Z4ThH7yl/gHCDvoNQ==
+"@github/copilot-sdk-darwin-arm64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-darwin-arm64/-/copilot-sdk-darwin-arm64-1.0.18.tgz#c23fca9c6bec185932136b940d8805447ba6b991"
+  integrity sha512-ynQ+k5wGG2sy5+kLXPBMh7bGwrYzmej7tDXCqF+7nd3cIr5l4Def1kpRHHTE4VxuWhPzbY1UCAIZThBreTuaWw==
 
-"@github/copilot-sdk-darwin-x64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-darwin-x64/-/copilot-sdk-darwin-x64-1.0.13.tgz#f0994180f1a687f986e8db6dd6e2a0628fbfe07e"
-  integrity sha512-ZNQmTnHwk8bO/E514k0sFBsuCVNpFj8jMH4jeLncASQM4RRdOqYhXlYLW7H/ts7ANjdfMJjJY29NUqzEWaADOA==
+"@github/copilot-sdk-darwin-x64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-darwin-x64/-/copilot-sdk-darwin-x64-1.0.18.tgz#300bd0e0e37f2836ec29fe546c42d766c9a046c4"
+  integrity sha512-wihMjNQmyL7oTZOPNYC1zMbkgmfT/x3rcR9575TnAJveHjE9YlsJwd8yVwfRApWqKEY/VqcMMQVT080ZJkmDSg==
 
-"@github/copilot-sdk-linux-arm64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-linux-arm64/-/copilot-sdk-linux-arm64-1.0.13.tgz#8fc110b0ad226be3593324f4bd63b87bbdf338a5"
-  integrity sha512-km1jvveDwlJbht8luFyBurz0wUxPHSzdkZRMJEJgVHYfMn03gi0gdnZ6fC6JWgkiffNZpukSxRPJmPfRobw6Aw==
+"@github/copilot-sdk-linux-arm64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-linux-arm64/-/copilot-sdk-linux-arm64-1.0.18.tgz#e6342e1f5ad71c7cd11511417f732f199c2bc5a5"
+  integrity sha512-Go509aoMKhR69zBSSQSuVY8IhQXI35n9rJEExVdIkaWxFdkQ+r5Xd/M07tR/7RAeq2wn550FLoENbthrD34zaw==
 
-"@github/copilot-sdk-linux-x64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-linux-x64/-/copilot-sdk-linux-x64-1.0.13.tgz#2c000c8774d8e302c07a62cd79ce5325ee71b444"
-  integrity sha512-4AbzC8Nb1dWYQ1uxbHGAh0ZAoOJeL3Ms1oe3byZLn8ENP1PfoyD8DJZUSsyXGYHxL7oLJyUqd3wyt18ifIg8iw==
+"@github/copilot-sdk-linux-x64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-linux-x64/-/copilot-sdk-linux-x64-1.0.18.tgz#3f5ddfee9520856d04bda714ea3db539df390e90"
+  integrity sha512-AGkXsWIoa+MHaJAJwDfTBxzETh04nOzBse19cBXvBDLB+yMGcQhavW4XATW5IMjtmIiSypblqvTDZT7MLQqkvA==
 
-"@github/copilot-sdk-linuxmusl-arm64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-arm64/-/copilot-sdk-linuxmusl-arm64-1.0.13.tgz#386a5a1e4ea80c171abcfb87d33d4ab3c94cba38"
-  integrity sha512-pCUjly1nXcNpYDZNnKrglFIFejbb+QDkloilldu+0tTbSzb8gEmVsbGwpfwyZXfNQf5Je5FFjsOfQR9PXH1NDQ==
+"@github/copilot-sdk-linuxmusl-arm64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-arm64/-/copilot-sdk-linuxmusl-arm64-1.0.18.tgz#afe62df91d9214aa34294f0f5ae9198762f45697"
+  integrity sha512-wepy7CkX1Xyxvrbd9c7OUUB5j5ABCsv+ZsTqLqehNRmdrrbz4AQ1yNNpobpTepAwpz/F0EQ8aT5K39R7rd85Sg==
 
-"@github/copilot-sdk-linuxmusl-x64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-x64/-/copilot-sdk-linuxmusl-x64-1.0.13.tgz#5a1d93f7eac4c7200e8c8b99e7df22243dfc1a1b"
-  integrity sha512-y5RmqAbKSYHt+OwQdILIiiMSibXdd7/0kO7kFoTZCN2gn2eGRA8wJbXlf6KZh+yYgWSJGUL8677LDJd3WnIHbA==
+"@github/copilot-sdk-linuxmusl-x64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-x64/-/copilot-sdk-linuxmusl-x64-1.0.18.tgz#6d05704382b95bb1b1088079ef32b1dc0053d0a4"
+  integrity sha512-B7NH/UgGZjqM1307sHK4xIaDywOf+zUtYE/w/s9tHXj0pz+JcWQNkqS/aH6ECiwjlfz7xD+a8GSxSirqJivKAQ==
 
-"@github/copilot-sdk-win32-arm64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-win32-arm64/-/copilot-sdk-win32-arm64-1.0.13.tgz#b32883887601b67c4fe4b6cfdda093dc065c29e8"
-  integrity sha512-azISXh4pEVfX0hPzu58wZTYg3tdWG4L1nNpiRa/wdBxhcovbxw+eZVkI4C6FZMx0tiNYFkqWzVTV7oKskNybcw==
+"@github/copilot-sdk-win32-arm64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-win32-arm64/-/copilot-sdk-win32-arm64-1.0.18.tgz#7be763f634a1b2094f1d319bbf486e7ab1acbff0"
+  integrity sha512-+wOxP/OkSxCTLTiN9phyVLleRfUUeex/64XZvhihkID+WeT+Xx0ejwwrkcWUgZDpnrO3xfRltb3SnV9FpB2fwA==
 
-"@github/copilot-sdk-win32-x64@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk-win32-x64/-/copilot-sdk-win32-x64-1.0.13.tgz#ae024b7030603cb5d8e7cfd849270861a3b5d60f"
-  integrity sha512-lvS7kMbuuxydBQxPDHCkuUwbC858Rvcz3Q3vv0mxnLKuWJ75lAcqERefqA2p4beaPdez+ifZOA5heUT0rx3GnA==
+"@github/copilot-sdk-win32-x64@1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk-win32-x64/-/copilot-sdk-win32-x64-1.0.18.tgz#7282209613f97242553b1c689174f4738e0d569e"
+  integrity sha512-3lyIzwErEhGlPUz7wKW2gwJlEhPD+4gK0hASN6Vy+rVDItjzQrftMFh4cSad+NqBxe/K6LE/jGVoex86OzTlIQ==
 
-"@github/copilot-sdk@^1.0.13":
-  version "1.0.13"
-  resolved "https://registry.npmjs.org/@github/copilot-sdk/-/copilot-sdk-1.0.13.tgz#479b93129d918e73867af2939cb113868a5cc15a"
-  integrity sha512-/j6/tGc9HOtcupuYFloOKk0fpScdpy65EVF1LKg2Z2VQOojCGPgBGkhgVGVDaqW7UB6TV2qbQZa9rKJimJ0wWQ==
+"@github/copilot-sdk@^1.0.18":
+  version "1.0.18"
+  resolved "https://registry.npmjs.org/@github/copilot-sdk/-/copilot-sdk-1.0.18.tgz#8f1549de3ea5498d46fe626a9b60e32283b5e688"
+  integrity sha512-/evtBABAVxlDHa2i3XfpHPb43OLbLu8G4rHVs7wEfwf9YyiQnc8tCBK+N9RTu6l3dBPYnfXz6/rqYwF6idu5dQ==
   dependencies:
-    koffi "^3.1.0"
-    vscode-jsonrpc "^8.2.1"
-    zod "^4.3.6"
+    koffi "3.2.1"
+    vscode-jsonrpc "8.2.1"
+    zod "4.3.6"
   optionalDependencies:
-    "@github/copilot-sdk-darwin-arm64" "1.0.13"
-    "@github/copilot-sdk-darwin-x64" "1.0.13"
-    "@github/copilot-sdk-linux-arm64" "1.0.13"
-    "@github/copilot-sdk-linux-x64" "1.0.13"
-    "@github/copilot-sdk-linuxmusl-arm64" "1.0.13"
-    "@github/copilot-sdk-linuxmusl-x64" "1.0.13"
-    "@github/copilot-sdk-win32-arm64" "1.0.13"
-    "@github/copilot-sdk-win32-x64" "1.0.13"
+    "@github/copilot-sdk-darwin-arm64" "1.0.18"
+    "@github/copilot-sdk-darwin-x64" "1.0.18"
+    "@github/copilot-sdk-linux-arm64" "1.0.18"
+    "@github/copilot-sdk-linux-x64" "1.0.18"
+    "@github/copilot-sdk-linuxmusl-arm64" "1.0.18"
+    "@github/copilot-sdk-linuxmusl-x64" "1.0.18"
+    "@github/copilot-sdk-win32-arm64" "1.0.18"
+    "@github/copilot-sdk-win32-x64" "1.0.18"
 
 "@github/multimap@^1.0.0":
   version "1.0.0"
@@ -671,10 +671,10 @@ detect-libc@^2.0.0:
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.0.tgz#c528bc09bc6d1aa30149228240917c225448f204"
   integrity sha512-S55LzUl8HUav8l9E2PBTlC5PAJrHK7tkM+XXFGD+fbsbkTzhCpG6K05LxJcUOEWzMa4v6ptcMZ9s3fOdJDu0Zw==
 
-dexie@^3.2.3:
-  version "3.2.7"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.2.7.tgz#1346541c9c81e3bc6055a042a928837890595e3a"
-  integrity sha512-2a+BXvVhY5op+smDRLxeBAivE7YcYaneXJ1la3HOkUfX9zKkE/AJ8CNgjiXbtXepFyFmJNGSbmjOwqbT749r/w==
+dexie@^4.4.6:
+  version "4.4.6"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-4.4.6.tgz#aba734b9ed251c637073d2715ed8c89d6da5f43e"
+  integrity sha512-hJP/BO6mjB+tX6hToIO1kmxYLNmun90wYbfcoAoLpKEyDYal/k33dg0TAfoUe2TDsbbLoVIzljJ3BN2UbR5EOg==
 
 dom-accessibility-api@^0.5.9:
   version "0.5.16"
@@ -704,10 +704,10 @@ dom-helpers@^5.1.3:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
 
-dompurify@^3.4.13:
-  version "3.4.13"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.13.tgz#fc28949d59f92d62e28a3a764bcbeee35897a1be"
-  integrity sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==
+dompurify@^3.4.16:
+  version "3.4.16"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.16.tgz#c51b3709ea15ee9abb07e804f2ef30ea9b953128"
+  integrity sha512-sqo+pNp3qRhCIpbgRi1y8Tgk27Bo2Ry7w0dC1NBeNTdZChWjz9Xb/KOoZbRP/R6pQZ80Qw8YhXw13hWWBbMRnQ==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -1218,7 +1218,7 @@ keytar@^7.8.0:
     node-addon-api "^4.3.0"
     prebuild-install "^7.0.1"
 
-koffi@^3.1.0:
+koffi@3.2.1:
   version "3.2.1"
   resolved "https://registry.npmjs.org/koffi/-/koffi-3.2.1.tgz#94f9a111db2c513cdd721b1c5d8c24d838c2ce25"
   integrity sha512-0qE3lZ8jllRqPN4Ob6Ajl7c2bJSJDhQWuKLGP5hIEpHLllJWv1ydHFMhHmHc5p/W9GticKVDbYzZd7TBoQ4CZg==
@@ -2171,7 +2171,7 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
 
-vscode-jsonrpc@^8.2.1:
+vscode-jsonrpc@8.2.1:
   version "8.2.1"
   resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-8.2.1.tgz#a322cc0f1d97f794ffd9c4cd2a898a0bde097f34"
   integrity sha512-kdjOSJ2lLIn7r1rtrMbbNCHjyMPfRnowdKjBQ+mGq6NAW5QY2bEZC/khaC5OR8svbbjvLEaIXkOq45e2X9BIbQ==
@@ -2298,7 +2298,7 @@ yallist@^4.0.0:
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
-zod@^4.3.6:
+zod@4.3.6:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.3.6.tgz#89c56e0aa7d2b05107d894412227087885ab112a"
   integrity sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==

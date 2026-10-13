@@ -1636,6 +1636,22 @@ export class Dispatcher {
     return this.appStore._openInExternalEditor(fullPath)
   }
 
+  /** Open the selected checkout in the GitHub Copilot app. */
+  public async openInCopilotApp(repositoryPath: string): Promise<void> {
+    this.statsStore.increment('openInCopilotAppCount')
+
+    try {
+      await this.appStore._openInCopilotApp(repositoryPath)
+    } catch (error) {
+      await this.postError(error)
+    }
+  }
+
+  /** Set the configured GitHub Copilot app path used for repository handoff. */
+  public setCopilotAppPath(path: string | null): Promise<void> {
+    return this.appStore._setCopilotAppPath(path)
+  }
+
   /**
    * Opens a path in a selected external editor without changing preferences.
    */
@@ -4206,6 +4222,22 @@ export class Dispatcher {
 
   public testPruneBranches() {
     return this.appStore._testPruneBranches()
+  }
+
+  /** Read the current account's token-expiration metadata for the test dialog. */
+  public getAccountTokenExpirationForTesting(account: Account) {
+    return this.appStore._getAccountTokenExpirationForTesting(account)
+  }
+
+  /** Change local token expiry for testing, or reset it by passing undefined. */
+  public setAccountTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ) {
+    return this.appStore._setAccountTokenExpirationForTesting(
+      account,
+      expiresAt
+    )
   }
 
   public editGlobalGitConfig() {

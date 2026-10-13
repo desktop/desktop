@@ -46,6 +46,7 @@ import { getHooksEnvEnabled } from '../hooks/config'
 import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
+import { getSystemNotificationsPermission } from '../notifications/notification-permission'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -54,6 +55,7 @@ type PullRequestReviewStatFieldInfix =
 
 type PullRequestReviewStatFieldSuffix =
   | 'NotificationCount'
+  | 'NotificationShownCount'
   | 'NotificationClicked'
   | 'DialogSwitchToPullRequestCount'
 
@@ -99,6 +101,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
   partialCommits: 0,
   openShellCount: 0,
+  openInCopilotAppCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,
@@ -218,6 +221,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationShownCount: 0,
   checksFailedNotificationFromRecentRepoCount: 0,
   checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
@@ -227,15 +231,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewNotificationFromRecentRepoCount: 0,
   pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationShownCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationShownCount: 0,
   pullRequestReviewCommentedNotificationClicked: 0,
   pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationShownCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
   pullRequestCommentNotificationCount: 0,
+  pullRequestCommentNotificationShownCount: 0,
   pullRequestCommentNotificationClicked: 0,
   pullRequestCommentNotificationFromRecentRepoCount: 0,
   pullRequestCommentNotificationFromNonRecentRepoCount: 0,
@@ -437,6 +445,9 @@ interface ICalculatedStats {
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
 
+  /** Whether OS permission allows notifications, or null if unavailable or unknown. */
+  readonly notificationsPermission: boolean | null
+
   /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean
 
@@ -544,6 +555,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     dotComAccount,
     enterpriseAccount,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -581,6 +593,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     dotComAccount,
     enterpriseAccount,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -837,6 +850,7 @@ export class StatsStore implements IStatsStore {
       selectedTerminalEmulator,
       selectedTextEditor,
       notificationsEnabled: getNotificationsEnabled(),
+      notificationsPermission: await getSystemNotificationsPermission(),
       ...launchStats,
       ...dailyMeasures,
       ...userType,
@@ -1358,10 +1372,21 @@ export class StatsStore implements IStatsStore {
     return this.increment(statField)
   }
 
-  public recordPullRequestReviewNotificationShown(
+  /** Records a PR review Alive event eligible for a notification. */
+  public recordPullRequestReviewNotification(
     reviewType: ValidNotificationPullRequestReviewState
   ): Promise<void> {
     return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  /** Records a PR review notification accepted with OS permission. */
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'NotificationShownCount'
+    )
   }
 
   public recordPullRequestReviewNotificationClicked(

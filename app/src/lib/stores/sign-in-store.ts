@@ -11,8 +11,8 @@ import {
   fetchUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  requestOAuthToken,
   getOAuthAuthorizationURL,
+  getHTMLURL,
 } from '../../lib/api'
 
 import { TypedBaseStore } from './base-store'
@@ -21,6 +21,7 @@ import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
+import { exchangeOAuthToken } from '../oauth-token'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -159,6 +160,7 @@ export type SignInResult =
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
+  private resolvingOAuthState: string | undefined
 
   private accounts: ReadonlyArray<Account> = []
 
@@ -310,7 +312,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
     })
       .then(account => {
-        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+        if (
+          this.state?.kind !== SignInStep.Authentication ||
+          this.state.oauthState?.state !== csrfToken
+        ) {
           // Looks like the sign in flow has been aborted
           log.warn('[SignInStore] account resolved but session has changed')
           return
@@ -353,16 +358,54 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint } = this.state
-    const token = await requestOAuthToken(endpoint, action.code)
-
-    if (token) {
-      const account = await fetchUser(endpoint, token)
-      this.state.oauthState.onAuthCompleted(account)
-    } else {
-      this.state.oauthState.onAuthError(
-        new Error('Failed retrieving authenticated user')
+    const { endpoint, oauthState } = this.state
+    if (this.resolvingOAuthState === oauthState.state) {
+      return
+    }
+    this.resolvingOAuthState = oauthState.state
+    // False once the user cancels, restarts, or leaves this browser sign-in.
+    const isSignInAttemptActive = () =>
+      this.state?.kind === SignInStep.Authentication &&
+      this.state.oauthState === oauthState
+    let unpublishedToken: string | undefined
+    try {
+      const credential = await exchangeOAuthToken(
+        getHTMLURL(endpoint),
+        action.code
       )
+      unpublishedToken = credential.accessToken
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const account = await fetchUser(endpoint, credential.accessToken, true)
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const stored = await this.accountStore.addAccount(account, credential)
+      if (stored !== null) {
+        unpublishedToken = undefined
+      }
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      if (stored === null) {
+        throw new Error(
+          'Unable to save your GitHub credentials. Please try signing in again.'
+        )
+      }
+      oauthState.onAuthCompleted(stored)
+    } catch (e) {
+      oauthState.onAuthError(e)
+    } finally {
+      if (this.resolvingOAuthState === oauthState.state) {
+        this.resolvingOAuthState = undefined
+      }
+      if (unpublishedToken !== undefined) {
+        void this.accountStore.revokeUnusedToken({
+          endpoint,
+          token: unpublishedToken,
+        })
+      }
     }
   }
 

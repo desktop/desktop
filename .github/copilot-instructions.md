@@ -154,7 +154,7 @@ yarn prettier --write
 - **Never commit secrets, passwords, or sensitive data**
 - **Validate and sanitize user input**
 - **Follow secure coding practices**: Review code for XSS, injection, and other vulnerabilities
-- **Report security issues**: Use private vulnerability reporting, not public issues
+- **Report security issues**: Follow [SECURITY.md](../SECURITY.md), not public issues
 
 ### Git Practices
 

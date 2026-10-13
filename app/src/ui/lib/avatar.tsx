@@ -240,7 +240,7 @@ function getAvatarUrlCandidates(
       url.searchParams.set('s', `${size}`)
 
       candidates.push(url.toString())
-    } catch (e) {
+    } catch {
       // This should never happen since URL#constructor only throws for invalid
       // URLs which we can expect the API to not give us
       candidates.push(avatarURL)

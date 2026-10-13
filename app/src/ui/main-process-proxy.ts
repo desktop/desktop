@@ -145,7 +145,7 @@ async function revealAfterConfirmation(
 }
 
 /**
- * Shows a folder's contents without executing application bundles on macOS.
+ * Shows a folder's contents, warning for identified application bundles on macOS.
  *
  * Dependencies default to the platform implementations and can be supplied
  * for isolated testing of the classification and confirmation flow.
@@ -161,18 +161,18 @@ export async function showFolderContents(
 
   if (!stats) {
     if (dependencies.isDarwin) {
-      await revealAfterConfirmation(path, dependencies)
+      await dependencies
+        .revealItem(path)
+        .catch(err => log.error(`Unable to reveal folder '${path}'`, err))
     }
     return
   }
 
   if (!stats.isDirectory()) {
     log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
-    if (dependencies.isDarwin) {
-      await revealAfterConfirmation(path, dependencies)
-    } else {
-      await dependencies.revealItem(path)
-    }
+    await dependencies
+      .revealItem(path)
+      .catch(err => log.error(`Unable to reveal folder '${path}'`, err))
     return
   }
 
@@ -183,24 +183,16 @@ export async function showFolderContents(
     return
   }
 
-  // On macOS a directory might also be an app bundle and if it is
-  // and we attempt to open it we're gonna execute that app which
-  // it far from ideal so we'll look up the metadata for the path
-  // and attempt to determine whether it's an app bundle or not.
-  //
-  // If we fail loading the metadata we won't open the directory out of an
-  // abundance of caution.
-  const canOpenSafely = await dependencies
-    .isApplicationBundle(path)
-    .then(isBundle => !isBundle)
-    .catch(err => {
-      log.error(`Failed to load metadata for path '${path}'`, err)
-      return false
-    })
+  // Warn only when metadata identifies an application bundle. Spotlight may
+  // have no metadata for ordinary folders while indexing or on excluded volumes.
+  const isBundle = await dependencies.isApplicationBundle(path).catch(err => {
+    log.error(`Failed to load metadata for path '${path}'`, err)
+    return false
+  })
 
-  if (!canOpenSafely) {
+  if (isBundle) {
     log.info(
-      `Preventing direct open of path '${path}' because it could not be conclusively identified as non-executable`
+      `Preventing direct open of path '${path}' because it was identified as an application bundle`
     )
 
     await revealAfterConfirmation(path, dependencies)
