@@ -38,6 +38,24 @@ export interface IDailyMeasures {
   /** The number of times the user invoked the GitHub Copilot app handoff. */
   readonly openInCopilotAppCount: number
 
+  /** OAuth renewal exchanges started, excluding debug expiry overrides. */
+  readonly oAuthRefreshAttemptCount: number
+
+  /** OAuth renewals successfully saved and installed. */
+  readonly oAuthRefreshSuccessCount: number
+
+  /** Recoverable OAuth renewal failures that retain credentials. */
+  readonly oAuthRefreshTransientFailureCount: number
+
+  /** Rejected refresh tokens or malformed replacement credentials. */
+  readonly oAuthRefreshNonTransientFailureCount: number
+
+  /** OAuth renewals overtaken by sign-out or replacement sign-in. */
+  readonly oAuthRefreshAbandonedCount: number
+
+  /** Accounts actually retired because an OAuth renewal failed. */
+  readonly oAuthRefreshRequiredSignInCount: number
+
   /** The number of partial commits. */
   readonly partialCommits: number
 
