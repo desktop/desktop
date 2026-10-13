@@ -519,15 +519,6 @@ function getNotarizationOptions(): IOSXNotarizeOptions | undefined {
     APPLE_API_ISSUER: appleApiIssuer,
   } = process.env
 
-  if (
-    (appleApiKey || appleApiKeyId || appleApiIssuer) &&
-    (!appleApiKey || !appleApiKeyId || !appleApiIssuer)
-  ) {
-    throw new Error(
-      'Incomplete notarization API-key configuration: set APPLE_API_KEY_PATH, APPLE_API_KEY_ID, and APPLE_API_ISSUER together'
-    )
-  }
-
   return appleApiKey && appleApiKeyId && appleApiIssuer
     ? { appleApiKey, appleApiKeyId, appleApiIssuer }
     : undefined
