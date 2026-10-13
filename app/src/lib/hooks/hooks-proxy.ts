@@ -11,6 +11,7 @@ import { promisify } from 'util'
 import memoizeOne from 'memoize-one'
 import which from 'which'
 import { createWriteStream } from 'fs'
+import { getInheritedHookEnv } from './inherited-hook-env'
 
 const execFileAsync = promisify(execFile)
 
@@ -142,8 +143,9 @@ const ensureGitExecPathEnv = async (shellEnv: ShellEnvResult) => {
 }
 
 export const createHooksProxy = (
-  getShellEnv: (cwd: string) => Promise<ShellEnvResult>,
+  getShellEnv: ((cwd: string) => Promise<ShellEnvResult>) | undefined,
   tmpHooksDir: string,
+  hooksPathConfig: string,
   onHookProgress?: HookCallbackOptions['onHookProgress'],
   onHookFailure?: HookCallbackOptions['onHookFailure']
 ) => {
@@ -203,7 +205,12 @@ export const createHooksProxy = (
 
     const terminalOutput: Buffer[] = []
     const gitPath = resolveGitBinary(resolve(__dirname, 'git'))
-    const shellEnv = await ensureGitExecPathEnv(await getShellEnv(proxyCwd))
+    const shellEnv: ShellEnvResult = getShellEnv
+      ? await ensureGitExecPathEnv(await getShellEnv(proxyCwd))
+      : {
+          kind: 'success',
+          env: getInheritedHookEnv(proxyEnv, hooksPathConfig),
+        }
 
     if (shellEnv.kind === 'failure') {
       let errMsg = `Failed to load shell environment for hook ${hookName}.`
