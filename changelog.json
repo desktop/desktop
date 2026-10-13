@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.8-beta1": [
+      "[New] Use short-lived tokens for new logged-in users - #22943"
+    ],
     "3.6.7": [
       "[Added] Keep the current worktree toolbar segment visible with the \"Always show worktree list\" Appearance setting - #22888",
       "[Fixed] Fix a crash that could occur when Git LFS progress tracking encountered a file read error - #22889",
