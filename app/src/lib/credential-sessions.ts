@@ -63,8 +63,20 @@ export interface IAccountTokenExpiration {
   readonly isOverridden: boolean
 }
 
+/** Credential-free lifecycle events for actual OAuth renewal exchanges. */
+export type OAuthRefreshEvent =
+  | 'attempt'
+  | 'success'
+  | 'transient-failure'
+  | 'non-transient-failure'
+  | 'abandoned'
+  | 'required-sign-in'
+
 /** Account-list changes that credential sessions ask their owner to perform. */
 export interface ICredentialSessionsDelegate {
+  /** A renewal lifecycle event; excludes expiry-override testing. */
+  readonly onOAuthRefresh?: (event: OAuthRefreshEvent) => void
+
   /**
    * Sign the account out because its credential can no longer be used.
    *
@@ -645,6 +657,22 @@ export class CredentialSessions {
     if (refreshToken === undefined) {
       throw new Error('Cannot renew a credential without a refresh token.')
     }
+    const reportEvents = session.expirationOverride === undefined
+    const record = (event: OAuthRefreshEvent) => {
+      if (reportEvents) {
+        this.delegate.onOAuthRefresh?.(event)
+      }
+    }
+    const requireSignIn = async () => {
+      const wasRetired = session.retired
+      const signOut = this.requireSignIn(session)
+      // The delegate retires the session synchronously, before deleting storage.
+      if (!wasRetired && session.retired) {
+        record('required-sign-in')
+      }
+      await signOut
+    }
+    record('attempt')
     let renewed: IOAuthToken
     try {
       renewed = await this.renewToken(
@@ -657,8 +685,10 @@ export class CredentialSessions {
           e instanceof OAuthRefreshRejectedError ||
           e instanceof OAuthTokenResponseError
         ) {
-          await this.requireSignIn(session)
+          record('non-transient-failure')
+          await requireSignIn()
         } else {
+          record('transient-failure')
           log.warn(
             'OAuth renewal failed; retaining credentials for a later retry.'
           )
@@ -666,11 +696,14 @@ export class CredentialSessions {
             'Unable to renew your GitHub session. Check your connection and try again shortly.'
           )
         }
+      } else {
+        record('abandoned')
       }
       throw e
     }
 
     if (session.retired) {
+      record('abandoned')
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
@@ -687,7 +720,9 @@ export class CredentialSessions {
       })
     } catch {
       if (!session.retired) {
-        await this.requireSignIn(session)
+        await requireSignIn()
+      } else {
+        record('abandoned')
       }
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new Error(
@@ -695,6 +730,7 @@ export class CredentialSessions {
       )
     }
     if (session.retired) {
+      record('abandoned')
       void this.revokeUnusedToken(account.withToken(renewed.accessToken))
       throw new AccountRequiresSignInError()
     }
@@ -705,6 +741,7 @@ export class CredentialSessions {
       session
     )
     this.delegate.onTokenRenewed(account.endpoint, renewed.accessToken)
+    record('success')
     log.info('OAuth credentials renewed and saved.')
     return renewed.accessToken
   }
