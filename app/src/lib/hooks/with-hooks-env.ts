@@ -31,7 +31,7 @@ export async function withHooksEnv<T>(
   path: string,
   opts: IGitExecutionOptions | undefined
 ): Promise<T> {
-  if (!opts?.interceptHooks || !getHooksEnvEnabled()) {
+  if (!opts?.interceptHooks) {
     return fn(opts?.env)
   }
 
@@ -46,17 +46,21 @@ export async function withHooksEnv<T>(
 
   const token = crypto.randomUUID()
   const tmpHooksDir = await mkdtemp(join(tmpdir(), 'desktop-git-hooks-'))
+  // Intercept hooks for progress and failure reporting even when the user has
+  // not opted into loading a shell environment.
+  const hooksPathConfig = `'core.hooksPath=${tmpHooksDir}'`
   const hooksProxy = createHooksProxy(
-    cwd =>
-      memoizedGetShellEnv(
-        getGitHookEnvShell(),
-        cwd,
-        // We always cache environment per token (i.e. per operation, e.g commit, apply, etc)
-        // but we can optionally cache it over multiple operations in the same repository if the user
-        // has enabled that setting.
-        getCacheHooksEnv() ? 'global' : token
-      ),
+    getHooksEnvEnabled()
+      ? cwd =>
+          memoizedGetShellEnv(
+            getGitHookEnvShell(),
+            cwd,
+            // Cache per operation unless cross-operation caching is enabled.
+            getCacheHooksEnv() ? 'global' : token
+          )
+      : undefined,
     tmpHooksDir,
+    hooksPathConfig,
     opts?.onHookProgress,
     opts?.onHookFailure
   )
@@ -90,7 +94,7 @@ export async function withHooksEnv<T>(
     return await fn({
       // TODO: Do we need to escape tmpHooksDir? Could it possibly include a single quote?
       // probably not?
-      GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'core.hooksPath=${tmpHooksDir}'`,
+      GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}${hooksPathConfig}`,
       PROCESS_PROXY_PORT: `${port}`,
       PROCESS_PROXY_TOKEN: token,
     })
