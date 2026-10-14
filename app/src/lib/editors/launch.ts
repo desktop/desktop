@@ -1,4 +1,6 @@
 import { spawn, SpawnOptions } from 'child_process'
+import { readdir, stat } from 'fs/promises'
+import * as Path from 'path'
 import { pathExists } from '../path-exists'
 import { ExternalEditorError, FoundEditor } from './shared'
 import {
@@ -6,6 +8,55 @@ import {
   ICustomIntegration,
   parseCustomIntegrationArguments,
 } from '../custom-integration'
+
+/**
+ * Returns whether the given editor is part of the Visual Studio Code family
+ * (e.g. Code, Insiders, VSCodium, Cursor, Windsurf) and supports opening
+ * .code-workspace files.
+ */
+export function isVSCodeEditor(editorName: string): boolean {
+  return /^(Visual Studio Code|VSCodium|Cursor|Windsurf)/i.test(editorName)
+}
+
+/**
+ * If the selected editor is VS Code and the target is a directory containing
+ * exactly one `.code-workspace` file in its root, return the path to that
+ * workspace file. Otherwise, return the original target path.
+ */
+export async function resolveEditorTarget(
+  fullPath: string,
+  editor: FoundEditor
+): Promise<string> {
+  if (!isVSCodeEditor(editor.editor)) {
+    return fullPath
+  }
+
+  try {
+    const stats = await stat(fullPath)
+    if (!stats.isDirectory()) {
+      return fullPath
+    }
+
+    const entries = await readdir(fullPath, { withFileTypes: true })
+    const workspaces = entries.filter(
+      e =>
+        e.isFile() &&
+        e.name.endsWith('.code-workspace') &&
+        !e.name.startsWith('.')
+    )
+
+    if (workspaces.length === 1) {
+      return Path.join(fullPath, workspaces[0].name)
+    }
+  } catch (e) {
+    log.warn(
+      `Failed to inspect directory for workspace file at '${fullPath}'`,
+      e
+    )
+  }
+
+  return fullPath
+}
 
 async function launchEditor(
   editorPath: string,
@@ -58,8 +109,13 @@ async function launchEditor(
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  * @param editor The external editor to launch.
  */
-export const launchExternalEditor = (fullPath: string, editor: FoundEditor) =>
-  launchEditor(editor.path, [fullPath], `'${editor.editor}'`, __DARWIN__)
+export const launchExternalEditor = async (
+  fullPath: string,
+  editor: FoundEditor
+) => {
+  const target = await resolveEditorTarget(fullPath, editor)
+  return launchEditor(editor.path, [target], `'${editor.editor}'`, __DARWIN__)
+}
 
 /**
  * Open a given file or folder in the desired custom external editor.
