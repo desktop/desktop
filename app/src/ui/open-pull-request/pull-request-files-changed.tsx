@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { IDiff, ImageDiffType } from '../../models/diff'
+import { getLFSTextDiff } from '../../lib/git'
 import { Repository } from '../../models/repository'
 import { CommittedFileChange } from '../../models/status'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
@@ -57,6 +58,9 @@ interface IPullRequestFilesChangedProps {
   /** If the latest commit of the pull request is not local, this will contain
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
+
+  /** SHA of the oldest commit in the pull request (used for LFS diff base) */
+  readonly oldestCommitSHA: string | null
 
   /**
    * Callback to open a selected file using the configured external editor
@@ -224,6 +228,22 @@ export class PullRequestFilesChanged extends React.Component<
     showContextualMenu(items)
   }
 
+  private onLoadLFSDiff = (): Promise<IDiff | null> => {
+    const file = this.props.selectedFile
+    if (file === null) {
+      return Promise.resolve(null)
+    }
+    const oldestCommitish = this.props.oldestCommitSHA ?? 'HEAD'
+    const newestCommitish = this.props.nonLocalCommitSHA ?? 'HEAD'
+    return getLFSTextDiff(
+      this.props.repository,
+      file,
+      oldestCommitish,
+      newestCommitish,
+      this.props.hideWhitespaceInDiff
+    )
+  }
+
   private onFileSelected = (file: CommittedFileChange) => {
     this.props.dispatcher.changePullRequestFileSelection(
       this.props.repository,
@@ -306,6 +326,7 @@ export class PullRequestFilesChanged extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onLoadLFSDiff={this.onLoadLFSDiff}
       />
     )
   }

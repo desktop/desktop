@@ -184,6 +184,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         imageDiffType={imageDiffType}
         nonLocalCommitSHA={nonLocalCommitSHA}
+        oldestCommitSHA={shas[0] ?? null}
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
