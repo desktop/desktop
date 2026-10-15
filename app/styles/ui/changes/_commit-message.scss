@@ -350,18 +350,24 @@
   }
 
   .assisted-commit-options {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--spacing-half);
+    position: absolute;
+    top: var(--spacing-half);
+    right: var(--spacing-half);
+    z-index: 1;
 
     .commit-options-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: none;
       background: transparent;
-      padding: var(--spacing-half);
+      padding: 0;
       height: 24px;
       width: 24px;
+      text-overflow: clip;
 
       svg {
+        display: block;
         height: 13px;
         width: 16px;
       }

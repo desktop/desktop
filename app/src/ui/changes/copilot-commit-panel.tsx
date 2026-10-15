@@ -29,6 +29,9 @@ interface ICopilotCommitPanelProps {
 
   /** Whether an empty commit may be created when no files are selected. */
   readonly allowEmptyCommit?: boolean
+
+  /** Optional controls rendered in the panel's reserved top area. */
+  readonly children?: React.ReactNode
 }
 
 interface ICopilotCommitPanelState {
@@ -248,6 +251,7 @@ export class CopilotCommitPanel extends React.Component<
     const { isThinking } = this.state
     const className = classNames('copilot-commit-panel', {
       working: this.props.isWorking,
+      'with-options': React.Children.count(this.props.children) > 0,
     })
     const headClassName = classNames('copilot-head', `reaction-${animation}`)
 
@@ -259,6 +263,7 @@ export class CopilotCommitPanel extends React.Component<
         onMouseLeave={this.onMouseLeave}
       >
         <div className="glow" />
+        {this.props.children}
         <div className="copilot-stage">
           {this.renderSparkles()}
           {/*
