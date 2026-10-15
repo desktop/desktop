@@ -19,6 +19,10 @@
 
   transition: border-color 300ms ease-out, box-shadow 300ms ease-out;
 
+  &.with-options {
+    padding-top: calc(24px + var(--spacing));
+  }
+
   // A soft glow which follows the mouse around
   .glow {
     position: absolute;
