@@ -1751,6 +1751,37 @@ describe('CommitMessage', () => {
         false,
       ],
       [{ kind: 'rolling-back', runId: 'run' }, true, true, 'Cancel', true],
+      [
+        {
+          kind: 'preparing-push',
+          runId: 'run',
+          cancelRequested: false,
+          canCancel: true,
+        },
+        true,
+        true,
+        'Cancel',
+        false,
+      ],
+      ...([false, true] as const).map(
+        settling =>
+          [
+            {
+              kind: 'push-error',
+              runId: 'push-run',
+              attempted: true,
+              settling,
+              error: new ErrorWithMetadata(
+                new Error('Actual push rejection'),
+                {}
+              ),
+            },
+            false,
+            settling,
+            'Retry push',
+            settling,
+          ] as const
+      ),
       ...(['recovery', 'refresh', null] as const).map(
         retry =>
           [
@@ -1795,6 +1826,7 @@ describe('CommitMessage', () => {
           assistedCommitState: state,
           onCancelCopilotAssistedCommits: () => acted++,
           onRetryCopilotAssistedCommitRecovery: () => acted++,
+          onRetryCopilotAssistedCommitPush: () => acted++,
           onDismissCopilotAssistedCommitError: () => acted++,
           onAssistedCommitErrorDetails: () => {},
         })
@@ -1840,12 +1872,38 @@ describe('CommitMessage', () => {
             })
           )
         }
-        if (state.kind === 'error') {
+        if (state.kind === 'error' || state.kind === 'push-error') {
           assert.ok(panel.contains(screen.getByRole('alert')))
           assert.ok(screen.getByRole('button', { name: 'Details' }))
         }
       })
     }
+
+    it('keeps the panel gear disabled during pushing without exposing rollback Cancel', t => {
+      const menu = t.mock.method(ipcRenderer, 'invoke', async () => null)
+      const { view } = renderWithCommitModes({
+        commitMode: 'copilot',
+        isCreatingCopilotAssistedCommits: true,
+        assistedCommitState: {
+          kind: 'pushing',
+          runId: 'push-run',
+          phase: 'push',
+          progress: null,
+        },
+      })
+      const gear = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      const panel = view.container.querySelector(
+        '.copilot-commit-panel.with-options'
+      )
+      assert.ok(panel?.contains(gear))
+      assert.strictEqual(gear.getAttribute('aria-disabled'), 'true')
+      fireEvent.click(gear)
+      assert.strictEqual(menu.mock.callCount(), 0)
+      assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
+      assert.ok(screen.getByText('Pushing commits…', { selector: '.title' }))
+    })
 
     it('restores summary focus when leaving the focused panel options control', () => {
       const { rerender } = renderWithCommitModes({ commitMode: 'copilot' })
@@ -1980,7 +2038,10 @@ describe('CommitMessage', () => {
       await waitFor(() => assert.strictEqual(menus.length, 2))
       assert.deepStrictEqual(
         menus[1]
-          .filter(item => item.type === 'checkbox')
+          .filter(
+            item =>
+              item.type === 'checkbox' && item.label !== 'Push after committing'
+          )
           .map(item => ({ label: item.label, checked: item.checked })),
         [SkipHooksLabel, SignOffLabel, AllowEmptyLabel].map(label => ({
           label,
@@ -2046,7 +2107,7 @@ describe('CommitMessage', () => {
     it('exposes the repository push choice as an assisted-only checkbox and freezes it while busy', async t => {
       const { menus, select } = captureOptionsMenu(t)
       const choices: boolean[] = []
-      const { rerender } = renderWithCommitModes({
+      const { view, rerender } = renderWithCommitModes({
         commitMode: 'copilot',
         pushAfterAssistedCommit: true,
         onPushAfterAssistedCommitChanged: enabled => choices.push(enabled),
@@ -2057,6 +2118,13 @@ describe('CommitMessage', () => {
       assert.ok(item)
       assert.strictEqual(item.type, 'checkbox')
       assert.strictEqual(item.checked, true)
+      assert.ok(
+        view.container
+          .querySelector('.copilot-commit-panel.with-options')
+          ?.contains(
+            screen.getByRole('button', { name: 'Configure commit options' })
+          )
+      )
       rerender({ isCreatingCopilotAssistedCommits: true })
       const button = screen.getByRole('button', {
         name: 'Configure commit options',
