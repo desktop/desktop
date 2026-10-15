@@ -284,4 +284,47 @@ describe('repository-aware credential trampoline', () => {
     )
     assert.equal(await handler(command()), undefined)
   })
+
+  describe('when the request origin differs from the account origin', () => {
+    const plain = (protocol: string, host = 'github.com') => ({
+      ...command(host),
+      stdin: `protocol=${protocol}\nhost=${host}\n\n`,
+    })
+
+    it('never sends the assigned account over plain HTTP', async () => {
+      const handler = createHandler(
+        new TestAccountsStore([alice, bob]),
+        new TestRepositoriesStore([repository('bob')])
+      )
+      assert.doesNotMatch((await handler(plain('http'))) ?? '', /bob-token/)
+      assert.match((await handler(plain('https'))) ?? '', /bob-token/)
+    })
+
+    it('never sends the fallback account over plain HTTP', async () => {
+      path = '/cloning'
+      fallbackAccount = bob
+      try {
+        const handler = createHandler(
+          new TestAccountsStore([alice, bob]),
+          new TestRepositoriesStore([])
+        )
+        assert.doesNotMatch((await handler(plain('http'))) ?? '', /bob-token/)
+        assert.match((await handler(plain('https'))) ?? '', /bob-token/)
+      } finally {
+        path = '/repo'
+        fallbackAccount = undefined
+      }
+    })
+
+    it('never sends the assigned account to another port', async () => {
+      const handler = createHandler(
+        new TestAccountsStore([alice, bob]),
+        new TestRepositoriesStore([repository('bob')])
+      )
+      assert.doesNotMatch(
+        (await handler(plain('https', 'github.com:8443'))) ?? '',
+        /bob-token/
+      )
+    })
+  })
 })

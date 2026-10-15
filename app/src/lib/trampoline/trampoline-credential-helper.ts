@@ -31,7 +31,7 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
-import { getAPIEndpoint, isGitHubHost } from '../api'
+import { getAPIEndpoint, getHTMLURL, isGitHubHost } from '../api'
 import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
 
 type Credential = Map<string, string>
@@ -87,19 +87,32 @@ async function getExternalCredential(input: Credential, token: string) {
 }
 
 /** Implementation of the 'get' git credential helper command */
+/** Whether the URL has the same origin as the endpoint's web URL. */
+function isSameOrigin(url: URL, endpoint: string) {
+  return new URL(getHTMLURL(endpoint)).origin === url.origin
+}
+
 async function getCredential(
   cred: Credential,
   store: Store,
   token: string,
   repositories: ReadonlyArray<Repository>
 ) {
-  const endpoint = `${getCredentialUrl(cred)}`
+  const credentialUrl = getCredentialUrl(cred)
+  const endpoint = `${credentialUrl}`
   const apiEndpoint = getAPIEndpoint(endpoint)
+  // getAPIEndpoint normalizes the scheme and port away, so also require the
+  // request to target the account's exact origin. Otherwise a token could be
+  // sent over plain HTTP or to another service on the same host.
+  const isAccountOrigin = isSameOrigin(credentialUrl, apiEndpoint)
   const repository = matchExistingRepository(
     repositories,
     getTrampolineEnvironmentPath(token)
   )
-  if (repository?.gitHubRepository?.endpoint === apiEndpoint) {
+  if (
+    isAccountOrigin &&
+    repository?.gitHubRepository?.endpoint === apiEndpoint
+  ) {
     const account =
       getAccountForRepository(await store.getAll(), repository) ??
       (getIsBackgroundTaskEnvironment(token)
@@ -112,7 +125,7 @@ async function getCredential(
   }
 
   const fallbackAccount = getTrampolineFallbackAccount(token)
-  if (fallbackAccount?.endpoint === apiEndpoint) {
+  if (isAccountOrigin && fallbackAccount?.endpoint === apiEndpoint) {
     // Only signed-in accounts can be used, with their current token.
     const account = (await store.getAll()).find(
       a =>
