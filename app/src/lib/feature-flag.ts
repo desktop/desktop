@@ -6,7 +6,7 @@ const Disable = false
  * Opt in new OAuth authorizations during development and preview testing.
  * Existing rotating credentials must keep renewing even when this is disabled.
  */
-export const enableShortLivedTokens = () => enableDevelopmentFeatures()
+export const enableShortLivedTokens = () => enableBetaFeatures()
 
 /**
  * Enables the application to opt-in for preview features based on runtime

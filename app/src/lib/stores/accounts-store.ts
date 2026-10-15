@@ -14,6 +14,7 @@ import {
   AccountRequiresSignInError,
   CredentialSessions,
   IAccountTokenExpiration,
+  TokenRefreshEvent,
   refreshMargin,
 } from '../credential-sessions'
 
@@ -100,6 +101,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         requireSignIn: this.requireSignIn,
         onTokenRenewed: this.onTokenRenewed,
         onSignedIn: this.onSignedIn,
+        onTokenRefreshEvent: event => this.emitter.emit('token-refresh', event),
       },
       renewToken,
       now,
@@ -120,6 +122,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** Notify once per account when invalid credentials sign it out. */
   public onTokenInvalidated(callback: (account: Account) => void): Disposable {
     return this.emitter.on('token-invalidated', callback)
+  }
+
+  /** Subscribe to credential-free renewal events, excluding debug overrides. */
+  public onTokenRefreshEvent(
+    callback: (event: TokenRefreshEvent) => void
+  ): Disposable {
+    return this.emitter.on('token-refresh', callback)
   }
 
   /** Handle a rejected API token without leaving unhandled callback errors. */

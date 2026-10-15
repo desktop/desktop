@@ -4,10 +4,12 @@ import { Account } from '../../src/models/account'
 import {
   AccountRequiresSignInError,
   CredentialSessions,
+  TokenRefreshEvent,
 } from '../../src/lib/credential-sessions'
 import {
   IOAuthToken,
   OAuthRefreshRejectedError,
+  OAuthTokenResponseError,
 } from '../../src/lib/oauth-token'
 import { deserializeAccountCredential } from '../../src/lib/account-credential'
 import { getKeyForAccount } from '../../src/lib/auth'
@@ -45,6 +47,7 @@ function setup(
   const signedOut: Account[] = []
   const renewals: Array<[string, string]> = []
   const revoked: string[] = []
+  const refreshEvents: TokenRefreshEvent[] = []
   const sessions: CredentialSessions = new CredentialSessions(
     secure,
     {
@@ -55,6 +58,7 @@ function setup(
       },
       onTokenRenewed: (endpoint, token) => renewals.push([endpoint, token]),
       onSignedIn: () => {},
+      onTokenRefreshEvent: event => refreshEvents.push(event),
     },
     renew,
     clock,
@@ -63,8 +67,225 @@ function setup(
       return true
     }
   )
-  return { sessions, secure, signedOut, renewals, revoked }
+  return { sessions, secure, signedOut, renewals, revoked, refreshEvents }
 }
+
+describe('CredentialSessions token refresh lifecycle events', () => {
+  it('counts one attempt and success for concurrent callers only after installation', async () => {
+    let complete: (credential: IOAuthToken) => void = () => {
+      throw new Error('Renewal not started')
+    }
+    const pending = new Promise<IOAuthToken>(resolve => {
+      complete = resolve
+    })
+    const { sessions, refreshEvents } = setup(() => pending)
+    sessions.restore(account, expiring)
+    const tokens = Promise.all([
+      sessions.getFreshToken(account),
+      sessions.resolveToken(account.endpoint, account.token),
+      sessions.createTokenGetter(account)(),
+    ])
+    assert.deepEqual(refreshEvents, ['attempt'])
+    complete(renewed)
+    await tokens
+    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+    assert.equal(sessions.trackToken(account.endpoint)(), renewed.accessToken)
+  })
+
+  it('does not record token lookups, plain tokens, or still-valid credentials', async () => {
+    const { sessions, refreshEvents } = setup()
+    sessions.restore(account, renewed)
+    await sessions.getFreshToken(account)
+    sessions.restore(account, { accessToken: account.token })
+    await sessions.getFreshToken(account)
+    assert.deepEqual(refreshEvents, [])
+  })
+
+  it('counts transient failures and subsequent successful retries separately', async () => {
+    let attempts = 0
+    const { sessions, refreshEvents, signedOut } = setup(async () => {
+      if (attempts++ === 0) {
+        throw new Error('offline')
+      }
+      return renewed
+    })
+    sessions.restore(account, expiring)
+    await assert.rejects(sessions.getFreshToken(account), /Unable to renew/)
+    assert.deepEqual(refreshEvents, ['attempt', 'transient-failure'])
+    assert.deepEqual(signedOut, [])
+    await sessions.getFreshToken(account)
+    assert.deepEqual(refreshEvents, [
+      'attempt',
+      'transient-failure',
+      'attempt',
+      'success',
+    ])
+  })
+
+  for (const error of [
+    new OAuthRefreshRejectedError(),
+    new OAuthTokenResponseError(),
+  ]) {
+    it(`groups ${error.name} as a non-transient failure with one required sign-in`, async () => {
+      const { sessions, refreshEvents } = setup(async () => {
+        throw error
+      })
+      sessions.restore(account, expiring)
+      const results = await Promise.allSettled([
+        sessions.getFreshToken(account),
+        sessions.getFreshToken(account),
+      ])
+      assert.ok(results.every(result => result.status === 'rejected'))
+      assert.deepEqual(refreshEvents, [
+        'attempt',
+        'non-transient-failure',
+        'required-sign-in',
+      ])
+    })
+  }
+
+  for (const rejected of [false, true]) {
+    it(`counts only abandonment when a retired session's exchange ${
+      rejected ? 'fails' : 'succeeds'
+    }`, async () => {
+      let complete: () => void = () => {
+        throw new Error('Renewal not started')
+      }
+      const pending = new Promise<IOAuthToken>((resolve, reject) => {
+        complete = () =>
+          rejected ? reject(new OAuthRefreshRejectedError()) : resolve(renewed)
+      })
+      const { sessions, refreshEvents } = setup(() => pending)
+      sessions.restore(account, expiring)
+      const failure = assert.rejects(sessions.getFreshToken(account))
+      sessions.retire(account.endpoint)
+      complete()
+      await failure
+      assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+    })
+  }
+
+  it('counts abandonment after sign-in replacement instead of attributing success to the new session', async () => {
+    let complete: (credential: IOAuthToken) => void = () => {
+      throw new Error('Renewal not started')
+    }
+    const pending = new Promise<IOAuthToken>(resolve => {
+      complete = resolve
+    })
+    const { sessions, refreshEvents } = setup(() => pending)
+    sessions.restore(account, expiring)
+    const failure = assert.rejects(
+      sessions.getFreshToken(account),
+      AccountRequiresSignInError
+    )
+    const replacement = await sessions.add(account, {
+      ...renewed,
+      accessToken: 'replacement-access',
+    })
+    complete(renewed)
+    await failure
+    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+    assert.equal(await sessions.getFreshToken(replacement), replacement.token)
+  })
+
+  it('does not count success before a renewed credential is saved', async t => {
+    const { sessions, secure, refreshEvents } = setup()
+    sessions.restore(account, expiring)
+    let finish: () => void = () => {
+      throw new Error('Save not started')
+    }
+    const started = new Promise<void>(resolve => {
+      t.mock.method(secure, 'setItem', () => {
+        resolve()
+        return new Promise<void>(complete => {
+          finish = complete
+        })
+      })
+    })
+    const token = sessions.getFreshToken(account)
+    await started
+    assert.deepEqual(refreshEvents, ['attempt'])
+    sessions.retire(account.endpoint)
+    finish()
+    await assert.rejects(token, AccountRequiresSignInError)
+    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+  })
+
+  it('counts required sign-in but no success or persistence-failure metric when secure storage fails', async t => {
+    const { sessions, secure, refreshEvents } = setup()
+    sessions.restore(account, expiring)
+    t.mock.method(secure, 'setItem', async () => {
+      throw new Error('storage unavailable')
+    })
+    await assert.rejects(sessions.getFreshToken(account), /Unable to save/)
+    assert.deepEqual(refreshEvents, ['attempt', 'required-sign-in'])
+  })
+
+  it('does not count debug override renewals, but resumes reporting after renewal', async t => {
+    const previous = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previous
+      }
+    })
+    let clock = now
+    const { sessions, refreshEvents } = setup(
+      async () => renewed,
+      () => clock
+    )
+    sessions.restore(account, renewed)
+    sessions.setTokenExpirationForTesting(account, now - 1)
+    await sessions.getFreshToken(account)
+    assert.deepEqual(refreshEvents, [])
+    clock = renewed.expiresAt ?? now
+    await sessions.getFreshToken(account)
+    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+  })
+
+  it('records normal renewals after resetting an override', async t => {
+    const previous = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previous
+      }
+    })
+    const { sessions, refreshEvents } = setup()
+    sessions.restore(account, expiring)
+    sessions.setTokenExpirationForTesting(account, now + 8 * 60 * 60_000)
+    sessions.setTokenExpirationForTesting(account, undefined)
+    await sessions.getFreshToken(account)
+    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+  })
+
+  it('excludes non-transient failures and forced sign-ins during debug override testing', async t => {
+    const previous = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previous
+      }
+    })
+    const { sessions, signedOut, refreshEvents } = setup(async () => {
+      throw new OAuthRefreshRejectedError()
+    })
+    sessions.restore(account, renewed)
+    sessions.setTokenExpirationForTesting(account, now - 1)
+    await assert.rejects(
+      sessions.getFreshToken(account),
+      OAuthRefreshRejectedError
+    )
+    assert.deepEqual(refreshEvents, [])
+    assert.equal(signedOut.length, 1)
+  })
+})
 
 describe('CredentialSessions test expiration overrides', () => {
   let previousPreview: string | undefined
