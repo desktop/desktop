@@ -3431,9 +3431,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
+        accounts={this.state.accounts}
+        onChangeRepositoryAccount={this.changeRepositoryAccount}
         dispatcher={this.props.dispatcher}
       />
     )
+  }
+
+  private changeRepositoryAccount = async (
+    repository: Repository,
+    login: string
+  ) => {
+    try {
+      await this.props.dispatcher.updateRepositoryAccount(repository, login)
+    } catch (e) {
+      this.props.dispatcher.postError(e)
+    }
   }
 
   private viewOnGitHub = (
@@ -3624,6 +3637,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       onOpenInExternalEditor: this.openInExternalEditor,
       askForConfirmationOnRemoveRepository:
         this.state.askForConfirmationOnRepositoryRemoval,
+      accounts: this.state.accounts,
+      onChangeRepositoryAccount: this.changeRepositoryAccount,
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
