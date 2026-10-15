@@ -196,9 +196,18 @@ describe('AppStore explicitly adding repositories', () => {
     t.mock.method(API, 'fromAccount', () =>
       createMockAPI({ fetchRepository: async () => null })
     )
+    const { gitHubRepositories } = stores.repositoriesStore['db']
+    const existingIDs = new Set(await gitHubRepositories.toCollection().keys())
     const added = await appStore._addRepositories([repository.path])
     assert.strictEqual(added[0].login, null)
     assert.strictEqual(added[0].gitHubRepository?.endpoint, endpoint)
+    const created = (await gitHubRepositories.toArray()).filter(
+      r => !existingIDs.has(r.id ?? -1)
+    )
+    assert.deepStrictEqual(
+      created.map(r => r.accountLogin),
+      ['']
+    )
   })
 
   it('does not probe or reassign an existing explicitly unassigned repository', async t => {

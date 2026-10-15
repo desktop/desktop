@@ -259,6 +259,7 @@ import {
   IMatchedGitHubRepository,
   isAccessibleRepository,
   matchGitHubRepository,
+  toAnonymousMatch,
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
@@ -4990,14 +4991,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           ) ||
           (await isGitHubHost(origin)))
       ) {
-        const anonymous = new Account('', endpoint, '', [], '', -1, '')
         repository = await repoStore.setGitHubRepository(
           repository,
-          await repoStore.upsertGitHubRepositoryFromMatch({
-            account: anonymous,
-            owner: parsed.owner,
-            name: parsed.name,
-          })
+          await repoStore.upsertGitHubRepositoryFromMatch(
+            toAnonymousMatch(endpoint, parsed.owner, parsed.name)
+          )
         )
       }
     }
@@ -8686,9 +8684,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         } else if (remote !== null) {
           const match = matchGitHubRepository(accounts, remote.url)
           if (match !== null) {
+            const { account, owner, name } = match
             const gitHubRepository =
               await this.repositoriesStore.upsertGitHubRepositoryFromMatch(
-                match
+                toAnonymousMatch(account.endpoint, owner, name)
               )
             refreshedRepo = await this.repositoriesStore.setGitHubRepository(
               addedRepo,

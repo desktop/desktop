@@ -142,6 +142,21 @@ export function matchGitHubRepository(
 }
 
 /**
+ * Create a match that isn't scoped to any account.
+ *
+ * Use this when a remote belongs to a GitHub host but no account was chosen,
+ * so the GitHub repository record isn't tied to an arbitrary signed-in login.
+ */
+export function toAnonymousMatch(
+  endpoint: string,
+  owner: string,
+  name: string
+): IMatchedGitHubRepository {
+  const account = new Account('', endpoint, '', [], '', -1, '')
+  return { account, owner, name }
+}
+
+/**
  * Find an existing repository associated with this path
  *
  * @param repos The list of repositories tracked in the app
