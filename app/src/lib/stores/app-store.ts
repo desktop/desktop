@@ -10577,11 +10577,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ...(secret !== null && provider.authKind === 'bearer'
         ? { bearerToken: secret }
         : {}),
+      wireModel: model.id,
     }
 
     return {
       kind: 'byok',
       modelId: model.id,
+      ...(model.id === 'auto' ? { modelId: 'byok-auto' } : {}),
       provider: providerConfig,
       ...(model.reasoningEffort !== undefined
         ? { reasoningEffort: model.reasoningEffort }
