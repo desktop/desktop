@@ -6013,6 +6013,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (repository.gitHubRepository != null) {
             this._refreshIssues(repository.gitHubRepository)
           }
+          // Refresh pull requests after fetch to ensure the UI reflects
+          // the current state, especially after creating a pull request
+          this._refreshPullRequests(repository)
         }
       }
     })
