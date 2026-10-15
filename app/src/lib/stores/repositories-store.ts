@@ -27,7 +27,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
-import { Account } from '../../models/account'
+import { Account, IAccountIdentity } from '../../models/account'
 import { caseInsensitiveEquals } from '../compare'
 
 type AddRepositoryOptions = {
@@ -275,12 +275,16 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   /**
-   * Assign legacy repositories once, using the accounts present at startup.
+   * Assign legacy repositories once, using the accounts persisted at startup.
    *
+   * Pass every persisted identity, not just the accounts whose credentials
+   * loaded, so a locked keychain doesn't permanently unassign repositories.
    * Persisting null also marks a record as migrated. Newly added repositories
    * start with null, so signing in later never implicitly assigns them.
    */
-  public async migrateAccountAssignments(accounts: ReadonlyArray<Account>) {
+  public async migrateAccountAssignments(
+    accounts: ReadonlyArray<IAccountIdentity>
+  ) {
     await this.db.transaction(
       'rw',
       this.db.repositories,

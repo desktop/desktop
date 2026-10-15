@@ -186,4 +186,74 @@ describe('AccountsStore', () => {
       )
     })
   })
+
+  describe('persisted identities', () => {
+    const persisted = (login: string, endpoint: string) => ({
+      login,
+      endpoint,
+      token: '',
+      emails: [],
+      avatarURL: '',
+      id: 1,
+      name: '',
+    })
+
+    it('includes accounts whose credentials could not be read', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([
+          persisted('alice', 'https://api.github.com'),
+          persisted('bob', 'https://enterprise.example.com/api/v3'),
+        ])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      secureStore.getItem = async (key: string, login?: string) => {
+        if (login === 'bob') {
+          throw new Error('The keychain is locked')
+        }
+        return login === 'alice' ? 'alice-token' : null
+      }
+      const store = new AccountsStore(dataStore, secureStore)
+      store.onDidError(() => {})
+
+      assert.deepStrictEqual(
+        (await store.getAll()).map(a => a.login),
+        ['alice']
+      )
+      assert.deepStrictEqual(await store.getPersistedIdentities(), [
+        { endpoint: 'https://api.github.com', login: 'alice' },
+        { endpoint: 'https://enterprise.example.com/api/v3', login: 'bob' },
+      ])
+    })
+
+    it('includes accounts whose stored credentials were unusable', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persisted('alice', 'https://api.github.com')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      secureStore.getItem = async () => 'github-desktop-oauth:not json'
+      const store = new AccountsStore(dataStore, secureStore)
+      store.onDidError(() => {})
+
+      assert.deepStrictEqual(await store.getAll(), [])
+      assert.deepStrictEqual(await store.getPersistedIdentities(), [
+        { endpoint: 'https://api.github.com', login: 'alice' },
+      ])
+    })
+
+    it('uses migrated endpoints', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persisted('joan', 'https://whatever.ghe.com/api/v3')])
+      )
+      const store = new AccountsStore(dataStore, new AsyncInMemoryStore())
+      assert.deepStrictEqual(await store.getPersistedIdentities(), [
+        { endpoint: 'https://api.whatever.ghe.com/', login: 'joan' },
+      ])
+    })
+  })
 })

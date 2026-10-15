@@ -38,6 +38,9 @@ Repository Settings exposes the assignment on the Remote tab.
 
 On the first startup after upgrading, repositories without a persisted login
 field are assigned the existing account for their endpoint, if one exists.
+The match uses every account in the saved account list, including accounts
+whose credentials couldn't be read from the keychain, so a locked keychain at
+startup doesn't unassign repositories.
 The migration writes `null` when none exists and never revisits that choice.
 New records default to `null`.
 

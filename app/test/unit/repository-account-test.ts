@@ -111,6 +111,22 @@ describe('Repository account persistence', () => {
     )
   })
 
+  it('migrates to an account identity whose credentials did not load', async t => {
+    const { db, store, github } = await setup()
+    t.after(async () => {
+      await setImmediate()
+      db.close()
+    })
+    await db.repositories.add({
+      path: '/legacy',
+      gitHubRepositoryID: github.dbID,
+      alias: null,
+      missing: false,
+    })
+    await store.migrateAccountAssignments([{ endpoint, login: 'alice' }])
+    assert.equal((await store.getAll())[0].login, 'alice')
+  })
+
   it('never migrates a newly added repository', async t => {
     const { db, store, github } = await setup()
     t.after(async () => {

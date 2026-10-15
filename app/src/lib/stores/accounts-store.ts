@@ -1,6 +1,11 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, getAccountKey, isDotComAccount } from '../../models/account'
+import {
+  Account,
+  getAccountKey,
+  IAccountIdentity,
+  isDotComAccount,
+} from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
@@ -82,6 +87,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
+  /**
+   * The endpoint and login of every account persisted when the store loaded,
+   * including those whose credentials couldn't be read or were unusable.
+   */
+  private persistedIdentities: ReadonlyArray<IAccountIdentity> = []
+
   public constructor(
     dataStore: IDataStore,
     secureStore: ISecureStore,
@@ -110,6 +121,20 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /**
    * Get the list of accounts in the cache.
    */
+  /**
+   * Get the endpoint and login of every account that was persisted when the
+   * store loaded, whether or not its credentials could be loaded.
+   *
+   * Use this when only the identity matters, such as migrating repository
+   * account assignments, so a locked keychain at launch doesn't lose them.
+   */
+  public async getPersistedIdentities(): Promise<
+    ReadonlyArray<IAccountIdentity>
+  > {
+    await this.loadingPromise
+    return this.persistedIdentities
+  }
+
   public async getAll(): Promise<ReadonlyArray<Account>> {
     await this.loadingPromise
 
@@ -350,6 +375,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const parsedAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
     const migratedAccounts = this.getMigratedGHEAccounts(parsedAccounts)
     const rawAccounts = migratedAccounts ?? parsedAccounts
+    this.persistedIdentities = rawAccounts.map(({ endpoint, login }) => ({
+      endpoint,
+      login,
+    }))
 
     // Duplicate accounts keep the last entry, like CredentialSessions.restore.
     const accountsByKey = new Map<string, Account>()

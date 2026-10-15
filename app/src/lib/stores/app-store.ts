@@ -2483,7 +2483,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Load the initial state for the app. */
   public async loadInitialState() {
     const accounts = await this.accountsStore.getAll()
-    await this.repositoriesStore.migrateAccountAssignments(accounts)
+    await this.repositoriesStore.migrateAccountAssignments(
+      await this.accountsStore.getPersistedIdentities()
+    )
     const repositories = await this.repositoriesStore.getAll()
 
     log.info(
