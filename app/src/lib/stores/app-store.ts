@@ -8349,7 +8349,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _updateRepositoryAccount(
     repository: Repository,
     login: string | null
-  ): Promise<void> {
+  ): Promise<Repository> {
     const current = (await this.repositoriesStore.getAll()).find(
       r => r.id === repository.id
     )
@@ -8380,6 +8380,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.clearBranchProtectionState(updated)
     this.updateRepositorySelectionAfterRepositoriesChanged()
     this.emitUpdate()
+    return updated
   }
 
   /** Show account choices in order, since only one account dialog can be open. */

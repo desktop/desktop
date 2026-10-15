@@ -359,15 +359,18 @@ export class RepositorySettings extends React.Component<
   private onSubmit = async () => {
     this.setState({ disabled: true, errors: undefined })
     const errors = new Array<JSX.Element | string>()
+    // Changing the account replaces the repository, and setting the remote
+    // URL must refresh the GitHub association for the replacement.
+    let repository = this.props.repository
 
     if (
-      this.props.repository.gitHubRepository !== null &&
+      repository.gitHubRepository !== null &&
       this.state.selectedLogin !== undefined &&
-      this.state.selectedLogin !== this.props.repository.login
+      this.state.selectedLogin !== repository.login
     ) {
       try {
-        await this.props.dispatcher.updateRepositoryAccount(
-          this.props.repository,
+        repository = await this.props.dispatcher.updateRepositoryAccount(
+          repository,
           this.state.selectedLogin
         )
       } catch (e) {
@@ -381,7 +384,7 @@ export class RepositorySettings extends React.Component<
       if (trimmedUrl !== this.props.remote.url) {
         try {
           await this.props.dispatcher.setRemoteURL(
-            this.props.repository,
+            repository,
             this.props.remote.name,
             trimmedUrl
           )

@@ -69,7 +69,7 @@ async function renderSettings(repository = createRepository()) {
   )
   const updateRepositoryAccount = mock.fn<
     Dispatcher['updateRepositoryAccount']
-  >(async () => {})
+  >(async (_, login) => createRepository(login))
   const setRemoteURL = mock.fn<Dispatcher['setRemoteURL']>(async () => {})
   const refreshAuthor = mock.fn<Dispatcher['refreshAuthor']>(async () => {})
   const onDismissed = mock.fn()
@@ -220,6 +220,20 @@ describe('RepositorySettings account', () => {
     )
     assert.strictEqual(view.updateRepositoryAccount.mock.callCount(), 1)
     assert.strictEqual(view.setRemoteURL.mock.callCount(), 1)
+  })
+
+  it('sets the remote URL on the repository with its newly saved account', async () => {
+    const view = await renderSettings()
+    fireEvent.change(accountSelect(), { target: { value: 'work' } })
+    fireEvent.change(screen.getByRole('textbox', { hidden: true }), {
+      target: { value: 'https://github.com/owner/new' },
+    })
+    save()
+    await waitFor(() =>
+      assert.strictEqual(view.onDismissed.mock.callCount(), 1)
+    )
+    const [repository] = view.setRemoteURL.mock.calls[0].arguments
+    assert.strictEqual(repository.login, 'work')
   })
 
   it('does not overwrite external assignment updates when the field is untouched', async () => {
