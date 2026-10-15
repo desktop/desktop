@@ -28,11 +28,10 @@ import {
   gitAuthorNameIsValid,
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
-import { Account } from '../../models/account'
+import { Account, isSameAccount } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Select } from '../lib/select'
-import { caseInsensitiveEquals } from '../../lib/compare'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -297,10 +296,7 @@ export class RepositorySettings extends React.Component<
     return endpoint === undefined
       ? this.props.repositoryAccount
       : this.props.accounts.find(
-          a =>
-            a.endpoint === endpoint &&
-            login !== null &&
-            caseInsensitiveEquals(a.login, login)
+          a => login !== null && isSameAccount(a, { endpoint, login })
         ) ?? null
   }
 

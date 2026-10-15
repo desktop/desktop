@@ -1,7 +1,7 @@
 import * as URL from 'url'
 import * as Path from 'path'
 
-import { Account } from '../models/account'
+import { Account, isSameAccount } from '../models/account'
 import { IRemote } from '../models/remote'
 import { API, getHTMLURL, IAPIFullRepository } from './api'
 import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
@@ -91,11 +91,7 @@ export async function chooseAccountForRemoteRepository(
   if (selected === undefined) {
     return undefined
   }
-  const match = accessible.find(
-    match =>
-      match.account.endpoint === selected.endpoint &&
-      caseInsensitiveEquals(match.account.login, selected.login)
-  )
+  const match = accessible.find(match => isSameAccount(match.account, selected))
   if (match === undefined) {
     throw new Error(
       'The selected account has not been verified for this repository.'
