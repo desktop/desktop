@@ -349,52 +349,6 @@ describe('SignInStore', () => {
       signInStore.reset()
     })
 
-    for (const account of [
-      createDotComAccount('other-user'),
-      createEnterpriseAccount('octocat'),
-    ]) {
-      it(`rejects a different identity (${account.login} at ${account.endpoint}) without account changes`, async () => {
-        const original = createDotComAccount()
-        await accountsStore.addAccount(original)
-        const authenticated: Account[] = []
-        const results: SignInResult[] = []
-        signInStore.onDidAuthenticate(account => {
-          authenticated.push(account)
-          void accountsStore.addAccount(account)
-        })
-        signInStore.beginSignInForAccount(
-          original.endpoint,
-          original.login,
-          result => results.push(result)
-        )
-        await signInStore.authenticateWithBrowser()
-        const pendingState = signInStore.getState()
-        assert.ok(pendingState?.kind === SignInStep.Authentication)
-        pendingState.oauthState?.onAuthCompleted(account)
-        await new Promise<void>(resolve => setImmediate(resolve))
-
-        const state = signInStore.getState()
-        assert.ok(state?.kind === SignInStep.Authentication)
-        assert.match(state.error?.message ?? '', /Please sign in as octocat/)
-        assert.strictEqual(state.loading, false)
-        assert.strictEqual(state.expectedLogin, original.login)
-        assert.deepStrictEqual(authenticated, [])
-        assert.deepStrictEqual(results, [])
-        assert.deepStrictEqual(await accountsStore.getAll(), [original])
-
-        await signInStore.authenticateWithBrowser()
-        const retryState = signInStore.getState()
-        assert.ok(retryState?.kind === SignInStep.Authentication)
-        assert.strictEqual(retryState.expectedLogin, original.login)
-        retryState.oauthState?.onAuthCompleted(original)
-        await new Promise<void>(resolve => setImmediate(resolve))
-        assert.strictEqual(signInStore.getState()?.kind, SignInStep.Success)
-        assert.deepStrictEqual(results, [
-          { kind: 'success', account: original },
-        ])
-      })
-    }
-
     it('accepts matching endpoint and login case-insensitively', async () => {
       const authenticated: Account[] = []
       const results: SignInResult[] = []

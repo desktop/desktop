@@ -1,16 +1,17 @@
 // @ts-check
-const { describe, it } = require('node:test')
-const { ESLintUtils } = require('@typescript-eslint/experimental-utils')
+import { describe, it } from 'node:test'
+import { fileURLToPath } from 'node:url'
+import { TSESLint } from '@typescript-eslint/utils'
 
-const RuleTester = ESLintUtils.RuleTester
-const rule = require('../react-proper-lifecycle-methods')
+const RuleTester = TSESLint.RuleTester
+import rule from '../react-proper-lifecycle-methods.js'
 
 // ------------------------------------------------------------------------------
 // Tests
 // ------------------------------------------------------------------------------
 
 const ruleTester = new RuleTester({
-  parser: '@typescript-eslint/parser',
+  parser: fileURLToPath(import.meta.resolve('@typescript-eslint/parser')),
   parserOptions: {
     ecmaVersion: 2015,
     sourceType: 'module',

@@ -11,8 +11,8 @@ import {
   fetchUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  requestOAuthToken,
   getOAuthAuthorizationURL,
+  getHTMLURL,
 } from '../../lib/api'
 
 import { TypedBaseStore } from './base-store'
@@ -21,6 +21,7 @@ import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
+import { exchangeOAuthToken } from '../oauth-token'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -162,6 +163,7 @@ export type SignInResult =
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
+  private resolvingOAuthState: string | undefined
 
   private accounts: ReadonlyArray<Account> = []
 
@@ -333,27 +335,14 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           return
         }
 
-        const { endpoint, expectedLogin, resultCallback } = this.state
-        if (
-          expectedLogin !== undefined &&
-          (account.endpoint.toLowerCase() !== endpoint.toLowerCase() ||
-            account.login.toLowerCase() !== expectedLogin.toLowerCase())
-        ) {
-          throw new Error(
-            `Please sign in as ${expectedLogin} on ${
-              new URL(endpoint).host
-            }. The browser signed in to a different account.`
-          )
-        }
-
+        const { resultCallback } = this.state
         log.info('[SignInStore] account resolved')
         const successState: ISuccessState = {
           kind: SignInStep.Success,
           resultCallback,
         }
         // Commit completion before invoking observers, which can reset the
-        // store or begin another flow. Persisting the account starts before
-        // delivering the result to the caller.
+        // store or begin another flow. The account has already been saved.
         this.state = successState
         this.emitAuthenticate(account)
         if (this.state === successState) {
@@ -391,22 +380,65 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint, oauthState } = this.state
+    const { endpoint, expectedLogin, oauthState } = this.state
+    if (this.resolvingOAuthState === oauthState.state) {
+      return
+    }
+    this.resolvingOAuthState = oauthState.state
+    // False once the user cancels, restarts, or leaves this browser sign-in.
+    const isSignInAttemptActive = () =>
+      this.state?.kind === SignInStep.Authentication &&
+      this.state.oauthState === oauthState
+    let unpublishedToken: string | undefined
     try {
-      const token = await requestOAuthToken(endpoint, action.code)
-
-      if (token) {
-        const account = await fetchUser(endpoint, token)
-        oauthState.onAuthCompleted(account)
-      } else {
-        oauthState.onAuthError(
-          new Error('Failed retrieving authenticated user')
+      const credential = await exchangeOAuthToken(
+        getHTMLURL(endpoint),
+        action.code
+      )
+      unpublishedToken = credential.accessToken
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const account = await fetchUser(endpoint, credential.accessToken, true)
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      // Check before saving so a different browser account isn't signed in.
+      if (
+        expectedLogin !== undefined &&
+        account.login.toLowerCase() !== expectedLogin.toLowerCase()
+      ) {
+        throw new Error(
+          `Please sign in as ${expectedLogin} on ${
+            new URL(getHTMLURL(endpoint)).host
+          }. The browser signed in to a different account.`
         )
       }
-    } catch (error) {
-      oauthState.onAuthError(
-        error instanceof Error ? error : new Error(String(error))
-      )
+      const stored = await this.accountStore.addAccount(account, credential)
+      if (stored !== null) {
+        unpublishedToken = undefined
+      }
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      if (stored === null) {
+        throw new Error(
+          'Unable to save your GitHub credentials. Please try signing in again.'
+        )
+      }
+      oauthState.onAuthCompleted(stored)
+    } catch (e) {
+      oauthState.onAuthError(e)
+    } finally {
+      if (this.resolvingOAuthState === oauthState.state) {
+        this.resolvingOAuthState = undefined
+      }
+      if (unpublishedToken !== undefined) {
+        void this.accountStore.revokeUnusedToken({
+          endpoint,
+          token: unpublishedToken,
+        })
+      }
     }
   }
 

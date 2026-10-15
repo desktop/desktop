@@ -18,6 +18,8 @@ import { deserializeAccountCredential } from '../account-credential'
 import {
   AccountRequiresSignInError,
   CredentialSessions,
+  IAccountTokenExpiration,
+  TokenRefreshEvent,
   refreshMargin,
 } from '../credential-sessions'
 
@@ -110,6 +112,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         requireSignIn: this.requireSignIn,
         onTokenRenewed: this.onTokenRenewed,
         onSignedIn: this.onSignedIn,
+        onTokenRefreshEvent: event => this.emitter.emit('token-refresh', event),
       },
       renewToken,
       now,
@@ -146,6 +149,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.emitter.on('token-invalidated', callback)
   }
 
+  /** Subscribe to credential-free renewal events, excluding debug overrides. */
+  public onTokenRefreshEvent(
+    callback: (event: TokenRefreshEvent) => void
+  ): Disposable {
+    return this.emitter.on('token-refresh', callback)
+  }
+
   /** Handle a rejected API token without leaving unhandled callback errors. */
   public handleTokenInvalidated = (endpoint: string, token: string): void => {
     void this.invalidateToken(endpoint, token).catch(error => {
@@ -174,7 +184,31 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (current === undefined) {
       throw new AccountRequiresSignInError()
     }
-    return current.withToken(token)
+    return this.credentials.inheritSession(current, current.withToken(token))
+  }
+
+  /**
+   * Get the account's credential for `holder`, holding off renewal of that
+   * token until the lease is released. See `CredentialSessions.leaseToken`.
+   */
+  public async leaseAccountToken(
+    account: Account,
+    holder: string
+  ): Promise<{ readonly account: Account; readonly release: () => void }> {
+    await this.loadingPromise
+    const lease = await this.credentials.leaseToken(account, holder)
+    const current = this.findAccount(account)
+    if (current === undefined || current.id !== account.id) {
+      lease.release()
+      throw new AccountRequiresSignInError()
+    }
+    return {
+      account: this.credentials.inheritSession(
+        current,
+        current.withToken(lease.token)
+      ),
+      release: lease.release,
+    }
   }
 
   /** Whether an account owns a rotating credential pair. */
@@ -182,9 +216,33 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return this.credentials.isRefreshable(account)
   }
 
-  /** Access-token expiry for consumers that support on-demand token renewal. */
-  public getTokenExpiration(account: Account): number | undefined {
-    return this.credentials.getTokenExpiration(account)
+  /** Read test-dialog expiry metadata without acquiring or refreshing a token. */
+  public async getTokenExpirationForTesting(
+    account: Account
+  ): Promise<IAccountTokenExpiration> {
+    await this.loadingPromise
+    return this.credentials.getTokenExpirationForTesting(account)
+  }
+
+  /** Apply or reset a session-only access-token expiry override for testing. */
+  public async setTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ): Promise<IAccountTokenExpiration> {
+    await this.loadingPromise
+    return this.credentials.setTokenExpirationForTesting(account, expiresAt)
+  }
+
+  /**
+   * Bind fresh access tokens and expiry metadata to the account's issuing session.
+   *
+   * Throws if the account snapshot is unknown or its session has retired.
+   */
+  public createTokenGetter(
+    account: Account,
+    minimumValidity = refreshMargin
+  ): () => Promise<Pick<IOAuthToken, 'accessToken' | 'expiresAt'>> {
+    return this.credentials.createTokenGetter(account, minimumValidity)
   }
 
   /** Ignore obsolete 401s; sign out when the current token is rejected. */
@@ -211,7 +269,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (retired === null) {
       return null
     }
-    this.emitter.emit('token-invalidated', account.withToken(''))
+    log.info(
+      `[AccountsStore] signing out account ${retired.login} (${retired.name}) because its credentials can no longer be used`
+    )
+    this.emitter.emit(
+      'token-invalidated',
+      this.credentials.inheritSession(account, account.withToken(''))
+    )
     await this.deleteStoredAccount(retired)
     return retired
   }
@@ -219,7 +283,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private onTokenRenewed = (account: Account, accessToken: string) => {
     const key = getAccountKey(account)
     this.accounts = this.accounts.map(a =>
-      getAccountKey(a) === key ? a.withToken(accessToken) : a
+      getAccountKey(a) === key
+        ? this.credentials.inheritSession(a, a.withToken(accessToken))
+        : a
     )
     this.save()
   }
@@ -245,6 +311,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account, or refresh an existing endpoint and login identity.
+   *
+   * Returns a new signed-in snapshot. Previous snapshots retain their old session.
    */
   public async addAccount(
     account: Account,
@@ -293,7 +361,9 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       if (token !== null) {
         const key = getAccountKey(account)
         this.accounts = this.accounts.map(a =>
-          getAccountKey(a) === key ? updated.withToken(token) : a
+          getAccountKey(a) === key
+            ? this.credentials.inheritSession(a, updated.withToken(token))
+            : a
         )
         this.save()
       }
@@ -414,8 +484,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         const loaded = accountWithoutToken.withToken(
           credential?.accessToken ?? ''
         )
-        accountsByKey.set(getAccountKey(loaded), loaded)
-        this.credentials.restore(loaded, credential)
+        const restored = this.credentials.restore(loaded, credential)
+        accountsByKey.set(getAccountKey(restored), restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 

@@ -8,7 +8,7 @@ export const directoryExists = async (path: string) => {
   try {
     const s = await stat(path)
     return s.isDirectory()
-  } catch (e) {
+  } catch {
     return false
   }
 }

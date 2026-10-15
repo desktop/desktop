@@ -12,9 +12,7 @@ import { getOS } from '../lib/get-os'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { getCurrentWindowState } from '../ui/main-process-proxy'
 
-// This is a weird one, let's leave it as a placeholder
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ICrashAppProps {}
+type CrashAppProps = Record<string, never>
 
 interface ICrashAppState {
   /**
@@ -86,8 +84,8 @@ function prepareErrorMessage(error: Error) {
  * Exercise caution when working with the crash process. If the crash
  * process itself crashes we've failed.
  */
-export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
-  public constructor(props: ICrashAppProps) {
+export class CrashApp extends React.Component<CrashAppProps, ICrashAppState> {
+  public constructor(props: CrashAppProps) {
     super(props)
 
     this.state = {

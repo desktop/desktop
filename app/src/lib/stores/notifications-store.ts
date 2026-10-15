@@ -213,14 +213,20 @@ export class NotificationsStore {
       return
     }
 
-    showNotification({
+    this.statsStore.increment('pullRequestCommentNotificationCount')
+
+    const shown = await showNotification({
       title,
       body,
       userInfo: event,
       onClick,
     })
 
-    this.statsStore.increment('pullRequestCommentNotificationCount')
+    if (shown) {
+      await this.statsStore.increment(
+        'pullRequestCommentNotificationShownCount'
+      )
+    }
   }
 
   private async handlePullRequestReviewSubmitEvent(
@@ -297,14 +303,20 @@ export class NotificationsStore {
       return
     }
 
-    showNotification({
+    this.statsStore.recordPullRequestReviewNotification(review.state)
+
+    const shown = await showNotification({
       title,
       body,
       userInfo: event,
       onClick,
     })
 
-    this.statsStore.recordPullRequestReviewNotificationShown(review.state)
+    if (shown) {
+      await this.statsStore.recordPullRequestReviewNotificationShown(
+        review.state
+      )
+    }
   }
 
   private async handleChecksFailedEvent(
@@ -424,14 +436,18 @@ export class NotificationsStore {
       return
     }
 
-    showNotification({
+    this.statsStore.increment('checksFailedNotificationCount')
+
+    const shown = await showNotification({
       title,
       body,
       userInfo: event,
       onClick,
     })
 
-    this.statsStore.increment('checksFailedNotificationCount')
+    if (shown) {
+      await this.statsStore.increment('checksFailedNotificationShownCount')
+    }
   }
 
   private getContributingRepository(

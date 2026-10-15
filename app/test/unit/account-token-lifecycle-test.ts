@@ -14,6 +14,7 @@ import {
 } from '../../src/lib/account-credential'
 import { getKeyForAccount } from '../../src/lib/auth'
 import { API } from '../../src/lib/api'
+import { createMockAPIIdentity } from '../helpers/mock-api'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { AppStore } from '../../src/lib/stores/app-store'
 
@@ -125,6 +126,57 @@ describe('OAuth credential persistence', () => {
     assert.equal(
       await restarted.resolveToken(account.endpoint, account.token),
       renewed.accessToken
+    )
+  })
+
+  it('preserves session identity through token, lease, and profile snapshots', async t => {
+    const { store } = setup()
+    await store.addAccount(account, rotating)
+    const fresh = await store.getAccountWithFreshToken(account)
+    const [published] = await store.getAll()
+    assert.ok(published)
+    const lease = await store.leaseAccountToken(fresh, 'snapshot-lineage')
+    t.after(lease.release)
+    t.mock.method(API.prototype, 'fetchAccount', async () => ({
+      ...createMockAPIIdentity(),
+      name: 'Updated Name',
+    }))
+    t.mock.method(API.prototype, 'fetchEmails', async () => [])
+    t.mock.method(API.prototype, 'fetchUserCopilotInfo', async () => null)
+    t.mock.method(API.prototype, 'fetchFeatureFlags', async () => [])
+
+    await store.refresh()
+    const [profile] = await store.getAll()
+    assert.ok(profile)
+    assert.equal(profile.name, 'Updated Name')
+    const snapshots = [account, fresh, published, lease.account, profile]
+    for (const snapshot of snapshots) {
+      assert.deepEqual(await store.createTokenGetter(snapshot)(), {
+        accessToken: renewed.accessToken,
+        expiresAt: renewed.expiresAt,
+      })
+    }
+    lease.release()
+
+    await store.removeAccount(profile)
+    const replacement = await store.addAccount(profile, {
+      ...renewed,
+      refreshToken: 'replacement-refresh',
+    })
+    assert.ok(replacement)
+    for (const snapshot of snapshots) {
+      assert.throws(
+        () => store.createTokenGetter(snapshot),
+        AccountRequiresSignInError
+      )
+    }
+    assert.deepEqual(await store.createTokenGetter(replacement)(), {
+      accessToken: renewed.accessToken,
+      expiresAt: renewed.expiresAt,
+    })
+    assert.equal(
+      (await store.getAccountWithFreshToken(account)).token,
+      replacement.token
     )
   })
 

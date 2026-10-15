@@ -28,6 +28,7 @@ import {
 import { HttpStatusCode } from './http-status-code'
 import { CopilotError, parseCopilotPaymentRequiredError } from './copilot-error'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
+import { enableShortLivedTokens } from './feature-flag'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -670,13 +671,6 @@ export interface IAPIComment {
   readonly created_at: string
 }
 
-/** The server response when handling the OAuth callback (with code) to obtain an access token */
-interface IAPIAccessToken {
-  readonly access_token: string
-  readonly scope: string
-  readonly token_type: string
-}
-
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
   readonly etag: string | undefined
@@ -875,8 +869,8 @@ export class API {
     copilotEndpoint?: string,
     /**
      * Use the account store to resolve/refresh tokens and handle rejected tokens.
-     * Disable for the anonymous public-repository fallback: it must use the
-     * supplied token, not another signed-in account's token.
+     * Disable for new sign-in tokens and the anonymous public-repository fallback:
+     * those must use the supplied token, not another signed-in account's token.
      */
     private readonly manageAccountToken = true
   ) {
@@ -1479,7 +1473,7 @@ export class API {
     const response = await this.ghRequest('GET', path, { customHeaders })
     try {
       return await parsedResponse<IAPIWorkflowRuns>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
       )
@@ -1516,7 +1510,7 @@ export class API {
       if (apiWorkflowRuns.workflow_runs.length > 0) {
         return apiWorkflowRuns.workflow_runs[0]
       }
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
       )
@@ -1541,7 +1535,7 @@ export class API {
     })
     try {
       return await parsedResponse<IAPIWorkflowJobs>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
       )
@@ -1644,7 +1638,7 @@ export class API {
 
     try {
       return await parsedResponse<IAPICheckSuite>(response)
-    } catch (_) {
+    } catch {
       log.debug(
         `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
       )
@@ -2283,9 +2277,10 @@ export async function deleteToken(
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(
   endpoint: string,
-  token: string
+  token: string,
+  isNewAuthorization = false
 ): Promise<Account> {
-  const api = new API(endpoint, token)
+  const api = new API(endpoint, token, undefined, !isNewAuthorization)
   try {
     const [user, emails, copilotInfo, features] = await Promise.all([
       api.fetchAccount(),
@@ -2405,10 +2400,16 @@ export function getDotComAPIEndpoint(): string {
 export function getOAuthAuthorizationURL(
   endpoint: string,
   state: string,
-  login?: string
+  login?: string,
+  shortLived = enableShortLivedTokens()
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(oauthScopes.join(' '))
+  const scope = encodeURIComponent(
+    (shortLived && !isGHES(endpoint)
+      ? [...oauthScopes, 'offline_access']
+      : oauthScopes
+    ).join(' ')
+  )
   const accountParameters =
     login === undefined
       ? ''
@@ -2418,33 +2419,6 @@ export function getOAuthAuthorizationURL(
     `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}${accountParameters}`,
     urlBase
   ).toString()
-}
-
-export async function requestOAuthToken(
-  endpoint: string,
-  code: string
-): Promise<string | null> {
-  try {
-    const urlBase = getHTMLURL(endpoint)
-    const response = await request(
-      urlBase,
-      null,
-      'POST',
-      'login/oauth/access_token',
-      {
-        client_id: ClientID,
-        client_secret: ClientSecret,
-        code: code,
-      }
-    )
-    tryUpdateEndpointVersionFromResponse(endpoint, response)
-
-    const result = await parsedResponse<IAPIAccessToken>(response)
-    return result.access_token
-  } catch (e) {
-    log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
-    return null
-  }
 }
 
 function tryUpdateEndpointVersionFromResponse(

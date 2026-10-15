@@ -450,9 +450,13 @@ import {
   findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
-import { WorktreeEntry } from '../../models/worktree'
+import {
+  IDeferredCheckout,
+  IDeleteWorktreeOptions,
+  WorktreeEntry,
+} from '../../models/worktree'
 import { shouldShowWorktreeDropdown } from '../worktree-dropdown'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../copilot/types'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -753,7 +757,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
   private repositoryAccountPromptQueue: Promise<void> = Promise.resolve()
-  private accountPersistence: Promise<void> = Promise.resolve()
   private readonly repositoryAccountPrompts = new Map<
     number,
     Promise<Account | undefined>
@@ -1029,16 +1032,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(account => {
-      this.accountPersistence = this._addAccount(account)
-      this.accountPersistence.catch(error => this.emitError(error))
-    })
+    this.signInStore.onDidAuthenticate(account =>
+      this.onDidAuthenticate(account)
+    )
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
       this.cachedRepoRulesets = new Map()
+      this.statsStore.setUsesShortLivedToken(
+        accounts.some(account => this.accountsStore.isRefreshable(account))
+      )
       this.syncCopilotModelsFromCache()
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
@@ -1054,6 +1059,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
+    this.accountsStore.onTokenRefreshEvent(event => {
+      void this.statsStore.recordTokenRefreshEvent(event).catch(error => {
+        log.error('Failed recording token refresh stats', error)
+      })
+    })
     this.accountsStore.onTokenInvalidated(account => {
       this._showPopup({ type: PopupType.InvalidatedToken, account })
     })
@@ -2496,6 +2506,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    this.statsStore.setUsesShortLivedToken(
+      accounts.some(account => this.accountsStore.isRefreshable(account))
+    )
     this.alwaysShowWorktreeList = getBoolean(alwaysShowWorktreeListKey, false)
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
@@ -4673,10 +4686,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // If the branch is checked out in another worktree, switch to that worktree
-    // instead of checking out the branch in the current worktree.
-    const wt = repositoryState.worktrees.find(wt => wt.branch === branch.ref)
+    // instead of checking out the branch in the current worktree. Git considers
+    // a branch held by a worktree whose folder has gone to still be in use, so
+    // that worktree has to be removed before the branch can be checked out.
+    await this._refreshWorktrees(repository)
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.branch === branch.ref)
 
     if (wt) {
+      if (wt.isPrunable) {
+        this._requestDeleteWorktree(repository, wt.path, {
+          branch,
+          strategy: explicitStrategy,
+        })
+        return repository
+      }
+
       return this._switchWorktree(repository, wt)
     }
 
@@ -6326,16 +6352,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public _requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    checkout?: IDeferredCheckout
   ): void {
-    if (this.confirmWorktreeRemoval) {
+    const wt = this.repositoryStateCache
+      .get(repository)
+      .worktrees.find(wt => wt.path === worktreePath)
+    const options = { isMissing: wt?.isPrunable === true, checkout }
+
+    if (this.confirmWorktreeRemoval || options.isMissing) {
       this._showPopup({
         type: PopupType.DeleteWorktree,
         repository,
         worktreePath,
+        options,
       })
     } else {
-      this._deleteWorktree(repository, worktreePath).catch(e =>
+      this._deleteWorktree(repository, worktreePath, options).catch(e =>
         this.emitError(e)
       )
     }
@@ -6345,8 +6378,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options: IDeleteWorktreeOptions = {}
   ): Promise<void> {
+    if (options.isMissing === true) {
+      const worktrees = await listWorktrees(repository)
+
+      if (!worktrees.some(wt => wt.path === worktreePath && wt.isPrunable)) {
+        await this._refreshWorktrees(repository)
+
+        if (options.checkout === undefined) {
+          const name = Path.basename(worktreePath)
+          this.emitError(
+            new Error(
+              `The worktree ${name} is available again and was left in place.`
+            )
+          )
+        }
+
+        return this.checkoutAfterRemoval(repository, options)
+      }
+    }
+
     const isDeletingCurrentWorktree = repository.path === worktreePath
     let originalWorktree: WorktreeEntry | null = null
 
@@ -6368,7 +6420,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     try {
-      await removeWorktree(repository.path, worktreePath, force)
+      await removeWorktree(repository.path, worktreePath, options.force)
     } catch (e) {
       this._closePopup(PopupType.DeleteWorktree)
       this._closePopup(PopupType.DeleteWorktreeFailed)
@@ -6378,12 +6430,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
         worktreePath,
         error: e,
         originalWorktree,
+        options,
       })
       return
     }
 
     await this._refreshWorktrees(repository)
     this.statsStore.increment('worktreeDeletedCount')
+    this.checkoutAfterRemoval(repository, options)
+  }
+
+  private checkoutAfterRemoval(
+    repository: Repository,
+    { checkout }: IDeleteWorktreeOptions
+  ) {
+    if (checkout !== undefined) {
+      this._checkoutBranch(
+        repository,
+        checkout.branch,
+        checkout.strategy
+      ).catch(e => this.emitError(e))
+    }
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
@@ -8440,11 +8507,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       () => undefined,
       () => undefined
     )
-    const selected = await prompt
-    if (selected !== undefined) {
-      await this.accountPersistence
-    }
-    return selected
+    return prompt
   }
 
   private showRepositoryAccountDialog(
@@ -8540,7 +8603,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (selected === undefined) {
         return undefined
       }
-      await this.accountPersistence
       const accounts = await this.accountsStore.getAll()
       const signedInAccount = accounts.find(
         a =>
@@ -8564,18 +8626,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private async _addAccount(account: Account): Promise<void> {
-    log.info(
-      `[AppStore] adding account ${account.login} (${account.name}) to store`
-    )
-    const storedAccount = await this.accountsStore.addAccount(account)
-
+  private onDidAuthenticate(account: Account): void {
+    log.info(`[AppStore] signed in as ${account.login} (${account.name})`)
     // If we're in the welcome flow and a user signs in we want to trigger
     // a refresh of the repositories available for cloning straight away
     // in order to have the list of repositories ready for them when they
     // get to the blankslate.
-    if (this.showWelcomeFlow && storedAccount !== null) {
-      this.apiRepositoriesStore.loadRepositories(storedAccount)
+    if (this.showWelcomeFlow) {
+      this.apiRepositoriesStore.loadRepositories(account)
     }
   }
 
@@ -8928,7 +8986,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async isUsingLFS(repository: Repository): Promise<boolean> {
     try {
       return await isUsingLFS(repository)
-    } catch (error) {
+    } catch {
       return false
     }
   }
@@ -9529,6 +9587,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await this.currentBranchPruner.testPrune()
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _getAccountTokenExpirationForTesting(account: Account) {
+    return this.accountsStore.getTokenExpirationForTesting(account)
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _setAccountTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ) {
+    return this.accountsStore.setTokenExpirationForTesting(account, expiresAt)
   }
 
   public async _showCreateForkDialog(

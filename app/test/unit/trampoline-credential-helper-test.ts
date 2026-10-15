@@ -28,6 +28,10 @@ class TestAccountsStore extends AccountsStore {
     this.current = accounts
     this.emitUpdate(accounts)
   }
+
+  public async leaseAccountToken(account: Account, _holder: string) {
+    return { account, release: () => {} }
+  }
 }
 
 class TestRepositoriesStore extends RepositoriesStore {

@@ -149,9 +149,12 @@ async function createStores(t: TestContext) {
   }
   const stats: Pick<
     StatsStore,
-    'increment' | 'recordPullRequestReviewNotificationShown'
+    | 'increment'
+    | 'recordPullRequestReviewNotification'
+    | 'recordPullRequestReviewNotificationShown'
   > = {
     increment: async () => {},
+    recordPullRequestReviewNotification: async () => {},
     recordPullRequestReviewNotificationShown: async () => {},
   }
   const store = new NotificationsStore(

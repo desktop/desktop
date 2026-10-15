@@ -138,7 +138,11 @@ import {
   IFileResolution,
   ICopilotResolutionSummary,
 } from '../../lib/copilot-conflict-resolution'
-import { WorktreeEntry } from '../../models/worktree'
+import {
+  IDeferredCheckout,
+  IDeleteWorktreeOptions,
+  WorktreeEntry,
+} from '../../models/worktree'
 
 /**
  * An error handler function.
@@ -1056,10 +1060,10 @@ export class Dispatcher {
   public async deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options?: IDeleteWorktreeOptions
   ): Promise<void> {
     await this.appStore
-      ._deleteWorktree(repository, worktreePath, force)
+      ._deleteWorktree(repository, worktreePath, options)
       .catch(e => this.postError(e))
   }
 
@@ -1069,9 +1073,10 @@ export class Dispatcher {
    */
   public requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    checkout?: IDeferredCheckout
   ): void {
-    this.appStore._requestDeleteWorktree(repository, worktreePath)
+    this.appStore._requestDeleteWorktree(repository, worktreePath, checkout)
   }
 
   /**
@@ -4277,6 +4282,22 @@ export class Dispatcher {
 
   public testPruneBranches() {
     return this.appStore._testPruneBranches()
+  }
+
+  /** Read the current account's token-expiration metadata for the test dialog. */
+  public getAccountTokenExpirationForTesting(account: Account) {
+    return this.appStore._getAccountTokenExpirationForTesting(account)
+  }
+
+  /** Change local token expiry for testing, or reset it by passing undefined. */
+  public setAccountTokenExpirationForTesting(
+    account: Account,
+    expiresAt: number | undefined
+  ) {
+    return this.appStore._setAccountTokenExpirationForTesting(
+      account,
+      expiresAt
+    )
   }
 
   public editGlobalGitConfig() {

@@ -54,6 +54,10 @@ function parseExpiration(value: unknown, issuedAt: number): number {
 /**
  * Validate an OAuth token response and convert lifetime seconds to absolute
  * milliseconds. Missing lifetimes remain unknown; zero means already expired.
+ *
+ * GitHub documents lifetime metadata for refreshable tokens. Accepting a
+ * refresh token without it is defensive tolerance for unexpected responses,
+ * not a documented GitHub response shape.
  */
 export function parseOAuthToken(value: unknown, issuedAt: number): IOAuthToken {
   if (
