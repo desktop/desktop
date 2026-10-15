@@ -256,6 +256,7 @@ import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
 import { merge } from '../merge'
 import {
+  chooseAccountForRemoteRepository,
   IMatchedGitHubRepository,
   isAccessibleRepository,
   matchGitHubRepository,
@@ -2389,9 +2390,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository => repository.id === this.selectedRepository?.id
       ) ?? matchingRepositories[0]
 
-    const { chooseAccountForRemoteRepository } = await import(
-      '../repository-matching'
-    )
     const account =
       localRepository !== undefined
         ? await this._ensureRepositoryAccount(localRepository)
@@ -5875,9 +5873,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       path,
       options,
       async () => {
-        const { chooseAccountForRemoteRepository } = await import(
-          '../repository-matching'
-        )
         const accounts = await this.accountsStore.getAll()
         const { account } = options
         if (account !== undefined) {
@@ -8690,9 +8685,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const gitStore = this.gitStoreCache.get(addedRepo)
         await gitStore.loadRemotes()
 
-        const { chooseAccountForRemoteRepository } = await import(
-          '../repository-matching'
-        )
         const remote = gitStore.defaultRemote
         const accounts = await this.accountsStore.getAll()
         const assignment =

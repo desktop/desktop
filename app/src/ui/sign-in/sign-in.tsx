@@ -25,8 +25,6 @@ interface ISignInProps {
   readonly dispatcher: Dispatcher
   readonly signInState: SignInState | null
   readonly onDismissed: () => void
-  readonly isCredentialHelperSignIn?: boolean
-  readonly credentialHelperUrl?: string
 }
 
 interface ISignInState {
@@ -191,17 +189,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       )
     }
 
-    const credentialHelperInfo =
-      this.props.isCredentialHelperSignIn && this.props.credentialHelperUrl ? (
-        <p>
-          Git requesting credentials to access{' '}
-          <Ref>{this.props.credentialHelperUrl}</Ref>.
-        </p>
-      ) : undefined
-
     return (
       <DialogContent>
-        {credentialHelperInfo}
         {state.expectedLogin !== undefined && (
           <p>
             Sign in as <Ref>{state.expectedLogin}</Ref> on{' '}

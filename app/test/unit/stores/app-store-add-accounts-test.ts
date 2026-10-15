@@ -5,9 +5,11 @@ import type { AppStore } from '../../../src/lib/stores/app-store'
 import { API, IAPIPullRequest } from '../../../src/lib/api'
 import { Account } from '../../../src/models/account'
 import {
+  isRepositoryWithGitHubRepository,
   Repository,
   RepositoryWithGitHubRepository,
 } from '../../../src/models/repository'
+import { PopupType } from '../../../src/models/popup'
 import { createMockAPI, createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
@@ -172,6 +174,39 @@ describe('AppStore explicitly adding repositories', () => {
       assert.notStrictEqual(refreshed.hash, repository.hash)
       assert.strictEqual(draftOf(refreshed), 'Draft')
     })
+  })
+
+  it('confirms an unfamiliar Enterprise Server before signing in for Git', async t => {
+    const showPopup = t.mock.method(appStore, '_showPopup', async () => {})
+    const { GitHubRepository } = await import(
+      '../../../src/models/github-repository'
+    )
+    const { Owner } = await import('../../../src/models/owner')
+    const { SignInStep } = await import('../../../src/lib/stores/sign-in-store')
+    const enterprise = 'https://enterprise.example.com/api/v3'
+    const repository = new Repository(
+      '/enterprise',
+      -1,
+      new GitHubRepository('repo', new Owner('owner', enterprise, -1), -1),
+      false
+    )
+    assert.ok(isRepositoryWithGitHubRepository(repository))
+
+    const result = appStore['promptForUnassignedRepositoryAccount'](repository)
+    for (let i = 0; i < 100 && showPopup.mock.callCount() === 0; i++) {
+      await setImmediate()
+    }
+
+    const state = stores.signInStore.getState()
+    assert.ok(state?.kind === SignInStep.Authentication)
+    assert.strictEqual(state.endpoint, enterprise)
+    assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
+    assert.deepStrictEqual(showPopup.mock.calls[0].arguments, [
+      { type: PopupType.SignIn },
+    ])
+
+    stores.signInStore.reset()
+    assert.strictEqual(await result, undefined)
   })
 
   it('adds a tutorial with scoped permissions without a post-add account rebind', async t => {

@@ -210,11 +210,7 @@ export type PopupDetail =
       initialName?: string
       targetCommit?: CommitOneLine
     }
-  | {
-      type: PopupType.SignIn
-      isCredentialHelperSignIn?: boolean
-      credentialHelperUrl?: string
-    }
+  | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }

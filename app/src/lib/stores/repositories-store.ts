@@ -61,37 +61,6 @@ export class RepositoriesStore extends TypedBaseStore<
 
   /**
    * Insert or update the GitHub repository database record based on the
-   * provided API information while preserving any knowledge of the repository's
-   * parent.
-   *
-   * See the documentation inside putGitHubRepository for more information but
-   * the TL;DR is that if you've got an IAPIRepository you should use this
-   * method and if you've got an IAPIFullRepository you should use
-   * `upsertGitHubRepository`
-   *
-   * Pass the fetching account's login to isolate permissions and caches.
-   */
-  public async upsertGitHubRepositoryLight(
-    endpoint: string,
-    apiRepository: IAPIRepository,
-    accountLogin = ''
-  ) {
-    return this.db.transaction(
-      'rw',
-      this.db.gitHubRepositories,
-      this.db.owners,
-      () =>
-        this._upsertGitHubRepository(
-          endpoint,
-          apiRepository,
-          true,
-          accountLogin
-        )
-    )
-  }
-
-  /**
-   * Insert or update the GitHub repository database record based on the
    * provided API information and the fetching account's login.
    */
   public async upsertGitHubRepository(
