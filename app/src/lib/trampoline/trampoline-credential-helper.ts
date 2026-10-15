@@ -137,16 +137,8 @@ async function getCredential(
 
   // Never lend a repository's credentials to a different GitHub endpoint
   // (for example a submodule hosted on another server).
-  if (
-    repository !== undefined &&
-    (await getEndpointKind(cred, store)) !== 'generic'
-  ) {
-    return undefined
-  }
-
-  const endpointKind = await getEndpointKind(cred, store)
-  if (endpointKind !== 'generic') {
-    info(`no repository account assignment for ${endpoint}`)
+  if ((await getEndpointKind(cred, store)) !== 'generic') {
+    info(`no matching account for ${endpoint}`)
     return undefined
   }
 
