@@ -156,9 +156,18 @@ describe('AppStore explicitly adding repositories', () => {
     t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
       assert.fail('Only one account can access this repository')
     )
+    const { gitHubRepositories } = stores.repositoriesStore['db']
+    const existingIDs = new Set(await gitHubRepositories.toCollection().keys())
     const added = await appStore._addRepositories([repository.path])
     assert.strictEqual(added[0].login, 'bob')
     assert.strictEqual(added[0].gitHubRepository?.permissions, 'write')
+    const created = (await gitHubRepositories.toArray()).filter(
+      r => !existingIDs.has(r.id ?? -1)
+    )
+    assert.deepStrictEqual(
+      created.filter(r => r.accountLogin === ''),
+      []
+    )
     assert.deepStrictEqual(tokens.sort(), ['alice-token', 'bob-token'])
     assert.strictEqual(
       (await stores.repositoriesStore.getAll()).find(

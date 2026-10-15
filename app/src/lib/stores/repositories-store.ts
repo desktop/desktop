@@ -814,10 +814,15 @@ export class RepositoriesStore extends TypedBaseStore<
   /**
    * Attach account-scoped metadata unless the caller's association is stale.
    * Returns the current repository, which may have been disassociated meanwhile.
+   *
+   * @param assignLogin When provided, also assign this account (or none, for
+   *                    null) in the same step, so no intermediate GitHub
+   *                    repository record is created for the current account.
    */
   public async setGitHubRepository(
     repo: Repository,
-    ghRepo: GitHubRepository
+    ghRepo: GitHubRepository,
+    assignLogin?: string | null
   ): Promise<Repository> {
     const { updatedRepo, changed } = await this.db.transaction(
       'rw',
@@ -834,11 +839,13 @@ export class RepositoriesStore extends TypedBaseStore<
           return { updatedRepo: current, changed: false }
         }
         const login =
-          current.gitHubRepository !== null &&
-          !caseInsensitiveEquals(
-            current.gitHubRepository.endpoint,
-            ghRepo.endpoint
-          )
+          assignLogin !== undefined
+            ? assignLogin
+            : current.gitHubRepository !== null &&
+              !caseInsensitiveEquals(
+                current.gitHubRepository.endpoint,
+                ghRepo.endpoint
+              )
             ? null
             : current.login
         const scoped = await this.getGitHubRepositoryForAccount(
@@ -847,7 +854,8 @@ export class RepositoriesStore extends TypedBaseStore<
         )
         if (
           isRepositoryWithGitHubRepository(current) &&
-          current.gitHubRepository.hash === scoped.hash
+          current.gitHubRepository.hash === scoped.hash &&
+          current.login === login
         ) {
           return { updatedRepo: current, changed: false }
         }

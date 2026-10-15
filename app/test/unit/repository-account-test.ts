@@ -127,6 +127,27 @@ describe('Repository account persistence', () => {
     assert.equal((await store.getAll())[0].login, 'alice')
   })
 
+  it('assigns an account together with its GitHub repository', async t => {
+    const { db, store, apiRepository } = await setup()
+    t.after(async () => {
+      await setImmediate()
+      db.close()
+    })
+    const scoped = await store.upsertGitHubRepository(
+      endpoint,
+      apiRepository,
+      'alice'
+    )
+    const added = await store.addRepository('/new', undefined)
+    const updated = await store.setGitHubRepository(added, scoped, 'alice')
+    assert.equal(updated.login, 'alice')
+    assert.equal(updated.gitHubRepository?.dbID, scoped.dbID)
+    assert.deepEqual(
+      (await db.gitHubRepositories.toArray()).map(r => r.accountLogin).sort(),
+      ['', 'alice']
+    )
+  })
+
   it('never migrates a newly added repository', async t => {
     const { db, store, github } = await setup()
     t.after(async () => {

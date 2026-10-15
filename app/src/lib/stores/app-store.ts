@@ -5791,10 +5791,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     repository = await this.repositoriesStore.setGitHubRepository(
       repository,
-      gitHubRepository
-    )
-    repository = await this.repositoriesStore.updateRepositoryAccount(
-      repository,
+      gitHubRepository,
       account.login
     )
 
@@ -8676,10 +8673,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
               )
           refreshedRepo = await this.repositoriesStore.setGitHubRepository(
             addedRepo,
-            gitHubRepository
-          )
-          refreshedRepo = await this.repositoriesStore.updateRepositoryAccount(
-            refreshedRepo,
+            gitHubRepository,
             assignment.account.login
           )
         } else if (remote !== null) {
