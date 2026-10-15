@@ -409,6 +409,13 @@
       height: var(--button-height);
     }
 
+    .dropdown-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--spacing-half);
+    }
+
     .invoke-button {
       display: block;
       min-width: 0;
