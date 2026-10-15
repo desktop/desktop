@@ -4,4 +4,14 @@
   .account-picker {
     width: 100%;
   }
+
+  .sign-in-to-another-account,
+  .sign-in-enterprise {
+    font-size: var(--font-size-sm);
+  }
+
+  .sign-in-enterprise {
+    justify-content: center;
+    margin-top: var(--spacing);
+  }
 }
