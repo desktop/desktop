@@ -1,6 +1,5 @@
-import { Repository } from '../models/repository'
-import { Account } from '../models/account'
-import { caseInsensitiveEquals } from './compare'
+import { Repository, getRepositoryAccountIdentity } from '../models/repository'
+import { Account, isSameAccount } from '../models/account'
 import {
   enableCommitMessageGeneration,
   enableCopilotConflictResolution,
@@ -12,18 +11,8 @@ export function getAccountForRepository(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | null {
-  const { gitHubRepository, login } = repository
-  if (!gitHubRepository || login === null) {
-    return null
-  }
-
-  return (
-    accounts.find(
-      account =>
-        account.endpoint === gitHubRepository.endpoint &&
-        caseInsensitiveEquals(account.login, login)
-    ) ?? null
-  )
+  const identity = getRepositoryAccountIdentity(repository)
+  return accounts.find(account => isSameAccount(account, identity)) ?? null
 }
 
 /**
