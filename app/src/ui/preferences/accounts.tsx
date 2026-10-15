@@ -55,20 +55,24 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
 
     return (
       <DialogContent className="accounts-tab">
-        <h2>GitHub.com</h2>
-        {dotComAccounts.map(account =>
-          this.renderAccount(account, SignInType.DotCom)
-        )}
-        {dotComAccounts.length === 0 ? (
-          this.renderSignIn(SignInType.DotCom)
-        ) : (
-          <Button onClick={this.props.onDotComSignIn}>
-            Add GitHub.com account
-          </Button>
-        )}
+        <div className="accounts-section">
+          <h2>GitHub.com</h2>
+          {dotComAccounts.map(account =>
+            this.renderAccount(account, SignInType.DotCom)
+          )}
+          {dotComAccounts.length === 0 ? (
+            this.renderSignIn(SignInType.DotCom)
+          ) : (
+            <Button onClick={this.props.onDotComSignIn}>
+              Add GitHub.com account
+            </Button>
+          )}
+        </div>
 
-        <h2>GitHub Enterprise</h2>
-        {this.renderMultipleEnterpriseAccounts()}
+        <div className="accounts-section">
+          <h2>GitHub Enterprise</h2>
+          {this.renderMultipleEnterpriseAccounts()}
+        </div>
       </DialogContent>
     )
   }

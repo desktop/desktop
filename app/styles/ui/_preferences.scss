@@ -72,6 +72,10 @@
   }
 
   .accounts-tab {
+    .accounts-section:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
+
     .account-info {
       .user-info-container {
         display: flex;
