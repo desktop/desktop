@@ -970,6 +970,7 @@ describe('CommitMessage', () => {
         const optionsButton = screen.getByRole('button', {
           name: 'Configure commit options',
         })
+        assert.ok(optionsButton.closest('.copilot-commit-panel'))
         assert.strictEqual(optionsButton.getAttribute('aria-disabled'), 'true')
         fireEvent.click(
           screen.getByRole('button', {
@@ -1700,6 +1701,78 @@ describe('CommitMessage', () => {
       }
     }
 
+    it('places the single assisted options control inside the Copilot panel', () => {
+      const { view } = renderWithCommitModes({ commitMode: 'copilot' })
+      const button = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      const panel = view.container.querySelector('.copilot-commit-panel')
+      assert.ok(panel)
+      assert.ok(panel.contains(button))
+      assert.strictEqual(button.getAttribute('aria-haspopup'), 'menu')
+      assert.strictEqual(
+        screen.getAllByRole('button', {
+          name: 'Configure commit options',
+        }).length,
+        1
+      )
+      assert.strictEqual(
+        view.container.querySelector(
+          '.commit-message-component > .assisted-commit-options'
+        ),
+        null
+      )
+    })
+
+    it('restores summary focus when leaving the focused panel options control', () => {
+      const { rerender } = renderWithCommitModes({ commitMode: 'copilot' })
+      const button = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      button.focus()
+      rerender({ commitMode: 'manual' })
+      assert.strictEqual(
+        document.activeElement,
+        screen.getByRole('combobox', { name: 'Commit summary' })
+      )
+      assert.ok(button.closest('[inert][aria-hidden="true"]'))
+      const manual = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.ok(manual.closest('.manual-commit-fields .action-bar'))
+      assert.notStrictEqual(manual, button)
+    })
+
+    it('restores manual focus when assisted execution becomes unavailable while options are focused', () => {
+      const { rerender } = renderWithCommitModes({ commitMode: 'copilot' })
+      screen.getByRole('button', { name: 'Configure commit options' }).focus()
+      rerender({ onCreateCopilotAssistedCommits: undefined })
+      const summary = screen.getByRole('combobox', { name: 'Commit summary' })
+      assert.strictEqual(document.activeElement, summary)
+      const options = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.ok(options.closest('.manual-commit-fields .action-bar'))
+      assert.strictEqual(options.closest('[inert]'), null)
+    })
+
+    it('keeps panel options inert and hidden to assistive technology while exiting', () => {
+      const { view, rerender } = renderWithCommitModes({
+        commitMode: 'copilot',
+      })
+      rerender({ commitMode: 'manual' })
+      const panel = view.container.querySelector('.copilot-commit-panel')
+      assert.ok(panel)
+      const exitingOptions = panel.querySelector('.commit-options-button')
+      assert.ok(exitingOptions)
+      assert.ok(exitingOptions.closest('[inert][aria-hidden="true"]'))
+      const visible = screen.getAllByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.strictEqual(visible.length, 1)
+      assert.ok(visible[0].closest('.manual-commit-fields .action-bar'))
+    })
+
     it('exposes co-authors and every existing option through the compact assisted options control', async t => {
       const { menus, select } = captureOptionsMenu(t)
       const updates = new Array<Partial<CommitOptions>>()
@@ -1712,6 +1785,13 @@ describe('CommitMessage', () => {
         },
         onShowCoAuthoredByChanged: show => coAuthorToggles.push(show),
       })
+      assert.ok(
+        screen
+          .getByRole('button', {
+            name: 'Configure commit options',
+          })
+          .closest('.copilot-commit-panel')
+      )
       select(AddCoAuthorsLabel)
       await waitFor(() => assert.deepStrictEqual(coAuthorToggles, [true]))
       assert.deepStrictEqual(
@@ -1736,6 +1816,58 @@ describe('CommitMessage', () => {
           name: 'Generate commit message with Copilot',
         }),
         null
+      )
+    })
+
+    it('preserves checked options and manual action-bar behavior when moving the gear into the panel', async t => {
+      const { menus, select } = captureOptionsMenu(t)
+      const updates = new Array<Partial<CommitOptions>>()
+      renderWithCommitModes({
+        skipCommitHooks: true,
+        signOffCommits: true,
+        allowEmptyCommit: true,
+        onUpdateCommitOptions: (_repository, options) => updates.push(options),
+      })
+      const manual = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.ok(manual.closest('.manual-commit-fields .action-bar'))
+      select(SignOffLabel)
+      await waitFor(() =>
+        assert.deepStrictEqual(updates, [{ signOffCommits: false }])
+      )
+      assert.deepStrictEqual(
+        menus[0].map(item => ({ label: item.label, checked: item.checked })),
+        [SkipHooksLabel, SignOffLabel, AllowEmptyLabel].map(label => ({
+          label,
+          checked: true,
+        }))
+      )
+      switchToCopilotMode()
+      const assisted = screen.getByRole('button', {
+        name: 'Configure commit options',
+      })
+      assert.ok(assisted.closest('.copilot-commit-panel'))
+      assert.strictEqual(assisted.childElementCount, 1)
+      assert.strictEqual(
+        assisted.firstElementChild?.tagName.toLowerCase(),
+        'svg'
+      )
+      select(SignOffLabel)
+      await waitFor(() => assert.strictEqual(menus.length, 2))
+      assert.deepStrictEqual(
+        menus[1]
+          .filter(item => item.type === 'checkbox')
+          .map(item => ({ label: item.label, checked: item.checked })),
+        [SkipHooksLabel, SignOffLabel, AllowEmptyLabel].map(label => ({
+          label,
+          checked: true,
+        }))
+      )
+      switchToManualMode()
+      assert.strictEqual(
+        screen.getByRole('button', { name: 'Configure commit options' }),
+        manual
       )
     })
 
@@ -1768,6 +1900,16 @@ describe('CommitMessage', () => {
       assert.strictEqual(
         screen.getByRole('combobox', { name: /Co-Authors/ }),
         coAuthorsInput
+      )
+      assert.strictEqual(coAuthorsInput.closest('.copilot-commit-panel'), null)
+      const panel =
+        coAuthorsInput.parentElement?.parentElement?.parentElement?.querySelector(
+          '.copilot-commit-panel'
+        )
+      assert.ok(panel)
+      assert.ok(
+        panel.compareDocumentPosition(coAuthorsInput) &
+          Node.DOCUMENT_POSITION_FOLLOWING
       )
       fireEvent.click(
         screen.getByRole('button', {

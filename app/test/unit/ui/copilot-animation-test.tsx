@@ -121,6 +121,29 @@ describe('CopilotCommitPanel', () => {
     assert.ok(screen.getByText(/Select the changes you want to commit/))
   })
 
+  it('renders optional controls inside the panel without changing its caption', () => {
+    const view = render(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false}>
+        <button>Configure options</button>
+      </CopilotCommitPanel>
+    )
+    const panel = view.container.querySelector('.copilot-commit-panel')
+    assert.ok(panel)
+    assert.ok(panel.classList.contains('with-options'))
+    assert.ok(
+      panel.contains(screen.getByRole('button', { name: 'Configure options' }))
+    )
+    assert.ok(screen.getByText('Let Copilot write your commits'))
+    view.rerender(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />
+    )
+    assert.strictEqual(panel.classList.contains('with-options'), false)
+    assert.strictEqual(
+      screen.queryByRole('button', { name: 'Configure options' }),
+      null
+    )
+  })
+
   it('describes what Copilot will do with the selected files', () => {
     const view = render(
       <CopilotCommitPanel filesSelectedCount={3} isWorking={false} />
