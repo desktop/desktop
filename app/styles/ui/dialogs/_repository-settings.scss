@@ -25,6 +25,16 @@
     }
   }
 
+  .repository-account {
+    margin-top: var(--spacing-double);
+  }
+
+  .repository-account-description {
+    margin-top: var(--spacing-half);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+  }
+
   .fork-settings-description {
     margin-top: var(--spacing-double);
     font-size: var(--font-size-sm);

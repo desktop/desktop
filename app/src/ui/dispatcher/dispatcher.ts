@@ -86,6 +86,7 @@ import {
   getNonForkGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
+import { CloneRepositoryOptions } from '../../models/clone-options'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -837,7 +838,7 @@ export class Dispatcher {
   public async clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    options?: CloneRepositoryOptions
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -1154,7 +1155,7 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public refreshIssues(repository: GitHubRepository): Promise<void> {
+  public refreshIssues(repository: Repository): Promise<void> {
     return this.appStore._refreshIssues(repository)
   }
 
@@ -1262,7 +1263,27 @@ export class Dispatcher {
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.appStore._removeAccount(account)
+    return this.appStore._signOutAccount(account)
+  }
+
+  /** Explicitly change the account assigned to a local repository. */
+  public updateRepositoryAccount(repository: Repository, login: string | null) {
+    return this.appStore._updateRepositoryAccount(repository, login)
+  }
+
+  /** Resolve an account, prompting only for a user-initiated operation. */
+  public ensureRepositoryAccount(repository: Repository) {
+    return this.appStore._ensureRepositoryAccount(repository)
+  }
+
+  /** Sign back into a specific account without replacing other accounts. */
+  public async showAccountSignInDialog(
+    endpoint: string,
+    login: string,
+    resultCallback?: (result: SignInResult) => void
+  ): Promise<void> {
+    this.appStore._beginSignInForAccount(endpoint, login, resultCallback)
+    await this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
   /**
@@ -2745,16 +2766,23 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
+    return this.commitStatusStore.tryGetStatus(
+      repository,
+      localRepository,
+      ref,
+      branchName
+    )
   }
 
   /**
    * Subscribe to commit status updates for a particular ref.
    *
    * @param repository The GitHub repository to use when looking up commit status.
+   * @param localRepository The local repository providing the account assignment.
    * @param ref        The commit ref (can be a SHA or a Git ref) for which to
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
@@ -2764,12 +2792,14 @@ export class Dispatcher {
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     callback: StatusCallBack,
     branchName?: string
   ): Disposable {
     return this.commitStatusStore.subscribe(
       repository,
+      localRepository,
       ref,
       callback,
       branchName
@@ -2781,11 +2811,13 @@ export class Dispatcher {
    */
   public manualRefreshSubscription(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     pendingChecks: ReadonlyArray<IRefCheck>
   ): Promise<void> {
     return this.commitStatusStore.manualRefreshSubscription(
       repository,
+      localRepository,
       ref,
       pendingChecks
     )
@@ -2797,15 +2829,25 @@ export class Dispatcher {
    */
   public async rerequestCheckSuites(
     repository: GitHubRepository,
+    localRepository: Repository,
     checkRuns: ReadonlyArray<IRefCheck>,
     failedOnly: boolean
   ): Promise<ReadonlyArray<boolean>> {
+    if ((await this.ensureRepositoryAccount(localRepository)) === undefined) {
+      return []
+    }
+    localRepository = await this.appStore._getCurrentRepository(localRepository)
+
     const promises = new Array<Promise<boolean>>()
 
     // If it is one and in actions check, we can rerun it individually.
     if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
       promises.push(
-        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+        this.commitStatusStore.rerunJob(
+          repository,
+          localRepository,
+          checkRuns[0].id
+        )
       )
       return Promise.all(promises)
     }
@@ -2826,11 +2868,19 @@ export class Dispatcher {
     }
 
     for (const id of workflowRunIds) {
-      promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
+      promises.push(
+        this.commitStatusStore.rerunFailedJobs(repository, localRepository, id)
+      )
     }
 
     for (const id of checkSuiteIds) {
-      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+      promises.push(
+        this.commitStatusStore.rerequestCheckSuite(
+          repository,
+          localRepository,
+          id
+        )
+      )
     }
 
     return Promise.all(promises)
@@ -2841,9 +2891,14 @@ export class Dispatcher {
    */
   public async fetchCheckSuite(
     repository: GitHubRepository,
+    localRepository: Repository,
     checkSuiteId: number
   ): Promise<IAPICheckSuite | null> {
-    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
+    return this.commitStatusStore.fetchCheckSuite(
+      repository,
+      localRepository,
+      checkSuiteId
+    )
   }
 
   /**

@@ -5,6 +5,8 @@ import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { assertIsRepositoryWithGitHubRepository } from '../../src/models/repository'
+import { Account } from '../../src/models/account'
+import { PullRequestDatabase } from '../../src/lib/databases/pull-request-database'
 
 describe('RepositoriesStore', () => {
   let repoDb = new TestRepositoriesDatabase()
@@ -111,10 +113,360 @@ describe('RepositoriesStore', () => {
         await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
       )
 
+      assertIsRepositoryWithGitHubRepository(firstRepo)
+      assertIsRepositoryWithGitHubRepository(secondRepo)
       assert.equal(
         firstRepo.gitHubRepository.dbID,
         secondRepo.gitHubRepository.dbID
       )
+    })
+
+    it('isolates permissions for two local copies assigned to different accounts', async () => {
+      const first = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', undefined),
+        'alice'
+      )
+      const second = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/second', undefined),
+        'bob'
+      )
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const bob = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        {
+          ...apiRepo,
+          permissions: { pull: true, push: false, admin: false },
+        },
+        'bob'
+      )
+      await repositoriesStore.setGitHubRepository(first, alice)
+      await repositoriesStore.setGitHubRepository(second, bob)
+      assert.notStrictEqual(alice.dbID, bob.dbID)
+
+      await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        {
+          ...apiRepo,
+          permissions: { pull: true, push: true, admin: true },
+        },
+        'ALICE'
+      )
+      const reloaded = await repositoriesStore.getAll()
+      assert.deepStrictEqual(
+        reloaded.map(repo => repo.gitHubRepository?.permissions),
+        ['admin', 'read']
+      )
+      assert.deepStrictEqual(
+        reloaded.map(repo => repo.gitHubRepository?.dbID),
+        [alice.dbID, bob.dbID]
+      )
+    })
+
+    it('changes cache identity and clears unknown permissions when switching accounts', async () => {
+      const initial = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', undefined),
+        'alice'
+      )
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const assigned = await repositoriesStore.setGitHubRepository(
+        initial,
+        alice
+      )
+      const switched = await repositoriesStore.updateRepositoryAccount(
+        assigned,
+        'bob'
+      )
+      assertIsRepositoryWithGitHubRepository(switched)
+      assert.notStrictEqual(switched.gitHubRepository.dbID, alice.dbID)
+      assert.strictEqual(switched.gitHubRepository.permissions, null)
+
+      const restored = await repositoriesStore.updateRepositoryAccount(
+        switched,
+        'ALICE'
+      )
+      assert.strictEqual(restored.gitHubRepository?.dbID, alice.dbID)
+      assert.strictEqual(restored.gitHubRepository?.permissions, 'write')
+      assert.strictEqual(
+        (await repositoriesStore.getAll())[0].gitHubRepository?.dbID,
+        alice.dbID
+      )
+    })
+
+    it('does not retain previous permissions when the API explicitly revokes them', async () => {
+      await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo, 'alice')
+      const updated = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        {
+          ...apiRepo,
+          permissions: { pull: false, push: false, admin: false },
+        },
+        'alice'
+      )
+      assert.strictEqual(updated.permissions, null)
+    })
+
+    it('does not attach an old account refresh after the local account changes', async () => {
+      const initial = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', undefined),
+        'alice'
+      )
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const assigned = await repositoriesStore.setGitHubRepository(
+        initial,
+        alice
+      )
+      const switched = await repositoriesStore.updateRepositoryAccount(
+        assigned,
+        'bob'
+      )
+      const staleRefresh = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        {
+          ...apiRepo,
+          name: 'renamed',
+        },
+        'alice'
+      )
+      const result = await repositoriesStore.setGitHubRepository(
+        assigned,
+        staleRefresh
+      )
+      assertIsRepositoryWithGitHubRepository(result)
+      assert.strictEqual(result.login, 'bob')
+      assert.strictEqual(
+        result.gitHubRepository.dbID,
+        switched.gitHubRepository?.dbID
+      )
+      assert.strictEqual(result.gitHubRepository.name, apiRepo.name)
+    })
+
+    it('isolates parent metadata and branch protection caches by login', async () => {
+      const fork = { ...apiRepo, parent: { ...apiRepo, name: 'parent' } }
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        fork,
+        'alice'
+      )
+      const bob = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        fork,
+        'bob'
+      )
+      assert.notStrictEqual(alice.parent?.dbID, bob.parent?.dbID)
+      await repositoriesStore.updateBranchProtections(alice, [
+        {
+          name: 'main',
+          protected: true,
+        },
+      ])
+      await repositoriesStore.updateBranchProtections(bob, [])
+      assert.strictEqual(
+        await repositoriesStore.hasBranchProtectionsConfigured(alice),
+        true
+      )
+      assert.strictEqual(
+        await repositoriesStore.hasBranchProtectionsConfigured(bob),
+        false
+      )
+      const reloaded = new RepositoriesStore(repoDb)
+      assert.strictEqual(
+        await reloaded.hasBranchProtectionsConfigured(alice),
+        true
+      )
+      assert.strictEqual(
+        await reloaded.hasBranchProtectionsConfigured(bob),
+        false
+      )
+    })
+
+    it('clears account and GitHub metadata persistently without changing local properties', async () => {
+      const initial = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', '/first/.git'),
+        'alice'
+      )
+      const ghRepo = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const assigned = await repositoriesStore.setGitHubRepository(
+        initial,
+        ghRepo
+      )
+      const cleared = await repositoriesStore.clearGitHubRepository(assigned)
+      assert.strictEqual(cleared.login, null)
+      assert.strictEqual(cleared.gitHubRepository, null)
+      assert.strictEqual(cleared.id, assigned.id)
+      assert.strictEqual(cleared.path, assigned.path)
+      assert.strictEqual(cleared.gitDir, assigned.gitDir)
+      assert.strictEqual(
+        (await repositoriesStore.getAll())[0].gitHubRepository,
+        null
+      )
+      assert.strictEqual((await repositoriesStore.getAll())[0].login, null)
+
+      const stale = await repositoriesStore.setGitHubRepository(
+        assigned,
+        ghRepo
+      )
+      assert.strictEqual(stale.gitHubRepository, null)
+      assert.strictEqual(stale.login, null)
+    })
+
+    it('does not let a stale clear remove a later account assignment', async () => {
+      const initial = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', undefined),
+        'alice'
+      )
+      const assigned = await repositoriesStore.setGitHubRepository(
+        initial,
+        await repositoriesStore.upsertGitHubRepository(
+          endpoint,
+          apiRepo,
+          'alice'
+        )
+      )
+      const switched = await repositoriesStore.updateRepositoryAccount(
+        assigned,
+        'bob'
+      )
+      const result = await repositoriesStore.clearGitHubRepository(assigned)
+      assert.strictEqual(result.login, 'bob')
+      assert.strictEqual(
+        result.gitHubRepository?.dbID,
+        switched.gitHubRepository?.dbID
+      )
+    })
+
+    it('rejects a stale same-account refresh after the remote repository changes', async () => {
+      const initial = await repositoriesStore.updateRepositoryAccount(
+        await repositoriesStore.addRepository('/first', undefined),
+        'alice'
+      )
+      const ghRepo = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const assigned = await repositoriesStore.setGitHubRepository(
+        initial,
+        ghRepo
+      )
+      const replacement = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        {
+          ...apiRepo,
+          name: 'replacement',
+        },
+        'alice'
+      )
+      await repositoriesStore.setGitHubRepository(assigned, replacement)
+      const stale = await repositoriesStore.setGitHubRepository(
+        assigned,
+        ghRepo
+      )
+      assert.strictEqual(stale.gitHubRepository?.dbID, replacement.dbID)
+      assert.strictEqual(
+        (await repositoriesStore.getAll())[0].gitHubRepository?.dbID,
+        replacement.dbID
+      )
+    })
+
+    it('keeps PR base and head records and stored PR data account-specific', async t => {
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const bob = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'bob'
+      )
+      const aliceBase =
+        await repositoriesStore.upsertGitHubRepositoryLightForRepository(
+          alice,
+          apiRepo
+        )
+      const bobBase =
+        await repositoriesStore.upsertGitHubRepositoryLightForRepository(
+          bob,
+          apiRepo
+        )
+      const aliceHead =
+        await repositoriesStore.upsertGitHubRepositoryLightForRepository(
+          alice,
+          { ...apiRepo, name: 'fork' }
+        )
+      const bobHead =
+        await repositoriesStore.upsertGitHubRepositoryLightForRepository(bob, {
+          ...apiRepo,
+          name: 'fork',
+        })
+      assert.strictEqual(aliceBase.dbID, alice.dbID)
+      assert.strictEqual(bobBase.dbID, bob.dbID)
+      assert.notStrictEqual(aliceHead.dbID, bobHead.dbID)
+
+      const db = new PullRequestDatabase('AccountIsolationPullRequests')
+      await db.delete()
+      await db.open()
+      t.after(() => db.delete())
+      await db.putPullRequests([
+        {
+          number: 1,
+          title: 'Visible to Alice',
+          body: '',
+          author: 'alice',
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+          head: { ref: 'feature', sha: 'abc', repoId: aliceHead.dbID },
+          base: { ref: 'main', sha: 'def', repoId: aliceBase.dbID },
+          draft: false,
+        },
+      ])
+      assert.strictEqual(
+        (await db.getAllPullRequestsInRepository(alice)).length,
+        1
+      )
+      assert.strictEqual(
+        (await db.getAllPullRequestsInRepository(bob)).length,
+        0
+      )
+      await db.deleteAllPullRequestsInRepository(bob)
+      assert.strictEqual(
+        (await db.getAllPullRequestsInRepository(alice)).length,
+        1
+      )
+    })
+
+    it('creates account-specific skeletons from remote matches', async () => {
+      const match = { owner: apiRepo.owner.login, name: apiRepo.name }
+      const first = await repositoriesStore.upsertGitHubRepositoryFromMatch({
+        ...match,
+        account: new Account('alice', endpoint, 'token', [], '', 1, ''),
+      })
+      const same = await repositoriesStore.upsertGitHubRepositoryFromMatch({
+        ...match,
+        account: new Account('ALICE', endpoint, 'token', [], '', 1, ''),
+      })
+      const other = await repositoriesStore.upsertGitHubRepositoryFromMatch({
+        ...match,
+        account: new Account('bob', endpoint, 'token', [], '', 2, ''),
+      })
+      assert.strictEqual(first.dbID, same.dbID)
+      assert.notStrictEqual(first.dbID, other.dbID)
     })
   })
 

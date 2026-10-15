@@ -2391,17 +2391,16 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the account for the endpoint. */
-export function getAccountForEndpoint(
-  accounts: ReadonlyArray<Account>,
-  endpoint: string
-): Account | null {
-  return accounts.find(a => a.endpoint === endpoint) || null
-}
-
+/**
+ * Build an OAuth authorization URL.
+ *
+ * Supplying a login requests that account and disables sign-up. The caller
+ * must still verify the identity returned by OAuth.
+ */
 export function getOAuthAuthorizationURL(
   endpoint: string,
   state: string,
+  login?: string,
   shortLived = enableShortLivedTokens()
 ): string {
   const urlBase = getHTMLURL(endpoint)
@@ -2411,9 +2410,13 @@ export function getOAuthAuthorizationURL(
       : oauthScopes
     ).join(' ')
   )
+  const accountParameters =
+    login === undefined
+      ? ''
+      : `&login=${encodeURIComponent(login)}&allow_signup=false`
 
   return new window.URL(
-    `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`,
+    `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}${accountParameters}`,
     urlBase
   ).toString()
 }

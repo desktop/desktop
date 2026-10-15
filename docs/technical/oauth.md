@@ -25,6 +25,90 @@ environment variables:
  - `DESKTOP_OAUTH_CLIENT_ID`
  - `DESKTOP_OAUTH_CLIENT_SECRET`
 
+## Repository account assignments
+
+Desktop can retain multiple signed-in accounts for the same endpoint. Accounts
+are identified by their endpoint and login (case-insensitive), and each account
+has its own credential session (`CredentialSessions`): token renewal, rejected
+token handling, and secure-storage writes for one account never affect another
+account on the same endpoint. A local
+repository stores a nullable `login`, paired with its GitHub repository's API
+endpoint. This is an authentication choice, not a Git author name or email.
+Repository Settings exposes the assignment on the Remote tab.
+
+On the first startup after upgrading, repositories without a persisted login
+field are assigned the existing account for their endpoint, if one exists.
+The match uses every account in the saved account list, including accounts
+whose credentials couldn't be read from the keychain, so a locked keychain at
+startup doesn't unassign repositories.
+The migration writes `null` when none exists and never revisits that choice.
+New records default to `null`.
+
+Desktop asks the user to choose an account for an unassigned repository only
+at the point one is needed: when Git asks for HTTPS credentials during a
+user-initiated operation, or when the user explicitly requests GitHub data.
+Fetch, pull, and push never prompt up front, so SSH remotes and public HTTPS
+repositories work without an account. When no account is signed in for the
+repository's endpoint, Desktop shows the regular sign-in prompt for that
+endpoint instead of an empty account choice. If an assigned login is signed out, Desktop offers to sign back into
+that account or choose another. Targeted reauthentication adds `login` and
+`allow_signup=false` to the OAuth authorization URL and verifies the returned
+identity before accepting it. Background operations never open these prompts
+and do not fall back to another account.
+
+Explicit sign-out offers to keep or clear matching repository assignments.
+Automatic account removal, including token invalidation, preserves assignments.
+When an account is signed out because its token is no longer valid, Desktop
+says which login was signed out and offers to sign back in to that account.
+Changing a repository's endpoint clears its account assignment.
+
+HTTPS Git credentials are resolved in the credential trampoline using its
+operation path and a locally cached copy of the repositories store. Both account
+and repository updates invalidate that cached view. A requested host must match
+the assigned endpoint; an account is never borrowed from another endpoint.
+Operations on repositories that haven't been added to Desktop yet, such as
+cloning or pushing a new tutorial repository, can pass a `fallbackAccount` in
+their Git execution options. It's only used when no repository can be resolved
+from the operation's path, the endpoint matches, and the account is still
+signed in. It shouldn't be passed merely because an account is available.
+
+### Included and deferred work
+
+- **Cloning and adding local repositories (included):** probe repository access for each
+  account on the endpoint. Select the sole accessible account; ask the user when
+  more than one account has access. If none has access, cloning proceeds
+  anonymously and the repository remains unassigned. A private clone that
+  requires authentication fails normally; sign in with an account that has
+  access before retrying. Cloning from the GitHub.com or GitHub Enterprise tab
+  uses only the account selected in that tab's picker. That account listed the
+  repository, so Desktop assigns it without probing for access and fetches the
+  repository's metadata on the next refresh. Desktop never falls back to
+  another account on the same endpoint, so the clone fails, and nothing is
+  assigned, if the selected account has lost access. Publishing likewise uses
+  the account selected in its picker, which starts out on the repository's
+  assigned account when that account is signed in.
+- **Account-dependent caches (included):** isolate repository permissions, pull request
+  metadata, and check subscriptions between assigned identities.
+- **SSH identity selection (deferred):** SSH continues to use the user's SSH
+  configuration and agent, not Desktop's HTTPS account token.
+- **Copilot identity controls (deferred):** preserve the existing fallback to
+  another Copilot-eligible account when the repository account lacks access.
+- **Repository-list presentation (follow-up):** consider displaying account
+  assignments and grouping or filtering repositories by account.
+- **Authenticated images and avatars (deferred):** avatar API lookups and private
+  image loading still resolve credentials by endpoint rather than repository.
+- **Orphaned account-scoped metadata (follow-up):** reassigning a repository
+  switches it to the GitHub repository record scoped to the new account, but
+  the previous account's record is retained. Records no longer referenced by
+  any local repository (or as another record's parent) should be pruned along
+  with their dependent protected branches and cached pull requests.
+- **Credentials for unassociated remotes (follow-up):** the credential helper
+  only uses or prompts for an account when the request matches the
+  repository's GitHub endpoint. HTTPS requests for another remote (for example
+  an `upstream` on a GitHub host when `origin` isn't), or for a GitHub
+  Enterprise host Desktop couldn't identify, get no credentials. Fixing this
+  requires deciding which remote's repository the association should use.
+
 ## Short-lived credentials (preview)
 
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`
@@ -160,8 +244,9 @@ token-provider callback; start a new generation to exercise the new metadata.
   and immediately asks whether to sign in again, matching the existing
   invalid-token flow. Choosing **No** leaves the account signed out; the usual
   sign-in options remain available in Settings/Preferences > Accounts. Choosing
-  **Yes** opens sign-in for the same host, including the original Enterprise
-  endpoint. Local repositories and changes remain unaffected.
+  **Yes** opens sign-in for the same account, including the original
+  Enterprise endpoint. Local repositories, their account assignments, and
+  changes remain unaffected.
 - Failed persistence after rotation never returns the new access token or falls
   back to plaintext. Desktop signs out and removes the unusable stored
   credential before attempting to revoke the unused replacement. Revocation
@@ -173,14 +258,17 @@ token-provider callback; start a new generation to exercise the new metadata.
   nonblocking cleanup of unpublished credentials. Once handed over, credentials
   are owned by `AccountsStore` and are not revoked merely because the sign-in UI
   is dismissed, even while they are still being saved.
-- Overlapping sign-ins for the same host are saved one at a time, and each is
+- Overlapping sign-ins for the same account are saved one at a time, and each is
   signed in as soon as its save succeeds. The last successful save wins, both
   in memory and after relaunch; a failed save leaves the current account
   signed in. Signing out does not cancel a sign-in that is still saving.
-- If a Git operation needs credentials for an account that has been signed out,
-  including because renewal was rejected, it follows the same path as when no
-  account exists: foreground operations ask the user to sign in, and background
-  operations fail with the usual authentication error.
+- If a Git operation needs credentials for a repository whose assigned account
+  has been signed out, foreground operations ask the user to sign back in or
+  choose another account, and background operations fail with the usual
+  authentication error. If the account is signed out while the credential
+  helper is getting its token, for example because renewal was rejected, the
+  operation fails without a second prompt: signing out already offers to sign
+  back in.
 - OAuth exchanges have a 30-second deadline, including response parsing. They
   reject redirects and are never automatically replayed. Errors and lifecycle
   logs do not include token values or server-provided error descriptions.

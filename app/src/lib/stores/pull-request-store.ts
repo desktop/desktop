@@ -243,8 +243,6 @@ export class PullRequestStore {
     const prsToDelete = new Array<PullRequestKey>()
     const prsToUpsert = new Array<IPullRequest>()
 
-    // The API endpoint for this PR, i.e api.github.com or a GHE url
-    const { endpoint } = repository
     const store = this.repositoryStore
 
     // Upsert will always query the database for a repository. Given that
@@ -253,17 +251,20 @@ export class PullRequestStore {
     // to use the upsert just to ensure that the repo exists in the database
     // and reuse the same object without going to the database for all that
     // follow.
-    const upsertRepo = mem(store.upsertGitHubRepositoryLight.bind(store), {
-      // The first argument which we're ignoring here is the endpoint
-      // which is constant throughout the lifetime of this function.
-      // The second argument is an `IAPIRepository` which is basically
-      // the raw object that we got from the API which could consist of
-      // more than just the fields we've modelled in the interface. The
-      // only thing we really care about to determine whether the
-      // repository has already been inserted in the database is the clone
-      // url since that's what the upsert method uses as its key.
-      cacheKey: (_, repo) => repo.clone_url,
-    })
+    const upsertRepo = mem(
+      store.upsertGitHubRepositoryLightForRepository.bind(store),
+      {
+        // The first argument is the account-qualified repository context,
+        // which is constant throughout the lifetime of this function.
+        // The second argument is an `IAPIRepository` which is basically
+        // the raw object that we got from the API which could consist of
+        // more than just the fields we've modelled in the interface. The
+        // only thing we really care about to determine whether the
+        // repository has already been inserted in the database is the clone
+        // url since that's what the upsert method uses as its key.
+        cacheKey: (_, repo) => repo.clone_url,
+      }
+    )
 
     for (const pr of pullRequestsFromAPI) {
       // We can do this string comparison here rather than convert to date
@@ -278,7 +279,7 @@ export class PullRequestStore {
         return fatalError('PR cannot have a null base repo')
       }
 
-      const baseGitHubRepo = await upsertRepo(endpoint, pr.base.repo)
+      const baseGitHubRepo = await upsertRepo(repository, pr.base.repo)
 
       if (pr.state === 'closed') {
         prsToDelete.push(getPullRequestKey(baseGitHubRepo, pr.number))
@@ -300,7 +301,7 @@ export class PullRequestStore {
         continue
       }
 
-      const headRepo = await upsertRepo(endpoint, pr.head.repo)
+      const headRepo = await upsertRepo(repository, pr.head.repo)
 
       prsToUpsert.push({
         number: pr.number,

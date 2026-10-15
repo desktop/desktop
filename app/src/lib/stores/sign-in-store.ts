@@ -1,5 +1,5 @@
 import { Disposable } from 'event-kit'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account } from '../../models/account'
 import { fatalError } from '../fatal-error'
 import {
   validateURL,
@@ -122,6 +122,9 @@ export interface IAuthenticationState extends ISignInState {
    */
   readonly endpoint: string
 
+  /** The account login required when reauthenticating a specific account. */
+  readonly expectedLogin?: string
+
   /** Whether Git supplied this unfamiliar Enterprise Server endpoint. */
   readonly isUnrecognizedEnterpriseServer?: boolean
 
@@ -178,7 +181,6 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   private emitAuthenticate(account: Account) {
     const event: IAuthenticationEvent = { account }
     this.emitter.emit('did-authenticate', event)
-    this.state?.resultCallback({ kind: 'success', account })
   }
 
   /**
@@ -217,11 +219,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    */
   public reset() {
     const currentState = this.state
-    this.state?.resultCallback({ kind: 'cancelled' })
     this.setState(null)
 
     if (currentState?.kind === SignInStep.Authentication) {
       currentState.oauthState?.onAuthError(new Error('cancelled'))
+    }
+    if (currentState !== null && currentState.kind !== SignInStep.Success) {
+      currentState.resultCallback({ kind: 'cancelled' })
     }
   }
 
@@ -236,26 +240,33 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
+  }
 
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
+  /** Begin reauthentication for a specific login at a known API endpoint. */
+  public beginSignInForAccount(
+    endpoint: string,
+    login: string,
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    if (this.state !== null) {
+      this.reset()
     }
+
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      expectedLogin: login,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
   }
 
   /**
@@ -278,15 +289,6 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     this.setState({ ...currentState, loading: true })
 
-    if (currentState.kind === SignInStep.ExistingAccountWarning) {
-      const { existingAccount } = currentState
-      // Try to avoid emitting an error out of AccountsStore if the account
-      // is already gone.
-      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
-        await this.accountStore.removeAccount(existingAccount)
-      }
-    }
-
     const csrfToken = crypto.randomUUID()
 
     new Promise<Account>((resolve, reject) => {
@@ -295,6 +297,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
+        expectedLogin:
+          currentState.kind === SignInStep.Authentication
+            ? currentState.expectedLogin
+            : undefined,
         isUnrecognizedEnterpriseServer:
           currentState.kind === SignInStep.Authentication
             ? currentState.isUnrecognizedEnterpriseServer
@@ -309,7 +315,15 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           onAuthError: reject,
         },
       })
-      shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
+      shell.openExternal(
+        getOAuthAuthorizationURL(
+          endpoint,
+          csrfToken,
+          currentState.kind === SignInStep.Authentication
+            ? currentState.expectedLogin
+            : undefined
+        )
+      )
     })
       .then(account => {
         if (
@@ -321,12 +335,20 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           return
         }
 
+        const { resultCallback } = this.state
         log.info('[SignInStore] account resolved')
-        this.emitAuthenticate(account)
-        this.setState({
+        const successState: ISuccessState = {
           kind: SignInStep.Success,
-          resultCallback: this.state.resultCallback,
-        })
+          resultCallback,
+        }
+        // Commit completion before invoking observers, which can reset the
+        // store or begin another flow. The account has already been saved.
+        this.state = successState
+        this.emitAuthenticate(account)
+        if (this.state === successState) {
+          this.emitUpdate(successState)
+        }
+        resultCallback({ kind: 'success', account })
       })
       .catch(e => {
         // Make sure we're still in the same sign in session
@@ -358,7 +380,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint, oauthState } = this.state
+    const { endpoint, expectedLogin, oauthState } = this.state
     if (this.resolvingOAuthState === oauthState.state) {
       return
     }
@@ -380,6 +402,17 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       const account = await fetchUser(endpoint, credential.accessToken, true)
       if (!isSignInAttemptActive()) {
         return
+      }
+      // Check before saving so a different browser account isn't signed in.
+      if (
+        expectedLogin !== undefined &&
+        account.login.toLowerCase() !== expectedLogin.toLowerCase()
+      ) {
+        throw new Error(
+          `Please sign in as ${expectedLogin} on ${
+            new URL(getHTMLURL(endpoint)).host
+          }. The browser signed in to a different account.`
+        )
       }
       const stored = await this.accountStore.addAccount(account, credential)
       if (stored !== null) {
@@ -484,26 +517,18 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const endpoint = getEnterpriseAPIURL(validUrl)
 
-    const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
+    const existingAccount = this.accounts.find(
+      x => x.endpoint.toLowerCase() === endpoint.toLowerCase()
+    )
 
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        isUnrecognizedEnterpriseServer: isEndpointFromGit && isGHES(endpoint),
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    }
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      isUnrecognizedEnterpriseServer:
+        isEndpointFromGit && !existingAccount && isGHES(endpoint),
+      error: null,
+      loading: false,
+      resultCallback: currentState.resultCallback,
+    })
   }
 }

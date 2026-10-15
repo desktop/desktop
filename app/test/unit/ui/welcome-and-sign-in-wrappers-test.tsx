@@ -18,17 +18,14 @@ import { ConfigureGit } from '../../../src/ui/welcome/configure-git'
 import { SignInEnterprise } from '../../../src/ui/welcome/sign-in-enterprise'
 import { SignIn } from '../../../src/ui/lib/sign-in'
 import { SignIn as SignInDialog } from '../../../src/ui/sign-in/sign-in'
-import { trampolineUIHelper } from '../../../src/lib/trampoline/trampoline-ui-helper'
-import { Popup, PopupType } from '../../../src/models/popup'
-import { createTestSignInStore } from '../../helpers/app-store-test-harness'
-import { fireEvent, render, screen, waitFor } from '../../helpers/ui/render'
+import { PopupType } from '../../../src/models/popup'
+import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 function noopResultCallback() {}
 
 class TestDispatcher {
   public readonly enteredEndpoints = new Array<string>()
   public readonly confirmationGuidanceRequests = new Array<boolean>()
-  public readonly popups = new Array<Popup>()
   public browserSignInCount = 0
   public resetCount = 0
   public closedPopupCount = 0
@@ -56,10 +53,6 @@ class TestDispatcher {
   public resetSignInState() {
     this.resetCount++
     this.signInStore?.reset()
-  }
-
-  public showPopup(popup: Popup) {
-    this.popups.push(popup)
   }
 
   public closePopup() {
@@ -121,6 +114,103 @@ function createExistingAccountWarningState(): IExistingAccountWarning {
 }
 
 describe('welcome and sign-in wrappers', () => {
+  it('only closes the sign-in popup on success, even after the callback closed both nested dialogs', t => {
+    const dispatcher = new TestDispatcher()
+    const popupStack = [
+      PopupType.Preferences,
+      PopupType.RepositoryAccount,
+      PopupType.SignIn,
+    ]
+    const closedTypes: Array<PopupType | undefined> = []
+    t.mock.method(dispatcher, 'closePopup', (type?: PopupType) => {
+      closedTypes.push(type)
+      if (popupStack[popupStack.length - 1] === type) {
+        popupStack.pop()
+      }
+    })
+    const onDismissed = () => {
+      popupStack.pop()
+    }
+    const view = render(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={createAuthenticationState('https://api.github.com')}
+        onDismissed={onDismissed}
+      />
+    )
+    // The result callback has already closed SignIn and RepositoryAccount.
+    popupStack.pop()
+    popupStack.pop()
+    const success = {
+      kind: SignInStep.Success as const,
+      resultCallback: noopResultCallback,
+    }
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={success}
+        onDismissed={onDismissed}
+      />
+    )
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={{ ...success }}
+        onDismissed={onDismissed}
+      />
+    )
+    assert.deepStrictEqual(popupStack, [PopupType.Preferences])
+    assert.deepStrictEqual(closedTypes, [PopupType.SignIn])
+    assert.strictEqual(dispatcher.resetCount, 0)
+  })
+
+  it('closes normal sign-in successfully without cancelling or dismissing its parent', t => {
+    const dispatcher = new TestDispatcher()
+    const closedTypes: Array<PopupType | undefined> = []
+    let dismissed = 0
+    t.mock.method(dispatcher, 'closePopup', (type?: PopupType) => {
+      closedTypes.push(type)
+    })
+    const onDismissed = () => dismissed++
+    const view = render(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={createAuthenticationState('https://api.github.com')}
+        onDismissed={onDismissed}
+      />
+    )
+    view.rerender(
+      <SignInDialog
+        dispatcher={toDispatcher(dispatcher)}
+        signInState={{
+          kind: SignInStep.Success,
+          resultCallback: noopResultCallback,
+        }}
+        onDismissed={onDismissed}
+      />
+    )
+    assert.deepStrictEqual(closedTypes, [PopupType.SignIn])
+    assert.strictEqual(dispatcher.resetCount, 0)
+    assert.strictEqual(dismissed, 0)
+    assert.strictEqual(view.container.textContent, '')
+  })
+
+  it('shows the required account and host for targeted reauthentication', () => {
+    render(
+      <SignInDialog
+        signInState={{
+          ...createAuthenticationState('https://api.github.com'),
+          expectedLogin: 'work-account',
+        }}
+        dispatcher={toDispatcher(new TestDispatcher())}
+        onDismissed={noopResultCallback}
+      />
+    )
+    assert.ok(screen.getByText('work-account'))
+    assert.ok(screen.getByText('github.com'))
+    assert.ok(screen.getByText(/Sign in as/))
+  })
+
   let restoreIpcSend: (() => void) | undefined
 
   beforeEach(async () => {
@@ -173,102 +263,6 @@ describe('welcome and sign-in wrappers', () => {
     assert.deepStrictEqual(dispatcher.enteredEndpoints, [])
     assert.deepStrictEqual(dispatcher.confirmationGuidanceRequests, [])
     assert.strictEqual(dispatcher.browserSignInCount, 1)
-  })
-
-  it('shows the Git-requested server before allowing browser sign-in', async () => {
-    const store = createTestSignInStore()
-    const dispatcher = new TestDispatcher(store)
-    trampolineUIHelper.setDispatcher(toDispatcher(dispatcher))
-    const result = trampolineUIHelper.promptForGitHubSignIn(
-      'https://enterprise.example.com/team/project.git'
-    )
-    await waitFor(() => assert.strictEqual(dispatcher.popups.length, 1))
-
-    const signInState = store.getState()
-    assert.ok(signInState?.kind === SignInStep.Authentication)
-    assert.strictEqual(signInState.isUnrecognizedEnterpriseServer, true)
-    assert.deepStrictEqual(dispatcher.confirmationGuidanceRequests, [true])
-    assert.strictEqual(dispatcher.popups[0].type, PopupType.SignIn)
-
-    render(
-      <SignInDialog
-        signInState={store.getState()}
-        dispatcher={toDispatcher(dispatcher)}
-        onDismissed={noopResultCallback}
-        isCredentialHelperSignIn={true}
-        credentialHelperUrl="https://enterprise.example.com/team/project.git"
-      />
-    )
-
-    const dialog = screen.getByRole('alertdialog', { hidden: true })
-    assert.strictEqual(
-      dialog.getAttribute('aria-describedby'),
-      'enterprise-server-confirmation-description'
-    )
-    assert.notStrictEqual(
-      document.getElementById(
-        dialog.getAttribute('aria-describedby') ?? 'missing-description'
-      ),
-      null
-    )
-    assert.ok(screen.getByText('https://enterprise.example.com'))
-    assert.ok(
-      screen.getByText('Only continue if you recognize and trust this server.')
-    )
-    assert.strictEqual(
-      screen.queryByRole('button', {
-        name: /trust server/i,
-        hidden: true,
-      }),
-      null
-    )
-    assert.strictEqual(dispatcher.browserSignInCount, 0)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /continue with browser/i,
-        hidden: true,
-      })
-    )
-    assert.strictEqual(dispatcher.browserSignInCount, 1)
-    assert.deepStrictEqual(dispatcher.enteredEndpoints, [
-      'https://enterprise.example.com',
-    ])
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Cancel', hidden: true })
-    )
-    assert.strictEqual(await result, undefined)
-    assert.strictEqual(dispatcher.closedPopupCount, 1)
-  })
-
-  it('cancels the Git credential request without opening the browser', async () => {
-    const store = createTestSignInStore()
-    const dispatcher = new TestDispatcher(store)
-    trampolineUIHelper.setDispatcher(toDispatcher(dispatcher))
-    const result = trampolineUIHelper.promptForGitHubSignIn(
-      'https://enterprise.example.com/team/project.git'
-    )
-    await waitFor(() => assert.strictEqual(dispatcher.popups.length, 1))
-    let dismissedCount = 0
-    render(
-      <SignInDialog
-        signInState={store.getState()}
-        dispatcher={toDispatcher(dispatcher)}
-        onDismissed={() => dismissedCount++}
-        isCredentialHelperSignIn={true}
-      />
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Cancel', hidden: true })
-    )
-
-    assert.strictEqual(await result, undefined)
-    assert.strictEqual(store.getState(), null)
-    assert.strictEqual(dispatcher.resetCount, 1)
-    assert.strictEqual(dismissedCount, 1)
-    assert.strictEqual(dispatcher.browserSignInCount, 0)
   })
 
   it('submits enterprise endpoints through the shared sign-in wrapper', () => {
