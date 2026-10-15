@@ -4,7 +4,10 @@ import { setImmediate } from 'node:timers/promises'
 import type { AppStore } from '../../../src/lib/stores/app-store'
 import { API, IAPIPullRequest } from '../../../src/lib/api'
 import { Account } from '../../../src/models/account'
-import { RepositoryWithGitHubRepository } from '../../../src/models/repository'
+import {
+  Repository,
+  RepositoryWithGitHubRepository,
+} from '../../../src/models/repository'
 import { createMockAPI, createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
@@ -116,6 +119,60 @@ describe('AppStore explicitly adding repositories', () => {
     await addRemote(repository, 'origin', apiRepository.clone_url)
     return repository
   }
+
+  describe('preserving repository state across account changes', () => {
+    async function setupDraft(t: TestContext) {
+      const repository = await setupRepository(t)
+      const added = await stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+      const gitHubRepository =
+        await stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+          account: alice,
+          owner: apiRepository.owner.login,
+          name: apiRepository.name,
+        })
+      const assigned = await stores.repositoriesStore.setGitHubRepository(
+        added,
+        gitHubRepository,
+        'alice'
+      )
+      await appStore._setCommitMessage(assigned, {
+        summary: 'Draft',
+        description: null,
+        timestamp: 1,
+      })
+      return assigned
+    }
+
+    function draftOf(repository: Repository) {
+      return stores.repositoryStateCache.get(repository).changesState
+        .commitMessage.summary
+    }
+
+    it('keeps the draft when the account changes', async t => {
+      const repository = await setupDraft(t)
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+      assert.notStrictEqual(updated.hash, repository.hash)
+      assert.strictEqual(draftOf(updated), 'Draft')
+    })
+
+    it('keeps the draft when refreshed metadata changes the repository', async t => {
+      const repository = await setupDraft(t)
+      t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({
+          fetchRepository: async () => apiRepository,
+          fetchProtectedBranches: async () => [],
+        })
+      )
+      const refreshed = await appStore[
+        'repositoryWithRefreshedGitHubRepository'
+      ](repository)
+      assert.notStrictEqual(refreshed.hash, repository.hash)
+      assert.strictEqual(draftOf(refreshed), 'Draft')
+    })
+  })
 
   it('adds a tutorial with scoped permissions without a post-add account rebind', async t => {
     const repository = await setupRepository(t)

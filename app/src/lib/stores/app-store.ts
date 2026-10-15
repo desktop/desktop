@@ -5027,7 +5027,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // the endpoint changed, the skeleton repository is better than nothing.
       if (endpoint !== repository.gitHubRepository?.endpoint) {
         const ghRepo = await repoStore.upsertGitHubRepositoryFromMatch(match)
-        return repoStore.setGitHubRepository(repository, ghRepo)
+        return this.setRefreshedGitHubRepository(repository, ghRepo)
       }
 
       return repository
@@ -5043,10 +5043,56 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepo,
       account.login
     )
-    const freshRepo = await repoStore.setGitHubRepository(repository, ghRepo)
+    const freshRepo = await this.setRefreshedGitHubRepository(
+      repository,
+      ghRepo
+    )
 
     await this.refreshBranchProtectionState(freshRepo)
     return freshRepo
+  }
+
+  /** Set refreshed GitHub metadata, keeping the repository's in-memory state. */
+  private async setRefreshedGitHubRepository(
+    repository: Repository,
+    gitHubRepository: GitHubRepository
+  ) {
+    const updated = await this.repositoriesStore.setGitHubRepository(
+      repository,
+      gitHubRepository
+    )
+    this.carryOverRepositoryState(repository, updated)
+    return updated
+  }
+
+  /**
+   * Move in-memory state (such as a commit message draft) to the repository's
+   * new identity after its account or GitHub metadata changed its hash.
+   *
+   * This runs before the update is emitted, so the new identity normally has
+   * no state yet. If it does, it's already in use and is left alone. The old
+   * GitStore is kept, since an operation that prompted for the account may
+   * still be using it.
+   */
+  private carryOverRepositoryState(from: Repository, to: Repository) {
+    if (
+      from.id !== to.id ||
+      this.repositoryStateCache.has(to) ||
+      this.gitStoreCache.has(to)
+    ) {
+      return
+    }
+    this.repositoryStateCache.transferState(from, to)
+
+    // The draft lives in the GitStore, which is also keyed by hash, and its
+    // updates overwrite the draft in the repository state.
+    if (this.gitStoreCache.has(from)) {
+      const previous = this.gitStoreCache.get(from)
+      const next = this.gitStoreCache.get(to)
+      next.setShowCoAuthoredBy(previous.showCoAuthoredBy)
+      next.setCoAuthors(previous.coAuthors)
+      next.setCommitMessage(previous.commitMessage)
+    }
   }
 
   /**
@@ -8373,6 +8419,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       current,
       login
     )
+    this.carryOverRepositoryState(current, updated)
     this.repositories = await this.repositoriesStore.getAll()
     this.clearBranchProtectionState(updated)
     this.updateRepositorySelectionAfterRepositoriesChanged()

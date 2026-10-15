@@ -32,6 +32,11 @@ export class RepositoryStateCache {
 
   public constructor(private readonly statsStore: IStatsStore) {}
 
+  /** Whether any state has been created for the repository. */
+  public has(repository: Repository): boolean {
+    return this.repositoryState.has(repository.hash)
+  }
+
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
     const existing = this.repositoryState.get(repository.hash)
