@@ -74,7 +74,6 @@ function selectedLogin(container: HTMLElement) {
 
 /** Pick an account in the account picker, then wait for it to be shown. */
 async function selectAccount(container: HTMLElement, account: Account) {
-  assert.strictEqual(selectedLogin(container), '@alice')
   fireEvent.click(screen.getByRole('button', { name: 'Account', hidden: true }))
   const item = await waitFor(() =>
     screen.getByRole('option', {
@@ -165,9 +164,12 @@ describe('account pickers with multiple accounts on one endpoint', () => {
       />
     )
 
-    const selectedTab = view.container.querySelector('.tab-bar-item.selected')
-    assert.strictEqual(selectedTab?.textContent, 'GitHub Enterprise')
+    assert.strictEqual(view.container.querySelector('.tab-bar'), null)
     assert.strictEqual(selectedLogin(view.container), '@bob')
+    assert.strictEqual(
+      view.container.querySelector('.account-picker .endpoint')?.textContent,
+      'ghe.example.com'
+    )
   })
 
   it('clones with the selected account', async t => {
@@ -203,6 +205,7 @@ describe('account pickers with multiple accounts on one endpoint', () => {
       />
     )
 
+    assert.strictEqual(selectedLogin(view.container), '@alice')
     await selectAccount(view.container, bob)
     const item = await waitFor(() =>
       screen.getByRole('option', { name: /bob\/repo/, hidden: true })

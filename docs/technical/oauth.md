@@ -85,8 +85,11 @@ signed in. It shouldn't be passed merely because an account is available.
   repository's metadata on the next refresh. Desktop never falls back to
   another account on the same endpoint, so the clone fails, and nothing is
   assigned, if the selected account has lost access. Publishing likewise uses
-  the account selected in its picker, which starts out on the repository's
-  assigned account when that account is signed in.
+  the account selected in its single picker, which lists accounts from every
+  host. It starts out on the repository's assigned account when that account
+  is signed in, or on the only signed-in account; otherwise the user must
+  choose one before publishing. Signing in from the Publish dialog selects the
+  new account, and a successful publish assigns the selected account.
 - **Account-dependent caches (included):** isolate repository permissions, pull request
   metadata, and check subscriptions between assigned identities.
 - **SSH identity selection (deferred):** SSH continues to use the user's SSH
