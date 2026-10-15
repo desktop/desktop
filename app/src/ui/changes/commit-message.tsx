@@ -2122,7 +2122,14 @@ export class CommitMessage extends React.Component<
             filesSelectedCount={filesSelected.length}
             isWorking={isCreatingCopilotAssistedCommits === true}
             allowEmptyCommit={allowEmptyCommit}
-          />
+          >
+            <div
+              className="assisted-commit-options"
+              ref={this.assistedOptionsRef}
+            >
+              {this.renderCommitOptionsButton()}
+            </div>
+          </CopilotCommitPanel>
         </div>
       </CSSTransition>
     )
@@ -2242,14 +2249,6 @@ export class CommitMessage extends React.Component<
           </div>
           {this.renderCopilotCommitPanel(isCopilotCommitMode)}
         </div>
-        {isCopilotCommitMode && (
-          <div
-            className="assisted-commit-options"
-            ref={this.assistedOptionsRef}
-          >
-            {this.renderCommitOptionsButton()}
-          </div>
-        )}
         {this.renderCoAuthorInput()}
 
         {this.renderAssistedAuthorRuleWarning()}
