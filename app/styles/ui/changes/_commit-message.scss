@@ -142,9 +142,10 @@
     width: 298px;
   }
 
-  &.with-co-authors .description-focus-container {
-    .action-bar,
-    & {
+  &.with-co-authors {
+    .description-focus-container .action-bar,
+    .description-focus-container,
+    .copilot-commit-panel {
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }

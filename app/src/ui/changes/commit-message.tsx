@@ -1070,7 +1070,11 @@ export class CommitMessage extends React.Component<
   }
 
   private get isCoAuthorInputVisible() {
-    return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
+    return (
+      this.props.showCoAuthoredBy &&
+      this.isCoAuthorInputEnabled &&
+      this.state.coAuthorAutocompletionProvider !== null
+    )
   }
 
   private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) => {
