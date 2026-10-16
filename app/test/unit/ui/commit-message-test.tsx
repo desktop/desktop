@@ -1871,6 +1871,55 @@ describe('CommitMessage', () => {
       )
     })
 
+    it('uses joined form styling only while the co-author input is actually rendered', () => {
+      const repository = createMountableRepository()
+      assert.ok(repository.gitHubRepository)
+      const provider = new CoAuthorAutocompletionProvider(
+        createTestGitHubUserStore(),
+        repository.gitHubRepository
+      )
+      const { view, rerender } = renderWithCommitModes({
+        repository,
+        commitMode: 'copilot',
+        autocompletionProviders: [provider],
+      })
+      const form = view.container.querySelector('.commit-message-component')
+      assert.ok(form)
+      assert.strictEqual(form.classList.contains('with-co-authors'), false)
+      assert.strictEqual(
+        screen.queryByRole('combobox', { name: /Co-Authors/ }),
+        null
+      )
+
+      rerender({ showCoAuthoredBy: true })
+      assert.strictEqual(form.classList.contains('with-co-authors'), true)
+      assert.ok(screen.getByRole('combobox', { name: /Co-Authors/ }))
+
+      rerender({ showCoAuthoredBy: true, autocompletionProviders: [] })
+      assert.strictEqual(
+        screen.queryByRole('combobox', { name: /Co-Authors/ }),
+        null
+      )
+      assert.strictEqual(form.classList.contains('with-co-authors'), false)
+
+      rerender({ showCoAuthoredBy: false })
+      assert.strictEqual(form.classList.contains('with-co-authors'), false)
+      assert.strictEqual(
+        screen.queryByRole('combobox', { name: /Co-Authors/ }),
+        null
+      )
+
+      rerender({
+        showCoAuthoredBy: true,
+        repository: new Repository(repository.path, repository.id, null, false),
+      })
+      assert.strictEqual(form.classList.contains('with-co-authors'), false)
+      assert.strictEqual(
+        screen.queryByRole('combobox', { name: /Co-Authors/ }),
+        null
+      )
+    })
+
     it('keeps co-author editing reachable and includes trailers and options in assisted requests', () => {
       const repository = createMountableRepository()
       assert.ok(repository.gitHubRepository)
