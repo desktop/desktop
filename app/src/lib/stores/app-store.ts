@@ -756,6 +756,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
   private repositoryAccountPromptQueue: Promise<void> = Promise.resolve()
+
+  /**
+   * Callbacks for popups whose result someone is awaiting, keyed by popup id.
+   * Each runs once its popup leaves the stack, so a popup closed without
+   * completing (or evicted from the stack) doesn't leave its caller waiting.
+   */
+  private readonly popupRemovedCallbacks = new Map<number, () => void>()
   private readonly repositoryAccountPrompts = new Map<
     number,
     Promise<Account | undefined>
@@ -4505,7 +4512,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._closeFoldout(FoldoutType.AppMenu)
 
     this.popupManager.addPopup(popup)
+    this.notifyRemovedPopups()
     this.emitUpdate()
+  }
+
+  /**
+   * Show a popup and call `onRemoved` once it leaves the stack. If the popup
+   * can't be shown (one of the same type is already open) `onRemoved` is
+   * called right away.
+   */
+  private showPopupUntilRemoved(popup: Popup, onRemoved: () => void) {
+    this._closeFoldout(FoldoutType.AppMenu)
+
+    const added = this.popupManager.addPopup(popup)
+    if (added.id === undefined) {
+      onRemoved()
+      return
+    }
+
+    this.popupRemovedCallbacks.set(added.id, onRemoved)
+    this.notifyRemovedPopups()
+    this.emitUpdate()
+  }
+
+  private notifyRemovedPopups() {
+    if (this.popupRemovedCallbacks.size === 0) {
+      return
+    }
+
+    const ids = new Set(this.popupManager.allPopups.map(p => p.id))
+    for (const [id, onRemoved] of this.popupRemovedCallbacks) {
+      if (!ids.has(id)) {
+        this.popupRemovedCallbacks.delete(id)
+        onRemoved()
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4529,6 +4570,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.popupManager.removePopupByType(popupType)
     }
 
+    this.notifyRemovedPopups()
     this.emitUpdate()
   }
 
@@ -4539,6 +4581,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.popupManager.removePopupById(popupId)
+    this.notifyRemovedPopups()
     this.emitUpdate()
   }
 
@@ -5181,6 +5224,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _pushError(error: Error): Promise<void> {
     this.popupManager.addErrorPopup(error)
+    this.notifyRemovedPopups()
     this.emitUpdate()
 
     return Promise.resolve()
@@ -8549,14 +8593,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: RepositoryWithGitHubRepository,
     accounts?: ReadonlyArray<Account>
   ) {
-    return new Promise<Account | undefined>((resolve, reject) => {
-      this._showPopup({
-        type: PopupType.RepositoryAccount,
-        repository,
-        accounts,
-        onComplete: resolve,
-      }).catch(reject)
-    })
+    return new Promise<Account | undefined>(resolve =>
+      this.showPopupUntilRemoved(
+        {
+          type: PopupType.RepositoryAccount,
+          repository,
+          accounts,
+          onComplete: resolve,
+        },
+        () => resolve(undefined)
+      )
+    )
   }
 
   /**

@@ -7,6 +7,7 @@ import type { SignInResult } from '../../../src/lib/stores/sign-in-store'
 import { Account } from '../../../src/models/account'
 import { PopupType } from '../../../src/models/popup'
 import type { Popup } from '../../../src/models/popup'
+import { isRepositoryWithGitHubRepository } from '../../../src/models/repository'
 import { createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
@@ -100,6 +101,13 @@ describe('AppStore repository accounts', () => {
     mock.method(appStore, '_showPopup', async (popup: Popup) => {
       popups.push(popup)
     })
+    const popupManager = appStore['popupManager']
+    const addPopup = popupManager.addPopup.bind(popupManager)
+    mock.method(popupManager, 'addPopup', (popup: Popup) => {
+      const added = addPopup(popup)
+      popups.push(added)
+      return added
+    })
     mock.method(appStore, '_selectRepository', async () => null)
     await stores.accountsStore.getAll()
     await stores.accountsStore.addAccount(alice)
@@ -148,6 +156,7 @@ describe('AppStore repository accounts', () => {
       assert.fail('Expected account picker')
     }
     popup.onComplete(bob)
+    appStore._closePopup(PopupType.RepositoryAccount)
     assert.equal((await first)?.login, 'bob')
     assert.equal((await second)?.login, 'bob')
     assert.equal(
@@ -158,6 +167,49 @@ describe('AppStore repository accounts', () => {
       r => r.id === repository.id
     )
     assert.equal(persisted?.login, 'bob')
+  })
+
+  describe('when the account picker closes without completing', () => {
+    it('resolves the prompt when the picker is closed another way', async () => {
+      const repository = await addRepository('/closed-picker', null)
+      const prompt = appStore._ensureRepositoryAccount(repository)
+      await nextPopup(PopupType.RepositoryAccount)
+      appStore._closePopup()
+      assert.equal(await prompt, undefined)
+
+      const next = appStore._ensureRepositoryAccount(repository)
+      const popup = await nextPopup(PopupType.RepositoryAccount)
+      if (popup.type !== PopupType.RepositoryAccount) {
+        assert.fail('Expected account picker')
+      }
+      popup.onComplete(alice)
+      appStore._closePopup(PopupType.RepositoryAccount)
+      assert.equal((await next)?.login, 'alice')
+    })
+
+    it('resolves the prompt when the picker is already open', async () => {
+      const repository = await addRepository('/picker-open', null)
+      if (!isRepositoryWithGitHubRepository(repository)) {
+        assert.fail('Expected a GitHub repository')
+      }
+      const popupManager = appStore['popupManager']
+      const existing = popupManager.addPopup({
+        type: PopupType.RepositoryAccount,
+        repository,
+        onComplete: () => {},
+      })
+      try {
+        assert.equal(
+          await appStore._ensureRepositoryAccount(repository),
+          undefined
+        )
+      } finally {
+        if (existing.id !== undefined) {
+          appStore._closePopupById(existing.id)
+        }
+        popups.length = 0
+      }
+    })
   })
 
   describe('when no account is signed in for the endpoint', () => {
@@ -248,6 +300,7 @@ describe('AppStore repository accounts', () => {
     }
     assert.equal(popup.repository.login, 'missing')
     popup.onComplete(undefined)
+    appStore._closePopup(PopupType.RepositoryAccount)
     assert.equal(await result, undefined)
     assert.equal(
       (await stores.repositoriesStore.getAll()).find(
