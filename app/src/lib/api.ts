@@ -2429,9 +2429,11 @@ export function getOAuthAuthorizationURL(
       : oauthScopes
     ).join(' ')
   )
+  // Without a specific login, let the user pick which of their browser's
+  // GitHub sessions to sign in with rather than silently using the active one.
   const accountParameters =
     login === undefined
-      ? ''
+      ? '&prompt=select_account'
       : `&login=${encodeURIComponent(login)}&allow_signup=false`
 
   return new window.URL(
