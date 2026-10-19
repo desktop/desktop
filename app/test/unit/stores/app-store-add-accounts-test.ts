@@ -443,6 +443,55 @@ describe('AppStore explicitly adding repositories', () => {
     })
   })
 
+  describe('cloning a missing repository again', () => {
+    async function cloneAgain(t: TestContext, login: string | null) {
+      const { GitHubRepository } = await import(
+        '../../../src/models/github-repository'
+      )
+      const { Owner } = await import('../../../src/models/owner')
+      const missing = new Repository(
+        '/missing',
+        4242,
+        new GitHubRepository('repo', new Owner('owner', endpoint, -1), -1),
+        true,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        login
+      )
+      const previous = appStore['repositories']
+      appStore['repositories'] = [missing]
+      t.after(() => {
+        appStore['repositories'] = previous
+      })
+      const ensure = t.mock.method(
+        appStore,
+        '_ensureRepositoryAccount',
+        async () => alice
+      )
+      const clone = t.mock.method(appStore, '_clone', () => ({
+        promise: Promise.resolve(false),
+        repository: {},
+      }))
+      await appStore._cloneAgain('https://github.com/owner/repo', '/missing')
+      return { ensure, options: clone.mock.calls[0]?.arguments[2] }
+    }
+
+    it('clones with the assigned account without discovering another', async t => {
+      const { ensure, options } = await cloneAgain(t, 'alice')
+      assert.strictEqual(ensure.mock.callCount(), 1)
+      assert.deepStrictEqual(options, { account: { endpoint, login: 'alice' } })
+    })
+
+    it('discovers an account for an unassigned repository', async t => {
+      const { ensure, options } = await cloneAgain(t, null)
+      assert.strictEqual(ensure.mock.callCount(), 0)
+      assert.deepStrictEqual(options, {})
+    })
+  })
+
   for (const fork of [false, true]) {
     it(`uses the existing ${
       fork ? 'fork parent' : 'repository'

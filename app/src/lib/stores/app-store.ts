@@ -8890,7 +8890,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {
-    const { promise, repository } = this._clone(url, path)
+    // Clone with the repository's assigned account rather than discovering
+    // one, and never change the assignment here. A signed-out assigned
+    // account goes through the usual prompt first.
+    const existing = this.repositories.find(r => r.path === path)
+    const assigned =
+      existing !== undefined &&
+      existing.login !== null &&
+      isRepositoryWithGitHubRepository(existing)
+        ? await this._ensureRepositoryAccount(existing)
+        : null
+    if (assigned === undefined) {
+      return
+    }
+
+    const { promise, repository } = this._clone(
+      url,
+      path,
+      assigned === null
+        ? {}
+        : { account: { endpoint: assigned.endpoint, login: assigned.login } }
+    )
     await this._selectRepository(repository)
     const success = await promise
     this.cloningRepositoriesStore.takeCompletedAssignment(path)
