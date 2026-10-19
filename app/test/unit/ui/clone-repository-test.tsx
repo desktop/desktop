@@ -431,6 +431,18 @@ describe('CloneRepository GitHub tab account changes', () => {
       )
     )
 
+  it('leaves signing in to other accounts to Settings', async t => {
+    const { view } = await renderGitHubTab(t, [alice, bob])
+    assert.ok(view.container.querySelector('.account-picker'))
+    assert.strictEqual(
+      screen.queryByRole('button', {
+        name: /sign in to another account/i,
+        hidden: true,
+      }),
+      null
+    )
+  })
+
   it('clears the selection when the selected account is signed out', async t => {
     const { view, cloneButton, rerender } = await renderGitHubTab(t, [
       alice,

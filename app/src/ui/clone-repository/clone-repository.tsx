@@ -28,7 +28,6 @@ import { readdir } from 'fs/promises'
 import { isTopMostDialog } from '../dialog/is-top-most'
 import memoizeOne from 'memoize-one'
 import { groupAccountsByHost } from '../account-picker'
-import { showContextualMenu } from '../../lib/menu-item'
 import { SignInResult } from '../../lib/stores/sign-in-store'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
@@ -392,7 +391,6 @@ export class CloneRepository extends React.Component<
             onFilterTextChanged={this.onFilterTextChanged}
             onItemClicked={this.onItemClicked}
             onSelectedAccountChanged={this.onSelectedAccountChanged}
-            onSignInToAnotherAccount={this.onSignInToAnotherAccount}
           />
         )
       }
@@ -541,13 +539,6 @@ export class CloneRepository extends React.Component<
         </Row>
       </>
     )
-  }
-
-  private onSignInToAnotherAccount = () => {
-    showContextualMenu([
-      { label: 'GitHub.com', action: this.signInDotCom },
-      { label: 'GitHub Enterprise', action: this.signInEnterprise },
-    ])
   }
 
   /** Select the account the user signed in to from this dialog. */

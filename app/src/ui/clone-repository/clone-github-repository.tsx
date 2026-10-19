@@ -5,7 +5,7 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
-import { LinkButton } from '../lib/link-button'
+
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
@@ -84,9 +84,6 @@ interface ICloneGithubRepositoryProps {
   ) => void
 
   readonly onSelectedAccountChanged: (account: Account) => void
-
-  /** Called when the user wants to sign in to another account. */
-  readonly onSignInToAnotherAccount: () => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepositoryProps> {
@@ -106,13 +103,6 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
     return (
       <DialogContent className="clone-github-repository-content">
         <Row className="account-picker-row">{this.renderAccountPicker()}</Row>
-        <Row className="sign-in-to-another-account">
-          <LinkButton onClick={this.props.onSignInToAnotherAccount}>
-            {__DARWIN__
-              ? 'Sign In to Another Account…'
-              : 'Sign in to another account…'}
-          </LinkButton>
-        </Row>
         <Row>
           <CloneableRepositoryFilterList
             account={this.props.account}
