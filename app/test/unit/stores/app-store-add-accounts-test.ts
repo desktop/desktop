@@ -160,6 +160,23 @@ describe('AppStore explicitly adding repositories', () => {
       assert.strictEqual(draftOf(updated), 'Draft')
     })
 
+    it('keeps the latest draft when switching back to a previous account', async t => {
+      const alices = await setupDraft(t)
+      const bobs = await appStore._updateRepositoryAccount(alices, 'bob')
+      await appStore._setCommitMessage(bobs, {
+        summary: 'Edited',
+        description: null,
+        timestamp: 2,
+      })
+      const back = await appStore._updateRepositoryAccount(bobs, 'alice')
+      assert.strictEqual(back.hash, alices.hash)
+      assert.strictEqual(draftOf(back), 'Edited')
+      assert.strictEqual(
+        appStore['gitStoreCache'].get(back).commitMessage.summary,
+        'Edited'
+      )
+    })
+
     it('keeps the draft when refreshed metadata changes the repository', async t => {
       const repository = await setupDraft(t)
       t.mock.method(API, 'fromAccount', () =>
@@ -311,6 +328,40 @@ describe('AppStore explicitly adding repositories', () => {
     )
   })
 
+  it('skips accounts whose access check fails when adding a repository', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          if (account.login === alice.login) {
+            throw new Error('Resource protected by organization SAML')
+          }
+          return apiRepository
+        },
+      })
+    )
+    t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
+      assert.fail('Only one account could be checked')
+    )
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added[0].login, 'bob')
+  })
+
+  it('adds the repository unassigned when no account can be checked', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          throw new Error('Network error')
+        },
+      })
+    )
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added.length, 1)
+    assert.strictEqual(added[0].login, null)
+    assert.strictEqual(added[0].gitHubRepository?.endpoint, endpoint)
+  })
+
   it('does not probe or reassign an existing explicitly unassigned repository', async t => {
     const repository = await setupRepository(t)
     const existing = await stores.repositoriesStore.addRepository(
@@ -406,6 +457,118 @@ describe('AppStore explicitly adding repositories', () => {
 
     it('assigns nothing when the selected account is no longer signed in', async t => {
       assert.strictEqual(await chooseForClone(t, 'carol'), null)
+    })
+  })
+
+  it('assigns a published repository even if it was associated meanwhile', async t => {
+    const { setupEmptyRepository } = await import('../../helpers/repositories')
+    const local = await setupEmptyRepository(t)
+    const stale = await stores.repositoriesStore.addRepository(
+      local.path,
+      local.resolvedGitDir
+    )
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        createRepository: async () => {
+          const anonymous =
+            await stores.repositoriesStore.upsertGitHubRepository(
+              endpoint,
+              apiRepository
+            )
+          await stores.repositoriesStore.setGitHubRepository(stale, anonymous)
+          return apiRepository
+        },
+        fetchRepository: async () => apiRepository,
+        fetchProtectedBranches: async () => [],
+      })
+    )
+    const published = await appStore._publishRepository(
+      stale,
+      'repo',
+      '',
+      false,
+      bob,
+      null
+    )
+    assert.strictEqual(published.login, 'bob')
+  })
+
+  describe('associating a repository when Git asks for credentials', () => {
+    async function addUnassociated(t: TestContext) {
+      const repository = await setupRepository(t)
+      return stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+    }
+
+    it('associates the default remote with the requested endpoint', async t => {
+      const added = await addUnassociated(t)
+      const updated = await appStore._associateRepositoryWithEndpoint(
+        added,
+        endpoint
+      )
+      assert.strictEqual(updated.login, null)
+      assert.strictEqual(updated.gitHubRepository?.endpoint, endpoint)
+      assert.strictEqual(updated.gitHubRepository?.fullName, 'owner/repo')
+    })
+
+    it('leaves the repository alone for another endpoint', async t => {
+      const added = await addUnassociated(t)
+      const updated = await appStore._associateRepositoryWithEndpoint(
+        added,
+        'https://enterprise.example.com/api/v3'
+      )
+      assert.strictEqual(updated.gitHubRepository, null)
+    })
+  })
+
+  describe('cloning a missing repository again', () => {
+    async function cloneAgain(t: TestContext, login: string | null) {
+      const { GitHubRepository } = await import(
+        '../../../src/models/github-repository'
+      )
+      const { Owner } = await import('../../../src/models/owner')
+      const missing = new Repository(
+        '/missing',
+        4242,
+        new GitHubRepository('repo', new Owner('owner', endpoint, -1), -1),
+        true,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        login
+      )
+      const previous = appStore['repositories']
+      appStore['repositories'] = [missing]
+      t.after(() => {
+        appStore['repositories'] = previous
+      })
+      const ensure = t.mock.method(
+        appStore,
+        '_ensureRepositoryAccount',
+        async () => alice
+      )
+      const clone = t.mock.method(appStore, '_clone', () => ({
+        promise: Promise.resolve(false),
+        repository: {},
+      }))
+      await appStore._cloneAgain('https://github.com/owner/repo', '/missing')
+      return { ensure, options: clone.mock.calls[0]?.arguments[2] }
+    }
+
+    it('clones with the assigned account without discovering another', async t => {
+      const { ensure, options } = await cloneAgain(t, 'alice')
+      assert.strictEqual(ensure.mock.callCount(), 1)
+      assert.deepStrictEqual(options, { account: { endpoint, login: 'alice' } })
+    })
+
+    it('discovers an account for an unassigned repository', async t => {
+      const { ensure, options } = await cloneAgain(t, null)
+      assert.strictEqual(ensure.mock.callCount(), 0)
+      assert.deepStrictEqual(options, {})
     })
   })
 

@@ -142,7 +142,6 @@ import {
   getAPIEndpoint,
   getDotComAPIEndpoint,
   getHTMLURL,
-  isGitHubHost,
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
@@ -759,6 +758,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
   private repositoryAccountPromptQueue: Promise<void> = Promise.resolve()
+
+  /**
+   * Callbacks for popups whose result someone is awaiting, keyed by popup id.
+   * Each runs once its popup leaves the stack, so a popup closed without
+   * completing (or evicted from the stack) doesn't leave its caller waiting.
+   */
+  private readonly popupRemovedCallbacks = new Map<number, () => void>()
   private readonly repositoryAccountPrompts = new Map<
     number,
     Promise<Account | undefined>
@@ -4508,7 +4514,41 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._closeFoldout(FoldoutType.AppMenu)
 
     this.popupManager.addPopup(popup)
+    this.notifyRemovedPopups()
     this.emitUpdate()
+  }
+
+  /**
+   * Show a popup and call `onRemoved` once it leaves the stack. If the popup
+   * can't be shown (one of the same type is already open) `onRemoved` is
+   * called right away.
+   */
+  private showPopupUntilRemoved(popup: Popup, onRemoved: () => void) {
+    this._closeFoldout(FoldoutType.AppMenu)
+
+    const added = this.popupManager.addPopup(popup)
+    if (added.id === undefined) {
+      onRemoved()
+      return
+    }
+
+    this.popupRemovedCallbacks.set(added.id, onRemoved)
+    this.notifyRemovedPopups()
+    this.emitUpdate()
+  }
+
+  private notifyRemovedPopups() {
+    if (this.popupRemovedCallbacks.size === 0) {
+      return
+    }
+
+    const ids = new Set(this.popupManager.allPopups.map(p => p.id))
+    for (const [id, onRemoved] of this.popupRemovedCallbacks) {
+      if (!ids.has(id)) {
+        this.popupRemovedCallbacks.delete(id)
+        onRemoved()
+      }
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4532,6 +4572,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.popupManager.removePopupByType(popupType)
     }
 
+    this.notifyRemovedPopups()
     this.emitUpdate()
   }
 
@@ -4542,6 +4583,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.popupManager.removePopupById(popupId)
+    this.notifyRemovedPopups()
     this.emitUpdate()
   }
 
@@ -5014,8 +5056,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           isGHE(origin) ||
           this.accounts.some(
             a => new URL(getHTMLURL(a.endpoint)).host === parsed.hostname
-          ) ||
-          (await isGitHubHost(origin)))
+          ))
       ) {
         repository = await repoStore.setGitHubRepository(
           repository,
@@ -5095,17 +5136,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Move in-memory state (such as a commit message draft) to the repository's
    * new identity after its account or GitHub metadata changed its hash.
    *
-   * This runs before the update is emitted, so the new identity normally has
-   * no state yet. If it does, it's already in use and is left alone. The old
+   * The new identity may already have state from when it was last used, for
+   * example when switching accounts back and forth. That state is stale, so
+   * it's overwritten with the state of the identity being left. The old
    * GitStore is kept, since an operation that prompted for the account may
    * still be using it.
    */
   private carryOverRepositoryState(from: Repository, to: Repository) {
-    if (
-      from.id !== to.id ||
-      this.repositoryStateCache.has(to) ||
-      this.gitStoreCache.has(to)
-    ) {
+    if (from.id !== to.id) {
       return
     }
     this.repositoryStateCache.transferState(from, to)
@@ -5188,6 +5226,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _pushError(error: Error): Promise<void> {
     this.popupManager.addErrorPopup(error)
+    this.notifyRemovedPopups()
     this.emitUpdate()
 
     return Promise.resolve()
@@ -5861,8 +5900,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         apiRepository,
         account.login
       )
+    // Adding the remote may have associated the repository anonymously in
+    // the meantime, and setGitHubRepository won't replace an association
+    // newer than the one it's given.
     repository = await this.repositoriesStore.setGitHubRepository(
-      repository,
+      await this._getCurrentRepository(repository),
       gitHubRepository,
       account.login
     )
@@ -5885,6 +5927,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
+  }
+
+  /**
+   * Give a repository without a GitHub association an anonymous one for the
+   * endpoint Git is asking credentials for, if its default remote is on that
+   * endpoint.
+   *
+   * Selecting and refreshing a repository only does this for known GitHub
+   * hosts. Other GitHub Enterprise Server hosts are recognized when Git asks
+   * for credentials, which is also when a remote added outside Desktop is
+   * first noticed.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _associateRepositoryWithEndpoint(
+    repository: Repository,
+    endpoint: string
+  ): Promise<Repository> {
+    const current = (await this.repositoriesStore.getAll()).find(
+      r => r.id === repository.id
+    )
+    if (current === undefined || current.gitHubRepository !== null) {
+      return current ?? repository
+    }
+    const gitStore = this.gitStoreCache.get(current)
+    await gitStore.loadRemotes()
+    const remote = gitStore.defaultRemote
+    const parsed = remote === null ? null : parseRemote(remote.url)
+    if (
+      parsed === null ||
+      getAPIEndpoint(`https://${parsed.hostname}`) !== endpoint
+    ) {
+      return current
+    }
+    return this.setRefreshedGitHubRepository(
+      current,
+      await this.repositoriesStore.upsertGitHubRepositoryFromMatch(
+        toAnonymousMatch(endpoint, parsed.owner, parsed.name)
+      )
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -8511,14 +8593,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: RepositoryWithGitHubRepository,
     accounts?: ReadonlyArray<Account>
   ) {
-    return new Promise<Account | undefined>((resolve, reject) => {
-      this._showPopup({
-        type: PopupType.RepositoryAccount,
-        repository,
-        accounts,
-        onComplete: resolve,
-      }).catch(reject)
-    })
+    return new Promise<Account | undefined>(resolve =>
+      this.showPopupUntilRemoved(
+        {
+          type: PopupType.RepositoryAccount,
+          repository,
+          accounts,
+          onComplete: resolve,
+        },
+        () => resolve(undefined)
+      )
+    )
   }
 
   /**
@@ -8754,7 +8839,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 validatedPath,
                 (repository, candidates) =>
                   this._chooseRepositoryAccount(repository, candidates)
-              )
+              ).catch(e => {
+                // Add the repository unassigned rather than leaving it
+                // half-added.
+                this.emitError(e)
+                return null
+              })
         let refreshedRepo = addedRepo
         if (assignment != null) {
           const gitHubRepository = isAccessibleRepository(assignment)
@@ -8883,7 +8973,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _cloneAgain(url: string, path: string): Promise<void> {
-    const { promise, repository } = this._clone(url, path)
+    // Clone with the repository's assigned account rather than discovering
+    // one, and never change the assignment here. A signed-out assigned
+    // account goes through the usual prompt first.
+    const existing = this.repositories.find(r => r.path === path)
+    const assigned =
+      existing !== undefined &&
+      existing.login !== null &&
+      isRepositoryWithGitHubRepository(existing)
+        ? await this._ensureRepositoryAccount(existing)
+        : null
+    if (assigned === undefined) {
+      return
+    }
+
+    const { promise, repository } = this._clone(
+      url,
+      path,
+      assigned === null
+        ? {}
+        : { account: { endpoint: assigned.endpoint, login: assigned.login } }
+    )
     await this._selectRepository(repository)
     const success = await promise
     this.cloningRepositoriesStore.takeCompletedAssignment(path)
@@ -9114,7 +9224,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const account = await this._ensureRepositoryAccount(repository)
       if (account !== undefined) {
         const current = await this._getCurrentRepository(repository)
-        if (!isRepositoryWithGitHubRepository(current)) {
+        // The repository may have been reassigned while we were prompting.
+        if (
+          !isRepositoryWithGitHubRepository(current) ||
+          current.login === null ||
+          !isSameAccount(account, {
+            endpoint: current.gitHubRepository.endpoint,
+            login: current.login,
+          })
+        ) {
           return
         }
         await this.pullRequestCoordinator.refreshPullRequests(current, account)

@@ -72,6 +72,10 @@ describe('repository-aware credential trampoline', () => {
   const prompt = mock.fn(
     async (_repository: Repository): Promise<Account | undefined> => undefined
   )
+  const associate = mock.fn(
+    async (repository: Repository, _endpoint: string): Promise<Repository> =>
+      repository
+  )
 
   before(async () => {
     const environment = await import(
@@ -87,7 +91,10 @@ describe('repository-aware credential trampoline', () => {
     })
     mock.module('../../src/lib/trampoline/trampoline-ui-helper', {
       namedExports: {
-        trampolineUIHelper: { promptForRepositoryAccount: prompt },
+        trampolineUIHelper: {
+          promptForRepositoryAccount: prompt,
+          associateRepositoryWithEndpoint: associate,
+        },
       },
     })
     createHandler = (
@@ -173,6 +180,33 @@ describe('repository-aware credential trampoline', () => {
     )
     assert.match((await handler(command())) ?? '', /bob-token/)
     assert.equal(prompt.mock.calls.at(-1)?.arguments[0].login, null)
+  })
+
+  it('associates a repository whose GitHub remote was not recognized yet', async () => {
+    const unrecognized = new Repository('/repo', 1, null, false)
+    associate.mock.mockImplementationOnce(async () => repository(null))
+    prompt.mock.mockImplementationOnce(async () => bob)
+    const handler = createHandler(
+      new TestAccountsStore([alice, bob]),
+      new TestRepositoriesStore([unrecognized])
+    )
+    assert.match((await handler(command())) ?? '', /bob-token/)
+    assert.equal(associate.mock.calls.at(-1)?.arguments[0], unrecognized)
+    assert.equal(associate.mock.calls.at(-1)?.arguments[1], endpoint)
+  })
+
+  it('does not associate a repository with a host that is not GitHub', async () => {
+    const count = associate.mock.callCount()
+    const handler = createHandler(
+      new TestAccountsStore([alice]),
+      new TestRepositoriesStore([new Repository('/repo', 1, null, false)])
+    )
+    await handler({
+      ...command('gitlab.example.com'),
+      stdin:
+        'protocol=https\nhost=gitlab.example.com\nwwwauth[]=Basic realm="GitLab"\n\n',
+    })
+    assert.equal(associate.mock.callCount(), count)
   })
 
   it('preserves a missing assignment and prompts for that login', async () => {

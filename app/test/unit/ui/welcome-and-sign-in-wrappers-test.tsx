@@ -2,11 +2,9 @@ import assert from 'node:assert'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as React from 'react'
 
-import { Account } from '../../../src/models/account'
 import type {
   IAuthenticationState,
   IEndpointEntryState,
-  IExistingAccountWarning,
 } from '../../../src/lib/stores/sign-in-store'
 import {
   SignInStep,
@@ -88,25 +86,6 @@ function createConfirmationState(): IAuthenticationState {
     kind: SignInStep.Authentication,
     endpoint: 'https://enterprise.example.com/api/v3',
     isUnrecognizedEnterpriseServer: true,
-    error: null,
-    loading: false,
-    resultCallback: noopResultCallback,
-  }
-}
-
-function createExistingAccountWarningState(): IExistingAccountWarning {
-  return {
-    kind: SignInStep.ExistingAccountWarning,
-    endpoint: 'https://api.github.com',
-    existingAccount: new Account(
-      'mona',
-      'https://api.github.com',
-      'token',
-      [],
-      '',
-      1,
-      'Mona Lisa'
-    ),
     error: null,
     loading: false,
     resultCallback: noopResultCallback,
@@ -291,20 +270,16 @@ describe('welcome and sign-in wrappers', () => {
     assert.ok(screen.getByRole('button', { name: 'Cancel' }))
   })
 
-  it('renders warning and browser-authentication states in the shared sign-in wrapper', () => {
+  it('renders browser-authentication and success states in the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
     const view = render(
       <SignIn
-        signInState={createExistingAccountWarningState()}
+        signInState={createAuthenticationState('https://api.github.com')}
         dispatcher={toDispatcher(dispatcher)}
       >
         <button type="button">Cancel</button>
       </SignIn>
     )
-
-    assert.ok(screen.getByText("You're already signed in to", { exact: false }))
-    assert.ok(screen.getByText('github.com', { exact: false }))
-    assert.ok(screen.getByText('mona'))
 
     const browserLink = screen.getByRole('link', {
       name: 'Sign in using your browser',
