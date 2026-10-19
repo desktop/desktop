@@ -84,6 +84,9 @@ interface IRepositoriesListProps {
     login: string
   ) => void
 
+  /** Called when the repository's settings should be shown. */
+  readonly onShowRepositorySettings: (repository: Repository) => void
+
   readonly dispatcher: Dispatcher
 }
 
@@ -306,6 +309,7 @@ export class RepositoriesList extends React.Component<
         this.props.askForConfirmationOnRemoveRepository,
       accounts: this.props.accounts,
       onChangeRepositoryAccount: this.props.onChangeRepositoryAccount,
+      onShowRepositorySettings: this.props.onShowRepositorySettings,
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
