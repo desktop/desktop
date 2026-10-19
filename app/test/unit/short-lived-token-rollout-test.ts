@@ -152,31 +152,42 @@ describe('short-lived token rollout', () => {
   })
 
   for (const stalledPhase of ['request', 'body']) {
-    it(`aborts and falls back after five seconds during ${stalledPhase}`, async t => {
-      t.mock.timers.enable({ apis: ['setTimeout'] })
-      let signal: AbortSignal | null | undefined
+    it(`falls back when the five-second timeout aborts the ${stalledPhase}`, async t => {
+      const controller = new AbortController()
+      const timeout = t.mock.method(AbortSignal, 'timeout', (delay: number) => {
+        assert.strictEqual(delay, 5_000)
+        return controller.signal
+      })
       t.mock.method(
         globalThis,
         'fetch',
         async (_input: RequestInfo | URL, init?: RequestInit) => {
-          signal = init?.signal
+          const signal = init?.signal
+          assert.strictEqual(signal, controller.signal)
+          assert.ok(signal)
+          const aborted = new Promise<never>((_, reject) =>
+            signal.addEventListener('abort', () => reject(signal.reason), {
+              once: true,
+            })
+          )
           if (stalledPhase === 'request') {
-            return new Promise<Response>(() => {})
+            return aborted
           }
           const response = Response.json({ enabled: true })
-          t.mock.method(response, 'json', () => new Promise<unknown>(() => {}))
+          t.mock.method(response, 'json', () => aborted)
           return response
         }
       )
       const warn = t.mock.method(log, 'warn')
       const pending = checkRollout()
       await setImmediate()
-      assert.ok(signal)
-      t.mock.timers.tick(4_999)
-      assert.strictEqual(signal.aborted, false)
-      t.mock.timers.tick(1)
+      assert.strictEqual(timeout.mock.callCount(), 1)
+      assert.strictEqual(warn.mock.callCount(), 0)
+      controller.abort(
+        new DOMException('The operation timed out.', 'TimeoutError')
+      )
       assert.strictEqual(await pending, false)
-      assert.strictEqual(signal.aborted, true)
+      assert.strictEqual(controller.signal.aborted, true)
       assert.strictEqual(warn.mock.callCount(), 1)
     })
   }
