@@ -460,6 +460,39 @@ describe('AppStore explicitly adding repositories', () => {
     })
   })
 
+  it('assigns a published repository even if it was associated meanwhile', async t => {
+    const { setupEmptyRepository } = await import('../../helpers/repositories')
+    const local = await setupEmptyRepository(t)
+    const stale = await stores.repositoriesStore.addRepository(
+      local.path,
+      local.resolvedGitDir
+    )
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        createRepository: async () => {
+          const anonymous =
+            await stores.repositoriesStore.upsertGitHubRepository(
+              endpoint,
+              apiRepository
+            )
+          await stores.repositoriesStore.setGitHubRepository(stale, anonymous)
+          return apiRepository
+        },
+        fetchRepository: async () => apiRepository,
+        fetchProtectedBranches: async () => [],
+      })
+    )
+    const published = await appStore._publishRepository(
+      stale,
+      'repo',
+      '',
+      false,
+      bob,
+      null
+    )
+    assert.strictEqual(published.login, 'bob')
+  })
+
   describe('associating a repository when Git asks for credentials', () => {
     async function addUnassociated(t: TestContext) {
       const repository = await setupRepository(t)

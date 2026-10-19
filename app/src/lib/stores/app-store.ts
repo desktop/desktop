@@ -5899,8 +5899,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         apiRepository,
         account.login
       )
+    // Adding the remote may have associated the repository anonymously in
+    // the meantime, and setGitHubRepository won't replace an association
+    // newer than the one it's given.
     repository = await this.repositoriesStore.setGitHubRepository(
-      repository,
+      await this._getCurrentRepository(repository),
       gitHubRepository,
       account.login
     )
