@@ -2348,7 +2348,7 @@ export function getHTMLURL(endpoint: string): string {
     return 'https://github.com'
   } else {
     if (isGHE(endpoint)) {
-      const url = new window.URL(endpoint)
+      const url = new URL.URL(endpoint)
 
       url.pathname = '/'
 
@@ -2361,7 +2361,7 @@ export function getHTMLURL(endpoint: string): string {
 
     // Use the origin rather than the hostname so that GitHub Enterprise
     // Server instances running on a non-default port retain their port.
-    return new window.URL(endpoint).origin
+    return new URL.URL(endpoint).origin
   }
 }
 

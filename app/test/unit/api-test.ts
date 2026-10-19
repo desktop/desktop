@@ -101,6 +101,26 @@ describe('API', () => {
         'https://my-company.ghe.com:8443/'
       )
     })
+
+    it('works when window is not defined (main process)', t => {
+      const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'window')
+      Reflect.deleteProperty(globalThis, 'window')
+      t.after(() => {
+        if (descriptor !== undefined) {
+          Object.defineProperty(globalThis, 'window', descriptor)
+        }
+      })
+
+      assert.equal(typeof window, 'undefined')
+      assert.equal(
+        getHTMLURL('https://ghe.example.com:8443/api/v3'),
+        'https://ghe.example.com:8443'
+      )
+      assert.equal(
+        getHTMLURL('https://api.my-company.ghe.com/'),
+        'https://my-company.ghe.com/'
+      )
+    })
   })
 
   describe('getNextPagePathWithIncreasingPageSize', () => {
