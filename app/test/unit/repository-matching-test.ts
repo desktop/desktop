@@ -169,7 +169,46 @@ describe('choosing an account for a newly added or cloned remote', () => {
     )
   })
 
-  it('surfaces unexpected probe errors rather than treating them as no access', async t => {
+  it('leaves out accounts whose access check fails and uses the rest', async t => {
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          if (account === alice) {
+            throw new Error('Probe failed')
+          }
+          return apiRepository
+        },
+      })
+    )
+    const result = await chooseAccountForRemoteRepository(
+      [alice, bob],
+      remote,
+      '/repo',
+      async () => assert.fail('Only one account could be checked')
+    )
+    assert.strictEqual(result?.account, bob)
+  })
+
+  it('treats a failed access check as unassigned rather than failing', async t => {
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          throw new Error('Probe failed')
+        },
+      })
+    )
+    assert.strictEqual(
+      await chooseAccountForRemoteRepository(
+        [alice, bob],
+        remote,
+        '/repo',
+        async () => assert.fail('No account could be checked')
+      ),
+      null
+    )
+  })
+
+  it('surfaces unexpected probe errors from the low-level probe', async t => {
     t.mock.method(API, 'fromAccount', () =>
       createMockAPI({
         fetchRepositoryIfAccessible: async () => {
@@ -178,12 +217,7 @@ describe('choosing an account for a newly added or cloned remote', () => {
       })
     )
     await assert.rejects(
-      chooseAccountForRemoteRepository(
-        [alice],
-        remote,
-        '/repo',
-        async () => undefined
-      ),
+      probeRemoteRepositoryAccounts([alice], remote),
       /Probe failed/
     )
   })

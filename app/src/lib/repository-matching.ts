@@ -46,25 +46,34 @@ export async function probeRemoteRepositoryAccounts(
   remote: string
 ): Promise<ReadonlyArray<IAccessibleRepository>> {
   const matches = await Promise.all(
-    accounts.map(async account => {
-      const match = matchGitHubRepository([account], remote)
-      if (match === null) {
-        return null
-      }
-      const apiRepository = await API.fromAccount(
-        account
-      ).fetchRepositoryIfAccessible(match.owner, match.name)
-      return apiRepository === null ? null : { ...match, apiRepository }
-    })
+    accounts.map(account => probeRemoteRepositoryAccount(account, remote))
   )
   return matches.filter(
     (match): match is IAccessibleRepository => match !== null
   )
 }
 
+async function probeRemoteRepositoryAccount(
+  account: Account,
+  remote: string
+): Promise<IAccessibleRepository | null> {
+  const match = matchGitHubRepository([account], remote)
+  if (match === null) {
+    return null
+  }
+  const apiRepository = await API.fromAccount(
+    account
+  ).fetchRepositoryIfAccessible(match.owner, match.name)
+  return apiRepository === null ? null : { ...match, apiRepository }
+}
+
 /**
  * Probe every signed-in account matching the remote, then choose among accounts
  * with access. Null means no account has access; undefined means canceled.
+ *
+ * An account whose access couldn't be checked (for example a SAML 403 or a
+ * network error) is left out rather than failing the whole lookup. It isn't
+ * treated as lacking access either, it's just not offered.
  */
 export async function chooseAccountForRemoteRepository(
   accounts: ReadonlyArray<Account>,
@@ -75,7 +84,20 @@ export async function chooseAccountForRemoteRepository(
     accounts: ReadonlyArray<Account>
   ) => Promise<Account | undefined>
 ): Promise<IAccessibleRepository | null | undefined> {
-  const accessible = await probeRemoteRepositoryAccounts(accounts, remote)
+  const probed = await Promise.all(
+    accounts.map(account =>
+      probeRemoteRepositoryAccount(account, remote).catch(e => {
+        log.warn(
+          `Couldn't check repository access for @${account.login} (${account.endpoint})`,
+          e
+        )
+        return null
+      })
+    )
+  )
+  const accessible = probed.filter(
+    (match): match is IAccessibleRepository => match !== null
+  )
   if (accessible.length < 2) {
     return accessible[0] ?? null
   }

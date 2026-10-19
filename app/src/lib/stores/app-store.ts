@@ -8756,7 +8756,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 validatedPath,
                 (repository, candidates) =>
                   this._chooseRepositoryAccount(repository, candidates)
-              )
+              ).catch(e => {
+                // Add the repository unassigned rather than leaving it
+                // half-added.
+                this.emitError(e)
+                return null
+              })
         let refreshedRepo = addedRepo
         if (assignment != null) {
           const gitHubRepository = isAccessibleRepository(assignment)

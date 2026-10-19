@@ -311,6 +311,40 @@ describe('AppStore explicitly adding repositories', () => {
     )
   })
 
+  it('skips accounts whose access check fails when adding a repository', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          if (account.login === alice.login) {
+            throw new Error('Resource protected by organization SAML')
+          }
+          return apiRepository
+        },
+      })
+    )
+    t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
+      assert.fail('Only one account could be checked')
+    )
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added[0].login, 'bob')
+  })
+
+  it('adds the repository unassigned when no account can be checked', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          throw new Error('Network error')
+        },
+      })
+    )
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added.length, 1)
+    assert.strictEqual(added[0].login, null)
+    assert.strictEqual(added[0].gitHubRepository?.endpoint, endpoint)
+  })
+
   it('does not probe or reassign an existing explicitly unassigned repository', async t => {
     const repository = await setupRepository(t)
     const existing = await stores.repositoriesStore.addRepository(
