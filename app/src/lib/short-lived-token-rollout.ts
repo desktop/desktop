@@ -10,14 +10,18 @@ const FeatureEndpoint =
 const requestTimeout = 5_000
 
 /**
- * Check Central's rollout before requesting new refreshable credentials.
+ * Opt in beta and development features, or check Central's rollout.
  * Failures retain the existing sign-in flow with long-lived tokens.
  */
 export async function shouldRequestShortLivedTokens(
   endpoint: string
 ): Promise<boolean> {
-  if (!enableShortLivedTokens() || isGHES(endpoint)) {
+  if (isGHES(endpoint)) {
     return false
+  }
+
+  if (enableShortLivedTokens()) {
+    return true
   }
 
   try {

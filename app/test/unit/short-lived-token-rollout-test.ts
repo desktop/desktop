@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { beforeEach, describe, it, mock } from 'node:test'
+import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
 import { enableShortLivedTokens } from '../../src/lib/feature-flag'
 import { getVersion } from '../../src/ui/lib/app-proxy'
@@ -25,18 +25,60 @@ async function checkRollout(endpoint = 'https://api.github.com') {
 }
 
 describe('short-lived token rollout', () => {
+  const development = __DEV__
+  const channel = __RELEASE_CHANNEL__
+  const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+
   beforeEach(() => {
     guidError = undefined
+    Object.assign(globalThis, {
+      __DEV__: false,
+      __RELEASE_CHANNEL__: 'production',
+    })
+    delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
   })
 
-  it('allows acquisition on all release channels', t => {
-    const channel = __RELEASE_CHANNEL__
-    t.after(() => Object.assign(globalThis, { __RELEASE_CHANNEL__: channel }))
-    for (const releaseChannel of ['production', 'beta', 'development']) {
-      Object.assign(globalThis, { __RELEASE_CHANNEL__: releaseChannel })
-      assert.strictEqual(enableShortLivedTokens(), true)
+  afterEach(() => {
+    Object.assign(globalThis, {
+      __DEV__: development,
+      __RELEASE_CHANNEL__: channel,
+    })
+    if (preview === undefined) {
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    } else {
+      process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = preview
     }
   })
+
+  for (const build of ['production', 'beta', 'development', 'preview']) {
+    it(`uses the ${build} build's opt-in before consulting Central, but never for GHES`, async t => {
+      Object.assign(globalThis, {
+        __DEV__: build === 'development',
+        __RELEASE_CHANNEL__: build === 'beta' ? 'beta' : 'production',
+      })
+      if (build === 'preview') {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+      }
+      const optedIn = build !== 'production'
+      assert.strictEqual(enableShortLivedTokens(), optedIn)
+      guidError = new Error('Opted-in builds should not read the GUID')
+      const fetch = t.mock.method(globalThis, 'fetch', async () => {
+        throw new Error('Unexpected Central request')
+      })
+
+      for (const endpoint of [
+        'https://api.github.com',
+        'https://api.customer.ghe.com',
+      ]) {
+        assert.strictEqual(await checkRollout(endpoint), optedIn)
+      }
+      assert.strictEqual(
+        await checkRollout('https://enterprise.example.com/api/v3'),
+        false
+      )
+      assert.strictEqual(fetch.mock.callCount(), 0)
+    })
+  }
 
   for (const endpoint of [
     'https://api.github.com',
