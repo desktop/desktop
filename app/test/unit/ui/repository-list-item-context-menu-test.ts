@@ -4,6 +4,8 @@ import { Account } from '../../../src/models/account'
 import { GitHubRepository } from '../../../src/models/github-repository'
 import { Owner } from '../../../src/models/owner'
 import { Repository } from '../../../src/models/repository'
+import { CloningRepository } from '../../../src/models/cloning-repository'
+import type { Repositoryish } from '../../../src/ui/repositories-list/group-repositories'
 import { IMenuItem } from '../../../src/lib/menu-item'
 
 const endpoint = 'https://ghe.example.com/api/v3'
@@ -15,13 +17,14 @@ const github = new GitHubRepository('repo', new Owner('owner', endpoint, 1), 1)
 
 const repository = (
   login: string | null,
-  gitHubRepository: GitHubRepository | null = github
+  gitHubRepository: GitHubRepository | null = github,
+  missing = false
 ) =>
   new Repository(
     '/repo',
     1,
     gitHubRepository,
-    false,
+    missing,
     null,
     {},
     false,
@@ -41,15 +44,17 @@ before(async () => {
   ))
 })
 
-const getAccountMenu = (
-  repo: Repository,
-  accounts: ReadonlyArray<Account>,
-  onChangeRepositoryAccount = (_r: Repository, _l: string) => {}
-): IMenuItem | undefined =>
+const getMenu = (
+  repo: Repositoryish,
+  accounts: ReadonlyArray<Account> = [],
+  onChangeRepositoryAccount = (_r: Repository, _l: string) => {},
+  onShowRepositorySettings = (_r: Repository) => {}
+) =>
   generateRepositoryListContextMenu({
     repository: repo,
     accounts,
     onChangeRepositoryAccount,
+    onShowRepositorySettings,
     shellLabel: undefined,
     externalEditorLabel: undefined,
     askForConfirmationOnRemoveRepository: false,
@@ -60,7 +65,16 @@ const getAccountMenu = (
     onRemoveRepository: () => {},
     onChangeRepositoryAlias: () => {},
     onRemoveRepositoryAlias: () => {},
-  }).find(item => item.label === 'Account')
+  })
+
+const getAccountMenu = (
+  repo: Repository,
+  accounts: ReadonlyArray<Account>,
+  onChangeRepositoryAccount?: (r: Repository, l: string) => void
+): IMenuItem | undefined =>
+  getMenu(repo, accounts, onChangeRepositoryAccount).find(
+    item => item.label === 'Account'
+  )
 
 const describeItems = (menu: IMenuItem | undefined) =>
   menu?.submenu?.map(({ label, checked, enabled }) => ({
@@ -140,5 +154,30 @@ describe('repository list context menu Account submenu', () => {
       getAccountMenu(repository(null, null), [first, second]),
       undefined
     )
+  })
+})
+
+describe('repository list context menu Repository Settings item', () => {
+  const label = __DARWIN__ ? 'Repository Settings…' : 'Repository settings…'
+  const labels = (repo: Repositoryish, accounts: ReadonlyArray<Account> = []) =>
+    getMenu(repo, accounts).map(i => i.label)
+
+  it('opens settings for the right-clicked repository', () => {
+    const calls: Array<Repository> = []
+    const repo = repository(null, null)
+    getMenu(repo, [], undefined, r => calls.push(r))
+      .find(i => i.label === label)
+      ?.action?.()
+    assert.deepStrictEqual(calls, [repo])
+  })
+
+  it('follows the Account submenu', () => {
+    const items = labels(repository('first'), [first, second])
+    assert.strictEqual(items.indexOf(label), items.indexOf('Account') + 1)
+  })
+
+  it('is hidden for missing and cloning repositories', () => {
+    assert.ok(!labels(repository(null, github, true)).includes(label))
+    assert.ok(!labels(new CloningRepository('/repo', 'url')).includes(label))
   })
 })

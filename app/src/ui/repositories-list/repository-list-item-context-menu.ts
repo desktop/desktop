@@ -29,6 +29,7 @@ interface IRepositoryListItemContextMenuConfig {
   onCreateWorktree?: (repository: Repository) => void
   onShowWorktrees?: (repository: Repository) => void
   onChangeRepositoryAccount: (repository: Repository, login: string) => void
+  onShowRepositorySettings: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -49,6 +50,7 @@ export const generateRepositoryListContextMenu = (
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
     ...buildAccountMenuItems(config),
+    ...buildRepositorySettingsMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => writeClipboardText(repository.name),
@@ -204,4 +206,21 @@ const buildAccountMenuItems = (
   }
 
   return [{ label: 'Account', submenu }]
+}
+
+const buildRepositorySettingsMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+
+  if (!(repository instanceof Repository) || repository.missing) {
+    return []
+  }
+
+  return [
+    {
+      label: __DARWIN__ ? 'Repository Settings…' : 'Repository settings…',
+      action: () => config.onShowRepositorySettings(repository),
+    },
+  ]
 }
