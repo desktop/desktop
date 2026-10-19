@@ -35,7 +35,12 @@ export function isAccessibleRepository(
   return 'apiRepository' in assignment
 }
 
-/** Discover remote metadata using each matching account, without assigning one. */
+/**
+ * Discover remote metadata using each matching account, without assigning one.
+ *
+ * Accounts that can't see the repository are left out. Any other failure to
+ * check an account's access is thrown rather than treated as a lack of access.
+ */
 export async function probeRemoteRepositoryAccounts(
   accounts: ReadonlyArray<Account>,
   remote: string
@@ -46,10 +51,9 @@ export async function probeRemoteRepositoryAccounts(
       if (match === null) {
         return null
       }
-      const apiRepository = await API.fromAccount(account).fetchRepository(
-        match.owner,
-        match.name
-      )
+      const apiRepository = await API.fromAccount(
+        account
+      ).fetchRepositoryIfAccessible(match.owner, match.name)
       return apiRepository === null ? null : { ...match, apiRepository }
     })
   )
@@ -91,14 +95,17 @@ export async function chooseAccountForRemoteRepository(
   if (selected === undefined) {
     return undefined
   }
-  const match = accessible.find(
-    match =>
-      match.account.endpoint === selected.endpoint &&
-      caseInsensitiveEquals(match.account.login, selected.login)
-  )
+  const match =
+    accessible.find(
+      match =>
+        match.account.endpoint === selected.endpoint &&
+        caseInsensitiveEquals(match.account.login, selected.login)
+    ) ??
+    // An account signed in from the chooser hasn't been checked yet.
+    (await probeRemoteRepositoryAccounts([selected], remote)).at(0)
   if (match === undefined) {
     throw new Error(
-      'The selected account has not been verified for this repository.'
+      `The account @${selected.login} can't access ${owner}/${name}.`
     )
   }
   return match
