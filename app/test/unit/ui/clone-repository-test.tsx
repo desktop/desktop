@@ -4,7 +4,7 @@ import * as Path from 'path'
 import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
 
-import { API } from '../../../src/lib/api'
+import { API, IAPIRepositoryCloneInfo } from '../../../src/lib/api'
 import { Account } from '../../../src/models/account'
 import { CloneRepositoryTab } from '../../../src/models/clone-repository-tab'
 import { CloneRepository } from '../../../src/ui/clone-repository/clone-repository'
@@ -346,7 +346,8 @@ describe('CloneRepository GitHub tab account changes', () => {
 
   async function renderGitHubTab(
     t: TestContext,
-    accounts: ReadonlyArray<Account>
+    accounts: ReadonlyArray<Account>,
+    fetchRepositoryCloneInfo: API['fetchRepositoryCloneInfo'] = async () => null
   ) {
     const originalResizeObserver = window.ResizeObserver
     Object.assign(window, { ResizeObserver: SizedResizeObserver })
@@ -358,7 +359,7 @@ describe('CloneRepository GitHub tab account changes', () => {
       electron.ipcRenderer.send = originalSend
     })
     t.mock.method(API, 'fromAccount', () =>
-      createMockAPI({ fetchRepositoryCloneInfo: async () => null })
+      createMockAPI({ fetchRepositoryCloneInfo })
     )
     setDefaultDir(await createTempDirectory(t))
 
@@ -492,5 +493,49 @@ describe('CloneRepository GitHub tab account changes', () => {
       view.container.querySelector('.account-picker .login')?.textContent,
       '@bob'
     )
+  })
+
+  it('clones with the account selected when Clone was pressed', async t => {
+    let resolveLookup = (_: IAPIRepositoryCloneInfo) => {}
+    const lookup = new Promise<IAPIRepositoryCloneInfo>(resolve => {
+      resolveLookup = resolve
+    })
+    const { view, cloneButton, rerender, clone } = await renderGitHubTab(
+      t,
+      [alice, bob],
+      () => lookup
+    )
+    await selectRepository(/alice\/a/)
+    await waitForCloneEnabled(cloneButton, true)
+
+    const form = view.container.querySelector('form')
+    assert.ok(form)
+    fireEvent.submit(form)
+
+    // The dialog can't be changed while the repository is being looked up.
+    const fieldset = view.container.querySelector('fieldset')
+    assert.ok(fieldset)
+    await waitFor(() => assert.strictEqual(fieldset.disabled, true))
+
+    // The account still changes, e.g. after signing in from elsewhere.
+    rerender([alice, bob], bob)
+    await waitFor(() =>
+      assert.strictEqual(
+        view.container.querySelector('.account-picker .login')?.textContent,
+        '@bob'
+      )
+    )
+    resolveLookup({
+      url: 'https://github.com/alice/a.git',
+      defaultBranch: 'main',
+    })
+
+    await waitFor(() => assert.strictEqual(clone.mock.callCount(), 1))
+    const [url, , options] = clone.mock.calls[0].arguments
+    assert.strictEqual(url, 'https://github.com/alice/a.git')
+    assert.deepStrictEqual(options, {
+      defaultBranch: 'main',
+      account: { endpoint: dotCom, login: 'alice' },
+    })
   })
 })

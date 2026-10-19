@@ -147,6 +147,20 @@ interface IGitHubTabState extends IBaseTabState {
   readonly selectedItem: IAPIRepository | null
 }
 
+/** What to clone, captured when the user starts cloning. */
+interface ICloneRequest {
+  readonly tab: CloneRepositoryTab
+  readonly url: string
+  readonly lastParsedIdentifier: IRepositoryIdentifier | null
+  readonly path: string | null
+
+  /**
+   * The account selected in the GitHub tab, or null when cloning from the
+   * URL tab.
+   */
+  readonly account: Account | null
+}
+
 /** The component for cloning a repository. */
 export class CloneRepository extends React.Component<
   ICloneRepositoryProps,
@@ -264,6 +278,7 @@ export class CloneRepository extends React.Component<
         onSubmit={this.clone}
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
+        disabled={this.state.loading}
       >
         <TabBar
           onTabClicked={this.onTabClicked}
@@ -737,18 +752,19 @@ export class CloneRepository extends React.Component<
    * the repository alias to the clone URL and the repository default branch,
    * if possible.
    */
-  private async resolveCloneInfo(): Promise<IAPIRepositoryCloneInfo | null> {
-    const { url, lastParsedIdentifier } = this.getSelectedTabState()
+  private async resolveCloneInfo(
+    request: ICloneRequest
+  ): Promise<IAPIRepositoryCloneInfo | null> {
+    const { tab, url, lastParsedIdentifier, account } = request
 
     if (url.endsWith('.wiki.git')) {
       return { url }
     }
 
-    if (this.props.selectedTab === CloneRepositoryTab.Generic) {
+    if (tab === CloneRepositoryTab.Generic) {
       return resolveURLCloneInfo(url, this.props.accounts)
     }
 
-    const account = this.getSelectedAccount()
     if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const { owner, name } = lastParsedIdentifier
@@ -775,7 +791,11 @@ export class CloneRepository extends React.Component<
   private clone = async () => {
     this.setState({ loading: true })
 
-    const { path } = this.getSelectedTabState()
+    // Capture what's being cloned before going async, so that changes made
+    // while the clone is being prepared can't mix one account's repository
+    // with another account.
+    const request = this.getCloneRequest()
+    const { path } = request
 
     if (path == null) {
       const error = new Error(`Directory could not be created at this path.`)
@@ -791,7 +811,7 @@ export class CloneRepository extends React.Component<
       return
     }
 
-    const cloneInfo = await this.resolveCloneInfo()
+    const cloneInfo = await this.resolveCloneInfo(request)
     if (!cloneInfo) {
       const error = new Error(
         `We couldn't find that repository. Check that you are logged in, the network is accessible, and the URL or repository alias are spelled correctly.`
@@ -805,7 +825,7 @@ export class CloneRepository extends React.Component<
 
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     try {
-      this.cloneImpl(url.trim(), path, defaultBranch)
+      this.cloneImpl(request, url.trim(), path, defaultBranch)
     } catch (e) {
       log.error(`CloneRepository: clone failed to complete to ${path}`, e)
       this.setState({ loading: false })
@@ -813,12 +833,27 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private cloneImpl(url: string, path: string, defaultBranch?: string) {
-    const { selectedTab } = this.props
-    const account =
-      selectedTab === CloneRepositoryTab.Generic
-        ? null
-        : this.getSelectedAccount()
+  /** Snapshot the selected tab's clone request. */
+  private getCloneRequest(): ICloneRequest {
+    const tab = this.props.selectedTab
+    const { url, lastParsedIdentifier, path } = this.getTabState(tab)
+    return {
+      tab,
+      url,
+      lastParsedIdentifier,
+      path,
+      account:
+        tab === CloneRepositoryTab.GitHub ? this.getSelectedAccount() : null,
+    }
+  }
+
+  private cloneImpl(
+    request: ICloneRequest,
+    url: string,
+    path: string,
+    defaultBranch?: string
+  ) {
+    const { account } = request
     this.props.dispatcher.clone(
       url,
       path,
