@@ -3,7 +3,7 @@ import QuickLRU from 'quick-lru'
 
 import { Disposable } from 'event-kit'
 import xor from 'lodash/xor'
-import { Account } from '../../models/account'
+import { Account, getAccountKey } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { Repository } from '../../models/repository'
 import { API, IAPICheckSuite } from '../api'
@@ -167,7 +167,17 @@ export class CommitStatusStore {
   }
 
   private readonly onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
+    const signedInChanged =
+      xor(this.accounts.map(getAccountKey), accounts.map(getAccountKey))
+        .length > 0
     this.accounts = accounts
+
+    // Accounts are also updated when a token is refreshed or user details
+    // change, which doesn't affect which statuses we're allowed to see.
+    if (!signedInChanged) {
+      return
+    }
+
     this.cache.clear()
     for (const subscription of this.subscriptions.values()) {
       subscription.callbacks.forEach(cb => cb(null))
