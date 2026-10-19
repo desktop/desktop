@@ -20,6 +20,13 @@ class TrampolineUIHelper {
     return this.dispatcher.ensureRepositoryAccount(repository)
   }
 
+  public associateRepositoryWithEndpoint(
+    repository: Repository,
+    endpoint: string
+  ) {
+    return this.dispatcher.associateRepositoryWithEndpoint(repository, endpoint)
+  }
+
   public promptAddingSSHHost(
     host: string,
     ip: string,

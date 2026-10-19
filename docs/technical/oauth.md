@@ -50,7 +50,12 @@ user-initiated operation, or when the user explicitly requests GitHub data.
 Fetch, pull, and push never prompt up front, so SSH remotes and public HTTPS
 repositories work without an account. When no account is signed in for the
 repository's endpoint, Desktop shows the regular sign-in prompt for that
-endpoint instead of an empty account choice. If an assigned login is signed out, Desktop offers to sign back into
+endpoint instead of an empty account choice. A repository whose default remote
+is on a GitHub host Desktop hasn't recognized yet (a GitHub Enterprise Server
+without a signed-in account, or a remote added outside Desktop) is associated
+with that endpoint when Git first asks for its credentials, then handled like
+any other unassigned repository. Selecting a repository never probes unknown
+hosts. If an assigned login is signed out, Desktop offers to sign back into
 that account or choose another. Targeted reauthentication adds `login` and
 `allow_signup=false` to the OAuth authorization URL and verifies the returned
 identity before accepting it. Background operations never open these prompts
@@ -110,8 +115,7 @@ signed in. It shouldn't be passed merely because an account is available.
 - **Credentials for unassociated remotes (follow-up):** the credential helper
   only uses or prompts for an account when the request matches the
   repository's GitHub endpoint. HTTPS requests for another remote (for example
-  an `upstream` on a GitHub host when `origin` isn't), or for a GitHub
-  Enterprise host Desktop couldn't identify, get no credentials. Fixing this
+  an `upstream` on a GitHub host when `origin` isn't) get no credentials. Fixing this
   requires deciding which remote's repository the association should use.
 
 ## Short-lived credentials (preview)

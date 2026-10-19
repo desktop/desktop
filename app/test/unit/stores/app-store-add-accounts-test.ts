@@ -460,6 +460,36 @@ describe('AppStore explicitly adding repositories', () => {
     })
   })
 
+  describe('associating a repository when Git asks for credentials', () => {
+    async function addUnassociated(t: TestContext) {
+      const repository = await setupRepository(t)
+      return stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+    }
+
+    it('associates the default remote with the requested endpoint', async t => {
+      const added = await addUnassociated(t)
+      const updated = await appStore._associateRepositoryWithEndpoint(
+        added,
+        endpoint
+      )
+      assert.strictEqual(updated.login, null)
+      assert.strictEqual(updated.gitHubRepository?.endpoint, endpoint)
+      assert.strictEqual(updated.gitHubRepository?.fullName, 'owner/repo')
+    })
+
+    it('leaves the repository alone for another endpoint', async t => {
+      const added = await addUnassociated(t)
+      const updated = await appStore._associateRepositoryWithEndpoint(
+        added,
+        'https://enterprise.example.com/api/v3'
+      )
+      assert.strictEqual(updated.gitHubRepository, null)
+    })
+  })
+
   describe('cloning a missing repository again', () => {
     async function cloneAgain(t: TestContext, login: string | null) {
       const { GitHubRepository } = await import(

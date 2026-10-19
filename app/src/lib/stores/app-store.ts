@@ -140,7 +140,6 @@ import {
   getAPIEndpoint,
   getDotComAPIEndpoint,
   getHTMLURL,
-  isGitHubHost,
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
@@ -5012,8 +5011,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           isGHE(origin) ||
           this.accounts.some(
             a => new URL(getHTMLURL(a.endpoint)).host === parsed.hostname
-          ) ||
-          (await isGitHubHost(origin)))
+          ))
       ) {
         repository = await repoStore.setGitHubRepository(
           repository,
@@ -5880,6 +5878,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
+  }
+
+  /**
+   * Give a repository without a GitHub association an anonymous one for the
+   * endpoint Git is asking credentials for, if its default remote is on that
+   * endpoint.
+   *
+   * Selecting and refreshing a repository only does this for known GitHub
+   * hosts. Other GitHub Enterprise Server hosts are recognized when Git asks
+   * for credentials, which is also when a remote added outside Desktop is
+   * first noticed.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _associateRepositoryWithEndpoint(
+    repository: Repository,
+    endpoint: string
+  ): Promise<Repository> {
+    const current = (await this.repositoriesStore.getAll()).find(
+      r => r.id === repository.id
+    )
+    if (current === undefined || current.gitHubRepository !== null) {
+      return current ?? repository
+    }
+    const gitStore = this.gitStoreCache.get(current)
+    await gitStore.loadRemotes()
+    const remote = gitStore.defaultRemote
+    const parsed = remote === null ? null : parseRemote(remote.url)
+    if (
+      parsed === null ||
+      getAPIEndpoint(`https://${parsed.hostname}`) !== endpoint
+    ) {
+      return current
+    }
+    return this.setRefreshedGitHubRepository(
+      current,
+      await this.repositoriesStore.upsertGitHubRepositoryFromMatch(
+        toAnonymousMatch(endpoint, parsed.owner, parsed.name)
+      )
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
