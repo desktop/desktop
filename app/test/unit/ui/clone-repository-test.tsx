@@ -4,10 +4,12 @@ import * as Path from 'path'
 import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
 
+import { API } from '../../../src/lib/api'
 import { CloneRepositoryTab } from '../../../src/models/clone-repository-tab'
 import { CloneRepository } from '../../../src/ui/clone-repository/clone-repository'
 import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { setDefaultDir } from '../../../src/ui/lib/default-dir'
+import { createMockAPI } from '../../helpers/mock-api'
 import { createTempDirectory } from '../../helpers/temp'
 import { fireEvent, render, screen, waitFor } from '../../helpers/ui/render'
 
@@ -49,6 +51,7 @@ async function renderCloneDialog(
       accounts={[]}
       initialURL={initialURL}
       selectedTab={CloneRepositoryTab.Generic}
+      selectedAccount={null}
       onTabSelected={t.mock.fn()}
       apiRepositories={new Map()}
       onRefreshRepositories={t.mock.fn()}
@@ -235,5 +238,52 @@ describe('CloneRepository path validation', () => {
     )
     assert.strictEqual(pathInput.value, Path.join(directory, 'repository.app'))
     assert.strictEqual(screen.queryByText(applicationPathError), null)
+  })
+})
+
+describe('CloneRepository URL tab without an accessible account', () => {
+  function mockInaccessibleRepository(t: TestContext) {
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({ fetchRepositoryCloneInfo: async () => null })
+    )
+  }
+
+  it('clones an SSH URL as entered and unassociated', async t => {
+    mockInaccessibleRepository(t)
+    const url = 'git@github.com:owner/private.git'
+    const { container, cloneButton, pathInput, clone } =
+      await renderCloneDialog(t, url)
+    await waitFor(() =>
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), null)
+    )
+    const form = container.querySelector('form')
+    assert.ok(form)
+    fireEvent.submit(form)
+
+    await waitFor(() => assert.strictEqual(clone.mock.callCount(), 1))
+    assert.deepStrictEqual(clone.mock.calls[0].arguments, [
+      url,
+      pathInput.value,
+      { defaultBranch: undefined },
+    ])
+  })
+
+  it('shows the access error for an HTTPS URL', async t => {
+    mockInaccessibleRepository(t)
+    const { container, cloneButton, clone } = await renderCloneDialog(
+      t,
+      'https://github.com/owner/private.git'
+    )
+    await waitFor(() =>
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), null)
+    )
+    const form = container.querySelector('form')
+    assert.ok(form)
+    fireEvent.submit(form)
+
+    await waitFor(() =>
+      assert.ok(screen.getByText(/We couldn't find that repository/))
+    )
+    assert.strictEqual(clone.mock.callCount(), 0)
   })
 })

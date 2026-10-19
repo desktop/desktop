@@ -1916,6 +1916,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
+            selectedAccount={this.state.selectedCloneAccount}
             apiRepositories={this.state.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
             isTopMost={isTopMost}
