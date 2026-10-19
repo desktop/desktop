@@ -170,6 +170,12 @@ export class CloneRepository extends React.Component<
 
   private mounted = false
 
+  /**
+   * The account whose repositories the GitHub tab's selection and filter
+   * belong to. See `resetGitHubTabSelectionIfAccountChanged`.
+   */
+  private gitHubTabAccount: Account | null
+
   public constructor(props: ICloneRepositoryProps) {
     super(props)
 
@@ -197,6 +203,7 @@ export class CloneRepository extends React.Component<
       },
     }
 
+    this.gitHubTabAccount = this.getSelectedAccount()
     this.initializePath()
   }
 
@@ -207,6 +214,15 @@ export class CloneRepository extends React.Component<
 
     if (prevProps.initialURL !== this.props.initialURL) {
       this.updateUrl(this.props.initialURL || '')
+    }
+
+    // The effective account can also change without the picker, e.g. when the
+    // selected account is signed out while the dialog is open.
+    if (
+      prevProps.accounts !== this.props.accounts ||
+      prevProps.selectedAccount !== this.props.selectedAccount
+    ) {
+      this.resetGitHubTabSelectionIfAccountChanged(this.getSelectedAccount())
     }
 
     this.checkIsTopMostDialog(this.props.isTopMost)
@@ -371,18 +387,46 @@ export class CloneRepository extends React.Component<
   }
 
   private onSelectedAccountChanged = (account: Account) => {
-    const current = this.getSelectedAccount()
+    this.resetGitHubTabSelectionIfAccountChanged(account)
     this.props.dispatcher.changeCloneRepositoriesAccount(account)
+  }
 
-    // The selected repository was listed for the previous account, so don't
-    // carry it over to an account that may not be able to access it.
-    if (!isSameAccount(account, current)) {
-      this.setGitHubTabState({ selectedItem: null })
-      if (this.props.selectedTab === CloneRepositoryTab.GitHub) {
-        this.updateUrl('')
-      } else {
-        this.setTabState({ url: '' }, CloneRepositoryTab.GitHub)
-      }
+  /**
+   * Reset the GitHub tab's selection when it's about to show another
+   * account's repositories.
+   *
+   * The selected repository was listed for the previous account, so it
+   * mustn't carry over to an account that may not be able to access it, or
+   * that is on another host. The account is tracked rather than compared
+   * between renders so that picking an account resets the tab only once, even
+   * though the picked account also arrives later through props.
+   */
+  private resetGitHubTabSelectionIfAccountChanged(account: Account | null) {
+    const previous = this.gitHubTabAccount
+    const changed =
+      account === null || previous === null
+        ? account !== previous
+        : !isSameAccount(account, previous)
+    this.gitHubTabAccount = account
+
+    if (changed) {
+      this.resetGitHubTabSelection()
+    }
+  }
+
+  /**
+   * Clear the GitHub tab's selected repository, filter text and URL.
+   *
+   * The filter is cleared as well since the filter list would otherwise
+   * select the first match on its own without reporting it, leaving the
+   * repository selected but the URL empty.
+   */
+  private resetGitHubTabSelection() {
+    this.setGitHubTabState({ selectedItem: null, filterText: '' })
+    if (this.props.selectedTab === CloneRepositoryTab.GitHub) {
+      this.updateUrl('')
+    } else {
+      this.setTabState({ url: '' }, CloneRepositoryTab.GitHub)
     }
   }
 
