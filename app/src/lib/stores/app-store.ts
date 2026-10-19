@@ -5093,17 +5093,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Move in-memory state (such as a commit message draft) to the repository's
    * new identity after its account or GitHub metadata changed its hash.
    *
-   * This runs before the update is emitted, so the new identity normally has
-   * no state yet. If it does, it's already in use and is left alone. The old
+   * The new identity may already have state from when it was last used, for
+   * example when switching accounts back and forth. That state is stale, so
+   * it's overwritten with the state of the identity being left. The old
    * GitStore is kept, since an operation that prompted for the account may
    * still be using it.
    */
   private carryOverRepositoryState(from: Repository, to: Repository) {
-    if (
-      from.id !== to.id ||
-      this.repositoryStateCache.has(to) ||
-      this.gitStoreCache.has(to)
-    ) {
+    if (from.id !== to.id) {
       return
     }
     this.repositoryStateCache.transferState(from, to)

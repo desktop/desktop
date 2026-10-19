@@ -160,6 +160,23 @@ describe('AppStore explicitly adding repositories', () => {
       assert.strictEqual(draftOf(updated), 'Draft')
     })
 
+    it('keeps the latest draft when switching back to a previous account', async t => {
+      const alices = await setupDraft(t)
+      const bobs = await appStore._updateRepositoryAccount(alices, 'bob')
+      await appStore._setCommitMessage(bobs, {
+        summary: 'Edited',
+        description: null,
+        timestamp: 2,
+      })
+      const back = await appStore._updateRepositoryAccount(bobs, 'alice')
+      assert.strictEqual(back.hash, alices.hash)
+      assert.strictEqual(draftOf(back), 'Edited')
+      assert.strictEqual(
+        appStore['gitStoreCache'].get(back).commitMessage.summary,
+        'Edited'
+      )
+    })
+
     it('keeps the draft when refreshed metadata changes the repository', async t => {
       const repository = await setupDraft(t)
       t.mock.method(API, 'fromAccount', () =>
