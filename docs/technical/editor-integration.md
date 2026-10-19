@@ -269,6 +269,7 @@ These editors are currently supported:
      - To use Brackets the Command Line shortcut must be installed.
        - This can be done by opening Brackets, choosing File > Install Command Line Shortcut
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [Glim](https://github.com/NeoPanic/Glim)
  - [Typora](https://typora.io/)
  - [CodeRunner](https://coderunnerapp.com/)
  - [SlickEdit](https://www.slickedit.com)
