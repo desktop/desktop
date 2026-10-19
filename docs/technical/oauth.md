@@ -58,7 +58,9 @@ any other unassigned repository. Selecting a repository never probes unknown
 hosts. If an assigned login is signed out, Desktop offers to sign back into
 that account or choose another. Targeted reauthentication adds `login` and
 `allow_signup=false` to the OAuth authorization URL and verifies the returned
-identity before accepting it. Background operations never open these prompts
+identity before accepting it. Any other sign-in adds `prompt=select_account`
+so the browser asks which GitHub session to use instead of silently using the
+active one. Background operations never open these prompts
 and do not fall back to another account.
 
 Explicit sign-out offers to keep or clear matching repository assignments.
