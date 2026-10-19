@@ -35,8 +35,107 @@ import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 import { Repository } from '../../../src/models/repository'
 import { getConfigValue } from '../../../src/lib/git/config'
 import { createTempDirectory } from '../../helpers/temp'
+import { AccountsStore } from '../../../src/lib/stores/accounts-store'
+import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
+import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 describe('AppStore assisted push with real local remotes', () => {
+  for (const change of ['rotation', 'replacement'] as const) {
+    it(`preserves issuing-session authorization before push after credential ${change} between commits`, async t => {
+      let now = Date.now()
+      let renewals = 0
+      const accounts = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore(),
+        async () => {
+          renewals++
+          return {
+            accessToken: `rotated-push-access-${renewals}`,
+            refreshToken: `rotated-push-refresh-${renewals}`,
+            expiresAt: now + 8 * 60 * 60_000,
+          }
+        },
+        () => now
+      )
+      const h = await createAssistedCommitRunHarness(t, accounts)
+      h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+      h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+      h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+      const original = h.appStore['accounts'][0]
+      const account = await accounts.addAccount(original, {
+        accessToken: original.token,
+        refreshToken: 'synthetic-push-refresh',
+        expiresAt: now + 8 * 60 * 60_000,
+      })
+      assert.ok(account)
+      const source = await seed(t, { one: 'one\n', two: 'two\n' })
+      const remote = await addBareRemote(t, source)
+      await writeFile(join(source.path, 'one'), 'ONE\n')
+      await writeFile(join(source.path, 'two'), 'TWO\n')
+      const repository = await h.register(source)
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.propose.mock.mockImplementation(async (_account, analysis) =>
+        splitResponse(analysis)
+      )
+      const progress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
+      let changed = false
+      h.appStore['onAssistedCommitProgress'] = async (run, value) => {
+        progress(run, value)
+        if (value.kind === 'committing' && value.index === 1) {
+          assert.strictEqual(await count(source), 2)
+          assert.strictEqual(await remote.tip(), remote.originalTip)
+          changed = true
+          if (change === 'rotation') {
+            now += 8 * 60 * 60_000
+            await accounts.getAccountWithFreshToken(account)
+          } else {
+            await accounts.addAccount(account)
+          }
+        }
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(changed, true)
+      assert.strictEqual(
+        outcome.kind,
+        change === 'rotation' ? 'pushed' : 'error'
+      )
+      assert.strictEqual(await count(source), change === 'rotation' ? 3 : 1)
+      assert.strictEqual(
+        await remote.tip(),
+        change === 'rotation' ? await tip(source) : remote.originalTip
+      )
+      if (outcome.kind === 'error') {
+        assert.throws(
+          () => accounts.createTokenGetter(account),
+          AccountRequiresSignInError
+        )
+        assert.ok(
+          assistedCommitErrorCauses(outcome.error).some(
+            cause =>
+              cause instanceof Error &&
+              /Copilot access changed|Sign in|sign.in|authentication/.test(
+                cause.message
+              )
+          ),
+          assistedCommitErrorCauses(outcome.error).map(String).join('\n')
+        )
+      }
+      assert.strictEqual(renewals, change === 'rotation' ? 1 : 0)
+      assert.strictEqual(h.propose.mock.callCount(), 1)
+      assert.strictEqual(
+        await readFile(join(source.path, 'one'), 'utf8'),
+        'ONE\n'
+      )
+      assert.strictEqual(
+        await readFile(join(source.path, 'two'), 'utf8'),
+        'TWO\n'
+      )
+    })
+  }
+
   for (const route of [
     'native',
     'environment',
