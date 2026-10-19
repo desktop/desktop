@@ -239,7 +239,7 @@ describe('AppStore explicitly adding repositories', () => {
     const tokens: string[] = []
     t.mock.method(API, 'fromAccount', (account: Account) =>
       createMockAPI({
-        fetchRepository: async () => {
+        fetchRepositoryIfAccessible: async () => {
           tokens.push(account.token)
           return account.login === bob.login ? apiRepository : null
         },
@@ -272,7 +272,7 @@ describe('AppStore explicitly adding repositories', () => {
   it('persists the explicit selection when multiple accounts have access', async t => {
     const repository = await setupRepository(t)
     t.mock.method(API, 'fromAccount', () =>
-      createMockAPI({ fetchRepository: async () => apiRepository })
+      createMockAPI({ fetchRepositoryIfAccessible: async () => apiRepository })
     )
     const chooser = t.mock.method(
       appStore,
@@ -295,7 +295,7 @@ describe('AppStore explicitly adding repositories', () => {
   it('keeps an inaccessible repository unassigned', async t => {
     const repository = await setupRepository(t)
     t.mock.method(API, 'fromAccount', () =>
-      createMockAPI({ fetchRepository: async () => null })
+      createMockAPI({ fetchRepositoryIfAccessible: async () => null })
     )
     const { gitHubRepositories } = stores.repositoriesStore['db']
     const existingIDs = new Set(await gitHubRepositories.toCollection().keys())
@@ -501,7 +501,7 @@ describe('AppStore explicitly adding repositories', () => {
     const requests: string[] = []
     t.mock.method(API, 'fromAccount', (account: Account) =>
       createMockAPI({
-        fetchRepository: async () => {
+        fetchRepositoryIfAccessible: async () => {
           probes.push(account.token)
           return apiRepository
         },
@@ -530,7 +530,7 @@ describe('AppStore explicitly adding repositories', () => {
 
   it('does not fetch an untracked PR when no account can access the repository', async t => {
     t.mock.method(API, 'fromAccount', () =>
-      createMockAPI({ fetchRepository: async () => null })
+      createMockAPI({ fetchRepositoryIfAccessible: async () => null })
     )
     t.mock.method(appStore, '_chooseRepositoryAccount', async () =>
       assert.fail(
