@@ -3,10 +3,10 @@ import { Account } from '../models/account'
 const Disable = false
 
 /**
- * Opt in new OAuth authorizations during development and preview testing.
+ * Allow new OAuth authorizations to opt in through Central's rollout.
  * Existing rotating credentials must keep renewing even when this is disabled.
  */
-export const enableShortLivedTokens = () => enableBetaFeatures()
+export const enableShortLivedTokens = () => true
 
 /**
  * Enables the application to opt-in for preview features based on runtime

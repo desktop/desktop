@@ -22,6 +22,7 @@ import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
 import { exchangeOAuthToken } from '../oauth-token'
+import { shouldRequestShortLivedTokens } from '../short-lived-token-rollout'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -276,7 +277,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       )
     }
 
-    this.setState({ ...currentState, loading: true })
+    const authenticatingState = { ...currentState, loading: true }
+    this.setState(authenticatingState)
 
     if (currentState.kind === SignInStep.ExistingAccountWarning) {
       const { existingAccount } = currentState
@@ -285,6 +287,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
         await this.accountStore.removeAccount(existingAccount)
       }
+    }
+
+    const shortLived = await shouldRequestShortLivedTokens(
+      currentState.endpoint
+    )
+    if (this.state !== authenticatingState) {
+      return
     }
 
     const csrfToken = crypto.randomUUID()
@@ -309,7 +318,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           onAuthError: reject,
         },
       })
-      shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
+      shell.openExternal(
+        getOAuthAuthorizationURL(endpoint, csrfToken, shortLived)
+      )
     })
       .then(account => {
         if (
