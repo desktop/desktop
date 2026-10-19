@@ -44,26 +44,33 @@ export function isAccessibleRepository(
 export async function probeRemoteRepositoryAccounts(
   accounts: ReadonlyArray<Account>,
   remote: string
-): Promise<ReadonlyArray<IAccessibleRepository>> {
+): Promise<ReadonlyArray<CloneAssignment>> {
   const matches = await Promise.all(
     accounts.map(account => probeRemoteRepositoryAccount(account, remote))
   )
-  return matches.filter(
-    (match): match is IAccessibleRepository => match !== null
-  )
+  return matches.filter((match): match is CloneAssignment => match !== null)
 }
 
 async function probeRemoteRepositoryAccount(
   account: Account,
   remote: string
-): Promise<IAccessibleRepository | null> {
+): Promise<CloneAssignment | null> {
   const match = matchGitHubRepository([account], remote)
   if (match === null) {
     return null
   }
-  const apiRepository = await API.fromAccount(
-    account
-  ).fetchRepositoryIfAccessible(match.owner, match.name)
+  const api = API.fromAccount(account)
+  // The API doesn't know about wikis, so check access to the wiki's
+  // repository instead. The wiki gets no API metadata of its own.
+  const wiki = /^(.+)\.wiki$/i.exec(match.name)
+  if (wiki !== null) {
+    const parent = await api.fetchRepositoryIfAccessible(match.owner, wiki[1])
+    return parent === null ? null : match
+  }
+  const apiRepository = await api.fetchRepositoryIfAccessible(
+    match.owner,
+    match.name
+  )
   return apiRepository === null ? null : { ...match, apiRepository }
 }
 
@@ -83,7 +90,7 @@ export async function chooseAccountForRemoteRepository(
     repository: RepositoryWithGitHubRepository,
     accounts: ReadonlyArray<Account>
   ) => Promise<Account | undefined>
-): Promise<IAccessibleRepository | null | undefined> {
+): Promise<CloneAssignment | null | undefined> {
   const probed = await Promise.all(
     accounts.map(account =>
       probeRemoteRepositoryAccount(account, remote).catch(e => {
@@ -96,7 +103,7 @@ export async function chooseAccountForRemoteRepository(
     )
   )
   const accessible = probed.filter(
-    (match): match is IAccessibleRepository => match !== null
+    (match): match is CloneAssignment => match !== null
   )
   if (accessible.length < 2) {
     return accessible[0] ?? null
