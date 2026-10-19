@@ -6,6 +6,7 @@ import {
   urlMatchesCloneURL,
   chooseAccountForRemoteRepository,
   probeRemoteRepositoryAccounts,
+  isAccessibleRepository,
 } from '../../src/lib/repository-matching'
 import { Account } from '../../src/models/account'
 import { GitHubRepository } from '../../src/models/github-repository'
@@ -47,7 +48,13 @@ describe('choosing an account for a newly added or cloned remote', () => {
       results.map(result => result.account),
       [alice, bob]
     )
-    assert.ok(results.every(result => result.apiRepository === apiRepository))
+    assert.ok(
+      results.every(
+        result =>
+          isAccessibleRepository(result) &&
+          result.apiRepository === apiRepository
+      )
+    )
     assert.deepStrictEqual(tokens, ['alice-token', 'bob-token'])
   })
 
@@ -67,8 +74,9 @@ describe('choosing an account for a newly added or cloned remote', () => {
       '/repo',
       async () => assert.fail('A single accessible account needs no chooser')
     )
-    assert.strictEqual(result?.account, bob)
-    assert.strictEqual(result?.apiRepository, apiRepository)
+    assert.ok(result && isAccessibleRepository(result))
+    assert.strictEqual(result.account, bob)
+    assert.strictEqual(result.apiRepository, apiRepository)
     assert.deepStrictEqual(requests, [
       ['alice-token', 'owner', 'repo'],
       ['bob-token', 'owner', 'repo'],
@@ -169,7 +177,73 @@ describe('choosing an account for a newly added or cloned remote', () => {
     )
   })
 
-  it('surfaces unexpected probe errors rather than treating them as no access', async t => {
+  it('checks access to a wiki through its repository', async t => {
+    const requests: string[] = []
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async (owner, name) => {
+          requests.push(`${account.login}:${owner}/${name}`)
+          return account === bob ? apiRepository : null
+        },
+      })
+    )
+    const result = await chooseAccountForRemoteRepository(
+      [alice, bob],
+      'https://github.com/owner/repo.wiki.git',
+      '/wiki',
+      async () => assert.fail('Only one account can access the wiki')
+    )
+    assert.deepStrictEqual(requests.sort(), [
+      'alice:owner/repo',
+      'bob:owner/repo',
+    ])
+    assert.deepStrictEqual(result, {
+      account: bob,
+      owner: 'owner',
+      name: 'repo.wiki',
+    })
+  })
+
+  it('leaves out accounts whose access check fails and uses the rest', async t => {
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          if (account === alice) {
+            throw new Error('Probe failed')
+          }
+          return apiRepository
+        },
+      })
+    )
+    const result = await chooseAccountForRemoteRepository(
+      [alice, bob],
+      remote,
+      '/repo',
+      async () => assert.fail('Only one account could be checked')
+    )
+    assert.strictEqual(result?.account, bob)
+  })
+
+  it('treats a failed access check as unassigned rather than failing', async t => {
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        fetchRepositoryIfAccessible: async () => {
+          throw new Error('Probe failed')
+        },
+      })
+    )
+    assert.strictEqual(
+      await chooseAccountForRemoteRepository(
+        [alice, bob],
+        remote,
+        '/repo',
+        async () => assert.fail('No account could be checked')
+      ),
+      null
+    )
+  })
+
+  it('surfaces unexpected probe errors from the low-level probe', async t => {
     t.mock.method(API, 'fromAccount', () =>
       createMockAPI({
         fetchRepositoryIfAccessible: async () => {
@@ -178,12 +252,7 @@ describe('choosing an account for a newly added or cloned remote', () => {
       })
     )
     await assert.rejects(
-      chooseAccountForRemoteRepository(
-        [alice],
-        remote,
-        '/repo',
-        async () => undefined
-      ),
+      probeRemoteRepositoryAccounts([alice], remote),
       /Probe failed/
     )
   })

@@ -1276,6 +1276,17 @@ export class Dispatcher {
     return this.appStore._ensureRepositoryAccount(repository)
   }
 
+  /**
+   * Associate a repository without a GitHub association with the endpoint Git
+   * is asking credentials for, if its default remote is on that endpoint.
+   */
+  public associateRepositoryWithEndpoint(
+    repository: Repository,
+    endpoint: string
+  ) {
+    return this.appStore._associateRepositoryWithEndpoint(repository, endpoint)
+  }
+
   /** Sign back into a specific account without replacing other accounts. */
   public async showAccountSignInDialog(
     endpoint: string,

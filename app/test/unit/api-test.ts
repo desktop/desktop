@@ -55,7 +55,7 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
 
 describe('API', () => {
   describe('getOAuthAuthorizationURL', () => {
-    it('preserves ordinary OAuth without selecting an account', () => {
+    it('asks which account to use when no login is expected', () => {
       const url = new globalThis.URL(
         getOAuthAuthorizationURL('https://api.github.com', 'csrf-state')
       )
@@ -65,6 +65,7 @@ describe('API', () => {
       assert.ok(url.searchParams.get('scope'))
       assert.strictEqual(url.searchParams.has('login'), false)
       assert.strictEqual(url.searchParams.has('allow_signup'), false)
+      assert.strictEqual(url.searchParams.get('prompt'), 'select_account')
     })
 
     it('encodes the expected login and disables signup for targeted authentication', () => {
@@ -80,6 +81,7 @@ describe('API', () => {
       assert.strictEqual(url.searchParams.get('allow_signup'), 'false')
       assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
       assert.notStrictEqual(url.searchParams.get('scope'), 'admin')
+      assert.strictEqual(url.searchParams.has('prompt'), false)
     })
   })
   describe('getNextPagePathWithIncreasingPageSize', () => {

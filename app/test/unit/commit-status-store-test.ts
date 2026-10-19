@@ -377,6 +377,34 @@ describe('CommitStatusStore account assignment', () => {
     assert.deepStrictEqual(updates, [null])
   })
 
+  it('keeps cached status when an account is updated without changing who is signed in', async t => {
+    const { store, accountsStore } = await createStore()
+    t.mock.method(API, 'fromAccount', (account: Account) =>
+      createMockAPI({
+        fetchCombinedRefStatus: async () => statusFor(account),
+        fetchRefCheckRuns: async () => ({ total_count: 0, check_runs: [] }),
+      })
+    )
+    const repository = localRepository(secondAccount.login)
+    await subscribe(t, store, repository)
+    const updates: (ICombinedRefCheck | null)[] = []
+    const subscription = store.subscribe(
+      githubRepository,
+      repository,
+      ref,
+      check => updates.push(check)
+    )
+    t.after(() => subscription.dispose())
+
+    await accountsStore.addAccount(secondAccount.withToken('refreshed'))
+    await flushRefreshes()
+    assert.notStrictEqual(
+      store.tryGetStatus(githubRepository, repository, ref),
+      null
+    )
+    assert.deepStrictEqual(updates, [])
+  })
+
   it('ignores an in-flight result after the old assignment subscription is disposed', async t => {
     const { store } = await createStore()
     let finish: (status: IAPIRefStatus) => void = () => {
