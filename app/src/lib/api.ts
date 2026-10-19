@@ -1009,6 +1009,25 @@ export class API {
   }
 
   /**
+   * Fetch a repo by its owner and name to find out whether the account can
+   * access it.
+   *
+   * Resolves to null when the repository isn't visible to the account (404).
+   * Unlike `fetchRepository`, any other failure (network errors, rate limits,
+   * server errors) is thrown so that it isn't mistaken for a lack of access.
+   */
+  public async fetchRepositoryIfAccessible(
+    owner: string,
+    name: string
+  ): Promise<IAPIFullRepository | null> {
+    const response = await this.ghRequest('GET', `repos/${owner}/${name}`)
+    if (response.status === HttpStatusCode.NotFound) {
+      return null
+    }
+    return parsedResponse<IAPIFullRepository>(response)
+  }
+
+  /**
    * Fetch info needed to clone a repository. That includes:
    *  - The canonical clone URL for a repository, respecting the protocol
    *    preference if provided.

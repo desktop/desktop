@@ -76,7 +76,10 @@ signed in. It shouldn't be passed merely because an account is available.
 
 - **Cloning and adding local repositories (included):** probe repository access for each
   account on the endpoint. Select the sole accessible account; ask the user when
-  more than one account has access. If none has access, cloning proceeds
+  more than one account has access. Only a 404 counts as no access; any other
+  failure to check an account aborts the operation instead of skipping that
+  account. An account signed in from the chooser is checked before it's used.
+  If none has access, cloning proceeds
   anonymously and the repository remains unassigned. A private clone that
   requires authentication fails normally; sign in with an account that has
   access before retrying. Cloning from the GitHub.com or GitHub Enterprise tab
