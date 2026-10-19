@@ -149,6 +149,13 @@ describe('Publish repository', () => {
       view.container.querySelectorAll('.account-picker').length,
       1
     )
+    assert.strictEqual(
+      screen.queryByRole('button', {
+        name: /sign in to another account/i,
+        hidden: true,
+      }),
+      null
+    )
 
     openAccountPicker()
     await waitFor(() =>

@@ -12,7 +12,6 @@ import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { RepositoryPublicationSettings } from '../../models/publish-settings'
 import { AccountPicker } from '../account-picker'
-import { LinkButton } from '../lib/link-button'
 
 interface IPublishRepositoryProps {
   /**
@@ -25,9 +24,6 @@ interface IPublishRepositoryProps {
   readonly accounts: ReadonlyArray<Account>
 
   readonly onSelectedAccountChanged: (account: Account) => void
-
-  /** Called when the user wants to sign in to another account. */
-  readonly onSignInToAnotherAccount: () => void
 
   /** The settings to use when publishing the repository. */
   readonly settings: RepositoryPublicationSettings
@@ -171,13 +167,6 @@ export class PublishRepository extends React.Component<
             onSelectedAccountChanged={this.props.onSelectedAccountChanged}
             groupByHost={true}
           />
-        </Row>
-        <Row className="sign-in-to-another-account">
-          <LinkButton onClick={this.props.onSignInToAnotherAccount}>
-            {__DARWIN__
-              ? 'Sign In to Another Account…'
-              : 'Sign in to another account…'}
-          </LinkButton>
         </Row>
 
         <Row>

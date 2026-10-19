@@ -8,7 +8,6 @@ import { CallToAction } from '../lib/call-to-action'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
 import { getGitDescription } from '../../lib/git'
-import { showContextualMenu } from '../../lib/menu-item'
 import {
   RepositoryPublicationSettings,
   PublishSettingsType,
@@ -195,7 +194,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings={this.state.settings}
         onSettingsChanged={this.onSettingsChanged}
         onSelectedAccountChanged={this.onSelectedAccountChanged}
-        onSignInToAnotherAccount={this.onSignInToAnotherAccount}
       />
     )
   }
@@ -246,13 +244,6 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         />
       </DialogFooter>
     )
-  }
-
-  private onSignInToAnotherAccount = () => {
-    showContextualMenu([
-      { label: 'GitHub.com', action: this.signInDotCom },
-      { label: 'GitHub Enterprise', action: this.signInEnterprise },
-    ])
   }
 
   /** Select the account the user signed in to from this dialog. */
