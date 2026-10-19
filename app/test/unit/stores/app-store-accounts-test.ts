@@ -169,6 +169,38 @@ describe('AppStore repository accounts', () => {
     assert.equal(persisted?.login, 'bob')
   })
 
+  describe('refreshing pull requests', () => {
+    function mockRefresh(t: TestContext) {
+      return t.mock.method(
+        appStore['pullRequestCoordinator'],
+        'refreshPullRequests',
+        async () => {}
+      )
+    }
+
+    it('refreshes with the account the repository is assigned to', async t => {
+      const repository = await addRepository('/refresh-assigned', 'bob')
+      const refresh = mockRefresh(t)
+      await appStore._refreshPullRequests(repository)
+      assert.equal(refresh.mock.callCount(), 1)
+      assert.equal(refresh.mock.calls[0].arguments[1]?.login, 'bob')
+    })
+
+    it('skips the refresh when the repository is reassigned meanwhile', async t => {
+      const repository = await addRepository('/refresh-reassigned', 'bob')
+      const refresh = mockRefresh(t)
+      t.mock.method(appStore, '_ensureRepositoryAccount', async () => {
+        await stores.repositoriesStore.updateRepositoryAccount(
+          repository,
+          'alice'
+        )
+        return bob
+      })
+      await appStore._refreshPullRequests(repository)
+      assert.equal(refresh.mock.callCount(), 0)
+    })
+  })
+
   describe('when the account picker closes without completing', () => {
     it('resolves the prompt when the picker is closed another way', async () => {
       const repository = await addRepository('/closed-picker', null)

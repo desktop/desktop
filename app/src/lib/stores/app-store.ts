@@ -44,6 +44,7 @@ import {
   Account,
   CopilotLicenseTypeNoAccess,
   isDotComAccount,
+  isSameAccount,
 } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { Author } from '../../models/author'
@@ -9223,7 +9224,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const account = await this._ensureRepositoryAccount(repository)
       if (account !== undefined) {
         const current = await this._getCurrentRepository(repository)
-        if (!isRepositoryWithGitHubRepository(current)) {
+        // The repository may have been reassigned while we were prompting.
+        if (
+          !isRepositoryWithGitHubRepository(current) ||
+          current.login === null ||
+          !isSameAccount(account, {
+            endpoint: current.gitHubRepository.endpoint,
+            login: current.login,
+          })
+        ) {
           return
         }
         await this.pullRequestCoordinator.refreshPullRequests(current, account)
