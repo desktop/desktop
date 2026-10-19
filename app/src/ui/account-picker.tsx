@@ -1,6 +1,11 @@
 import * as React from 'react'
 import { PopoverDropdown } from './lib/popover-dropdown'
-import { Account, accountEquals, isDotComAccount } from '../models/account'
+import {
+  Account,
+  accountEquals,
+  isDotComAccount,
+  isEnterpriseAccount,
+} from '../models/account'
 import { SectionFilterList } from './lib/section-filter-list'
 import {
   IFilterListGroup,
@@ -12,7 +17,7 @@ import { Avatar } from './lib/avatar'
 import { lookupPreferredEmail } from '../lib/email'
 import { IAvatarUser } from '../models/avatar'
 import memoizeOne from 'memoize-one'
-import { caseInsensitiveCompare } from '../lib/compare'
+import { groupAccountsByHost } from '../lib/group-accounts-by-host'
 
 interface IAccountPickerProps {
   readonly accounts: ReadonlyArray<Account>
@@ -58,32 +63,25 @@ const toListItem = (account: Account): IAccountListItem => ({
 })
 
 /**
- * Group accounts by host: GitHub.com first, then GitHub Enterprise hosts
- * sorted by hostname. Accounts keep their relative order within a host.
+ * Group accounts like the Accounts preferences: GitHub.com first, then a
+ * group per GitHub Enterprise host.
  */
-export function groupAccountsByHost(
+function getHostGroups(
   accounts: ReadonlyArray<Account>
 ): ReadonlyArray<IFilterListGroup<IAccountListItem>> {
-  const groups = new Map<string, Array<IAccountListItem>>()
-  for (const account of accounts) {
-    const host = account.friendlyEndpoint
-    const items = groups.get(host) ?? []
-    items.push(toListItem(account))
-    groups.set(host, items)
-  }
-
-  const isDotComHost = (items: ReadonlyArray<IAccountListItem>) =>
-    items.some(i => isDotComAccount(i.account))
-
-  return [...groups.entries()]
-    .sort(([hostA, itemsA], [hostB, itemsB]) =>
-      isDotComHost(itemsA) !== isDotComHost(itemsB)
-        ? isDotComHost(itemsA)
-          ? -1
-          : 1
-        : caseInsensitiveCompare(hostA, hostB)
-    )
-    .map(([identifier, items]) => ({ identifier, items }))
+  const dotComAccounts = accounts.filter(isDotComAccount)
+  const enterpriseGroups = groupAccountsByHost(
+    accounts.filter(isEnterpriseAccount)
+  )
+  return [
+    ...(dotComAccounts.length > 0
+      ? [{ identifier: 'GitHub.com', items: dotComAccounts.map(toListItem) }]
+      : []),
+    ...enterpriseGroups.map(([identifier, accounts]) => ({
+      identifier,
+      items: accounts.map(toListItem),
+    })),
+  ]
 }
 
 /**
@@ -99,7 +97,7 @@ export class AccountPicker extends React.Component<
       groupByHost: boolean
     ): ReadonlyArray<IFilterListGroup<IAccountListItem>> =>
       groupByHost
-        ? groupAccountsByHost(accounts)
+        ? getHostGroups(accounts)
         : [{ identifier: 'accounts', items: accounts.map(toListItem) }]
   )
 

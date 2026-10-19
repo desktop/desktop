@@ -50,10 +50,17 @@ user-initiated operation, or when the user explicitly requests GitHub data.
 Fetch, pull, and push never prompt up front, so SSH remotes and public HTTPS
 repositories work without an account. When no account is signed in for the
 repository's endpoint, Desktop shows the regular sign-in prompt for that
-endpoint instead of an empty account choice. If an assigned login is signed out, Desktop offers to sign back into
+endpoint instead of an empty account choice. A repository whose default remote
+is on a GitHub host Desktop hasn't recognized yet (a GitHub Enterprise Server
+without a signed-in account, or a remote added outside Desktop) is associated
+with that endpoint when Git first asks for its credentials, then handled like
+any other unassigned repository. Selecting a repository never probes unknown
+hosts. If an assigned login is signed out, Desktop offers to sign back into
 that account or choose another. Targeted reauthentication adds `login` and
 `allow_signup=false` to the OAuth authorization URL and verifies the returned
-identity before accepting it. Background operations never open these prompts
+identity before accepting it. Any other sign-in adds `prompt=select_account`
+so the browser asks which GitHub session to use instead of silently using the
+active one. Background operations never open these prompts
 and do not fall back to another account.
 
 Explicit sign-out offers to keep or clear matching repository assignments.
@@ -76,9 +83,11 @@ signed in. It shouldn't be passed merely because an account is available.
 
 - **Cloning and adding local repositories (included):** probe repository access for each
   account on the endpoint. Select the sole accessible account; ask the user when
-  more than one account has access. Only a 404 counts as no access; any other
-  failure to check an account aborts the operation instead of skipping that
-  account. An account signed in from the chooser is checked before it's used.
+  more than one account has access. Only a 404 counts as no access. An account
+  whose access can't be checked (for example a SAML 403 or a network error) is
+  logged and left out, but not treated as lacking access, so it never blocks
+  the other accounts. An account signed in from the chooser is checked before
+  it's used, and a failure to check it is reported.
   If none has access, cloning proceeds
   anonymously and the repository remains unassigned. A private clone that
   requires authentication fails normally; sign in with an account that has
@@ -117,8 +126,7 @@ signed in. It shouldn't be passed merely because an account is available.
 - **Credentials for unassociated remotes (follow-up):** the credential helper
   only uses or prompts for an account when the request matches the
   repository's GitHub endpoint. HTTPS requests for another remote (for example
-  an `upstream` on a GitHub host when `origin` isn't), or for a GitHub
-  Enterprise host Desktop couldn't identify, get no credentials. Fixing this
+  an `upstream` on a GitHub host when `origin` isn't) get no credentials. Fixing this
   requires deciding which remote's repository the association should use.
 
 ## Short-lived credentials (preview)

@@ -18,6 +18,15 @@ const alice = new Account('alice', endpoint, 'alice-token', [], '', 1, '')
 const bob = new Account('bob', endpoint, 'bob-token', [], '', 2, '')
 const zebraCarol = new Account('carol', zebraEndpoint, 'z-token', [], '', 3, '')
 const acmeDave = new Account('dave', acmeEndpoint, 'a-token', [], '', 4, '')
+const gheErin = new Account(
+  'erin',
+  'https://api.octo.ghe.com',
+  'g-token',
+  [],
+  '',
+  5,
+  ''
+)
 
 const org = (id: number, login: string): IAPIOrganization => ({
   id,
@@ -133,12 +142,19 @@ function renderPublish(
 describe('Publish repository', () => {
   it('shows a single account picker grouped by host instead of tabs', async t => {
     await setup(t)
-    const view = renderPublish(t, [zebraCarol, alice, acmeDave, bob])
+    const view = renderPublish(t, [zebraCarol, alice, gheErin, acmeDave, bob])
 
     assert.strictEqual(view.container.querySelector('.tab-bar'), null)
     assert.strictEqual(
       view.container.querySelectorAll('.account-picker').length,
       1
+    )
+    assert.strictEqual(
+      screen.queryByRole('button', {
+        name: /sign in to another account/i,
+        hidden: true,
+      }),
+      null
     )
 
     openAccountPicker()
@@ -147,7 +163,7 @@ describe('Publish repository', () => {
         [...document.querySelectorAll('.filter-list-group-header')].map(
           h => h.textContent
         ),
-        ['GitHub.com', 'acme.example.com', 'zebra.example.com']
+        ['GitHub.com', 'acme.example.com', 'octo.ghe.com', 'zebra.example.com']
       )
     )
   })

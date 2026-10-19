@@ -5,7 +5,6 @@ import {
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
-  IExistingAccountWarning,
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Row } from '../lib/row'
@@ -91,9 +90,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
-      case SignInStep.ExistingAccountWarning:
-        this.props.dispatcher.requestBrowserAuthentication()
-        break
       case SignInStep.Authentication:
         this.props.dispatcher.requestBrowserAuthentication()
         break
@@ -128,9 +124,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
         break
-      case SignInStep.ExistingAccountWarning:
-        primaryButtonText = continueWithBrowserLabel
-        break
       case SignInStep.Authentication:
         primaryButtonText = continueWithBrowserLabel
         break
@@ -147,20 +140,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
-    )
-  }
-
-  private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
-    return (
-      <DialogContent>
-        <p className="existing-account-warning">
-          You're already signed in to{' '}
-          <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. You can sign in to another
-          account without signing out.
-        </p>
-        {browserSignInInfoContent}
-      </DialogContent>
     )
   }
 
@@ -214,8 +193,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
-      case SignInStep.ExistingAccountWarning:
-        return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
         return this.renderAuthenticationStep(state)
       case SignInStep.Success:

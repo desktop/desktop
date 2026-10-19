@@ -32,9 +32,15 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
-import { getHTMLURL, isGitHubHost } from '../api'
+import { getAPIEndpoint, getHTMLURL, isGitHubHost } from '../api'
 import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
 import { AccountRequiresSignInError } from '../credential-sessions'
+
+/** Memoize an async computation so it runs at most once. */
+function once<T>(fn: () => Promise<T>): () => Promise<T> {
+  let result: Promise<T> | undefined
+  return () => (result ??= fn())
+}
 
 type Credential = Map<string, string>
 type Store = Pick<AccountsStore, 'getAll' | 'leaseAccountToken'>
@@ -128,10 +134,24 @@ async function getCredential(
 ) {
   const credentialUrl = getCredentialUrl(cred)
   const endpoint = `${credentialUrl}`
-  const repository = matchExistingRepository(
+  const endpointKind = once(() => getEndpointKind(cred, store))
+  const existing = matchExistingRepository(
     repositories,
     getTrampolineEnvironmentPath(token)
   )
+  // A repository whose GitHub remote hasn't been recognized yet (an
+  // Enterprise Server host without a signed-in account, or a remote added
+  // outside Desktop) is associated with the endpoint now, so it's handled
+  // like any other unassigned repository below.
+  const repository =
+    existing !== undefined &&
+    existing.gitHubRepository === null &&
+    (await endpointKind()) !== 'generic'
+      ? await ui.associateRepositoryWithEndpoint(
+          existing,
+          getAPIEndpoint(endpoint)
+        )
+      : existing
   // Require the request to target the account endpoint's exact origin
   // (scheme, host, and port). Otherwise a token could be sent over plain HTTP
   // or to another service on the same host.
@@ -167,7 +187,7 @@ async function getCredential(
 
   // Never lend a repository's credentials to a different GitHub endpoint
   // (for example a submodule hosted on another server).
-  if ((await getEndpointKind(cred, store)) !== 'generic') {
+  if ((await endpointKind()) !== 'generic') {
     info(`no matching account for ${endpoint}`)
     return undefined
   }

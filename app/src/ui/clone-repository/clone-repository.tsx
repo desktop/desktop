@@ -2,7 +2,13 @@ import * as Path from 'path'
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
-import { Account, IAccountIdentity, isSameAccount } from '../../models/account'
+import {
+  Account,
+  IAccountIdentity,
+  isDotComAccount,
+  isEnterpriseAccount,
+  isSameAccount,
+} from '../../models/account'
 import { FoldoutType } from '../../lib/app-state'
 import {
   IRepositoryIdentifier,
@@ -27,7 +33,7 @@ import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
 import { isTopMostDialog } from '../dialog/is-top-most'
 import memoizeOne from 'memoize-one'
-import { groupAccountsByHost } from '../account-picker'
+import { groupAccountsByHost } from '../../lib/group-accounts-by-host'
 import { SignInResult } from '../../lib/stores/sign-in-store'
 import { LinkButton } from '../lib/link-button'
 import { Row } from '../lib/row'
@@ -177,8 +183,12 @@ export class CloneRepository extends React.Component<
 
   /** The signed-in accounts in the order the account picker lists them. */
   private getAccountsInPickerOrder = memoizeOne(
-    (accounts: ReadonlyArray<Account>) =>
-      groupAccountsByHost(accounts).flatMap(g => g.items.map(i => i.account))
+    (accounts: ReadonlyArray<Account>) => [
+      ...accounts.filter(isDotComAccount),
+      ...groupAccountsByHost(accounts.filter(isEnterpriseAccount)).flatMap(
+        ([, hostAccounts]) => hostAccounts
+      ),
+    ]
   )
 
   private mounted = false
