@@ -2328,7 +2328,8 @@ export function getEndpointForRepository(url: string): string {
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
- * http://github.mycompany.com/api -> http://github.mycompany.com/
+ * http://github.mycompany.com/api -> http://github.mycompany.com
+ * https://github.mycompany.com:8443/api/v3 -> https://github.mycompany.com:8443
  */
 export function getHTMLURL(endpoint: string): string {
   if (envHTMLURL !== undefined) {
@@ -2358,8 +2359,9 @@ export function getHTMLURL(endpoint: string): string {
       return url.toString()
     }
 
-    const parsed = URL.parse(endpoint)
-    return `${parsed.protocol}//${parsed.hostname}`
+    // Use the origin rather than the hostname so that GitHub Enterprise
+    // Server instances running on a non-default port retain their port.
+    return new window.URL(endpoint).origin
   }
 }
 
