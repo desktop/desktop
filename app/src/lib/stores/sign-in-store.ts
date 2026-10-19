@@ -29,7 +29,6 @@ import { exchangeOAuthToken } from '../oauth-token'
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
-  ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
   Success = 'Success',
@@ -41,7 +40,6 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
-  | IExistingAccountWarning
   | IAuthenticationState
   | ISuccessState
 
@@ -69,26 +67,6 @@ export interface ISignInState {
    * sign in process is ongoing.
    */
   readonly loading: boolean
-
-  readonly resultCallback: (result: SignInResult) => void
-}
-
-/**
- * State interface representing the endpoint entry step.
- * This is the initial step in the Enterprise sign in
- * flow and is not present when signing in to GitHub.com
- */
-export interface IExistingAccountWarning extends ISignInState {
-  readonly kind: SignInStep.ExistingAccountWarning
-  /**
-   * The URL to the host which we're currently authenticating
-   * against. This will be either https://api.github.com when
-   * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise
-   * instance.
-   */
-  readonly existingAccount: Account
-  readonly endpoint: string
 
   readonly resultCallback: (result: SignInResult) => void
 }
@@ -277,10 +255,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async authenticateWithBrowser() {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.Authentication &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with browser authentication`
@@ -475,10 +450,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   ): Promise<void> {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.EndpointEntry &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.EndpointEntry) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with endpoint entry`
