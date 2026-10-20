@@ -16,7 +16,9 @@ plan types live in `app/src/models/assisted-commit.ts`; the UI request remains
 
 `withAssistedCommitSnapshot(repository, request, operation, options)` is the
 preferred resource scope. It captures a snapshot and disposes private metadata
-and indices even if analysis throws or is cancelled. Low-level callers must pair
+and indices even if analysis throws or is cancelled. If filesystem cleanup fails,
+the error retains a cleanup-only retry capability, including capture failure
+before this scope can invoke its callback. Low-level callers must pair
 `captureAssistedCommitSnapshot` with `disposeAssistedCommitSnapshot`.
 
 Only `snapshot.analysis` may be supplied to the planner. It contains opaque
@@ -77,6 +79,44 @@ Cleanup failures retain owned handle/path obligations too. Recovery retry must
 complete that cleanup before reporting success; finalization refuses to discard
 a capability while an owned handle, lock or private metadata remains unresolved.
 This applies to index locks and parent-owned HEAD/branch guards alike.
+
+`AssistedCommitError.cleanupToken` is an opaque
+`IAssistedCommitCleanupToken` for owned snapshot temporary files only. Capture
+registers that obligation immediately after creating its temporary directory,
+before initialization or a public snapshot exists. Planner/validation failure,
+cancellation, successful analysis followed by disposal failure, and low-level
+disposal failure all expose the same retry path:
+
+```ts
+// Keep the original failure and capability while the filesystem fault persists.
+if (
+  error instanceof AssistedCommitError &&
+  error.recovery === undefined &&
+  error.cleanupToken !== undefined
+) {
+  await retryAssistedCommitCleanup(error.cleanupToken)
+}
+```
+
+This function performs no Git operation or HEAD/index verification, never rolls
+back commits, and never accepts a caller-supplied path. It checks the captured
+temporary root's directory identity before removing it; a replaced, symlinked or
+unverifiable root is not deleted. If the initial ownership observation failed,
+retry cannot adopt a later directory as owned; an absent root can still be
+acknowledged as cleaned. Repeated removal failures retain the same capability.
+Success is idempotent and also retires an associated snapshot, so
+`disposeAssistedCommitSnapshot` and token cleanup remain consistent.
+Active capture/validation/execution and concurrent disposal reject as `busy`.
+Only the opaque ID is serializable; copying it does not grant the capability.
+
+Keep cleanup-only tokens separate from `error.recovery.retryToken`. Executor
+failures still require transaction recovery through
+`rollbackAssistedCommitTransaction`, preserving its history/index/lock obligations;
+temporary cleanup alone does not satisfy those obligations. The preferred scope
+retains that exact executor token and both original and cleanup causes if its
+final disposal also fails. Before execution, callers must retain `cleanupToken`
+even when no snapshot callback ran; UI orchestration must not rely solely on a
+saved `run.snapshot` to represent pending cleanup.
 
 ## Frozen content and supported selections
 
