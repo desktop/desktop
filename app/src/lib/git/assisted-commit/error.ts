@@ -45,12 +45,24 @@ export interface IAssistedCommitRecoveryToken {
   readonly snapshotId: string
 }
 
+/**
+ * An opaque capability for removing only Desktop-owned temporary snapshot files.
+ *
+ * This is not a transaction rollback capability and contains no filesystem path.
+ */
+export interface IAssistedCommitCleanupToken {
+  /** Opaque identity; copying or deserializing this value does not grant cleanup. */
+  readonly id: string
+}
+
 /** A typed failure with its original cause and, when executing, recovery state. */
 export class AssistedCommitError extends Error {
   /** The stable failure classification for integration callers. */
   public readonly code: AssistedCommitErrorCode
   /** The outcome of recovery, present for executor failures. */
   public readonly recovery: IAssistedCommitRecovery | undefined
+  /** Retry owned temporary cleanup, including failures before capture completes. */
+  public readonly cleanupToken: IAssistedCommitCleanupToken | undefined
 
   public constructor(
     code: AssistedCommitErrorCode,
@@ -58,12 +70,14 @@ export class AssistedCommitError extends Error {
     options?: {
       readonly cause?: unknown
       readonly recovery?: IAssistedCommitRecovery
+      readonly cleanupToken?: IAssistedCommitCleanupToken
     }
   ) {
     super(message, { cause: options?.cause })
     this.name = 'AssistedCommitError'
     this.code = code
     this.recovery = options?.recovery
+    this.cleanupToken = options?.cleanupToken
   }
 }
 

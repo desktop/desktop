@@ -5,7 +5,7 @@ import {
 import { ICopilotAssistedCommitRequest } from '../../../models/copilot-assisted-commit'
 import { Repository } from '../../../models/repository'
 import { WorkingDirectoryFileChange } from '../../../models/status'
-import { AssistedCommitError } from './error'
+import { AssistedCommitError, IAssistedCommitCleanupToken } from './error'
 
 export interface ITreeEntry {
   readonly path: string
@@ -56,6 +56,7 @@ export interface IAssistedCommitData {
   readonly originalIndex: IIndexState
   readonly originalHeadBytes: Buffer
   readonly temporaryDirectory: string
+  readonly cleanupToken: IAssistedCommitCleanupToken
   readonly environment: Record<string, string | undefined>
   readonly baseTree: string
   readonly zeroId: string
