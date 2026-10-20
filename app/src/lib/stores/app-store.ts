@@ -7174,6 +7174,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     run.recoveryCapability = undefined
     run.recovery = undefined
     run.cleanupPending = false
+    run.cleanupToken = undefined
     this.repositoryStateCache.update(run.repository, state => ({
       ...state,
       allowEmptyCommit: false,

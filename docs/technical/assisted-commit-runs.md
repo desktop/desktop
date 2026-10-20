@@ -397,6 +397,13 @@ logging it without skipping draft/options/status/history success bookkeeping.
 
 ## Optional push and retry
 
+Opting into push does not advance a run with pending snapshot cleanup. Capture
+failure can retain a cleanup-only token before a snapshot exists; recovery retries
+only that owned temporary cleanup, then reconciles current selection. It never
+plans, commits or pushes. Full transaction recovery retains priority over the
+cleanup-only token. Acceptance clears obsolete cleanup authority together with
+rollback authority; push failure cannot reactivate either after native entry.
+
 The assisted secondary options menu exposes **Push after committing** beside
 co-authors, sign-off, bypass commit hooks, and allow-empty. AppStore/Dispatcher
 persist only this boolean under `assisted-commit-push-<repository ID>`.
