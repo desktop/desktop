@@ -11,6 +11,7 @@ import { DiffParser } from './diff-parser'
 import { getErrorCauses } from './error-with-metadata'
 import {
   AssistedCommitError,
+  IAssistedCommitCleanupToken,
   IAssistedCommitRecovery,
 } from './git/assisted-commit'
 
@@ -29,6 +30,16 @@ export function getAssistedCommitRecovery(
     (cause): cause is AssistedCommitError =>
       cause instanceof AssistedCommitError && cause.recovery !== undefined
   )?.recovery
+}
+
+/** Temporary cleanup can be retained even when capture never published a snapshot. */
+export function getAssistedCommitCleanupToken(
+  error: unknown
+): IAssistedCommitCleanupToken | undefined {
+  return assistedCommitErrorCauses(error).find(
+    (cause): cause is AssistedCommitError =>
+      cause instanceof AssistedCommitError && cause.cleanupToken !== undefined
+  )?.cleanupToken
 }
 
 /** Only a domain cancellation with no failed cleanup/recovery is a quiet cancellation. */
