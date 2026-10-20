@@ -141,6 +141,29 @@ describe('Accounts preferences', () => {
     )
   })
 
+  it('keeps Enterprise servers on different ports in separate groups', () => {
+    const enterprise = (login: string, endpoint: string, id: number) =>
+      new Account(login, endpoint, 'token', [], '', id, login)
+    render(
+      <Accounts
+        accounts={[
+          enterprise('default-port', 'https://ghes.example.com/api/v3', 1),
+          enterprise('custom-port', 'https://ghes.example.com:8443/api/v3', 2),
+        ]}
+        onDotComSignIn={() => {}}
+        onEnterpriseSignIn={() => {}}
+        onLogout={() => {}}
+      />
+    )
+
+    const loginsIn = (host: string) =>
+      within(screen.getByRole('region', { name: host }))
+        .getAllByText(/^@/)
+        .map(e => e.textContent)
+    assert.deepStrictEqual(loginsIn('ghes.example.com'), ['@default-port'])
+    assert.deepStrictEqual(loginsIn('ghes.example.com:8443'), ['@custom-port'])
+  })
+
   it('shows the original sign-in actions when there are no accounts', () => {
     render(
       <Accounts
