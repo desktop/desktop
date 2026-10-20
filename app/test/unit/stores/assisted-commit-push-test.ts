@@ -36,10 +36,120 @@ import { Repository } from '../../../src/models/repository'
 import { getConfigValue } from '../../../src/lib/git/config'
 import { createTempDirectory } from '../../helpers/temp'
 import { AccountsStore } from '../../../src/lib/stores/accounts-store'
+import { promises as FileSystem } from 'fs'
+import { getAssistedCommitCleanupToken } from '../../../src/lib/assisted-commit-run'
 import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 describe('AppStore assisted push with real local remotes', () => {
+  for (const empty of [false, true]) {
+    it(`retries pre-callback temporary cleanup without model, commits or push despite opt-in, empty ${empty}`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      const remote = await addBareRemote(t, source)
+      if (!empty) {
+        await writeFile(join(source.path, 'file'), 'after\n')
+      }
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
+      await h.dispatcher.setCommitMessage(repository, {
+        summary: 'Preserved manual draft',
+        description: 'Preserved manual details',
+        timestamp: Date.now(),
+      })
+      const originalHead = await tip(source)
+      const originalIndex = await optionalBytes(await indexPath(source))
+      const makeDirectory = FileSystem.mkdtemp
+      const remove = FileSystem.rm
+      const write = FileSystem.writeFile
+      let directory = ''
+      let cleanupFails = true
+      const captureError = new Error('Synthetic opted-in capture EIO')
+      const cleanupError = new Error('Synthetic opted-in cleanup EIO')
+      t.mock.method(
+        FileSystem,
+        'mkdtemp',
+        async (...args: Parameters<typeof FileSystem.mkdtemp>) => {
+          const result = await makeDirectory(...args)
+          if (basename(result).startsWith('desktop-assisted-commit-')) {
+            directory = result
+          }
+          return result
+        }
+      )
+      t.mock.method(
+        FileSystem,
+        'writeFile',
+        async (...args: Parameters<typeof FileSystem.writeFile>) => {
+          if (directory !== '' && args[0] === join(directory, 'config')) {
+            throw captureError
+          }
+          return write(...args)
+        }
+      )
+      t.mock.method(
+        FileSystem,
+        'rm',
+        async (...args: Parameters<typeof FileSystem.rm>) => {
+          if (args[0] === directory && cleanupFails) {
+            throw cleanupError
+          }
+          return remove(...args)
+        }
+      )
+      t.after(async () => {
+        const run = h.appStore['assistedCommitRuns'].get(repository.id)
+        run?.lease?.release()
+        run?.resourceProtection?.release()
+        if (directory !== '') {
+          await remove(directory, { recursive: true, force: true })
+        }
+      })
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.ok(outcome.kind === 'error')
+      const run = h.appStore['assistedCommitRuns'].get(repository.id)
+      assert.ok(run)
+      assert.strictEqual(run.snapshot, undefined)
+      assert.strictEqual(run.result, undefined)
+      const token = getAssistedCommitCleanupToken(outcome.error)
+      assert.ok(token)
+      assert.strictEqual(run.cleanupToken, token)
+      assert.ok(assistedCommitErrorCauses(outcome.error).includes(captureError))
+      assert.ok(assistedCommitErrorCauses(outcome.error).includes(cleanupError))
+      await h.dispatcher.retryCopilotAssistedCommitRecovery(repository, run.id)
+      assert.strictEqual(run.cleanupToken, token)
+      const pending = h.state(repository).changesState.assistedCommit
+      assert.ok(pending.kind === 'error')
+      assert.strictEqual(pending.retry, 'recovery')
+      assert.strictEqual(run.pushAttempted, undefined)
+      cleanupFails = false
+      await h.dispatcher.retryCopilotAssistedCommitRecovery(repository, run.id)
+      assert.strictEqual(run.cleanupToken, undefined)
+      assert.strictEqual(run.cleanupPending, false)
+      assert.strictEqual(
+        h.state(repository).changesState.assistedCommit.kind,
+        'idle'
+      )
+      assert.strictEqual(await tip(source), originalHead)
+      assert.deepStrictEqual(
+        await optionalBytes(await indexPath(source)),
+        originalIndex
+      )
+      assert.strictEqual(await count(source), 1)
+      assert.strictEqual(await remote.tip(), remote.originalTip)
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+      assert.strictEqual(h.commits.mock.callCount(), 0)
+      assert.strictEqual(
+        h.state(repository).changesState.commitMessage.summary,
+        'Preserved manual draft'
+      )
+    })
+  }
+
   for (const change of ['rotation', 'replacement'] as const) {
     it(`preserves issuing-session authorization before push after credential ${change} between commits`, async t => {
       let now = Date.now()
