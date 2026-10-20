@@ -12,11 +12,19 @@ describe('groupAccountsByHost', () => {
     const acme = account('carol', 'https://acme.example.com/api/v3')
     const zebraAlice = account('alice', 'https://zebra.example.com/api/v3')
     const ghe = account('dave', 'https://api.octo.ghe.com')
+    const acmePort = account('erin', 'https://acme.example.com:8443/api/v3')
 
-    const groups = groupAccountsByHost([zebraBob, ghe, acme, zebraAlice])
+    const groups = groupAccountsByHost([
+      zebraBob,
+      ghe,
+      acmePort,
+      acme,
+      zebraAlice,
+    ])
 
     assert.deepStrictEqual(groups, [
       ['acme.example.com', [acme]],
+      ['acme.example.com:8443', [acmePort]],
       ['octo.ghe.com', [ghe]],
       ['zebra.example.com', [zebraBob, zebraAlice]],
     ])
