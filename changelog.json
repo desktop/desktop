@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.8-test3": ["[New] 44-9-1 test build 1"],
     "3.6.8-beta2": [
       "[Added] Add syntax highlighting for Svelte files - #22969. Thanks @Klaynight-dev!",
       "[Fixed] Flag worktrees whose folder is missing with a clear warning and offer to remove them instead of failing with a raw git error when switching branches or worktrees - #22607. Thanks @francisrath!",
