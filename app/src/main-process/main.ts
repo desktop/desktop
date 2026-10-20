@@ -247,8 +247,18 @@ async function handleCommandLineArguments(argv: string[]) {
   // `[executable path] --protocol-launcher "%1"`. Note that extra command
   // line arguments might be added by Chromium
   // (https://electronjs.org/docs/api/app#event-second-instance).
+  const isWindowsProtocolLaunch =
+    __WIN32__ && args['protocol-launcher'] === true
 
-  if (__WIN32__ && args['protocol-launcher'] === true) {
+  // On Linux the protocol handler is registered through a .desktop file
+  // (`Exec=... %u`), so the URL is passed as a plain argument without
+  // --protocol-launcher. macOS receives URLs through the `open-url` event
+  // instead, which Electron doesn't emit on Linux.
+  const prefixes = Array.from(possibleProtocols, p => `${p}://`)
+  const isLinuxProtocolLaunch =
+    __LINUX__ && argv.some(arg => prefixes.some(p => arg.startsWith(p)))
+
+  if (isWindowsProtocolLaunch || isLinuxProtocolLaunch) {
     // On Windows we'll end up getting called with something like
     // `--protocol-launcher --allow-file-access-from-files x-github-client://..`
     // which minimist naturally interprets as
@@ -259,7 +269,6 @@ async function handleCommandLineArguments(argv: string[]) {
     // sure that Chromium won't add more switches later on which is why we have
     // to resort to looking through all arguments looking for something that
     // appears to be an app url.
-    const prefixes = Array.from(possibleProtocols, p => `${p}://`)
     const matchingUrl = argv.find(arg => {
       if (prefixes.some(p => arg.startsWith(p))) {
         try {
