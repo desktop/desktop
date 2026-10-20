@@ -9,7 +9,7 @@ import {
   Repository,
   RepositoryWithGitHubRepository,
 } from '../../../src/models/repository'
-import { PopupType } from '../../../src/models/popup'
+import { Popup, PopupType } from '../../../src/models/popup'
 import { createMockAPI, createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
@@ -44,6 +44,7 @@ describe('AppStore explicitly adding repositories', () => {
         ...(await import('../../../src/ui/main-process-proxy')),
         getAppMenu: () => {},
         updateAccounts: () => {},
+        updatePreferredAppMenuItemLabels: () => {},
       },
     })
     const { AppStore } = await import('../../../src/lib/stores/app-store')
@@ -191,6 +192,93 @@ describe('AppStore explicitly adding repositories', () => {
       assert.notStrictEqual(refreshed.hash, repository.hash)
       assert.strictEqual(draftOf(refreshed), 'Draft')
     })
+    it('keeps the draft when refreshing associates the repository anonymously', async t => {
+      const { setupEmptyRepository } = await import(
+        '../../helpers/repositories'
+      )
+      const { addRemote } = await import('../../../src/lib/git')
+      const repository = await setupEmptyRepository(t)
+      await addRemote(
+        repository,
+        'origin',
+        'https://github.com/someone/drafted.git'
+      )
+      const added = await stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+      await appStore._setCommitMessage(added, {
+        summary: 'Draft',
+        description: null,
+        timestamp: 1,
+      })
+      t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({
+          fetchRepository: async () => null,
+          fetchProtectedBranches: async () => [],
+        })
+      )
+      const refreshed = await appStore[
+        'repositoryWithRefreshedGitHubRepository'
+      ](added)
+      assert.notStrictEqual(refreshed.gitHubRepository, null)
+      assert.strictEqual(draftOf(refreshed), 'Draft')
+    })
+
+    it('keeps the draft when signing out clears the assignment', async t => {
+      const repository = await setupDraft(t)
+      t.mock.method(appStore, '_removeAccount', async () => {})
+      t.mock.method(appStore, '_showPopup', async (popup: Popup) => {
+        if (popup.type === PopupType.ConfirmAccountSignOut) {
+          popup.onComplete(true)
+        }
+      })
+      await appStore._signOutAccount(alice)
+      const cleared = (await stores.repositoriesStore.getAll()).find(
+        r => r.id === repository.id
+      )
+      assert.strictEqual(cleared?.login, null)
+      assert.notStrictEqual(cleared.hash, repository.hash)
+      assert.strictEqual(draftOf(cleared), 'Draft')
+    })
+  })
+
+  it('pushes a published repository with its new account', async t => {
+    const { setupEmptyRepository } = await import('../../helpers/repositories')
+    const { makeCommit } = await import('../../helpers/repository-scaffolding')
+    const local = await setupEmptyRepository(t)
+    await makeCommit(local, {
+      entries: [{ path: 'README.md', contents: 'Hello' }],
+    })
+    const added = await stores.repositoriesStore.addRepository(
+      local.path,
+      local.resolvedGitDir
+    )
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({
+        createRepository: async () => apiRepository,
+        fetchRepository: async () => apiRepository,
+        fetchProtectedBranches: async () => [],
+      })
+    )
+    t.mock.method(appStore, '_initializeCompare', async () => {})
+    const performPush = appStore['performPush']
+    const refreshBranchProtectionState =
+      appStore['refreshBranchProtectionState']
+    t.after(() => {
+      appStore['performPush'] = performPush
+      appStore['refreshBranchProtectionState'] = refreshBranchProtectionState
+    })
+    appStore['refreshBranchProtectionState'] = async () => {}
+    const pushed = new Array<Repository>()
+    appStore['performPush'] = async (repository: Repository) => {
+      const { remote } = stores.repositoryStateCache.get(repository)
+      assert.strictEqual(remote?.url, apiRepository.clone_url)
+      pushed.push(repository)
+    }
+    await appStore._publishRepository(added, 'repo', '', false, bob, null)
+    assert.strictEqual(pushed.length, 1)
+    assert.strictEqual(pushed[0].login, 'bob')
   })
 
   it('confirms an unfamiliar Enterprise Server before signing in for Git', async t => {
