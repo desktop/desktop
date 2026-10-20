@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto'
+import { Stats } from 'fs'
 import {
   chmod,
+  lstat,
   mkdir,
   mkdtemp,
   readFile,
@@ -29,7 +31,12 @@ import {
 } from '../../../models/diff'
 import { DiffParser } from '../../diff-parser'
 import { git } from '../core'
-import { AssistedCommitError, checkAssistedCommitCancellation } from './error'
+import {
+  AssistedCommitError,
+  checkAssistedCommitCancellation,
+  IAssistedCommitCleanupToken,
+} from './error'
+import { isErrnoException } from '../../errno-exception'
 import {
   ensureNoRepositoryOperation,
   fileTreeUpdates,
@@ -64,6 +71,97 @@ const ParsedDiffConfiguration: ReadonlyArray<string> = [
   '-c',
   'diff.suppressBlankEmpty=false',
 ]
+
+interface IAssistedCommitCleanup {
+  readonly directory: string
+  identity?: Stats
+  capturing: boolean
+  disposing: boolean
+  data?: IAssistedCommitData
+}
+
+const snapshotCleanups = new WeakMap<
+  IAssistedCommitCleanupToken,
+  IAssistedCommitCleanup
+>()
+const completedCleanups = new WeakSet<IAssistedCommitCleanupToken>()
+
+/**
+ * Retry only a captured, Desktop-owned temporary-directory cleanup obligation.
+ *
+ * No repository, HEAD, index or working-tree operation is performed. A failed
+ * retry retains the same capability; successful cleanup is safe to repeat.
+ * Active capture, validation, execution and concurrent disposal reject as busy.
+ */
+export async function retryAssistedCommitCleanup(
+  token: IAssistedCommitCleanupToken
+): Promise<void> {
+  const cleanup = snapshotCleanups.get(token)
+  if (cleanup === undefined) {
+    if (completedCleanups.has(token)) {
+      return
+    }
+    throw new AssistedCommitError(
+      'disposed',
+      'Cleanup capability was not issued by Desktop'
+    )
+  }
+  const { data } = cleanup
+  if (
+    cleanup.capturing ||
+    cleanup.disposing ||
+    (data !== undefined && data.phase !== 'captured')
+  ) {
+    throw new AssistedCommitError(
+      'busy',
+      'Cannot clean temporary files while the assisted commit snapshot is active'
+    )
+  }
+  cleanup.disposing = true
+  if (data !== undefined) {
+    data.phase = 'disposing'
+  }
+  try {
+    let current: Stats | undefined
+    try {
+      current = await lstat(cleanup.directory)
+    } catch (error) {
+      if (!isErrnoException(error) || error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+    if (current !== undefined) {
+      if (
+        cleanup.identity === undefined ||
+        !current.isDirectory() ||
+        current.dev !== cleanup.identity.dev ||
+        current.ino !== cleanup.identity.ino
+      ) {
+        throw new Error(
+          'Private snapshot directory ownership cannot be verified'
+        )
+      }
+      await rm(cleanup.directory, { recursive: true, force: true })
+    }
+    if (data !== undefined) {
+      snapshots.delete(data.snapshot)
+      disposedSnapshots.add(data.snapshot)
+    }
+    snapshotCleanups.delete(token)
+    completedCleanups.add(token)
+  } catch (cause) {
+    if (data !== undefined) {
+      data.phase = 'captured'
+    }
+    throw new AssistedCommitError(
+      'cleanup-failed',
+      'Could not remove owned assisted commit temporary files',
+      { cause, cleanupToken: token }
+    )
+  } finally {
+    cleanup.disposing = false
+  }
+}
 
 function frozenInputFilterConfiguration(output: string): ReadonlyArray<string> {
   const options: string[] = []
@@ -406,10 +504,24 @@ export async function captureAssistedCommitSnapshot(
   const headBytes = await readFile(join(gitDirectory, 'HEAD'))
   const indexPath = await gitPath(repository, 'index')
   const originalIndex = await readIndexState(indexPath)
+  const cleanupToken = Object.freeze({ id: randomUUID() })
   const temporaryDirectory = await mkdtemp(
     join(tmpdir(), 'desktop-assisted-commit-')
   )
+  const cleanup: IAssistedCommitCleanup = {
+    directory: temporaryDirectory,
+    capturing: true,
+    disposing: false,
+  }
+  snapshotCleanups.set(cleanupToken, cleanup)
   try {
+    cleanup.identity = await lstat(temporaryDirectory)
+    if (!cleanup.identity.isDirectory()) {
+      throw new AssistedCommitError(
+        'unsafe-selection',
+        'Private snapshot directory was replaced during initialization'
+      )
+    }
     const privateIndex = join(temporaryDirectory, 'index')
     const environment = await initializePrivateRepository(
       repository,
@@ -976,6 +1088,7 @@ export async function captureAssistedCommitSnapshot(
       originalIndex,
       originalHeadBytes: headBytes,
       temporaryDirectory,
+      cleanupToken,
       environment,
       baseTree,
       zeroId: '0'.repeat(baseTree.length),
@@ -988,15 +1101,21 @@ export async function captureAssistedCommitSnapshot(
     await ensureNoRepositoryOperation(repository)
     checkAssistedCommitCancellation(options.signal)
     snapshots.set(snapshot, data)
+    cleanup.data = data
+    cleanup.capturing = false
     return snapshot
   } catch (error) {
+    cleanup.capturing = false
     try {
-      await rm(temporaryDirectory, { recursive: true, force: true })
-    } catch (cleanup) {
+      await retryAssistedCommitCleanup(cleanupToken)
+    } catch (cleanupError) {
       throw new AssistedCommitError(
         'cleanup-failed',
         'Snapshot capture and temporary resource cleanup failed',
-        { cause: new AggregateError([error, cleanup]) }
+        {
+          cause: new AggregateError([error, cleanupError]),
+          cleanupToken,
+        }
       )
     }
     throw error
@@ -1017,25 +1136,7 @@ export async function disposeAssistedCommitSnapshot(
       'Snapshot was not captured by Desktop'
     )
   }
-  if (data.phase !== 'captured') {
-    throw new AssistedCommitError(
-      'busy',
-      'Cannot dispose an active assisted commit snapshot'
-    )
-  }
-  data.phase = 'disposing'
-  try {
-    await rm(data.temporaryDirectory, { recursive: true, force: true })
-  } catch (error) {
-    data.phase = 'captured'
-    throw new AssistedCommitError(
-      'cleanup-failed',
-      'Could not remove private assisted commit metadata',
-      { cause: error }
-    )
-  }
-  snapshots.delete(snapshot)
-  disposedSnapshots.add(snapshot)
+  await retryAssistedCommitCleanup(data.cleanupToken)
 }
 
 /**
@@ -1055,9 +1156,11 @@ export async function withAssistedCommitSnapshot<T>(
     options
   )
   let operationError: unknown
+  let operationFailed = false
   try {
     return await operation(snapshot)
   } catch (error) {
+    operationFailed = true
     operationError = error
     throw error
   } finally {
@@ -1072,10 +1175,13 @@ export async function withAssistedCommitSnapshot<T>(
         recovery === undefined ? 'cleanup-failed' : 'recovery-failed',
         'Could not dispose the assisted commit snapshot',
         {
-          cause:
-            operationError === undefined
-              ? cleanup
-              : new AggregateError([operationError, cleanup]),
+          cleanupToken:
+            cleanup instanceof AssistedCommitError
+              ? cleanup.cleanupToken
+              : undefined,
+          cause: operationFailed
+            ? new AggregateError([operationError, cleanup])
+            : cleanup,
           ...(recovery === undefined
             ? {}
             : {

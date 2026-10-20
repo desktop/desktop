@@ -5,5 +5,6 @@ export * from './progress'
 export {
   captureAssistedCommitSnapshot,
   disposeAssistedCommitSnapshot,
+  retryAssistedCommitCleanup,
   withAssistedCommitSnapshot,
 } from './snapshot'
