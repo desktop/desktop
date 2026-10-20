@@ -493,6 +493,54 @@ describe('AppStore explicitly adding repositories', () => {
     assert.strictEqual(published.login, 'bob')
   })
 
+  describe('associating a remote on a non-default port when refreshing', () => {
+    const ported = 'https://ghe.example.com:8443/api/v3'
+
+    async function refreshWithRemote(t: TestContext, url: string) {
+      const { setupEmptyRepository } = await import(
+        '../../helpers/repositories'
+      )
+      const { addRemote } = await import('../../../src/lib/git')
+      const repository = await setupEmptyRepository(t)
+      await addRemote(repository, 'origin', url)
+      const added = await stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+      const accounts = appStore['accounts']
+      appStore['accounts'] = [
+        ...accounts,
+        new Account('carol', ported, 'carol-token', [], '', 3, ''),
+      ]
+      t.after(() => {
+        appStore['accounts'] = accounts
+      })
+      t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({
+          fetchRepository: async () => null,
+          fetchProtectedBranches: async () => [],
+        })
+      )
+      return appStore['repositoryWithRefreshedGitHubRepository'](added)
+    }
+
+    it('associates an HTTPS remote with the account on that port', async t => {
+      const refreshed = await refreshWithRemote(
+        t,
+        'https://ghe.example.com:8443/owner/repo.git'
+      )
+      assert.strictEqual(refreshed.gitHubRepository?.endpoint, ported)
+    })
+
+    it('associates an SSH remote with the account on that host', async t => {
+      const refreshed = await refreshWithRemote(
+        t,
+        'git@ghe.example.com:owner/repo.git'
+      )
+      assert.strictEqual(refreshed.gitHubRepository?.endpoint, ported)
+    })
+  })
+
   describe('associating a repository when Git asks for credentials', () => {
     async function addUnassociated(t: TestContext) {
       const repository = await setupRepository(t)
@@ -511,6 +559,38 @@ describe('AppStore explicitly adding repositories', () => {
       assert.strictEqual(updated.login, null)
       assert.strictEqual(updated.gitHubRepository?.endpoint, endpoint)
       assert.strictEqual(updated.gitHubRepository?.fullName, 'owner/repo')
+    })
+
+    it('associates a remote on a non-default port with that endpoint', async t => {
+      const { setupEmptyRepository } = await import(
+        '../../helpers/repositories'
+      )
+      const { addRemote } = await import('../../../src/lib/git')
+      const repository = await setupEmptyRepository(t)
+      await addRemote(
+        repository,
+        'origin',
+        'https://ghe.example.com:8443/owner/repo.git'
+      )
+      const added = await stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+      const ported = 'https://ghe.example.com:8443/api/v3'
+      assert.strictEqual(
+        (
+          await appStore._associateRepositoryWithEndpoint(
+            added,
+            'https://ghe.example.com/api/v3'
+          )
+        ).gitHubRepository,
+        null
+      )
+      const updated = await appStore._associateRepositoryWithEndpoint(
+        added,
+        ported
+      )
+      assert.strictEqual(updated.gitHubRepository?.endpoint, ported)
     })
 
     it('leaves the repository alone for another endpoint', async t => {
