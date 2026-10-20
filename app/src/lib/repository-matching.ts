@@ -3,8 +3,12 @@ import * as Path from 'path'
 
 import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
-import { API, getHTMLURL, IAPIFullRepository } from './api'
-import { parseRemote, parseRepositoryIdentifier } from './remote-parsing'
+import { API, getAPIEndpoint, getHTMLURL, IAPIFullRepository } from './api'
+import {
+  IGitRemoteURL,
+  parseRemote,
+  parseRepositoryIdentifier,
+} from './remote-parsing'
 import { caseInsensitiveEquals } from './compare'
 import { GitHubRepository } from '../models/github-repository'
 import {
@@ -157,24 +161,82 @@ export interface IMatchedGitHubRepository {
   readonly account: Account
 }
 
+/**
+ * The host of the web server a remote points at, or null if it can't be
+ * parsed.
+ *
+ * For HTTPS remotes this includes any non-default port, since a GitHub
+ * Enterprise Server may serve both the web UI and Git on a custom port. An SSH
+ * port says nothing about the web server's port, so it's dropped.
+ */
+function getRemoteWebHost(remote: IGitRemoteURL): string | null {
+  const hostname =
+    remote.protocol === 'https'
+      ? remote.hostname
+      : remote.hostname.replace(/:\d+$/, '')
+  try {
+    return new URL.URL(`https://${hostname}`).host.toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Whether a remote is hosted on the given API endpoint.
+ *
+ * HTTPS remotes must match the endpoint's host including its port. SSH
+ * remotes only need to match its hostname.
+ */
+export function remoteMatchesEndpoint(
+  remote: IGitRemoteURL,
+  endpoint: string
+): boolean {
+  const remoteHost = getRemoteWebHost(remote)
+  if (remoteHost === null) {
+    return false
+  }
+
+  const html = new URL.URL(getHTMLURL(endpoint))
+  return remote.protocol === 'https'
+    ? remoteHost === html.host.toLowerCase()
+    : remoteHost === html.hostname.toLowerCase()
+}
+
+/**
+ * The API endpoint a remote is hosted on.
+ *
+ * Prefers the first of the given endpoints that matches the remote, so an SSH
+ * remote resolves to a server's endpoint even when its web UI is on a
+ * non-default port. Otherwise the endpoint is derived from the remote's host.
+ */
+export function getEndpointForRemote(
+  remote: IGitRemoteURL,
+  candidates: ReadonlyArray<string>
+): string | null {
+  const known = candidates.find(e => remoteMatchesEndpoint(remote, e))
+  if (known !== undefined) {
+    return known
+  }
+  const host = getRemoteWebHost(remote)
+  return host === null ? null : getAPIEndpoint(`https://${host}`)
+}
+
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(
   accounts: ReadonlyArray<Account>,
   remote: string
 ): IMatchedGitHubRepository | null {
-  for (const account of accounts) {
-    const htmlURL = getHTMLURL(account.endpoint)
-    const { hostname } = URL.parse(htmlURL)
-    const parsedRemote = parseRemote(remote)
-
-    if (parsedRemote !== null && hostname !== null) {
-      if (parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {
-        return { name: parsedRemote.name, owner: parsedRemote.owner, account }
-      }
-    }
+  const parsedRemote = parseRemote(remote)
+  if (parsedRemote === null) {
+    return null
   }
 
-  return null
+  const account = accounts.find(a =>
+    remoteMatchesEndpoint(parsedRemote, a.endpoint)
+  )
+  return account === undefined
+    ? null
+    : { name: parsedRemote.name, owner: parsedRemote.owner, account }
 }
 
 /**
