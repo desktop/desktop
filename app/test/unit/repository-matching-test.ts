@@ -1,7 +1,10 @@
 import { describe, it } from 'node:test'
+import { parseRemote } from '../../src/lib/remote-parsing'
 import assert from 'node:assert'
 import {
   matchGitHubRepository,
+  getEndpointForRemote,
+  remoteMatchesEndpoint,
   urlMatchesRemote,
   urlMatchesCloneURL,
   chooseAccountForRemoteRepository,
@@ -383,6 +386,62 @@ describe('repository-matching', () => {
         'https://github.com/someuser/somerepo.git'
       )
       assert(repo === null)
+    })
+  })
+
+  describe('matching hosts with ports', () => {
+    const ported = 'https://ghe.example.com:8443/api/v3'
+    const unported = 'https://ghe.example.com/api/v3'
+    const account = (endpoint: string) =>
+      new Account('mona', endpoint, '', [], '', 1, '')
+
+    it('matches an HTTPS remote only to the account on the same port', () => {
+      const remote = 'https://ghe.example.com:8443/owner/repo.git'
+      assert.equal(
+        matchGitHubRepository([account(unported), account(ported)], remote)
+          ?.account.endpoint,
+        ported
+      )
+      assert.equal(matchGitHubRepository([account(unported)], remote), null)
+      assert.equal(
+        matchGitHubRepository(
+          [account(ported)],
+          'https://ghe.example.com/owner/repo.git'
+        ),
+        null
+      )
+    })
+
+    it('treats the default HTTPS port as no port', () => {
+      assert.equal(
+        matchGitHubRepository(
+          [account(unported)],
+          'https://ghe.example.com:443/owner/repo.git'
+        )?.account.endpoint,
+        unported
+      )
+    })
+
+    it('matches SSH remotes by hostname, ignoring the SSH port', () => {
+      for (const remote of [
+        'git@ghe.example.com:owner/repo.git',
+        'ssh://git@ghe.example.com:2222/owner/repo.git',
+      ]) {
+        assert.equal(
+          matchGitHubRepository([account(ported)], remote)?.account.endpoint,
+          ported
+        )
+      }
+    })
+
+    it('resolves the endpoint for a remote', () => {
+      const https = parseRemote('https://ghe.example.com:8443/owner/repo.git')
+      const ssh = parseRemote('ssh://git@ghe.example.com:2222/owner/repo.git')
+      assert(https !== null && ssh !== null)
+      assert.equal(getEndpointForRemote(https, []), ported)
+      assert.equal(getEndpointForRemote(ssh, []), unported)
+      assert.equal(getEndpointForRemote(ssh, [ported]), ported)
+      assert.equal(remoteMatchesEndpoint(https, unported), false)
     })
   })
 

@@ -140,7 +140,6 @@ import {
 } from '../../ui/main-process-proxy'
 import {
   API,
-  getAPIEndpoint,
   getDotComAPIEndpoint,
   getHTMLURL,
   IAPIOrganization,
@@ -263,6 +262,8 @@ import {
   isAccessibleRepository,
   matchGitHubRepository,
   toAnonymousMatch,
+  getEndpointForRemote,
+  remoteMatchesEndpoint,
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
@@ -5045,8 +5046,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repoStore.clearGitHubRepository(repository)
     }
     if (parsed !== null) {
-      const origin = `https://${parsed.hostname}`
-      const endpoint = getAPIEndpoint(origin)
+      // Prefer the current association, so it survives its account being
+      // signed out, then the signed-in accounts' endpoints.
+      const knownEndpoints = this.accounts.map(a => a.endpoint)
+      const endpoint = getEndpointForRemote(
+        parsed,
+        repository.gitHubRepository === null
+          ? knownEndpoints
+          : [repository.gitHubRepository.endpoint, ...knownEndpoints]
+      )
       if (
         repository.gitHubRepository !== null &&
         repository.gitHubRepository.endpoint !== endpoint
@@ -5054,12 +5062,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository = await repoStore.clearGitHubRepository(repository)
       }
       if (
+        endpoint !== null &&
         repository.gitHubRepository === null &&
-        (isDotCom(origin) ||
-          isGHE(origin) ||
-          this.accounts.some(
-            a => new URL(getHTMLURL(a.endpoint)).host === parsed.hostname
-          ))
+        (isDotCom(endpoint) ||
+          isGHE(endpoint) ||
+          knownEndpoints.includes(endpoint))
       ) {
         repository = await repoStore.setGitHubRepository(
           repository,
@@ -5958,10 +5965,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.loadRemotes()
     const remote = gitStore.defaultRemote
     const parsed = remote === null ? null : parseRemote(remote.url)
-    if (
-      parsed === null ||
-      getAPIEndpoint(`https://${parsed.hostname}`) !== endpoint
-    ) {
+    if (parsed === null || !remoteMatchesEndpoint(parsed, endpoint)) {
       return current
     }
     return this.setRefreshedGitHubRepository(
