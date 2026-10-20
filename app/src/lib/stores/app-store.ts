@@ -136,6 +136,7 @@ import {
 } from '../assisted-commit-request'
 import {
   assistedCommitErrorCauses,
+  getAssistedCommitCleanupToken,
   getAssistedCommitRecovery,
   isAssistedCommitCancellation,
   reconcileAssistedCommitSelection,
@@ -151,8 +152,10 @@ import {
   finalizeAssistedCommitTransaction,
   IAssistedCommitRecovery,
   IAssistedCommitRecoveryToken,
+  IAssistedCommitCleanupToken,
   IAssistedCommitResult,
   rollbackAssistedCommitTransaction,
+  retryAssistedCommitCleanup,
   validateAssistedCommitPlan,
   acceptVerifiedAssistedCommitTransaction,
   withAssistedCommitSnapshot,
@@ -738,6 +741,7 @@ interface IAssistedCommitRun {
     readonly versions: ReadonlyArray<string>
   }
   cleanupPending?: boolean
+  cleanupToken?: IAssistedCommitCleanupToken
 }
 
 interface IRestoredAssistedCommitSelection {
@@ -5219,16 +5223,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         } else {
           run.recoveryCapability = run.recovery?.retryToken
         }
-        const cleanupNeedsRetry =
-          run.snapshot !== undefined &&
-          assistedCommitErrorCauses(error).some(
-            cause =>
-              cause instanceof AssistedCommitError &&
-              cause.code === 'cleanup-failed'
-          )
-        run.cleanupPending = cleanupNeedsRetry
+        this.retainAssistedCommitCleanup(run, error)
         const retryRecovery =
-          run.recoveryCapability !== undefined || cleanupNeedsRetry
+          run.recoveryCapability !== undefined || run.cleanupPending === true
         let selectionNeedsReview = false
         let reconciliationFailed = uncapturedSelectionFailed
         if (
@@ -6171,11 +6168,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const current = this.repositoryStateCache.get(run.repository)
     const tip = current.branchesState.tip
     const snapshot = run.snapshotAuthorized === true ? run.snapshot : undefined
+    const currentHead =
+      run.recovery === undefined && run.result === undefined
+        ? await readAssistedCommitHead(run.repository)
+        : undefined
     const sameHead =
-      snapshot !== undefined &&
-      (snapshot.originalHead.sha === null
+      snapshot === undefined
+        ? this.assistedCommitHeadMatches(
+            run.initialState.branchesState.tip,
+            tip
+          )
+        : currentHead !== undefined
+        ? currentHead.ref === snapshot.originalHead.ref &&
+          currentHead.sha === snapshot.originalHead.sha
+        : snapshot.originalHead.sha === null
         ? tip.kind === TipState.Unborn
-        : getTipSha(tip) === snapshot.originalHead.sha)
+        : getTipSha(tip) === snapshot.originalHead.sha
     const versions = await getAssistedCommitInputVersions(
       run.repository,
       run.request.files
@@ -6201,18 +6209,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
         files.push(file.withIncludeAll(false))
       } else if (
         sameHead &&
-        previous.selection.getSelectionType() !== DiffSelectionType.Partial &&
+        (previous.selection.getSelectionType() !== DiffSelectionType.Partial ||
+          snapshot === undefined) &&
         run.request.files.some(
           (selected, index) =>
             selected.id === file.id &&
             run.inputVersions?.[index] === versions[index]
         )
       ) {
+        const diff =
+          previous.selection.getSelectionType() === DiffSelectionType.Partial
+            ? await this.getAssistedCommitRecoveryDiff(run.repository, file)
+            : null
+        const text =
+          diff !== null &&
+          (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText)
+            ? diff.text
+            : null
+        if (
+          previous.selection.getSelectionType() === DiffSelectionType.Partial &&
+          (text === null ||
+            text !==
+              this.workingDirectorySelectionDiffs.get(previous.selection)?.text)
+        ) {
+          files.push(file.withIncludeAll(false))
+          needsReview = true
+          continue
+        }
         bases.set(previous.selection, {
           index: run.request.files.findIndex(
             selected => selected.id === file.id
           ),
-          text: null,
+          text,
         })
         files.push(file.withSelection(previous.selection))
       } else if (
@@ -6261,10 +6289,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       file => !files.some(current => current.id === file.id)
     )
     const latestHead = await readAssistedCommitHead(run.repository)
+    const expectedHead = currentHead ?? snapshot?.originalHead
     if (
-      snapshot !== undefined &&
-      (latestHead.ref !== snapshot.originalHead.ref ||
-        latestHead.sha !== snapshot.originalHead.sha)
+      expectedHead !== undefined &&
+      (latestHead.ref !== expectedHead.ref ||
+        latestHead.sha !== expectedHead.sha)
     ) {
       throw new AssistedCommitError(
         'repository-changed',
@@ -6523,9 +6552,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
           if (capability !== undefined) {
             run.recovery = await rollbackAssistedCommitTransaction(capability)
             run.recoveryCapability = undefined
-          } else if (run.cleanupPending && run.snapshot !== undefined) {
-            await disposeAssistedCommitSnapshot(run.snapshot)
+          }
+          if (run.cleanupPending) {
+            if (run.cleanupToken !== undefined) {
+              await retryAssistedCommitCleanup(run.cleanupToken)
+            } else if (run.snapshot !== undefined) {
+              await disposeAssistedCommitSnapshot(run.snapshot)
+            } else {
+              throw new Error(
+                'The retained assisted cleanup capability is unavailable'
+              )
+            }
             run.cleanupPending = false
+            run.cleanupToken = undefined
+          }
+        }
+        if (run.recovery === undefined && run.result === undefined) {
+          // No transaction changed history. Reconcile current content, not a stale cleanup fence.
+          run.selectionFence = undefined
+          for (const file of this.repositoryStateCache.get(repository)
+            .changesState.workingDirectory.files) {
+            this.assistedCommitRestoredSelections.delete(file.selection)
           }
         }
         return withRepositoryGitErrorPropagation(async () => {
@@ -6577,6 +6624,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }))
       }
     } catch (error) {
+      this.retainAssistedCommitCleanup(run, error)
       run.recovery = getAssistedCommitRecovery(error) ?? run.recovery
       const capability = run.recoveryCapability
       if (
@@ -6615,6 +6663,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.releaseSettledAssistedCommitResources(run)
     }
     await this.presentSettledAssistedCommitRun(run)
+  }
+
+  private retainAssistedCommitCleanup(
+    run: IAssistedCommitRun,
+    error: unknown
+  ): void {
+    run.cleanupToken = getAssistedCommitCleanupToken(error) ?? run.cleanupToken
+    run.cleanupPending =
+      run.cleanupPending === true ||
+      run.cleanupToken !== undefined ||
+      (run.snapshot !== undefined &&
+        assistedCommitErrorCauses(error).some(
+          cause =>
+            cause instanceof AssistedCommitError &&
+            cause.code === 'cleanup-failed'
+        ))
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */

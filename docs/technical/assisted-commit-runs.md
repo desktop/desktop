@@ -42,6 +42,14 @@ Manual mode keeps its separate action-bar control and draft focus behavior.
 Cancel remains reachable until acceptance and is disabled during recovery.
 Settled errors are inline, with details using existing error presentation;
 unresolved recovery offers Retry rollback, not a dismiss-to-ready escape.
+That existing retry also retains a temporary-cleanup capability when capture
+failed before publishing a snapshot. Full transaction recovery always takes
+priority: removing temporary files alone never acknowledges history, index or
+lock recovery. Without a full recovery token, retry removes only the engine-owned
+temporary directory through `retryAssistedCommitCleanup`, then reconciles current
+selection with read-only Git. A failed cleanup retains the identical capability
+and admission locks; success clears only that obligation. Current external HEAD,
+index and working-file edits are not rolled back by a cleanup-only retry.
 Error state records whether original settlement is still underway. Retry and
 Dismiss are disabled in UI and backend until that exact owner has settled; error
 publication does not itself release Git ownership.
