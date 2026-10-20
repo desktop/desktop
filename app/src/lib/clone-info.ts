@@ -1,5 +1,5 @@
-import * as URL from 'url'
-import { API, getHTMLURL, IAPIRepositoryCloneInfo } from './api'
+import { API, IAPIRepositoryCloneInfo } from './api'
+import { remoteMatchesEndpoint } from './repository-matching'
 import {
   GitProtocol,
   parseRemote,
@@ -25,13 +25,6 @@ const lookupCloneInfoUsingAPI: CloneInfoLookup = (
   name,
   protocol
 ) => API.fromAccount(account).fetchRepositoryCloneInfo(owner, name, protocol)
-
-function isAccountForHost(account: Account, hostname: string) {
-  const accountHost = URL.parse(getHTMLURL(account.endpoint)).hostname
-  return (
-    accountHost !== null && accountHost.toLowerCase() === hostname.toLowerCase()
-  )
-}
 
 /**
  * Resolve the URL and default branch to clone a URL or `owner/name` shortcut
@@ -67,9 +60,9 @@ export async function resolveURLCloneInfo(
     })
   }
 
-  const { hostname, owner, name, protocol } = remote
+  const { owner, name, protocol } = remote
   const candidates = [...accounts, Account.anonymous()].filter(a =>
-    isAccountForHost(a, hostname)
+    remoteMatchesEndpoint(remote, a.endpoint)
   )
 
   if (candidates.length === 0) {

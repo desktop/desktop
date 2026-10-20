@@ -119,4 +119,51 @@ describe('resolveURLCloneInfo', () => {
       url,
     })
   })
+
+  describe('with an Enterprise server on a non-default port', () => {
+    const ported = getEnterpriseAPIURL('https://ghe.example.com:8443')
+    const dave = new Account('dave', ported, 'dave-token', [], '', 4, '')
+
+    /** A lookup where every account has access, recording who was asked. */
+    function createRecordingLookup() {
+      const calls = new Array<string>()
+      const lookup: CloneInfoLookup = async (account, owner, name) => {
+        calls.push(account.login)
+        return { url: `resolved/${owner}/${name}`, defaultBranch: 'main' }
+      }
+      return { lookup, calls }
+    }
+
+    it('resolves an HTTPS URL with the port to the account on that port', async () => {
+      const { lookup, calls } = createRecordingLookup()
+      const info = await resolveURLCloneInfo(
+        'https://ghe.example.com:8443/owner/repo.git',
+        [carol, dave],
+        lookup
+      )
+      assert.strictEqual(info?.url, 'resolved/owner/repo')
+      assert.deepStrictEqual(calls, ['dave'])
+    })
+
+    it('resolves an HTTPS URL without the port to the account without one', async () => {
+      const { lookup, calls } = createRecordingLookup()
+      await resolveURLCloneInfo(
+        'https://ghe.example.com/owner/repo.git',
+        [carol, dave],
+        lookup
+      )
+      assert.deepStrictEqual(calls, ['carol'])
+    })
+
+    it('resolves an SSH URL to the account on the ported server', async () => {
+      const { lookup, calls } = createRecordingLookup()
+      const info = await resolveURLCloneInfo(
+        'git@ghe.example.com:owner/repo.git',
+        [dave],
+        lookup
+      )
+      assert.strictEqual(info?.url, 'resolved/owner/repo')
+      assert.deepStrictEqual(calls, ['dave'])
+    })
+  })
 })
