@@ -5043,7 +5043,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       parsed === null &&
       repository.gitHubRepository !== null
     ) {
-      return repoStore.clearGitHubRepository(repository)
+      return this.clearGitHubRepository(repository)
     }
     if (parsed !== null) {
       // Prefer the current association, so it survives its account being
@@ -5059,7 +5059,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository.gitHubRepository !== null &&
         repository.gitHubRepository.endpoint !== endpoint
       ) {
-        repository = await repoStore.clearGitHubRepository(repository)
+        repository = await this.clearGitHubRepository(repository)
       }
       if (
         endpoint !== null &&
@@ -5068,7 +5068,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           isGHE(endpoint) ||
           knownEndpoints.includes(endpoint))
       ) {
-        repository = await repoStore.setGitHubRepository(
+        repository = await this.setRefreshedGitHubRepository(
           repository,
           await repoStore.upsertGitHubRepositoryFromMatch(
             toAnonymousMatch(endpoint, parsed.owner, parsed.name)
@@ -5129,6 +5129,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return freshRepo
   }
 
+  /** Clear the GitHub association, keeping the repository's in-memory state. */
+  private async clearGitHubRepository(repository: Repository) {
+    const updated = await this.repositoriesStore.clearGitHubRepository(
+      repository
+    )
+    this.carryOverRepositoryState(repository, updated)
+    return updated
+  }
+
   /** Set refreshed GitHub metadata, keeping the repository's in-memory state. */
   private async setRefreshedGitHubRepository(
     repository: Repository,
@@ -5153,7 +5162,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * still be using it.
    */
   private carryOverRepositoryState(from: Repository, to: Repository) {
-    if (from.id !== to.id) {
+    if (from.id !== to.id || from.hash === to.hash) {
       return
     }
     this.repositoryStateCache.transferState(from, to)
@@ -5898,7 +5907,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       private_
     )
 
-    const gitStore = this.gitStoreCache.get(repository)
+    let gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() =>
       addRemote(repository, 'origin', apiRepository.clone_url)
     )
@@ -5913,11 +5922,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Adding the remote may have associated the repository anonymously in
     // the meantime, and setGitHubRepository won't replace an association
     // newer than the one it's given.
+    const current = await this._getCurrentRepository(repository)
     repository = await this.repositoriesStore.setGitHubRepository(
-      await this._getCurrentRepository(repository),
+      current,
       gitHubRepository,
       account.login
     )
+
+    // The account is assigned before pushing so Git uses its credentials.
+    // That changes the repository's identity, so load the state the push
+    // needs (such as the new remote) for it.
+    this.carryOverRepositoryState(current, repository)
+    await this._refreshRepository(repository)
+    gitStore = this.gitStoreCache.get(repository)
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
@@ -8520,7 +8537,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
       if (clearAssignments) {
+        // Clearing changes the repositories' identities, so move their
+        // in-memory state (such as commit message drafts) along.
+        const before = await this.repositoriesStore.getAll()
         await this.repositoriesStore.clearAccountAssignments(account)
+        const after = await this.repositoriesStore.getAll()
+        for (const repository of before) {
+          const cleared = after.find(r => r.id === repository.id)
+          if (cleared !== undefined) {
+            this.carryOverRepositoryState(repository, cleared)
+          }
+        }
       }
     }
     await this._removeAccount(account)
