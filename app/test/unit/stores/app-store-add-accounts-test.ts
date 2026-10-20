@@ -272,10 +272,13 @@ describe('AppStore explicitly adding repositories', () => {
     appStore['refreshBranchProtectionState'] = async () => {}
     const pushed = new Array<Repository>()
     appStore['performPush'] = async (repository: Repository) => {
+      // The real push opens Publish again if it finds no remote.
       const { remote } = stores.repositoryStateCache.get(repository)
       assert.strictEqual(remote?.url, apiRepository.clone_url)
       pushed.push(repository)
     }
+    // Like a selected repository, its current identity already has state.
+    await appStore._refreshRepository(added)
     await appStore._publishRepository(added, 'repo', '', false, bob, null)
     assert.strictEqual(pushed.length, 1)
     assert.strictEqual(pushed[0].login, 'bob')
