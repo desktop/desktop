@@ -82,6 +82,10 @@
 
     color: var(--text-color);
     background-color: var(--box-selected-active-background-color);
+
+    @media (forced-colors: active) {
+      outline: 2px solid Highlight;
+    }
   }
 }
 
@@ -103,6 +107,13 @@
 
   &:focus {
     outline: none;
+  }
+
+  @media (forced-colors: active) {
+    &.selected {
+      outline: 1px solid CanvasText;
+      outline-offset: -2px;
+    }
   }
 
   &:not(.not-selectable):hover {
