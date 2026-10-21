@@ -22,6 +22,7 @@ import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
 import { exchangeOAuthToken } from '../oauth-token'
+import { shouldRequestShortLivedTokens } from '../short-lived-token-rollout'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -262,7 +263,15 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       )
     }
 
-    this.setState({ ...currentState, loading: true })
+    const authenticatingState = { ...currentState, loading: true }
+    this.setState(authenticatingState)
+
+    const shortLived = await shouldRequestShortLivedTokens(
+      currentState.endpoint
+    )
+    if (this.state !== authenticatingState) {
+      return
+    }
 
     const csrfToken = crypto.randomUUID()
 
@@ -294,9 +303,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         getOAuthAuthorizationURL(
           endpoint,
           csrfToken,
-          currentState.kind === SignInStep.Authentication
-            ? currentState.expectedLogin
-            : undefined
+          currentState.expectedLogin,
+          shortLived
         )
       )
     })
