@@ -44,6 +44,7 @@ function deferred<T>() {
 }
 
 interface IAuthenticationResponses {
+  readonly featureFlag?: () => Promise<Response>
   readonly exchange?: () => Promise<Response>
   readonly user?: () => Promise<Response>
   readonly revoke?: (init?: RequestInit) => Promise<Response>
@@ -74,13 +75,16 @@ async function createAuthentication(
     disposeUpdates.dispose()
     signInStore.reset()
   })
-  t.mock.method(shell, 'openExternal', async () => true)
+  const openExternal = t.mock.method(shell, 'openExternal', async () => true)
   const fetchMock = t.mock.method(
     globalThis,
     'fetch',
     async (input: RequestInfo | URL, init?: RequestInit) => {
       assert.ok(typeof input === 'string')
       const url = new URL(input)
+      if (url.hostname === 'central.github.com') {
+        return responses.featureFlag?.() ?? Response.json({ enabled: true })
+      }
       if (url.pathname === '/login/oauth/access_token') {
         return responses.exchange?.() ?? Response.json(oauthResponse)
       }
@@ -129,6 +133,7 @@ async function createAuthentication(
 
   signInStore.beginDotComSignIn(result => results.push(result))
   await signInStore.authenticateWithBrowser()
+  fetchMock.mock.resetCalls()
   const state = signInStore.getState()
   assert.ok(state?.kind === SignInStep.Authentication)
   assert.ok(state.oauthState)
@@ -148,6 +153,7 @@ async function createAuthentication(
     revoked,
     action,
     fetchMock,
+    openExternal,
   }
 }
 
@@ -369,6 +375,74 @@ describe('OAuth API integration', () => {
 })
 
 describe('OAuth sign-in integration', { timeout: 10_000 }, () => {
+  for (const enabled of [false, true]) {
+    it(`requests offline_access only when Central enables it (${enabled})`, async t => {
+      const harness = await createAuthentication(t, {
+        featureFlag: async () => Response.json({ enabled }),
+      })
+      const path = harness.openExternal.mock.calls[0].arguments[0]
+      assert.ok(path)
+      const url = new URL(path)
+      assert.strictEqual(
+        url.searchParams.get('scope')?.split(' ').includes('offline_access'),
+        enabled
+      )
+    })
+  }
+
+  it('opens legacy sign-in when Central is unavailable', async t => {
+    const harness = await createAuthentication(t, {
+      featureFlag: async () => {
+        throw new Error('Central unavailable')
+      },
+    })
+    const path = harness.openExternal.mock.calls[0].arguments[0]
+    assert.ok(path)
+    const url = new URL(path)
+    assert.deepStrictEqual(url.searchParams.get('scope')?.split(' '), [
+      'repo',
+      'user',
+      'workflow',
+    ])
+  })
+
+  for (const restart of [false, true]) {
+    it(`does not open a stale browser after ${
+      restart ? 'restarting' : 'cancelling'
+    } during the rollout check`, async t => {
+      const accounts = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore()
+      )
+      const store = new SignInStore(accounts)
+      t.after(() => store.reset())
+      const response = deferred<Response>()
+      const started = deferred<void>()
+      t.mock.method(globalThis, 'fetch', async () => {
+        started.resolve()
+        return response.promise
+      })
+      const openExternal = t.mock.method(
+        shell,
+        'openExternal',
+        async () => true
+      )
+      store.beginDotComSignIn()
+      const pending = store.authenticateWithBrowser()
+      await started.promise
+      if (restart) {
+        store.beginDotComSignIn()
+      } else {
+        store.reset()
+      }
+      const state = store.getState()
+      response.resolve(Response.json({ enabled: true }))
+      await pending
+      assert.strictEqual(store.getState(), state)
+      assert.strictEqual(openExternal.mock.callCount(), 0)
+    })
+  }
+
   it('emits success only after saving credentials and keeps refresh secrets out of public state', async t => {
     const harness = await createAuthentication(t)
     const started = deferred<void>()
