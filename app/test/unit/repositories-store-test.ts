@@ -577,4 +577,45 @@ describe('RepositoriesStore', () => {
       assert.equal(reloaded.mainWorktreePath, undefined)
     })
   })
+
+  describe('emitting updates', () => {
+    it('never emits repositories older than a completed update', async () => {
+      const repository = await repositoriesStore.addRepository(
+        '/some/cool/path',
+        '/some/cool/path/.git'
+      )
+      while (repositoriesStore['emitQueued']) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+
+      const getAll = repositoriesStore.getAll.bind(repositoriesStore)
+      let release = () => {}
+      const released = new Promise<void>(resolve => (release = resolve))
+      let calls = 0
+      let started = () => {}
+      const readStarted = new Promise<void>(resolve => (started = resolve))
+      repositoriesStore.getAll = async () => {
+        const repositories = await getAll()
+        if (calls++ === 0) {
+          started()
+          await released
+        }
+        return repositories
+      }
+      const emitted = new Array<string | null>()
+      repositoriesStore.onDidUpdate(repositories =>
+        emitted.push(repositories[0].alias)
+      )
+
+      await repositoriesStore.updateRepositoryAlias(repository, 'first')
+      await readStarted
+      await repositoriesStore.updateRepositoryAlias(repository, 'second')
+      release()
+      while (emitted.length === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+
+      assert.deepEqual(emitted, ['second'])
+    })
+  })
 })
