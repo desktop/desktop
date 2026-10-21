@@ -55,6 +55,9 @@ export class RepositoriesStore extends TypedBaseStore<
 
   private emitQueued = false
 
+  /** Incremented whenever an update is requested, see `emitUpdatedRepositories`. */
+  private updateVersion = 0
+
   public constructor(private readonly db: RepositoriesDatabase) {
     super()
   }
@@ -1055,16 +1058,33 @@ export class RepositoriesStore extends TypedBaseStore<
   /**
    * Helper method to emit updates consistently
    * (This is the only way we emit updates from this store.)
+   *
+   * The repositories are read asynchronously, so another update may be made
+   * while they're being read. The read is retried in that case, so listeners
+   * never receive repositories older than ones a caller already got back.
    */
   private emitUpdatedRepositories() {
+    this.updateVersion++
     if (!this.emitQueued) {
-      setImmediate(() => {
-        this.getAll()
-          .then(repos => this.emitUpdate(repos))
-          .catch(e => log.error(`Failed emitting update`, e))
-          .finally(() => (this.emitQueued = false))
-      })
       this.emitQueued = true
+      setImmediate(() => this.emitLatestRepositories())
+    }
+  }
+
+  private async emitLatestRepositories() {
+    try {
+      let version
+      let repositories
+      do {
+        version = this.updateVersion
+        repositories = await this.getAll()
+      } while (version !== this.updateVersion)
+
+      this.emitQueued = false
+      this.emitUpdate(repositories)
+    } catch (e) {
+      this.emitQueued = false
+      log.error(`Failed emitting update`, e)
     }
   }
 }

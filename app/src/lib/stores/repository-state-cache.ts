@@ -1,7 +1,7 @@
 import { Branch, BranchType } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import { Repository, getRepositoryStateKey } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
@@ -34,18 +34,18 @@ export class RepositoryStateCache {
 
   /** Whether any state has been created for the repository. */
   public has(repository: Repository): boolean {
-    return this.repositoryState.has(repository.hash)
+    return this.repositoryState.has(getRepositoryStateKey(repository))
   }
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
-    const existing = this.repositoryState.get(repository.hash)
+    const existing = this.repositoryState.get(getRepositoryStateKey(repository))
     if (existing != null) {
       return existing
     }
 
     const newItem = getInitialRepositoryState()
-    this.repositoryState.set(repository.hash, newItem)
+    this.repositoryState.set(getRepositoryStateKey(repository), newItem)
     return newItem
   }
 
@@ -70,7 +70,7 @@ export class RepositoryStateCache {
       newTip.branch.tip.sha === newState.commitToAmend.sha &&
       newState.changesState.conflictState === null
 
-    this.repositoryState.set(repository.hash, {
+    this.repositoryState.set(getRepositoryStateKey(repository), {
       ...newState,
       commitToAmend: isAmending ? newState.commitToAmend : null,
     })
@@ -262,14 +262,14 @@ export class RepositoryStateCache {
     source: Repository,
     worktree: WorktreeEntry
   ) {
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceState = this.repositoryState.get(getRepositoryStateKey(source))
     if (sourceState === undefined) {
       return
     }
 
     const targetState = this.get(target)
 
-    this.repositoryState.set(target.hash, {
+    this.repositoryState.set(getRepositoryStateKey(target), {
       ...targetState,
       branchesState: {
         ...targetState.branchesState,
@@ -300,17 +300,17 @@ export class RepositoryStateCache {
    * identity rather than reset to its initial values.
    */
   public transferState(source: Repository, target: Repository) {
-    if (source.hash === target.hash) {
+    if (getRepositoryStateKey(source) === getRepositoryStateKey(target)) {
       return
     }
 
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceState = this.repositoryState.get(getRepositoryStateKey(source))
     if (sourceState === undefined) {
       return
     }
 
-    this.repositoryState.set(target.hash, sourceState)
-    this.repositoryState.delete(source.hash)
+    this.repositoryState.set(getRepositoryStateKey(target), sourceState)
+    this.repositoryState.delete(getRepositoryStateKey(source))
   }
 
   private sendPullRequestStateNotExistsException() {

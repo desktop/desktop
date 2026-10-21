@@ -88,6 +88,7 @@ import {
   ILocalRepositoryState,
   nameOf,
   Repository,
+  getRepositoryStateKey,
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
@@ -757,6 +758,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private preferAbsoluteDates: boolean = false
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
+
+  /**
+   * The current account and GitHub repository of each working directory,
+   * keyed by `getRepositoryStateKey`. See `adoptRepository`.
+   */
+  private readonly repositoryAssociations = new Map<string, string>()
+
   private repositoryAccountPromptQueue: Promise<void> = Promise.resolve()
 
   /**
@@ -1077,7 +1085,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.repositoriesStore.onDidUpdate(updateRepositories => {
-      this.repositories = updateRepositories
+      this.setRepositories(updateRepositories)
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1087,6 +1095,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.pullRequestCoordinator.onIsLoadingPullRequests(
       (repository, isLoadingPullRequests) => {
+        if (!this.isCurrentAssociation(repository)) {
+          return
+        }
         this.repositoryStateCache.updateBranchesState(repository, () => {
           return { isLoadingPullRequests }
         })
@@ -1511,6 +1522,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async refreshBranchProtectionState(repository: Repository) {
+    if (!this.isCurrentAssociation(repository)) {
+      return
+    }
+
     const { tip, currentRemote } = this.gitStoreCache.get(repository)
 
     if (tip.kind !== TipState.Valid || repository.gitHubRepository === null) {
@@ -1535,6 +1550,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // about write access before showing a branch protection
       // warning.
       if (!hasWritePermission(gitHubRepo)) {
+        if (!this.isCurrentAssociation(repository)) {
+          return
+        }
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
           currentRepoRulesInfo: new RepoRulesInfo(),
@@ -1592,7 +1610,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
 
-      if (cachedRepoRulesets !== this.cachedRepoRulesets) {
+      if (
+        cachedRepoRulesets !== this.cachedRepoRulesets ||
+        !this.isCurrentAssociation(repository)
+      ) {
         return
       }
       this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -2513,7 +2534,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.accounts = accounts
-    this.repositories = repositories
+    this.setRepositories(repositories)
     this.statsStore.setUsesShortLivedToken(
       accounts.some(account => this.accountsStore.isRefreshable(account))
     )
@@ -3079,7 +3100,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       status
     )
 
-    if (this.selectedRepository === repository) {
+    if (this.isSelectedRepository(repository)) {
       this._triggerConflictsFlow(repository, status)
     }
 
@@ -4053,6 +4074,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           recovered,
           type.gitDir
         )
+        this.adoptRepository(recovered)
       }
       return recovered
     }
@@ -4108,6 +4130,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       type.gitDir,
       type.topLevelWorkingDirectory
     )
+
+    this.adoptRepository(result.repository)
 
     if (!result.existingRepository) {
       // The main worktree exists, so its own worktree list is readable even
@@ -4168,6 +4192,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           repository,
           type.gitDir
         )
+        this.adoptRepository(repository)
       }
     }
 
@@ -5130,7 +5155,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const updated = await this.repositoriesStore.clearGitHubRepository(
       repository
     )
-    this.carryOverRepositoryState(repository, updated)
+    this.adoptRepository(updated)
     return updated
   }
 
@@ -5143,35 +5168,89 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       gitHubRepository
     )
-    this.carryOverRepositoryState(repository, updated)
+    this.adoptRepository(updated)
     return updated
   }
 
+  /** Store the latest repositories and adopt them, see `adoptRepository`. */
+  private setRepositories(repositories: ReadonlyArray<Repository>) {
+    this.repositories = repositories
+    for (const repository of repositories) {
+      this.adoptRepository(repository)
+    }
+  }
+
   /**
-   * Move in-memory state (such as a commit message draft) to the repository's
-   * new identity after its account or GitHub metadata changed its hash.
+   * Make the given repository the current snapshot of its working directory.
    *
-   * The new identity may already have state from when it was last used, for
-   * example when switching accounts back and forth. That state is stale, so
-   * it's overwritten with the state of the identity being left. The old
-   * GitStore is kept, since an operation that prompted for the account may
-   * still be using it.
+   * In-memory state and the GitStore are keyed by the working directory, so
+   * they're kept when the repository's account or GitHub metadata changes.
+   * The GitStore adopts the new snapshot so later operations use its account.
+   *
+   * When the account or GitHub repository changes, data loaded with the
+   * previous account (pull requests and branch protection) is cleared and any
+   * results still in flight for it are discarded, see `isCurrentAssociation`.
    */
-  private carryOverRepositoryState(from: Repository, to: Repository) {
-    if (from.id !== to.id || from.hash === to.hash) {
+  private adoptRepository(repository: Repository) {
+    this.gitStoreCache.setRepository(repository)
+
+    const key = getRepositoryStateKey(repository)
+    const association = getRepositoryAssociation(repository)
+    const previous = this.repositoryAssociations.get(key)
+    this.repositoryAssociations.set(key, association)
+
+    if (previous === undefined || previous === association) {
       return
     }
-    this.repositoryStateCache.transferState(from, to)
 
-    // The draft lives in the GitStore, which is also keyed by hash, and its
-    // updates overwrite the draft in the repository state.
-    if (this.gitStoreCache.has(from)) {
-      const previous = this.gitStoreCache.get(from)
-      const next = this.gitStoreCache.get(to)
-      next.setShowCoAuthoredBy(previous.showCoAuthoredBy)
-      next.setCoAuthors(previous.coAuthors)
-      next.setCommitMessage(previous.commitMessage)
+    if (this.repositoryStateCache.has(repository)) {
+      this.repositoryStateCache.updateBranchesState(repository, () => ({
+        openPullRequests: [],
+        currentPullRequest: null,
+        isLoadingPullRequests: false,
+      }))
+      this.clearBranchProtectionState(repository)
     }
+  }
+
+  /**
+   * Whether the repository still has the account and GitHub repository that
+   * are current for its working directory.
+   *
+   * Results loaded with a previous account must not be written to the state
+   * of the working directory after its account changed.
+   */
+  private isCurrentAssociation(repository: Repository) {
+    const current = this.repositoryAssociations.get(
+      getRepositoryStateKey(repository)
+    )
+    return (
+      current === undefined || current === getRepositoryAssociation(repository)
+    )
+  }
+
+  /**
+   * Whether an operation that uses the repository's working directory or
+   * GitStore is in progress.
+   */
+  private isRepositoryBusy(repository: Repository) {
+    const state = this.repositoryStateCache.get(repository)
+    return (
+      state.isPushPullFetchInProgress ||
+      state.isCommitting ||
+      state.isGeneratingCommitMessage ||
+      state.checkoutProgress !== null ||
+      state.revertProgress !== null
+    )
+  }
+
+  /** Whether the repository refers to the selected working directory. */
+  private isSelectedRepository(repository: Repository) {
+    const selected = this.selectedRepository
+    return (
+      selected instanceof Repository &&
+      getRepositoryStateKey(selected) === getRepositoryStateKey(repository)
+    )
   }
 
   /**
@@ -5410,7 +5489,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.update(repository, () => ({
       pushPullFetchProgress,
     }))
-    if (this.selectedRepository === repository) {
+    if (this.isSelectedRepository(repository)) {
       this.emitUpdate()
     }
   }
@@ -5903,7 +5982,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       private_
     )
 
-    let gitStore = this.gitStoreCache.get(repository)
+    const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() =>
       addRemote(repository, 'origin', apiRepository.clone_url)
     )
@@ -5926,11 +6005,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     // The account is assigned before pushing so Git uses its credentials.
-    // That changes the repository's identity, so load the state the push
-    // needs (such as the new remote) for it.
-    this.carryOverRepositoryState(current, repository)
-    await this._refreshRepository(repository)
-    gitStore = this.gitStoreCache.get(repository)
+    this.adoptRepository(repository)
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
@@ -6440,6 +6515,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       mainWorktreePath
     )
 
+    // A store kept from when this worktree was last selected may predate an
+    // account change, so it's adopted before seeding the current data.
+    this.adoptRepository(result.repository)
     this.repositoryStateCache.seedFromWorktree(
       result.repository,
       repository,
@@ -6563,22 +6641,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     worktreePath: string,
     newPath: string
   ): Promise<void> {
+    const isCurrentWorktree = repository.path === worktreePath
+    if (isCurrentWorktree && this.isRepositoryBusy(repository)) {
+      throw new Error(
+        'The worktree cannot be renamed while an operation is in progress. Please try again once it has finished.'
+      )
+    }
+
     await moveWorktree(repository, worktreePath, newPath)
 
     // If the worktree being renamed is the currently selected one, switch to
     // its new path so that the subsequent refresh (and any further git calls)
     // operate on the renamed directory rather than the now non-existing one.
-    if (repository.path === worktreePath) {
+    if (isCurrentWorktree) {
       const result = await this.repositoriesStore.switchWorktree(
         repository,
         newPath
       )
 
-      // Renaming changes the repository's path and therefore its hash, which
-      // is the key used by the state cache. Carry the existing state over to
-      // the new identity so we don't reset the UI (e.g. a typed commit
-      // message) just because the worktree was renamed.
+      // Renaming changes the repository's path, which is part of the key used
+      // by the state and GitStore caches. Carry the existing state over to the
+      // new path so we don't reset the UI (e.g. a typed commit message) just
+      // because the worktree was renamed.
       this.repositoryStateCache.transferState(repository, result.repository)
+      this.gitStoreCache.transfer(repository, result.repository)
+      this.adoptRepository(result.repository)
 
       await this._selectRepository(result.repository)
       await this._refreshWorktrees(result.repository)
@@ -8539,16 +8626,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
       if (clearAssignments) {
-        // Clearing changes the repositories' identities, so move their
-        // in-memory state (such as commit message drafts) along.
-        const before = await this.repositoriesStore.getAll()
         await this.repositoriesStore.clearAccountAssignments(account)
-        const after = await this.repositoriesStore.getAll()
-        for (const repository of before) {
-          const cleared = after.find(r => r.id === repository.id)
-          if (cleared !== undefined) {
-            this.carryOverRepositoryState(repository, cleared)
-          }
+        for (const repository of await this.repositoriesStore.getAll()) {
+          this.adoptRepository(repository)
         }
       }
     }
@@ -8595,9 +8675,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       current,
       login
     )
-    this.carryOverRepositoryState(current, updated)
-    this.repositories = await this.repositoriesStore.getAll()
-    this.clearBranchProtectionState(updated)
+    this.adoptRepository(updated)
+    this.setRepositories(await this.repositoriesStore.getAll())
     this.updateRepositorySelectionAfterRepositoriesChanged()
     this.emitUpdate()
     return updated
@@ -8754,11 +8833,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public _updateRepositoryMissing(
+  public async _updateRepositoryMissing(
     repository: Repository,
     missing: boolean
   ): Promise<Repository> {
-    return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+    const updated = await this.repositoriesStore.updateRepositoryMissing(
+      repository,
+      missing
+    )
+    this.adoptRepository(updated)
+    return updated
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -8909,6 +8993,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             )
           }
         }
+        this.adoptRepository(refreshedRepo)
         const usingLFS = await this.isUsingLFS(refreshedRepo)
         addedRepositories.push(refreshedRepo)
 
@@ -9095,7 +9180,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       revertProgress: progress,
     }))
 
-    if (this.selectedRepository === repository) {
+    if (this.isSelectedRepository(repository)) {
       this.emitUpdate()
     }
   }
@@ -9278,6 +9363,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     openPullRequests: ReadonlyArray<PullRequest>
   ) {
+    // Pull requests loaded for a previous account or GitHub repository
+    if (!this.isCurrentAssociation(repository)) {
+      return
+    }
+
     this.repositoryStateCache.updateBranchesState(repository, () => {
       return { openPullRequests }
     })
@@ -9789,7 +9879,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (await gitStore.setRemoteURL(defaultRemoteName, fork.clone_url)) {
         await gitStore.ensureUpstreamRemoteURL(remoteUrl)
         // update associated github repo
-        return this.repositoriesStore.setGitHubRepository(
+        return this.setRefreshedGitHubRepository(
           repository,
           await this.repositoriesStore.upsertGitHubRepository(
             endpoint,
@@ -11632,4 +11722,15 @@ function getDeletedSideFromStatus(
     return 'theirs'
   }
   return undefined
+}
+
+/**
+ * Identifies the account and GitHub repository whose data the repository's
+ * network operations load.
+ */
+function getRepositoryAssociation(repository: Repository) {
+  return JSON.stringify([
+    repository.login?.toLowerCase() ?? null,
+    repository.gitHubRepository?.dbID ?? null,
+  ])
 }
