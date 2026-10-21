@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { after, before, describe, it, mock, TestContext } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
+import * as Path from 'path'
+import { existsSync } from 'fs'
 import type { AppStore } from '../../../src/lib/stores/app-store'
 import { API, IAPIPullRequest } from '../../../src/lib/api'
 import { Account } from '../../../src/models/account'
@@ -141,6 +143,8 @@ describe('AppStore explicitly adding repositories', () => {
         gitHubRepository,
         'alice'
       )
+      // Like the AppStore's own changes, rather than waiting for the update.
+      appStore['adoptRepository'](assigned)
       await appStore._setCommitMessage(assigned, {
         summary: 'Draft',
         description: null,
@@ -240,6 +244,336 @@ describe('AppStore explicitly adding repositories', () => {
       assert.strictEqual(cleared?.login, null)
       assert.notStrictEqual(cleared.hash, repository.hash)
       assert.strictEqual(draftOf(cleared), 'Draft')
+    })
+
+    /** Run a network operation that finishes when the returned function is called. */
+    function startNetworkOperation(repository: Repository) {
+      let finish = () => {}
+      const finished = new Promise<void>(resolve => (finish = resolve))
+      const operation = appStore['withPushPullFetch'](
+        repository,
+        () => finished
+      )
+      return async () => {
+        finish()
+        await operation
+      }
+    }
+
+    function isNetworkOperationInProgress(repository: Repository) {
+      return stores.repositoryStateCache.get(repository)
+        .isPushPullFetchInProgress
+    }
+
+    it('finishes a fetch that was running when the account changed', async t => {
+      const repository = await setupDraft(t)
+      const finish = startNetworkOperation(repository)
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+      assert.strictEqual(isNetworkOperationInProgress(updated), true)
+      await appStore._setCommitMessage(updated, {
+        summary: 'Edited',
+        description: null,
+        timestamp: 2,
+      })
+
+      await finish()
+
+      assert.strictEqual(isNetworkOperationInProgress(updated), false)
+      assert.strictEqual(draftOf(updated), 'Edited')
+      let ran = false
+      await appStore['withPushPullFetch'](updated, async () => {
+        ran = true
+      })
+      assert.strictEqual(ran, true)
+    })
+
+    it('finishes a fetch that was running when metadata was refreshed', async t => {
+      const repository = await setupDraft(t)
+      t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({
+          fetchRepository: async () => ({
+            ...apiRepository,
+            permissions: { pull: true, push: false, admin: false },
+          }),
+          fetchProtectedBranches: async () => [],
+        })
+      )
+      const finish = startNetworkOperation(repository)
+      const refreshed = await appStore[
+        'repositoryWithRefreshedGitHubRepository'
+      ](repository)
+      assert.notStrictEqual(refreshed.hash, repository.hash)
+
+      await finish()
+
+      assert.strictEqual(isNetworkOperationInProgress(refreshed), false)
+    })
+
+    it('finishes a fetch that was running when the repository was associated anonymously', async t => {
+      const { setupEmptyRepository } = await import(
+        '../../helpers/repositories'
+      )
+      const { addRemote } = await import('../../../src/lib/git')
+      const repository = await setupEmptyRepository(t)
+      await addRemote(
+        repository,
+        'origin',
+        'https://github.com/someone/fetching.git'
+      )
+      const added = await stores.repositoriesStore.addRepository(
+        repository.path,
+        repository.resolvedGitDir
+      )
+      t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({
+          fetchRepository: async () => null,
+          fetchProtectedBranches: async () => [],
+        })
+      )
+      const finish = startNetworkOperation(added)
+      const refreshed = await appStore[
+        'repositoryWithRefreshedGitHubRepository'
+      ](added)
+      assert.notStrictEqual(refreshed.gitHubRepository, null)
+
+      await finish()
+
+      assert.strictEqual(isNetworkOperationInProgress(refreshed), false)
+    })
+
+    it('finishes a commit that was running when the account changed', async t => {
+      const repository = await setupDraft(t)
+      let finish = () => {}
+      const commit = appStore['withIsCommitting'](
+        repository,
+        () => new Promise<boolean>(resolve => (finish = () => resolve(true)))
+      )
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+
+      finish()
+      await commit
+
+      assert.strictEqual(
+        stores.repositoryStateCache.get(updated).isCommitting,
+        false
+      )
+    })
+
+    it('uses the new account for operations started before it changed', async t => {
+      const repository = await setupDraft(t)
+      const gitStore = appStore['gitStoreCache'].get(repository)
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+      assert.strictEqual(appStore['gitStoreCache'].get(repository), gitStore)
+      assert.strictEqual(gitStore.repository.login, 'bob')
+      assert.strictEqual(gitStore.repository.hash, updated.hash)
+    })
+
+    it('keeps the new account when an update started with the previous one finishes', async t => {
+      const repository = await setupDraft(t)
+      const gitStore = appStore['gitStoreCache'].get(repository)
+      await appStore._updateRepositoryAccount(repository, 'bob')
+
+      const updated = await appStore._updateRepositoryMissing(repository, false)
+
+      assert.strictEqual(updated.login, 'bob')
+      assert.strictEqual(gitStore.repository.login, 'bob')
+      assert.strictEqual(appStore['isCurrentAssociation'](updated), true)
+    })
+
+    it('reports progress for the selected repository after its account changed', async t => {
+      const repository = await setupDraft(t)
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+      const selectedRepository = appStore['selectedRepository']
+      t.after(() => (appStore['selectedRepository'] = selectedRepository))
+      appStore['selectedRepository'] = updated
+      const emitUpdate = appStore['emitUpdate']
+      t.after(() => (appStore['emitUpdate'] = emitUpdate))
+      let emitted = 0
+      appStore['emitUpdate'] = () => emitted++
+
+      appStore['updateRevertProgress'](repository, null)
+      appStore['updatePushPullFetchProgress'](repository, null)
+
+      assert.strictEqual(emitted, 2)
+    })
+
+    it('discards pull requests and protection loaded with the previous account', async t => {
+      const repository = await setupDraft(t)
+      const { PullRequest, PullRequestRef } = await import(
+        '../../../src/models/pull-request'
+      )
+      assert(isRepositoryWithGitHubRepository(repository))
+      const ref = new PullRequestRef(
+        'feature',
+        'head',
+        repository.gitHubRepository
+      )
+      const pullRequest = new PullRequest(
+        new Date(),
+        'Example',
+        42,
+        ref,
+        ref,
+        'alice',
+        false,
+        ''
+      )
+      t.mock.method(
+        appStore['gitStoreCache'].get(repository),
+        'pruneForkedRemotes',
+        async () => {}
+      )
+      const pullRequestsOf = (r: Repository) =>
+        stores.repositoryStateCache.get(r).branchesState.openPullRequests
+      await appStore['onPullRequestChanged'](repository, [pullRequest])
+      stores.repositoryStateCache.updateChangesState(repository, () => ({
+        currentBranchProtected: true,
+      }))
+      assert.strictEqual(pullRequestsOf(repository).length, 1)
+
+      const updated = await appStore._updateRepositoryAccount(repository, 'bob')
+
+      assert.strictEqual(pullRequestsOf(updated).length, 0)
+      assert.strictEqual(
+        stores.repositoryStateCache.get(updated).changesState
+          .currentBranchProtected,
+        false
+      )
+      await appStore['onPullRequestChanged'](repository, [pullRequest])
+      assert.strictEqual(pullRequestsOf(updated).length, 0)
+      const fromAccount = t.mock.method(API, 'fromAccount', () =>
+        createMockAPI({})
+      )
+      await appStore['refreshBranchProtectionState'](repository)
+      assert.strictEqual(fromAccount.mock.callCount(), 0)
+
+      await appStore['onPullRequestChanged'](updated, [pullRequest])
+      assert.strictEqual(pullRequestsOf(updated).length, 1)
+    })
+
+    describe('worktrees', () => {
+      async function setupWorktree(t: TestContext) {
+        const { setupEmptyRepository } = await import(
+          '../../helpers/repositories'
+        )
+        const { createTempDirectory } = await import('../../helpers/temp')
+        const { makeCommit } = await import(
+          '../../helpers/repository-scaffolding'
+        )
+        const { addWorktree } = await import('../../../src/lib/git/worktree')
+        const main = await setupEmptyRepository(t)
+        await makeCommit(main, {
+          entries: [{ path: 'README.md', contents: 'Hello' }],
+        })
+        const worktreePath = Path.join(await createTempDirectory(t), 'wt')
+        await addWorktree(main, worktreePath, { createBranch: 'wt' })
+        const added = await stores.repositoriesStore.addRepository(
+          worktreePath,
+          main.resolvedGitDir
+        )
+        await appStore._setCommitMessage(added, {
+          summary: 'Draft',
+          description: null,
+          timestamp: 1,
+        })
+        return { added, main, worktreePath }
+      }
+
+      it('keeps the state of worktrees sharing a repository separate', async t => {
+        const { added, main } = await setupWorktree(t)
+        const other = new Repository(main.path, added.id, null, false)
+        assert.strictEqual(draftOf(other), '')
+        assert.notStrictEqual(
+          appStore['gitStoreCache'].get(other),
+          appStore['gitStoreCache'].get(added)
+        )
+      })
+
+      it('uses the current account after switching back to a worktree', async t => {
+        const { main } = await setupWorktree(t)
+        const { listWorktrees } = await import('../../../src/lib/git/worktree')
+        const { realpath } = await import('fs/promises')
+        const mainPath = await realpath(main.path)
+        const worktrees = await listWorktrees(main)
+        const mainEntry = worktrees.find(wt => wt.type === 'main')
+        const otherEntry = worktrees.find(wt => wt.type !== 'main')
+        assert(mainEntry !== undefined && otherEntry !== undefined)
+
+        const added = await stores.repositoriesStore.addRepository(
+          mainPath,
+          main.resolvedGitDir
+        )
+        const gitHubRepository =
+          await stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+            account: alice,
+            owner: apiRepository.owner.login,
+            name: apiRepository.name,
+          })
+        const alices = await stores.repositoriesStore.setGitHubRepository(
+          added,
+          gitHubRepository,
+          'alice'
+        )
+        appStore['adoptRepository'](alices)
+        const mainStore = appStore['gitStoreCache'].get(alices)
+
+        const switched = await appStore._switchWorktree(alices, otherEntry)
+        const bobs = await appStore._updateRepositoryAccount(switched, 'bob')
+        const back = await appStore._switchWorktree(bobs, mainEntry)
+
+        assert.strictEqual(back.login, 'bob')
+        assert.strictEqual(appStore['gitStoreCache'].get(back), mainStore)
+        assert.strictEqual(mainStore.repository.login, 'bob')
+      })
+
+      it('refuses to rename the worktree while a fetch is running', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const newPath = `${worktreePath}-renamed`
+        const finish = startNetworkOperation(added)
+        await assert.rejects(
+          appStore._moveWorktree(added, worktreePath, newPath)
+        )
+        await finish()
+        assert.strictEqual(existsSync(worktreePath), true)
+      })
+
+      it('does not start a fetch while the worktree is being renamed', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const move = appStore._moveWorktree(
+          added,
+          worktreePath,
+          `${worktreePath}-renamed`
+        )
+        let ran = false
+        await appStore['withPushPullFetch'](added, async () => {
+          ran = true
+        })
+        await move
+
+        assert.strictEqual(ran, false)
+        const moved = (await stores.repositoriesStore.getAll()).find(
+          r => r.id === added.id
+        )
+        assert(moved !== undefined)
+        assert.strictEqual(isNetworkOperationInProgress(moved), false)
+      })
+
+      it('keeps the state and GitStore when renaming the worktree', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const gitStore = appStore['gitStoreCache'].get(added)
+        const newPath = `${worktreePath}-renamed`
+
+        await appStore._moveWorktree(added, worktreePath, newPath)
+
+        const moved = (await stores.repositoriesStore.getAll()).find(
+          r => r.id === added.id
+        )
+        assert(moved !== undefined)
+        assert.strictEqual(moved.path, newPath)
+        assert.strictEqual(draftOf(moved), 'Draft')
+        assert.strictEqual(appStore['gitStoreCache'].get(moved), gitStore)
+        assert.strictEqual(gitStore.repository.path, newPath)
+      })
     })
   })
 
