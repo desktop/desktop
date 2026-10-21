@@ -95,6 +95,21 @@ export class Repository {
   }
 }
 
+/**
+ * A key identifying the working directory a repository refers to.
+ *
+ * Unlike `hash`, the key doesn't change when the repository's account,
+ * GitHub repository or other metadata changes, so in-memory state and
+ * in-flight operations survive those changes. Worktrees share a repository id,
+ * so the path is part of the key. Repositories that haven't been persisted
+ * (id -1) fall back to the hash so unrelated placeholders don't share state.
+ */
+export function getRepositoryStateKey(repository: Repository): string {
+  return repository.id < 0
+    ? `hash:${repository.hash}`
+    : `${repository.id}:${repository.path}`
+}
+
 /** Identical to `Repository`, except it **must** have a `gitHubRepository` */
 export type RepositoryWithGitHubRepository = Repository & {
   readonly gitHubRepository: GitHubRepository
