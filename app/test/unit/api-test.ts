@@ -58,7 +58,12 @@ describe('API', () => {
   describe('getOAuthAuthorizationURL', () => {
     it('asks which account to use when no login is expected', () => {
       const url = new globalThis.URL(
-        getOAuthAuthorizationURL('https://api.github.com', 'csrf-state')
+        getOAuthAuthorizationURL(
+          'https://api.github.com',
+          'csrf-state',
+          undefined,
+          false
+        )
       )
       assert.strictEqual(url.origin, 'https://github.com')
       assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
@@ -74,7 +79,8 @@ describe('API', () => {
         getOAuthAuthorizationURL(
           'https://enterprise.example.com/api/v3',
           'csrf-state',
-          'mona+work&scope=admin'
+          'mona+work&scope=admin',
+          false
         )
       )
       assert.strictEqual(url.origin, 'https://enterprise.example.com')
