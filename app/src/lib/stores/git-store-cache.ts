@@ -20,6 +20,12 @@ interface IGitStoreEntry {
 export class GitStoreCache {
   private readonly gitStores = new Map<string, IGitStoreEntry>()
 
+  /**
+   * The latest repository given to `setRepository` for each key, used when a
+   * store is created afterwards with an older snapshot.
+   */
+  private readonly repositories = new Map<string, Repository>()
+
   public constructor(
     private readonly shell: IAppShell,
     private readonly statsStore: IStatsStore,
@@ -58,7 +64,11 @@ export class GitStoreCache {
       return existing.gitStore
     }
 
-    const gitStore = new GitStore(repository, this.shell, this.statsStore)
+    const gitStore = new GitStore(
+      this.repositories.get(key) ?? repository,
+      this.shell,
+      this.statsStore
+    )
     const subscriptions = [
       gitStore.onDidUpdate(() =>
         this.onGitStoreUpdated(gitStore.repository, gitStore)
@@ -71,14 +81,13 @@ export class GitStoreCache {
   }
 
   /**
-   * Point any existing store for the repository at the given snapshot.
-   *
-   * Does nothing if no store has been created for the repository yet.
+   * Make the given snapshot the repository of the store for its key, both
+   * for an existing store and one created later.
    */
   public setRepository(repository: Repository) {
-    this.gitStores
-      .get(getRepositoryStateKey(repository))
-      ?.gitStore.setRepository(repository)
+    const key = getRepositoryStateKey(repository)
+    this.repositories.set(key, repository)
+    this.gitStores.get(key)?.gitStore.setRepository(repository)
   }
 
   /**
@@ -97,6 +106,8 @@ export class GitStoreCache {
 
     const entry = this.gitStores.get(sourceKey)
     this.remove(target)
+    this.repositories.delete(sourceKey)
+    this.repositories.set(targetKey, target)
     if (entry !== undefined) {
       this.gitStores.delete(sourceKey)
       entry.gitStore.setRepository(target)

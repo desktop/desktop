@@ -765,6 +765,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private readonly repositoryAssociations = new Map<string, string>()
 
+  /**
+   * Working directories being renamed, keyed by `getRepositoryStateKey`.
+   * Operations don't start on them, since their state is about to move.
+   */
+  private readonly movingWorktrees = new Set<string>()
+
   private repositoryAccountPromptQueue: Promise<void> = Promise.resolve()
 
   /**
@@ -5244,6 +5250,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  /** Whether the repository's worktree is being renamed. */
+  private isWorktreeMoving(repository: Repository) {
+    return this.movingWorktrees.has(getRepositoryStateKey(repository))
+  }
+
   /** Whether the repository refers to the selected working directory. */
   private isSelectedRepository(repository: Repository) {
     const selected = this.selectedRepository
@@ -5709,7 +5720,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
-    if (state.isCommitting) {
+    if (state.isCommitting || this.isWorktreeMoving(repository)) {
       return false
     }
 
@@ -5738,7 +5749,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     // ensure the user doesn't try and commit again
-    if (state.isGeneratingCommitMessage) {
+    if (state.isGeneratingCommitMessage || this.isWorktreeMoving(repository)) {
       return false
     }
 
@@ -5772,7 +5783,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     // Don't allow concurrent network operations.
-    if (state.isPushPullFetchInProgress) {
+    if (state.isPushPullFetchInProgress || this.isWorktreeMoving(repository)) {
       return
     }
 
@@ -6642,36 +6653,52 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newPath: string
   ): Promise<void> {
     const isCurrentWorktree = repository.path === worktreePath
-    if (isCurrentWorktree && this.isRepositoryBusy(repository)) {
+    if (!isCurrentWorktree) {
+      await moveWorktree(repository, worktreePath, newPath)
+      await this._refreshWorktrees(repository)
+      return
+    }
+
+    const key = getRepositoryStateKey(repository)
+    if (this.isRepositoryBusy(repository) || this.movingWorktrees.has(key)) {
       throw new Error(
         'The worktree cannot be renamed while an operation is in progress. Please try again once it has finished.'
       )
     }
 
+    this.movingWorktrees.add(key)
+    try {
+      await this.moveCurrentWorktree(repository, worktreePath, newPath)
+    } finally {
+      this.movingWorktrees.delete(key)
+    }
+  }
+
+  private async moveCurrentWorktree(
+    repository: Repository,
+    worktreePath: string,
+    newPath: string
+  ) {
     await moveWorktree(repository, worktreePath, newPath)
 
-    // If the worktree being renamed is the currently selected one, switch to
+    // The worktree being renamed is the currently selected one, so switch to
     // its new path so that the subsequent refresh (and any further git calls)
     // operate on the renamed directory rather than the now non-existing one.
-    if (isCurrentWorktree) {
-      const result = await this.repositoriesStore.switchWorktree(
-        repository,
-        newPath
-      )
+    const result = await this.repositoriesStore.switchWorktree(
+      repository,
+      newPath
+    )
 
-      // Renaming changes the repository's path, which is part of the key used
-      // by the state and GitStore caches. Carry the existing state over to the
-      // new path so we don't reset the UI (e.g. a typed commit message) just
-      // because the worktree was renamed.
-      this.repositoryStateCache.transferState(repository, result.repository)
-      this.gitStoreCache.transfer(repository, result.repository)
-      this.adoptRepository(result.repository)
+    // Renaming changes the repository's path, which is part of the key used
+    // by the state and GitStore caches. Carry the existing state over to the
+    // new path so we don't reset the UI (e.g. a typed commit message) just
+    // because the worktree was renamed.
+    this.repositoryStateCache.transferState(repository, result.repository)
+    this.gitStoreCache.transfer(repository, result.repository)
+    this.adoptRepository(result.repository)
 
-      await this._selectRepository(result.repository)
-      await this._refreshWorktrees(result.repository)
-    } else {
-      await this._refreshWorktrees(repository)
-    }
+    await this._selectRepository(result.repository)
+    await this._refreshWorktrees(result.repository)
   }
 
   public _setWorktreeDropdownWidth(width: number): Promise<void> {

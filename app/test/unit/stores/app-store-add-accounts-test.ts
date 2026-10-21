@@ -368,6 +368,18 @@ describe('AppStore explicitly adding repositories', () => {
       assert.strictEqual(gitStore.repository.hash, updated.hash)
     })
 
+    it('keeps the new account when an update started with the previous one finishes', async t => {
+      const repository = await setupDraft(t)
+      const gitStore = appStore['gitStoreCache'].get(repository)
+      await appStore._updateRepositoryAccount(repository, 'bob')
+
+      const updated = await appStore._updateRepositoryMissing(repository, false)
+
+      assert.strictEqual(updated.login, 'bob')
+      assert.strictEqual(gitStore.repository.login, 'bob')
+      assert.strictEqual(appStore['isCurrentAssociation'](updated), true)
+    })
+
     it('reports progress for the selected repository after its account changed', async t => {
       const repository = await setupDraft(t)
       const updated = await appStore._updateRepositoryAccount(repository, 'bob')
@@ -523,6 +535,27 @@ describe('AppStore explicitly adding repositories', () => {
         )
         await finish()
         assert.strictEqual(existsSync(worktreePath), true)
+      })
+
+      it('does not start a fetch while the worktree is being renamed', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const move = appStore._moveWorktree(
+          added,
+          worktreePath,
+          `${worktreePath}-renamed`
+        )
+        let ran = false
+        await appStore['withPushPullFetch'](added, async () => {
+          ran = true
+        })
+        await move
+
+        assert.strictEqual(ran, false)
+        const moved = (await stores.repositoriesStore.getAll()).find(
+          r => r.id === added.id
+        )
+        assert(moved !== undefined)
+        assert.strictEqual(isNetworkOperationInProgress(moved), false)
       })
 
       it('keeps the state and GitStore when renaming the worktree', async t => {

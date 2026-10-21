@@ -458,22 +458,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     missing: boolean
   ): Promise<Repository> {
-    await this.db.repositories.update(repository.id, { missing })
-
-    this.emitUpdatedRepositories()
-
-    return new Repository(
-      repository.path,
-      repository.id,
-      repository.gitHubRepository,
-      missing,
-      repository.alias,
-      repository.workflowPreferences,
-      repository.isTutorialRepository,
-      repository.gitDir,
-      repository.mainWorktreePath,
-      repository.login
-    )
+    return this.updateRepositoryRecord(repository, { missing })
   }
 
   /** Update the repository's `gitDir` path. */
@@ -481,22 +466,7 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     gitDir: string
   ): Promise<Repository> {
-    await this.db.repositories.update(repository.id, { gitDir })
-
-    this.emitUpdatedRepositories()
-
-    return new Repository(
-      repository.path,
-      repository.id,
-      repository.gitHubRepository,
-      repository.missing,
-      repository.alias,
-      repository.workflowPreferences,
-      repository.isTutorialRepository,
-      gitDir,
-      repository.mainWorktreePath,
-      repository.login
-    )
+    return this.updateRepositoryRecord(repository, { gitDir })
   }
 
   /**
@@ -543,27 +513,12 @@ export class RepositoriesStore extends TypedBaseStore<
     mainWorktreePath: string | undefined,
     missing: boolean = false
   ): Promise<Repository> {
-    await this.db.repositories.update(repository.id, {
+    return this.updateRepositoryRecord(repository, {
       missing,
       path,
       gitDir,
       mainWorktreePath,
     })
-
-    this.emitUpdatedRepositories()
-
-    return new Repository(
-      path,
-      repository.id,
-      repository.gitHubRepository,
-      missing,
-      repository.alias,
-      repository.workflowPreferences,
-      repository.isTutorialRepository,
-      gitDir,
-      mainWorktreePath,
-      repository.login
-    )
   }
 
   /**
@@ -596,30 +551,65 @@ export class RepositoriesStore extends TypedBaseStore<
       }
     }
 
-    await this.db.repositories.update(repository.id, {
-      path: worktreePath,
-      missing,
-      gitDir,
-      mainWorktreePath,
-    })
+    return {
+      repository: await this.updateRepositoryRecord(repository, {
+        path: worktreePath,
+        missing,
+        gitDir,
+        mainWorktreePath,
+      }),
+      existingRepository: false,
+    }
+  }
+
+  /**
+   * Update fields of the repository's record and return the current
+   * repository.
+   *
+   * The account or GitHub repository may have changed since the caller got
+   * its repository, so the result is read from the database rather than
+   * derived from the given repository.
+   */
+  private async updateRepositoryRecord(
+    repository: Repository,
+    changes: Partial<
+      Pick<
+        IDatabaseRepository,
+        'missing' | 'path' | 'gitDir' | 'mainWorktreePath'
+      >
+    >
+  ): Promise<Repository> {
+    const updated = await this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.gitHubRepositories,
+      this.db.owners,
+      async () => {
+        await this.db.repositories.update(repository.id, changes)
+        const record = await this.db.repositories.get(repository.id)
+        return record === undefined ? undefined : this.toRepository(record)
+      }
+    )
 
     this.emitUpdatedRepositories()
 
-    return {
-      repository: new Repository(
-        worktreePath,
+    return (
+      updated ??
+      new Repository(
+        changes.path ?? repository.path,
         repository.id,
         repository.gitHubRepository,
-        missing,
+        changes.missing ?? repository.missing,
         repository.alias,
         repository.workflowPreferences,
         repository.isTutorialRepository,
-        gitDir,
-        mainWorktreePath,
+        'gitDir' in changes ? changes.gitDir : repository.gitDir,
+        'mainWorktreePath' in changes
+          ? changes.mainWorktreePath
+          : repository.mainWorktreePath,
         repository.login
-      ),
-      existingRepository: false,
-    }
+      )
+    )
   }
 
   /**

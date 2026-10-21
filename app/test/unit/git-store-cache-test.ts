@@ -149,4 +149,36 @@ describe('GitStoreCache', () => {
     assert.equal(gitStore.repository, after)
     assert.notEqual(cache.get(before), gitStore)
   })
+
+  it('creates a GitStore with a repository adopted before it existed', () => {
+    const alice = new Repository(
+      '/path',
+      1,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'alice'
+    )
+    const bob = new Repository(
+      '/path',
+      1,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'bob'
+    )
+    const cache = new GitStoreCache(shell, new TestStatsStore(), noop, noop)
+
+    cache.setRepository(bob)
+
+    assert.equal(cache.get(alice).repository, bob)
+  })
 })
