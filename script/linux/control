@@ -1,0 +1,12 @@
+Package: @@PACKAGE_NAME@@
+Version: @@VERSION@@
+Architecture: @@ARCHITECTURE@@
+Maintainer: GitHub, Inc. <opensource+desktop@github.com>
+Installed-Size: @@INSTALLED_SIZE@@
+Depends: libgtk-3-0t64, libnss3, libsecret-1-0, libasound2t64, libxss1, libgbm1, libnotify4, xdg-utils
+Recommends: gnome-keyring | kwalletmanager
+Section: devel
+Priority: optional
+Homepage: https://desktop.github.com
+Description: Simple collaboration from your desktop
+ GitHub Desktop is an open-source Electron-based GitHub app.

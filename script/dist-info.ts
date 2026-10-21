@@ -32,6 +32,32 @@ export function getExecutableName() {
   }
 }
 
+/**
+ * The Debian package name, also used as the basename of the .desktop file,
+ * the icon, and the AppArmor profile on Linux.
+ */
+export function getLinuxPackageName() {
+  return process.env.NODE_ENV === 'development'
+    ? 'github-desktop-dev'
+    : 'github-desktop'
+}
+
+export function getLinuxDebArchitecture() {
+  return getDistArchitecture() === 'arm64' ? 'arm64' : 'amd64'
+}
+
+/**
+ * Debian versions sort `~` before anything, so 3.6.8~beta3 < 3.6.8 which is
+ * not true for the semver-style 3.6.8-beta3.
+ */
+export function getLinuxDebVersion() {
+  return version.replace('-', '~')
+}
+
+export function getLinuxDebName() {
+  return `${getLinuxPackageName()}_${getLinuxDebVersion()}_${getLinuxDebArchitecture()}.deb`
+}
+
 export function getOSXZipName() {
   return `${productName}-${getDistArchitecture()}.zip`
 }

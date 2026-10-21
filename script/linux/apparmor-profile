@@ -1,0 +1,12 @@
+# Ubuntu 24.04+ restricts unprivileged user namespaces, which Electron's
+# sandbox needs. This profile grants them to GitHub Desktop only. Ubuntu
+# already ships one for the production package, so this is only used for
+# other package names (e.g. github-desktop-dev).
+abi <abi/4.0>,
+include <tunables/global>
+
+profile @@PACKAGE_NAME@@ @@EXECUTABLE@@ flags=(unconfined) {
+  userns,
+
+  include if exists <local/@@PACKAGE_NAME@@>
+}

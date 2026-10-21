@@ -1,3 +1,5 @@
+import { homedir } from 'os'
+import { isAbsolute, join } from 'path'
 import { pathExists } from '../path-exists'
 import { IFoundEditor } from './found-editor'
 
@@ -6,7 +8,11 @@ interface ILinuxExternalEditor {
   /** Name of the editor. It will be used both as identifier and user-facing. */
   readonly name: string
 
-  /** List of possible paths where the editor's executable might be located. */
+  /**
+   * List of possible paths where the editor's executable might be located.
+   * Relative paths (optionally starting with `~/`) are resolved against the
+   * user's home directory.
+   */
   readonly paths: string[]
 }
 
@@ -71,7 +77,13 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'Sublime Text',
-    paths: ['/usr/bin/subl'],
+    paths: [
+      '/usr/bin/subl',
+      '/snap/bin/subl',
+      '/opt/sublime_text/sublime_text',
+      '/var/lib/flatpak/exports/bin/com.sublimetext.three',
+      '.local/share/flatpak/exports/bin/com.sublimetext.three',
+    ],
   },
   {
     name: 'Typora',
@@ -209,12 +221,25 @@ const editors: ILinuxExternalEditor[] = [
       '/usr/bin/zed-editor',
       '~/.local/bin/zed',
       '/usr/bin/zed',
+      '/snap/bin/zed',
+      '/var/lib/flatpak/exports/bin/dev.zed.Zed',
+      '.local/share/flatpak/exports/bin/dev.zed.Zed',
     ],
   },
 ]
 
+/** Resolve a home-relative editor path to an absolute path. */
+export function resolveEditorPath(path: string, home: string = homedir()) {
+  if (isAbsolute(path)) {
+    return path
+  }
+
+  return join(home, path.startsWith('~/') ? path.substring(2) : path)
+}
+
 async function getAvailablePath(paths: string[]): Promise<string | null> {
-  for (const path of paths) {
+  for (const candidate of paths) {
+    const path = resolveEditorPath(candidate)
     if (await pathExists(path)) {
       return path
     }

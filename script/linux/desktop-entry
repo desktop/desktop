@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=@@PRODUCT_NAME@@
+Comment=Simple collaboration from your desktop
+GenericName=Git Client
+Exec=@@EXECUTABLE@@ %U
+Icon=@@PACKAGE_NAME@@
+Type=Application
+Terminal=false
+StartupNotify=true
+StartupWMClass=@@PRODUCT_NAME@@
+Categories=Development;RevisionControl;
+Keywords=git;github;
+MimeType=x-scheme-handler/x-github-client;x-scheme-handler/@@AUTH_PROTOCOL@@;

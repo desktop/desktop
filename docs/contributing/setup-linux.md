@@ -42,9 +42,9 @@ Python 3 series.
 There are some additional dependencies which are required as part of building
 and running GitHub Desktop locally:
 
- - `libsecret-1.so.0` for reading and writing credentials using [`keytar`](https://github.com/atom/node-keytar)
+ - `libsecret-1.so.0` (and a Secret Service provider such as GNOME Keyring) for
+   reading and writing credentials using [`keytar`](https://github.com/atom/node-keytar)
  - `libXss.so.1` - the library for the X11 screen saver extension
- - `libgconf-2-4.so.4` - library for accessing GNOME configuration database
 
 Where to find these will vary based on your distribution, but below are some
 examples of distributions we've tested.
@@ -55,10 +55,30 @@ examples of distributions we've tested.
 $ sudo dnf install -y libsecret-devel libXScrnSaver
 ```
 
-### Ubuntu 14.04 and later
+### Ubuntu 26.04 LTS
 
 ```shellsession
-$ sudo apt install libsecret-1-dev libgconf-2-4
+$ sudo apt install libsecret-1-0 libsecret-1-dev gnome-keyring libxss1
+$ corepack enable # provides yarn
+```
+
+Ubuntu 24.04 and later restrict unprivileged user namespaces with AppArmor,
+which Electron's sandbox requires. When running a development build with
+`yarn start` you can either add an AppArmor profile for
+`dist/desktop-linux-x64/desktop` (see `script/linux/apparmor-profile`) or set
+`ELECTRON_DISABLE_SANDBOX=1` in your environment. The `.deb` package installs
+the app at `/usr/lib/github-desktop/github-desktop`, which Ubuntu's `apparmor`
+package already has a profile for.
+
+## Building a Debian package
+
+`yarn build:prod && yarn package` produces
+`dist/github-desktop_<version>_<arch>.deb`, which installs the app into
+`/usr/lib/github-desktop` together with a desktop entry (including the
+`x-github-desktop-auth` URL handler needed to sign in) and an icon:
+
+```shellsession
+$ sudo apt install ./dist/github-desktop_*.deb
 ```
 
 ## Back to setup

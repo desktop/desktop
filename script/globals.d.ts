@@ -1,5 +1,6 @@
 type Package = {
   productName?: string
+  desktopName?: string
   dependencies: Record<string, string>
   devDependencies?: Record<string, string>
 }

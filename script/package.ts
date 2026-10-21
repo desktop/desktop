@@ -17,9 +17,26 @@ import {
   getDistRoot,
   getDistArchitecture,
   getIconDirectory,
+  getExecutableName,
+  getLinuxPackageName,
+  getLinuxDebArchitecture,
+  getLinuxDebVersion,
+  getLinuxDebName,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
-import { existsSync, rmSync, writeFileSync } from 'fs'
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from 'fs'
 import { getVersion } from '../app/package-info'
 import { computeBundleHashSync } from '../app/src/lib/compute-bundle-hash'
 import { rename } from 'fs/promises'
@@ -40,6 +57,8 @@ if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
+} else if (process.platform === 'linux') {
+  packageLinux()
 } else {
   console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
@@ -158,4 +177,117 @@ function packageWindows() {
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
+}
+
+function getDirectorySizeSync(dir: string): number {
+  let size = 0
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      size += getDirectorySizeSync(entryPath)
+    } else if (entry.isFile()) {
+      size += statSync(entryPath).size
+    }
+  }
+  return size
+}
+
+function packageLinux() {
+  const packageName = getLinuxPackageName()
+  const installDir = `/usr/lib/${packageName}`
+  // Ubuntu's apparmor package already ships a profile for
+  // /usr/lib/github-desktop/github-desktop (granting the user namespaces
+  // Electron's sandbox needs), so we name the executable to match it and only
+  // ship our own profile for package names it doesn't cover.
+  const executable = `${installDir}/${packageName}`
+  const shipAppArmorProfile = packageName !== 'github-desktop'
+  const templateDir = join(__dirname, 'linux')
+  const stagingDir = join(outputDir, 'deb-staging')
+  const dest = join(outputDir, getLinuxDebName())
+
+  const iconSource = path.resolve(
+    __dirname,
+    '../app/static/linux/icon-logo.png'
+  )
+  assertExistsSync(iconSource)
+  assertExistsSync(join(distPath, getExecutableName()))
+
+  rmSync(stagingDir, { recursive: true, force: true })
+  rmSync(dest, { force: true })
+
+  console.log('Packaging for Linux…')
+
+  const appDir = join(stagingDir, installDir)
+  cpSync(distPath, appDir, { recursive: true, verbatimSymlinks: true })
+  renameSync(join(appDir, getExecutableName()), join(stagingDir, executable))
+
+  const replacements: Record<string, string> = {
+    PACKAGE_NAME: packageName,
+    PRODUCT_NAME: productName,
+    EXECUTABLE: executable,
+    SHIP_APPARMOR_PROFILE: shipAppArmorProfile ? '1' : '0',
+    AUTH_PROTOCOL:
+      process.env.NODE_ENV === 'development'
+        ? 'x-github-desktop-dev-auth'
+        : 'x-github-desktop-auth',
+    VERSION: getLinuxDebVersion(),
+    ARCHITECTURE: getLinuxDebArchitecture(),
+    INSTALLED_SIZE: `${Math.ceil(getDirectorySizeSync(appDir) / 1024)}`,
+  }
+
+  const writeTemplate = (
+    template: string,
+    destination: string,
+    mode = 0o644
+  ) => {
+    const contents = readFileSync(join(templateDir, template), 'utf8').replace(
+      /@@([A-Z_]+)@@/g,
+      (match, key: string) => {
+        const value = replacements[key]
+        if (value === undefined) {
+          throw new Error(`Unknown placeholder ${match} in ${template}`)
+        }
+        return value
+      }
+    )
+    const target = join(stagingDir, destination)
+    mkdirSync(path.dirname(target), { recursive: true })
+    writeFileSync(target, contents)
+    chmodSync(target, mode)
+  }
+
+  writeTemplate('control', 'DEBIAN/control')
+  writeTemplate('postinst', 'DEBIAN/postinst', 0o755)
+  writeTemplate('prerm', 'DEBIAN/prerm', 0o755)
+  writeTemplate('postrm', 'DEBIAN/postrm', 0o755)
+  writeTemplate(
+    'desktop-entry',
+    `usr/share/applications/${packageName}.desktop`
+  )
+  if (shipAppArmorProfile) {
+    writeTemplate('apparmor-profile', `etc/apparmor.d/${packageName}`)
+  }
+
+  const iconDir = join(stagingDir, 'usr/share/icons/hicolor/512x512/apps')
+  mkdirSync(iconDir, { recursive: true })
+  cpSync(iconSource, join(iconDir, `${packageName}.png`))
+
+  const binDir = join(stagingDir, 'usr/bin')
+  mkdirSync(binDir, { recursive: true })
+  symlinkSync(
+    path.relative(binDir, join(stagingDir, executable)),
+    join(binDir, packageName)
+  )
+
+  // Normalize permissions so neither the build machine's umask nor the
+  // private (0700) directory electron-packager creates leak into the system
+  // directories the package installs into.
+  cp.execSync(`chmod -R u+rwX,go+rX,go-w "${stagingDir}"`)
+
+  cp.execSync(`dpkg-deb --build --root-owner-group "${stagingDir}" "${dest}"`, {
+    stdio: 'inherit',
+  })
+  rmSync(stagingDir, { recursive: true, force: true })
+
+  console.log(`Debian package created at ${dest}`)
 }

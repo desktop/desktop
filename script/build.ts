@@ -49,6 +49,7 @@ import {
   getDistRoot,
   getExecutableName,
   getIconDirectory,
+  getLinuxPackageName,
   isPublishable,
 } from './dist-info'
 
@@ -335,6 +336,12 @@ function copyDependencies() {
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
   pkg.productName = getProductName()
+
+  // Electron uses desktopName as the Wayland app_id on Linux, which is how
+  // GNOME matches the window to our .desktop file (icon, dash grouping).
+  if (process.platform === 'linux') {
+    pkg.desktopName = `${getLinuxPackageName()}.desktop`
+  }
   pkg.dependencies = filterExternals(pkg.dependencies)
   pkg.devDependencies =
     isDevelopmentBuild && pkg.devDependencies

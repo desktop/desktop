@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+  if [ "@@SHIP_APPARMOR_PROFILE@@" = "1" ] && command -v apparmor_parser >/dev/null 2>&1 && [ -d /sys/kernel/security/apparmor ]; then
+    apparmor_parser -R /etc/apparmor.d/@@PACKAGE_NAME@@ >/dev/null 2>&1 || true
+  fi
+fi
+
+exit 0
