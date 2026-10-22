@@ -74,6 +74,7 @@ namespace
     if (!desktopNotificationsManager)
     {
       DN_LOG_ERROR("Cannot show notification: notifications not initialized.");
+      Napi::Error::New(env, "Cannot show notification: notifications not initialized.").ThrowAsJavaScriptException();
       return env.Undefined();
     }
 
@@ -113,10 +114,19 @@ namespace
       userInfo = Utils::utf8ToWideChar(userInfoString);
     }
 
-    desktopNotificationsManager->displayToast(id, title, body, userInfo);
+    const HRESULT result = desktopNotificationsManager->displayToast(id, title, body, userInfo);
 
     Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
-    deferred.Resolve(env.Undefined());
+    if (!DN_CHECK_RESULT(result))
+    {
+      auto error = Napi::Error::New(env, "Failed to show Windows toast notification");
+      error.Value().Set("hresult", Napi::Number::New(env, result));
+      deferred.Reject(error.Value());
+    }
+    else
+    {
+      deferred.Resolve(env.Undefined());
+    }
     return deferred.Promise();
   }
 

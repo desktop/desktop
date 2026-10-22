@@ -34,6 +34,15 @@ Webpack also handles these steps:
 The output from webpack is stored in the `out` directory, and this folder is
 ignored in version control.
 
+The renderer includes the Copilot SDK's native Koffi dependency. Only the
+`@koromix/koffi-<platform>-<architecture>` package matching the build target is
+bundled, even if cross-compilation setup installed optional packages for other
+platforms. The architecture comes from `getDistArchitecture()` (including its
+`npm_config_arch` override), not necessarily the build machine's architecture.
+The target package must be installed; a missing package fails the build.
+`yarn test:script` verifies that multiple installed Koffi packages produce only
+the target's `koffi.node`, without filename collisions.
+
 ## `app/package.json`
 
 The `version` attribute in `app/package.json` is the canonical reference for

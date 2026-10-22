@@ -36,6 +36,7 @@ import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { OrderedWebRequest } from './ordered-webrequest'
 import { installAuthenticatedImageFilter } from './authenticated-image-filter'
+import { createAuthenticatedImageTokenResolver } from './authenticated-image-token-resolver'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
@@ -246,8 +247,18 @@ async function handleCommandLineArguments(argv: string[]) {
   // `[executable path] --protocol-launcher "%1"`. Note that extra command
   // line arguments might be added by Chromium
   // (https://electronjs.org/docs/api/app#event-second-instance).
+  const isWindowsProtocolLaunch =
+    __WIN32__ && args['protocol-launcher'] === true
 
-  if (__WIN32__ && args['protocol-launcher'] === true) {
+  // On Linux the protocol handler is registered through a .desktop file
+  // (`Exec=... %u`), so the URL is passed as a plain argument without
+  // --protocol-launcher. macOS receives URLs through the `open-url` event
+  // instead, which Electron doesn't emit on Linux.
+  const prefixes = Array.from(possibleProtocols, p => `${p}://`)
+  const isLinuxProtocolLaunch =
+    __LINUX__ && argv.some(arg => prefixes.some(p => arg.startsWith(p)))
+
+  if (isWindowsProtocolLaunch || isLinuxProtocolLaunch) {
     // On Windows we'll end up getting called with something like
     // `--protocol-launcher --allow-file-access-from-files x-github-client://..`
     // which minimist naturally interprets as
@@ -258,13 +269,12 @@ async function handleCommandLineArguments(argv: string[]) {
     // sure that Chromium won't add more switches later on which is why we have
     // to resort to looking through all arguments looking for something that
     // appears to be an app url.
-    const prefixes = Array.from(possibleProtocols, p => `${p}://`)
     const matchingUrl = argv.find(arg => {
       if (prefixes.some(p => arg.startsWith(p))) {
         try {
           new URL(arg)
           return true
-        } catch (e) {
+        } catch {
           log.error(`Unable to parse argument as URL: ${arg}`)
         }
       }
@@ -349,7 +359,13 @@ app.on('ready', () => {
 
   // Adds an authorization header for requests of avatars on GHES and private
   // repo assets
-  const updateAccounts = installAuthenticatedImageFilter(orderedWebRequest)
+  const imageTokenResolver = createAuthenticatedImageTokenResolver(
+    () => mainWindow?.webContents
+  )
+  const updateAccounts = installAuthenticatedImageFilter(
+    orderedWebRequest,
+    imageTokenResolver.resolveToken
+  )
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -360,7 +376,16 @@ app.on('ready', () => {
     })
   )
 
-  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
+  ipcMain.on('update-accounts', (event, accounts) => {
+    if (event.sender !== mainWindow?.webContents) {
+      return
+    }
+    imageTokenResolver.updateAccounts(accounts)
+    updateAccounts(accounts)
+  })
+  ipcMain.on('resolved-image-token', (event, requestId, token) => {
+    imageTokenResolver.acceptResponse(event.sender, requestId, token)
+  })
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
     // The current application menu is mutable and we frequently

@@ -1,0 +1,10 @@
+#test-token-expiration {
+  .token-expiration-presets {
+    flex-wrap: wrap;
+    gap: var(--spacing-half);
+
+    .button-component {
+      margin-right: 0;
+    }
+  }
+}
