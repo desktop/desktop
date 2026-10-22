@@ -16,6 +16,7 @@ import {
 } from 'node:test'
 import { AccountsStore } from '../../../src/lib/stores/accounts-store'
 import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
+import { CopilotConflictResolutionError } from '../../../src/lib/copilot-conflict-resolution-error'
 import type {
   CopilotModelRequest,
   CopilotStore,
@@ -130,7 +131,11 @@ async function setup(
   }
 }
 
-function resolveConflicts(store: CopilotStore, signal: AbortSignal) {
+function resolveConflicts(
+  store: CopilotStore,
+  signal: AbortSignal,
+  request: CopilotModelRequest = { kind: 'copilot', modelId: 'auto' }
+) {
   return store.resolveConflicts(
     account,
     {
@@ -156,10 +161,7 @@ function resolveConflicts(store: CopilotStore, signal: AbortSignal) {
       theirCommits: [],
     },
     '/repository',
-    {
-      kind: 'copilot',
-      modelId: 'auto',
-    },
+    request,
     undefined,
     signal
   )
@@ -498,6 +500,81 @@ describe('CopilotStore session credential wiring', () => {
     assert.equal(config.gitHubToken, undefined)
     assert.equal(renewals(), 0)
   })
+
+  const provider: NonNullable<SessionConfig['provider']> = {
+    type: 'openai',
+    baseUrl: 'https://example.com',
+  }
+  const modelCases: ReadonlyArray<{
+    readonly name: string
+    readonly request: CopilotModelRequest
+    readonly expectedModel: string
+    readonly expectedProvider: SessionConfig['provider']
+  }> = [
+    {
+      name: 'escapes a literal BYOK auto model at the SDK boundary',
+      request: { kind: 'byok', modelId: 'auto', provider },
+      expectedModel: 'byok-auto',
+      expectedProvider: { ...provider, wireModel: 'auto' },
+    },
+    {
+      name: 'preserves an explicit BYOK wire model when escaping auto',
+      request: {
+        kind: 'byok',
+        modelId: 'auto',
+        provider: { ...provider, wireModel: 'router-model' },
+      },
+      expectedModel: 'byok-auto',
+      expectedProvider: { ...provider, wireModel: 'router-model' },
+    },
+    {
+      name: 'leaves other BYOK models unchanged',
+      request: { kind: 'byok', modelId: 'test-model', provider },
+      expectedModel: 'test-model',
+      expectedProvider: provider,
+    },
+    {
+      name: 'preserves Copilot auto routing',
+      request: { kind: 'copilot', modelId: 'auto' },
+      expectedModel: 'auto',
+      expectedProvider: undefined,
+    },
+  ]
+
+  for (const feature of ['commit message generation', 'conflict resolution']) {
+    for (const {
+      name,
+      request,
+      expectedModel,
+      expectedProvider,
+    } of modelCases) {
+      it(`${feature}: ${name}`, async t => {
+        const { store, createSession, generate, sessionCreationStopped } =
+          await setup(t, { accessToken: account.token })
+        const originalRequest = structuredClone(request)
+        const result =
+          feature === 'commit message generation'
+            ? generate(account, request)
+            : resolveConflicts(store, new AbortController().signal, request)
+
+        await assert.rejects(result, error => {
+          assert.equal(
+            error instanceof CopilotConflictResolutionError
+              ? error.underlyingError
+              : error,
+            sessionCreationStopped
+          )
+          return true
+        })
+        assert.equal(createSession.mock.callCount(), 1)
+        const config = createSession.mock.calls[0].arguments[0]
+        assert.ok(config)
+        assert.equal(config.model, expectedModel)
+        assert.deepEqual(config.provider, expectedProvider)
+        assert.deepEqual(request, originalRequest)
+      })
+    }
+  }
 
   for (const refreshable of [false, true]) {
     it(`rejects a pending ${
