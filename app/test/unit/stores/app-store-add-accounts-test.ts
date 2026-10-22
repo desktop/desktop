@@ -537,55 +537,43 @@ describe('AppStore explicitly adding repositories', () => {
         assert.strictEqual(existsSync(worktreePath), true)
       })
 
-      // TODO: Renaming the current worktree fails on Windows because Git runs
-      // inside the worktree being moved. Re-enable once that is fixed.
-      const skipOnWindows = { skip: __WIN32__ }
+      it('does not start a fetch while the worktree is being renamed', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const move = appStore._moveWorktree(
+          added,
+          worktreePath,
+          `${worktreePath}-renamed`
+        )
+        let ran = false
+        await appStore['withPushPullFetch'](added, async () => {
+          ran = true
+        })
+        await move
 
-      it(
-        'does not start a fetch while the worktree is being renamed',
-        skipOnWindows,
-        async t => {
-          const { added, worktreePath } = await setupWorktree(t)
-          const move = appStore._moveWorktree(
-            added,
-            worktreePath,
-            `${worktreePath}-renamed`
-          )
-          let ran = false
-          await appStore['withPushPullFetch'](added, async () => {
-            ran = true
-          })
-          await move
+        assert.strictEqual(ran, false)
+        const moved = (await stores.repositoriesStore.getAll()).find(
+          r => r.id === added.id
+        )
+        assert(moved !== undefined)
+        assert.strictEqual(isNetworkOperationInProgress(moved), false)
+      })
 
-          assert.strictEqual(ran, false)
-          const moved = (await stores.repositoriesStore.getAll()).find(
-            r => r.id === added.id
-          )
-          assert(moved !== undefined)
-          assert.strictEqual(isNetworkOperationInProgress(moved), false)
-        }
-      )
+      it('keeps the state and GitStore when renaming the worktree', async t => {
+        const { added, worktreePath } = await setupWorktree(t)
+        const gitStore = appStore['gitStoreCache'].get(added)
+        const newPath = `${worktreePath}-renamed`
 
-      it(
-        'keeps the state and GitStore when renaming the worktree',
-        skipOnWindows,
-        async t => {
-          const { added, worktreePath } = await setupWorktree(t)
-          const gitStore = appStore['gitStoreCache'].get(added)
-          const newPath = `${worktreePath}-renamed`
+        await appStore._moveWorktree(added, worktreePath, newPath)
 
-          await appStore._moveWorktree(added, worktreePath, newPath)
-
-          const moved = (await stores.repositoriesStore.getAll()).find(
-            r => r.id === added.id
-          )
-          assert(moved !== undefined)
-          assert.strictEqual(moved.path, newPath)
-          assert.strictEqual(draftOf(moved), 'Draft')
-          assert.strictEqual(appStore['gitStoreCache'].get(moved), gitStore)
-          assert.strictEqual(gitStore.repository.path, newPath)
-        }
-      )
+        const moved = (await stores.repositoriesStore.getAll()).find(
+          r => r.id === added.id
+        )
+        assert(moved !== undefined)
+        assert.strictEqual(moved.path, newPath)
+        assert.strictEqual(draftOf(moved), 'Draft')
+        assert.strictEqual(appStore['gitStoreCache'].get(moved), gitStore)
+        assert.strictEqual(gitStore.repository.path, newPath)
+      })
     })
   })
 
