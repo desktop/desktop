@@ -19,7 +19,7 @@
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.2",
     "@github/alive-client": "^1.2.0",
-    "@github/copilot-sdk": "^1.0.18",
+    "@github/copilot-sdk": "^1.0.25",
     "@xterm/xterm": "^5.5.0",
     "app-path": "^3.3.0",
     "byline": "^5.0.0",
@@ -36,7 +36,7 @@
     "desktop-trampoline": "file:../vendor/desktop-trampoline",
     "dexie": "^4.4.6",
     "dompurify": "^3.4.16",
-    "dugite": "^3.2.3",
+    "dugite": "^3.3.0",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
     "focus-trap-react": "^8.1.0",
