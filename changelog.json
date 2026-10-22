@@ -1,5 +1,18 @@
 {
   "releases": {
+    "3.6.8": [
+      "[New] Use short-lived tokens for new logged-in users - #22943",
+      "[Added] Add syntax highlighting for Svelte files - #22969. Thanks @Klaynight-dev!",
+      "[Fixed] Renaming a worktree no longer fails with a permission error on Windows - #23056",
+      "[Fixed] Keep keyboard focus visible in the repository, branch, and sync dropdowns when using high-contrast themes - #23019",
+      "[Fixed] Keep the port when building GitHub Enterprise Server sign-in and link URLs, so instances running on a non-default port work correctly - #23046",
+      "[Fixed] Fix right-edge clipping of italicized text and keep descriptive context fully visible in the user autocompletion list - #21820. Thanks @hi2242!",
+      "[Fixed] Flag worktrees whose folder is missing with a clear warning and offer to remove them instead of failing with a raw git error when switching branches or worktrees - #22607. Thanks @francisrath!",
+      "[Fixed] Fix SSH host key confirmation prompts with newer OpenSSH versions - #22881",
+      "[Improved] Update Git to 2.56.0, Git LFS to 3.8.1, and Git Credential Manager to 2.9.1 - #23057",
+      "[Improved] Update Electron to v44.9.1, improving macOS auto-update reliability and overall app stability - #23051",
+      "[Removed] Remove support for macOS 12 - #22799"
+    ],
     "3.6.8-beta4": [
       "[Fixed] Renaming a worktree no longer fails with a permission error on Windows - #23056",
       "[Fixed] Keep keyboard focus visible in the repository, branch, and sync dropdowns when using high-contrast themes - #23019",
