@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.6.8-beta4": [
+      "[Fixed] Renaming a worktree no longer fails with a permission error on Windows - #23056",
+      "[Fixed] Keep keyboard focus visible in the repository, branch, and sync dropdowns when using high-contrast themes - #23019",
+      "[Improved] Update Git to 2.56.0, Git LFS to 3.8.0, and Git Credential Manager to 2.9.1 - #23057"
+    ],
     "3.6.8-beta3": [
       "[Fixed] Keep the port when building GitHub Enterprise Server sign-in and link URLs, so instances running on a non-default port work correctly - #23046",
       "[Fixed] Fix right-edge clipping of italicized text and keep descriptive context fully visible in the user autocompletion list - #21820. Thanks @hi2242!",
