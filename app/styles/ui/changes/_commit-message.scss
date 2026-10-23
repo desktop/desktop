@@ -239,7 +239,7 @@
       font-size: var(--font-size);
       font-family: var(--font-family-sans-serif);
       padding: var(--spacing-half);
-      resize: none;
+      resize: vertical;
       min-height: 100px;
 
       &:focus {
