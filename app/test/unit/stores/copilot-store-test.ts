@@ -1045,7 +1045,9 @@ describe('getPreferredDefaultModel', () => {
  * unsubscribe fn), `send`, and `disconnect`. Lets us drive the streaming turn
  * deterministically and assert teardown behaviour.
  */
-function createFakeSession() {
+function createFakeSession(
+  sendResult: () => Promise<string> = () => new Promise(() => {})
+) {
   const handlers: Record<string, Array<(event: unknown) => void>> = {}
   let unsubCalls = 0
   let disconnectCalls = 0
@@ -1066,7 +1068,7 @@ function createFakeSession() {
     send() {
       sendCalls++
       // Never settles on its own — the turn completes via emitted events.
-      return new Promise<void>(() => {})
+      return sendResult()
     },
     disconnect() {
       disconnectCalls++
@@ -1221,6 +1223,81 @@ describe('runConflictResolutionTurn', () => {
       'Looking at both sides.',
       'Now comparing changes.',
     ])
+  })
+
+  it('flushes partial reasoning on message deltas and uses the final message, not deltas', async () => {
+    const fake = createFakeSession()
+    const snippets: string[] = []
+    const promise = runConflictResolutionTurn(fake.session, 'prompt', {
+      timeoutMs: 60_000,
+      onReasoningSnippet: snippet => snippets.push(snippet),
+    })
+    fake.emit('assistant.reasoning_delta', {
+      deltaContent: '1. Compare both sides. Remaining thought',
+    })
+    fake.emit('assistant.message_delta', { deltaContent: 'not final' })
+    fake.emit('assistant.message_delta', { deltaContent: 'still not final' })
+    fake.emit('assistant.message', { content: 'AUTHORITATIVE' })
+
+    assert.strictEqual(await promise, 'AUTHORITATIVE')
+    assert.deepStrictEqual(snippets, [
+      '1. Compare both sides.',
+      'Remaining thought',
+    ])
+    assert.strictEqual(fake.disconnectCalls, 1)
+    assert.strictEqual(fake.unsubCalls, 4)
+  })
+
+  it('times out, releases subscriptions, and disconnects once', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const fake = createFakeSession()
+    const controller = new AbortController()
+    const promise = runConflictResolutionTurn(fake.session, 'prompt', {
+      timeoutMs: 123,
+      signal: controller.signal,
+    })
+    t.mock.timers.tick(123)
+    await assert.rejects(promise, /Copilot conflict resolution timed out/)
+    controller.abort()
+    assert.strictEqual(fake.disconnectCalls, 1)
+    assert.strictEqual(fake.unsubCalls, 4)
+  })
+
+  for (const event of ['assistant.message', 'session.error']) {
+    it(`preserves ${event} failure policy and tears down once`, async () => {
+      const fake = createFakeSession()
+      const promise = runConflictResolutionTurn(fake.session, 'prompt', {
+        timeoutMs: 60_000,
+      })
+      fake.emit(event, {
+        content: '',
+        message: '402 Synthetic conflict failure',
+        statusCode: 402,
+      })
+      await assert.rejects(
+        promise,
+        event === 'assistant.message'
+          ? /No response from Copilot/
+          : /Copilot error: 402 Synthetic conflict failure/
+      )
+      assert.strictEqual(fake.disconnectCalls, 1)
+      assert.strictEqual(fake.unsubCalls, 4)
+    })
+  }
+
+  it('preserves send rejection and tears down once', async () => {
+    const failure = new Error('Synthetic transport failure')
+    const fake = createFakeSession(async () => {
+      throw failure
+    })
+    await assert.rejects(
+      runConflictResolutionTurn(fake.session, 'prompt', {
+        timeoutMs: 60_000,
+      }),
+      error => error === failure
+    )
+    assert.strictEqual(fake.disconnectCalls, 1)
+    assert.strictEqual(fake.unsubCalls, 4)
   })
 })
 

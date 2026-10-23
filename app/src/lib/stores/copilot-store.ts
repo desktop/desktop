@@ -2,8 +2,6 @@ import {
   CopilotClient,
   CopilotSession,
   RuntimeConnection,
-  AssistantMessageEvent,
-  MessageOptions,
   SessionConfig,
   ModelBillingTokenPrices,
   GitHubTokenProvider,
@@ -15,7 +13,6 @@ import {
   ICopilotCommitMessage,
   parseCopilotCommitMessage,
 } from '../copilot-commit-message'
-import { getCopilotPaymentRequiredErrorFromSessionError } from '../copilot-error'
 import {
   CopilotValidationError,
   ConflictResolutionSystemPrompt,
@@ -47,6 +44,7 @@ import {
   ICopilotMessageSession,
   ICopilotPlanningClient,
   ICopilotPlanningSession,
+  sendCopilotMessageRequest,
   sendCopilotPlanningRequest,
 } from '../copilot-operation'
 import {
@@ -1061,174 +1059,17 @@ export class CopilotStore extends BaseStore {
   private async createCancellableSession(
     client: CopilotClient,
     config: SessionConfig,
-    signal?: AbortSignal
-  ): Promise<CopilotSession> {
-    return this.withCancellation(
-      () => this.createSession(client, config),
-      signal,
-      session => session.disconnect()
-    )
-  }
-
-  /** Cancel this waiter without aborting shared renewal or model discovery. */
-  private async withCancellation<T>(
-    action: () => Promise<T>,
     signal: AbortSignal | undefined,
-    onCancelledResult?: (result: T) => void | Promise<void>
-  ): Promise<T> {
-    if (signal?.aborted) {
-      throw new CommitMessageGenerationCancelledError()
-    }
-
-    const operation = action()
-    if (signal === undefined) {
-      return operation
-    }
-
-    let resultWasReturned = false
-    let resultWasDiscarded = false
-    const discardResult = async (result: T) => {
-      if (resultWasDiscarded) {
-        return
+    cancellationError: () => Error
+  ): Promise<CopilotSession> {
+    return awaitCancellableCopilotOperation(
+      () => this.createSession(client, config),
+      {
+        signal,
+        cancellationError,
+        disposeLateValue: session => session.disconnect(),
       }
-      resultWasDiscarded = true
-      try {
-        await onCancelledResult?.(result)
-      } catch (error) {
-        log.error('CopilotStore: Failed to clean up cancelled operation', error)
-      }
-    }
-    // The race observes failures; this handler only owns abandoned results.
-    void operation.then(
-      result => {
-        if (signal.aborted && !resultWasReturned) {
-          void discardResult(result)
-        }
-      },
-      () => {}
     )
-
-    let rejectAbort: ((error: Error) => void) | null = null
-    const abortPromise = new Promise<never>((_, reject) => {
-      rejectAbort = reject
-    })
-
-    const onAbort = () => {
-      rejectAbort?.(new CommitMessageGenerationCancelledError())
-    }
-
-    signal.addEventListener('abort', onAbort)
-
-    try {
-      if (signal.aborted) {
-        onAbort()
-      }
-
-      const result = await Promise.race([operation, abortPromise])
-      if (signal.aborted) {
-        void discardResult(result)
-        throw new CommitMessageGenerationCancelledError()
-      }
-      resultWasReturned = true
-      return result
-    } catch (error) {
-      if (signal.aborted) {
-        throw new CommitMessageGenerationCancelledError()
-      }
-
-      throw error
-    } finally {
-      signal.removeEventListener('abort', onAbort)
-    }
-  }
-
-  /**
-   * Sends a prompt on the given session and waits for the assistant
-   * response, while capturing any `session.error` events emitted during
-   * the round-trip.
-   *
-   * If the SDK emits a `session.error` whose upstream HTTP status code is
-   * 402 (Payment Required), the corresponding `CopilotError` is thrown
-   * instead of whatever {@link CopilotSession.sendAndWait} would have
-   * rejected with — the underlying rejection is intentionally swallowed
-   * because the SDK surfaces the same failure twice (once on the event
-   * channel, once on the awaited promise) and only the parsed 402 error
-   * carries actionable billing metadata for the UI.
-   *
-   * Any other `session.error` event is logged and otherwise ignored so
-   * the original `sendAndWait` rejection (or success) is propagated
-   * unchanged.
-   */
-  private async sendAndWait(
-    session: CopilotSession | ICopilotMessageSession,
-    options: MessageOptions,
-    timeoutMs: number,
-    signal?: AbortSignal,
-    cancellationError: () => Error = () =>
-      new CommitMessageGenerationCancelledError()
-  ): Promise<AssistantMessageEvent | undefined> {
-    let paymentRequiredError: Error | undefined
-    let rejectAbort: ((error: Error) => void) | null = null
-
-    const abortPromise = new Promise<never>((_, reject) => {
-      rejectAbort = reject
-    })
-
-    const onAbort = () => {
-      rejectAbort?.(cancellationError())
-    }
-
-    const messageSession =
-      'onSessionError' in session ? session : getCopilotMessageSession(session)
-    const unsubscribe = messageSession.onSessionError(data => {
-      const captured = getCopilotPaymentRequiredErrorFromSessionError(data)
-      if (captured !== null) {
-        paymentRequiredError = captured
-      } else {
-        const sessionError = new Error(data.message)
-        if (data.stack !== undefined) {
-          sessionError.stack = data.stack
-        }
-
-        log.error(
-          `CopilotStore: Session error (${data.errorType})`,
-          sessionError
-        )
-      }
-    })
-
-    signal?.addEventListener('abort', onAbort)
-
-    try {
-      if (signal?.aborted) {
-        onAbort()
-        throw cancellationError()
-      }
-
-      const response = messageSession
-        .sendAndWait(options, timeoutMs)
-        .catch(e => {
-          if (signal?.aborted) {
-            throw cancellationError()
-          }
-
-          throw paymentRequiredError ?? e
-        })
-      void response.catch(() => {})
-
-      return signal === undefined
-        ? await response
-        : await Promise.race([response, abortPromise])
-    } catch (e) {
-      if (signal?.aborted) {
-        throw cancellationError()
-      }
-
-      throw e
-    } finally {
-      signal?.removeEventListener('abort', onAbort)
-      unsubscribe()
-    }
   }
 
   /**
@@ -1453,9 +1294,12 @@ export class CopilotStore extends BaseStore {
     } else {
       const requestedModelId =
         request?.kind === 'copilot' ? request.modelId : null
-      const cachedModels = await this.withCancellation(
+      const cachedModels = await awaitCancellableCopilotOperation(
         () => this.getCachedModels(account),
-        signal
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+        }
       )
       throwIfCancelled()
       const resolvedModel = requestedModelId
@@ -1475,10 +1319,13 @@ export class CopilotStore extends BaseStore {
       null
 
     try {
-      client = await this.withCancellation(
+      client = await awaitCancellableCopilotOperation(
         () => this.createClient(account, repositoryPath, credentials),
-        signal,
-        lateClient => this.stopClient(lateClient)
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+          disposeLateValue: lateClient => this.stopClient(lateClient),
+        }
       )
       throwIfCancelled()
 
@@ -1510,7 +1357,8 @@ export class CopilotStore extends BaseStore {
             kind: 'reject',
           }),
         },
-        signal
+        signal,
+        () => new CommitMessageGenerationCancelledError()
       )
 
       throwIfCancelled()
@@ -1525,11 +1373,14 @@ export class CopilotStore extends BaseStore {
         cleanedRuleDescriptions
       )
 
-      const response = await this.sendAndWait(
-        session,
+      const response = await sendCopilotMessageRequest(
+        getCopilotMessageSession(session),
         { prompt: userPrompt },
         timeoutMs,
-        signal
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+        }
       )
 
       throwIfCancelled()
@@ -1656,14 +1507,17 @@ export class CopilotStore extends BaseStore {
     const clientTimer = startTimer('createClient')
     let client: CopilotClient
     try {
-      client = await this.withCancellation(
+      client = await awaitCancellableCopilotOperation(
         () => this.createClient(account, repositoryPath),
-        signal,
-        lateClient => this.stopClient(lateClient)
+        {
+          signal,
+          cancellationError: () => new CopilotConflictResolutionAbortError(),
+          disposeLateValue: lateClient => this.stopClient(lateClient),
+        }
       )
     } catch (error) {
-      if (error instanceof CommitMessageGenerationCancelledError) {
-        throw new CopilotConflictResolutionAbortError()
+      if (isCopilotConflictResolutionAbortError(error)) {
+        throw error
       }
       throw new CopilotConflictResolutionError(error, 'create-client')
     }
@@ -1841,7 +1695,8 @@ export class CopilotStore extends BaseStore {
               kind: 'reject',
             }),
           },
-          signal
+          signal,
+          () => new CopilotConflictResolutionAbortError()
         )
         sessionTimer.done()
 
@@ -1889,9 +1744,6 @@ export class CopilotStore extends BaseStore {
           references: parsed.references,
         }
       } catch (e) {
-        if (e instanceof CommitMessageGenerationCancelledError) {
-          throw new CopilotConflictResolutionAbortError()
-        }
         lastError = e instanceof Error ? e : new Error(String(e))
         lastStage = stage
 
