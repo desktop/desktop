@@ -94,7 +94,8 @@ export class AddExistingRepository extends React.Component<
       return false
     }
 
-    const type = await getRepositoryType(path)
+    // Validate what gets added; the state check still uses the typed path.
+    const type = await getRepositoryType(this.resolvedPath(path))
 
     const isRepository = type.kind !== 'missing' && type.kind !== 'unsafe'
     const isRepositoryUnsafe = type.kind === 'unsafe'
