@@ -1,7 +1,7 @@
 import * as URL from 'url'
 import * as Path from 'path'
 
-import { Account } from '../models/account'
+import { Account, isSameAccount } from '../models/account'
 import { IRemote } from '../models/remote'
 import { API, getAPIEndpoint, getHTMLURL, IAPIFullRepository } from './api'
 import {
@@ -129,11 +129,7 @@ export async function chooseAccountForRemoteRepository(
     return undefined
   }
   const match =
-    accessible.find(
-      match =>
-        match.account.endpoint === selected.endpoint &&
-        caseInsensitiveEquals(match.account.login, selected.login)
-    ) ??
+    accessible.find(match => isSameAccount(match.account, selected)) ??
     // An account signed in from the chooser hasn't been checked yet.
     (await probeRemoteRepositoryAccounts([selected], remote)).at(0)
   if (match === undefined) {

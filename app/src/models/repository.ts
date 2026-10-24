@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { IAccountIdentity } from './account'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -144,6 +145,19 @@ export function assertIsRepositoryWithGitHubRepository(
   if (!isRepositoryWithGitHubRepository(repository)) {
     return fatalError(`Repository must be GitHub repository`)
   }
+}
+
+/**
+ * Get the identity of the account assigned to the repository, or null when
+ * the repository isn't a GitHub repository or has no assigned account.
+ */
+export function getRepositoryAccountIdentity(
+  repository: Repository
+): IAccountIdentity | null {
+  const { gitHubRepository, login } = repository
+  return gitHubRepository === null || login === null
+    ? null
+    : { endpoint: gitHubRepository.endpoint, login }
 }
 
 /**
