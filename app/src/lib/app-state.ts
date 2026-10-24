@@ -11,7 +11,7 @@ import type {
   ICopilotResolutionSummary,
   ICopilotSkippedFile,
 } from './copilot-conflict-resolution'
-import { Account } from '../models/account'
+import { Account, IAccountIdentity } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
@@ -310,6 +310,12 @@ export interface IAppState {
 
   /** The currently selected tab for Clone Repository. */
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
+
+  /**
+   * The account last picked in the GitHub tab of Clone Repository during this
+   * session, or null if none has been picked yet.
+   */
+  readonly selectedCloneAccount: IAccountIdentity | null
 
   /** The currently selected tab for the Branches foldout. */
   readonly selectedBranchesTab: BranchesTab

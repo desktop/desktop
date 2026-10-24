@@ -59,7 +59,7 @@ import type { IBYOKProvider } from '../../lib/copilot/byok'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
-import { Account } from '../../models/account'
+import { Account, IAccountIdentity } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
@@ -2480,6 +2480,11 @@ export class Dispatcher {
   /** Change the selected Clone Repository tab. */
   public changeCloneRepositoriesTab(tab: CloneRepositoryTab): Promise<void> {
     return this.appStore._changeCloneRepositoriesTab(tab)
+  }
+
+  /** Remember the account picked in the GitHub tab of Clone Repository. */
+  public changeCloneRepositoriesAccount(account: IAccountIdentity): void {
+    this.appStore._changeCloneRepositoriesAccount(account)
   }
 
   /**
