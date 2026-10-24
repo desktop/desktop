@@ -1,16 +1,31 @@
 import { CloningRepository } from '../../models/cloning-repository'
 import { ICloneProgress } from '../../models/progress'
-import { CloneOptions } from '../../models/clone-options'
+import {
+  CloneOptions,
+  CloneRepositoryOptions,
+} from '../../models/clone-options'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 
 import { clone as cloneRepo } from '../git'
 import { ErrorWithMetadata } from '../error-with-metadata'
 import { BaseStore } from './base-store'
+import { CloneAssignment } from '../repository-matching'
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore extends BaseStore {
   private readonly _repositories = new Array<CloningRepository>()
   private readonly stateByID = new Map<number, ICloneProgress>()
+  private readonly completedAssignments = new Map<
+    string,
+    CloneAssignment | null
+  >()
+
+  /** Consume the account selected for a successfully completed clone. */
+  public takeCompletedAssignment(path: string) {
+    const assignment = this.completedAssignments.get(path)
+    this.completedAssignments.delete(path)
+    return assignment
+  }
 
   /**
    * Clone the repository at the URL to the path.
@@ -20,7 +35,8 @@ export class CloningRepositoriesStore extends BaseStore {
   public async clone(
     url: string,
     path: string,
-    options: CloneOptions
+    options: CloneRepositoryOptions,
+    chooseAccount?: () => Promise<CloneAssignment | null | undefined>
   ): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
@@ -32,10 +48,30 @@ export class CloningRepositoriesStore extends BaseStore {
 
     let success = true
     try {
-      await cloneRepo(url, path, options, progress => {
+      const assignment = await chooseAccount?.()
+      if (chooseAccount !== undefined && assignment === undefined) {
+        this.remove(repository)
+        return false
+      }
+      const fallbackAccount =
+        assignment != null
+          ? {
+              endpoint: assignment.account.endpoint,
+              login: assignment.account.login,
+            }
+          : options.account
+      const cloneOptions: CloneOptions = {
+        branch: options.branch,
+        defaultBranch: options.defaultBranch,
+        fallbackAccount,
+      }
+      await cloneRepo(url, path, cloneOptions, progress => {
         this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })
+      if (assignment !== undefined) {
+        this.completedAssignments.set(path, assignment)
+      }
     } catch (e) {
       success = false
 

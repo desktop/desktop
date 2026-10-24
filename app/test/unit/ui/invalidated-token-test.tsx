@@ -54,11 +54,8 @@ describe('Session recovery dialog', () => {
     it(`offers sign-in after signing out (${endpoint})`, () => {
       const actions: string[] = []
       const dispatcher = {
-        showDotComSignInDialog: async () => {
-          actions.push('dotcom')
-        },
-        showEnterpriseSignInDialog: async (url?: string) => {
-          actions.push(url ?? '')
+        showAccountSignInDialog: async (endpoint: string, login: string) => {
+          actions.push(`${endpoint} ${login}`)
         },
       }
       view = render(
@@ -69,13 +66,9 @@ describe('Session recovery dialog', () => {
         />
       )
       assert.ok(screen.getByText(/you have been signed out/))
+      assert.ok(screen.getByText('octocat'))
       fireEvent.click(screen.getByRole('button', { name: 'Yes', hidden: true }))
-      assert.deepEqual(actions, [
-        'dismiss',
-        endpoint === 'https://api.github.com'
-          ? 'dotcom'
-          : 'https://github.example.com',
-      ])
+      assert.deepEqual(actions, ['dismiss', `${endpoint} octocat`])
     })
   }
 
@@ -96,8 +89,7 @@ describe('Session recovery dialog', () => {
         <InvalidatedToken
           account={account}
           dispatcher={{
-            showDotComSignInDialog: () => assert.fail('Unexpected sign-in'),
-            showEnterpriseSignInDialog: () => assert.fail('Unexpected sign-in'),
+            showAccountSignInDialog: () => assert.fail('Unexpected sign-in'),
           }}
           onDismissed={() => dismissed++}
         />

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Account } from '../../models/account'
+import { Account, getAccountKey } from '../../models/account'
 import { IAccountTokenExpiration } from '../../lib/credential-sessions'
 import { Dispatcher } from '../dispatcher'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -19,12 +19,18 @@ interface ITestTokenExpirationDialogProps {
 }
 
 interface ITestTokenExpirationDialogState {
-  readonly endpoint: string
+  /** The selected account's `getAccountKey`, or '' when there is none. */
+  readonly accountKey: string
   readonly expiration: IAccountTokenExpiration | null
   readonly dateTime: string
   readonly busy: boolean
   readonly error: string | null
   readonly message: string | null
+}
+
+function firstAccountKey(accounts: ReadonlyArray<Account>): string {
+  const first = accounts.at(0)
+  return first === undefined ? '' : getAccountKey(first)
 }
 
 function localDateTime(expiresAt: number | undefined): string {
@@ -60,7 +66,7 @@ export class TestTokenExpirationDialog extends React.Component<
   public constructor(props: ITestTokenExpirationDialogProps) {
     super(props)
     this.state = {
-      endpoint: props.accounts[0]?.endpoint ?? '',
+      accountKey: firstAccountKey(props.accounts),
       expiration: null,
       dateTime: '',
       busy: false,
@@ -76,14 +82,14 @@ export class TestTokenExpirationDialog extends React.Component<
   public componentDidUpdate(prevProps: ITestTokenExpirationDialogProps) {
     const account = this.getSelectedAccount()
     const previousAccount = prevProps.accounts.find(
-      a => a.endpoint === this.state.endpoint
+      a => getAccountKey(a) === this.state.accountKey
     )
     if (
       account === undefined &&
-      (this.state.endpoint !== '' || this.props.accounts.length > 0)
+      (this.state.accountKey !== '' || this.props.accounts.length > 0)
     ) {
       this.setState(
-        { endpoint: this.props.accounts[0]?.endpoint ?? '' },
+        { accountKey: firstAccountKey(this.props.accounts) },
         this.loadExpiration
       )
     } else if (account !== previousAccount) {
@@ -122,12 +128,15 @@ export class TestTokenExpirationDialog extends React.Component<
               <Row>
                 <Select
                   label="Account"
-                  value={this.state.endpoint}
+                  value={this.state.accountKey}
                   disabled={busy}
                   onChange={this.onAccountChanged}
                 >
                   {this.props.accounts.map(account => (
-                    <option key={account.endpoint} value={account.endpoint}>
+                    <option
+                      key={getAccountKey(account)}
+                      value={getAccountKey(account)}
+                    >
                       {account.login} ({account.friendlyEndpoint})
                     </option>
                   ))}
@@ -221,7 +230,9 @@ export class TestTokenExpirationDialog extends React.Component<
   }
 
   private getSelectedAccount() {
-    return this.props.accounts.find(a => a.endpoint === this.state.endpoint)
+    return this.props.accounts.find(
+      a => getAccountKey(a) === this.state.accountKey
+    )
   }
 
   private getChosenExpiration(): number | undefined {
@@ -266,7 +277,10 @@ export class TestTokenExpirationDialog extends React.Component<
   }
 
   private onAccountChanged = (event: React.FormEvent<HTMLSelectElement>) => {
-    this.setState({ endpoint: event.currentTarget.value }, this.loadExpiration)
+    this.setState(
+      { accountKey: event.currentTarget.value },
+      this.loadExpiration
+    )
   }
 
   private onDateTimeChanged = (event: React.ChangeEvent<HTMLInputElement>) => {

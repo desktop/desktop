@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import type { Disposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
@@ -61,6 +62,9 @@ interface ICICheckRunPopoverProps {
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 
+  /** The local repository whose account is used to retrieve checks. */
+  readonly localRepository: Repository
+
   /** The current branch name. */
   readonly branchName: string
 
@@ -91,6 +95,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
     const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
       this.props.repository,
+      this.props.localRepository,
       getPullRequestCommitRef(this.props.prNumber)
     )
 
@@ -104,6 +109,7 @@ export class CICheckRunPopover extends React.PureComponent<
   public componentDidMount() {
     const combinedCheck = this.props.dispatcher.tryGetCommitStatus(
       this.props.repository,
+      this.props.localRepository,
       getPullRequestCommitRef(this.props.prNumber),
       this.props.branchName
     )
@@ -116,11 +122,30 @@ export class CICheckRunPopover extends React.PureComponent<
     this.unsubscribe()
   }
 
+  public componentDidUpdate(prevProps: ICICheckRunPopoverProps) {
+    if (
+      this.props.repository !== prevProps.repository ||
+      this.props.localRepository !== prevProps.localRepository ||
+      this.props.prNumber !== prevProps.prNumber ||
+      this.props.branchName !== prevProps.branchName
+    ) {
+      const check = this.props.dispatcher.tryGetCommitStatus(
+        this.props.repository,
+        this.props.localRepository,
+        getPullRequestCommitRef(this.props.prNumber),
+        this.props.branchName
+      )
+      this.onStatus(check)
+      this.subscribe()
+    }
+  }
+
   private subscribe() {
     this.unsubscribe()
 
     this.statusSubscription = this.props.dispatcher.subscribeToCommitStatus(
       this.props.repository,
+      this.props.localRepository,
       getPullRequestCommitRef(this.props.prNumber),
       this.onStatus,
       this.props.branchName
@@ -136,9 +161,11 @@ export class CICheckRunPopover extends React.PureComponent<
 
   private onStatus = async (check: ICombinedRefCheck | null) => {
     if (check === null) {
-      // Either this is on load -> we just want to continue to show loader
-      // status/cached header or while user has it open and we ant to continue
-      // to show last cache value to user closes popover
+      this.setState({
+        checkRuns: [],
+        checkRunSummary: '',
+        loadingActionWorkflows: true,
+      })
       return
     }
 
@@ -199,6 +226,7 @@ export class CICheckRunPopover extends React.PureComponent<
       type: PopupType.CICheckRunRerun,
       checkRuns: checkRuns ?? this.state.checkRuns,
       repository: this.props.repository,
+      localRepository: this.props.localRepository,
       prRef: getPullRequestCommitRef(this.props.prNumber),
       failedOnly,
     })

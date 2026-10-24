@@ -65,7 +65,9 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    /** The explicitly assigned account login, or null if no account is assigned. */
+    public readonly login: string | null = null
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +78,8 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.login
     )
   }
 
@@ -89,6 +92,21 @@ export class Repository {
   public get resolvedGitDir(): string {
     return this.gitDir ?? Path.join(this.path, '.git')
   }
+}
+
+/**
+ * A key identifying the working directory a repository refers to.
+ *
+ * Unlike `hash`, the key doesn't change when the repository's account,
+ * GitHub repository or other metadata changes, so in-memory state and
+ * in-flight operations survive those changes. Worktrees share a repository id,
+ * so the path is part of the key. Repositories that haven't been persisted
+ * (id -1) fall back to the hash so unrelated placeholders don't share state.
+ */
+export function getRepositoryStateKey(repository: Repository): string {
+  return repository.id < 0
+    ? `hash:${repository.hash}`
+    : `${repository.id}:${repository.path}`
 }
 
 /** Identical to `Repository`, except it **must** have a `gitHubRepository` */

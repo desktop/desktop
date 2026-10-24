@@ -4,6 +4,7 @@ import {
   API,
   getHTMLURL,
   getNextPagePathWithIncreasingPageSize,
+  getOAuthAuthorizationURL,
 } from '../../src/lib/api'
 import { CopilotError } from '../../src/lib/copilot-error'
 import * as URL from 'url'
@@ -54,6 +55,42 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
 }
 
 describe('API', () => {
+  describe('getOAuthAuthorizationURL', () => {
+    it('asks which account to use when no login is expected', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL(
+          'https://api.github.com',
+          'csrf-state',
+          undefined,
+          false
+        )
+      )
+      assert.strictEqual(url.origin, 'https://github.com')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.strictEqual(url.searchParams.has('client_id'), true)
+      assert.ok(url.searchParams.get('scope'))
+      assert.strictEqual(url.searchParams.has('login'), false)
+      assert.strictEqual(url.searchParams.has('allow_signup'), false)
+      assert.strictEqual(url.searchParams.get('prompt'), 'select_account')
+    })
+
+    it('encodes the expected login and disables signup for targeted authentication', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL(
+          'https://enterprise.example.com/api/v3',
+          'csrf-state',
+          'mona+work&scope=admin',
+          false
+        )
+      )
+      assert.strictEqual(url.origin, 'https://enterprise.example.com')
+      assert.strictEqual(url.searchParams.get('login'), 'mona+work&scope=admin')
+      assert.strictEqual(url.searchParams.get('allow_signup'), 'false')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.notStrictEqual(url.searchParams.get('scope'), 'admin')
+      assert.strictEqual(url.searchParams.has('prompt'), false)
+    })
+  })
   describe('getHTMLURL', () => {
     it('maps the GitHub.com API endpoint to github.com', () => {
       assert.equal(getHTMLURL('https://api.github.com'), 'https://github.com')
