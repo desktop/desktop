@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.9-beta1": [
+      "[Fixed] Prevent GitHub Desktop from crashing when Copilot stops unexpectedly - #23066"
+    ],
     "3.6.8": [
       "[New] Use short-lived tokens for new logged-in users - #22943",
       "[Added] Add syntax highlighting for Svelte files - #22969. Thanks @Klaynight-dev!",
