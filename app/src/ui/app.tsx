@@ -3431,9 +3431,41 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
+        accounts={this.state.accounts}
+        onChangeRepositoryAccount={this.changeRepositoryAccount}
+        onShowRepositorySettings={this.showRepositorySettingsFor}
         dispatcher={this.props.dispatcher}
       />
     )
+  }
+
+  private changeRepositoryAccount = async (
+    repository: Repository,
+    login: string
+  ) => {
+    try {
+      await this.props.dispatcher.updateRepositoryAccount(repository, login)
+    } catch (e) {
+      this.props.dispatcher.postError(e)
+    }
+  }
+
+  /**
+   * Show the settings for a repository that may not be selected, without
+   * changing the selection.
+   */
+  private showRepositorySettingsFor = async (repository: Repository) => {
+    const selected = this.state.selectedState?.repository
+    // The dialog reads the remote from the repository's state, which is only
+    // loaded once the repository has been refreshed.
+    if (!(selected instanceof Repository) || selected.id !== repository.id) {
+      await this.props.dispatcher.refreshRepository(repository)
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository,
+    })
   }
 
   private viewOnGitHub = (
@@ -3624,6 +3656,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       onOpenInExternalEditor: this.openInExternalEditor,
       askForConfirmationOnRemoveRepository:
         this.state.askForConfirmationOnRepositoryRemoval,
+      accounts: this.state.accounts,
+      onChangeRepositoryAccount: this.changeRepositoryAccount,
+      onShowRepositorySettings: this.showRepositorySettingsFor,
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
