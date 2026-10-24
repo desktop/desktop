@@ -12,6 +12,8 @@ import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
 import { enableCopilotAppHandoff, enableWorktreeSupport } from './feature-flag'
+import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from './git/repository-operation'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -385,6 +387,37 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('compare-on-github')
     menuStateBuilder.disable('branch-on-github')
     menuStateBuilder.disable('toggle-stashed-changes')
+  }
+
+  if (
+    selectedState?.type === SelectionType.Repository &&
+    (isAssistedCommitRepositoryLocked(
+      selectedState.state.changesState.assistedCommit
+    ) ||
+      isRepositoryAffectedByAssistedCommit(selectedState.repository.path))
+  ) {
+    const disabledIds: ReadonlyArray<MenuIDs> = [
+      'push',
+      'pull',
+      'fetch',
+      'create-branch',
+      'rename-branch',
+      'delete-branch',
+      'merge-branch',
+      'squash-and-merge-branch',
+      'rebase-branch',
+      'update-branch-with-contribution-target-branch',
+      'discard-all-changes',
+      'stash-all-changes',
+      'remove-repository',
+      'show-branches-list',
+      'show-worktrees-list',
+      'create-worktree',
+      'show-repository-settings',
+    ]
+    for (const id of disabledIds) {
+      menuStateBuilder.disable(id)
+    }
   }
 
   return menuStateBuilder
