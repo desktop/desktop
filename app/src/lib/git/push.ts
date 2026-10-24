@@ -6,6 +6,9 @@ import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 import { Branch } from '../../models/branch'
 
+/** Preserve native pushInsteadOf behavior when push falls back to the fetch URL. */
+export type AssistedCommitPushURLSource = 'push-url' | 'fetch-url'
+
 export type PushOptions = {
   /**
    * Force-push the branch without losing changes in the remote that
@@ -19,7 +22,34 @@ export type PushOptions = {
   readonly branch?: Branch
 
   readonly noVerify?: boolean
+
+  /** Desktop-owned assisted entry; never enables force, tag, or submodule pushes. */
+  readonly assistedCommit?: {
+    readonly expectedTip: string
+    readonly remoteRef: string
+    readonly pushURL: string
+    readonly rawPushURL: string
+    readonly pushURLSource: AssistedCommitPushURLSource
+    readonly prepareForSpawn: () => Promise<() => void>
+  }
 } & HookCallbackOptions
+
+/** Pin the original native URL collection without logging URL credentials. */
+export function getAssistedCommitPushConfigParameters(
+  remoteName: string,
+  rawURL: string,
+  source: AssistedCommitPushURLSource
+): string {
+  const parameters = process.env.GIT_CONFIG_PARAMETERS ?? ''
+  const property = source === 'push-url' ? 'pushurl' : 'url'
+  return `${parameters}${parameters.length === 0 ? '' : ' '}${[
+    `remote.${remoteName}.${property}=`,
+    `remote.${remoteName}.${property}=${rawURL}`,
+    `remote.${remoteName}.mirror=false`,
+  ]
+    .map(parameter => `'${parameter.replace(/'/g, "'\\''")}'`)
+    .join(' ')}`
+}
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.
@@ -55,8 +85,27 @@ export async function push(
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
   const args = ['push']
+  const assisted = options?.assistedCommit
+  if (
+    assisted !== undefined &&
+    (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(assisted.expectedTip) ||
+      !assisted.remoteRef.startsWith('refs/heads/') ||
+      options?.forceWithLease ||
+      options?.noVerify)
+  ) {
+    throw new Error(
+      'Assisted push requires a full commit ID and a normal branch push'
+    )
+  }
 
-  if (!remoteBranch) {
+  if (assisted !== undefined) {
+    args.push(
+      '--no-force',
+      '--no-mirror',
+      '--no-follow-tags',
+      '--recurse-submodules=no'
+    )
+  } else if (!remoteBranch) {
     args.push('--set-upstream')
   } else if (options?.forceWithLease) {
     args.push('--force-with-lease')
@@ -66,12 +115,27 @@ export async function push(
     args.push('--no-verify')
   }
 
+  const remoteEnv = await envForRemoteOperation(assisted?.pushURL ?? remote.url)
+  const pushParameters =
+    assisted === undefined
+      ? undefined
+      : getAssistedCommitPushConfigParameters(
+          remote.name,
+          assisted.rawPushURL,
+          assisted.pushURLSource
+        )
   let opts: IGitStringExecutionOptions = {
-    env: await envForRemoteOperation(remote.url),
+    env: {
+      ...remoteEnv,
+      ...(pushParameters === undefined
+        ? {}
+        : { GIT_CONFIG_PARAMETERS: pushParameters }),
+    },
     interceptHooks: ['pre-push'],
     onHookProgress: options?.onHookProgress,
     onHookFailure: options?.onHookFailure,
     onTerminalOutputAvailable: options?.onTerminalOutputAvailable,
+    prepareForSpawn: assisted?.prepareForSpawn,
   }
 
   if (progressCallback) {
@@ -111,10 +175,14 @@ export async function push(
   args.push(
     '--',
     remote.name,
-    remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch
+    assisted !== undefined
+      ? `${assisted.expectedTip}:${assisted.remoteRef}`
+      : remoteBranch
+      ? `${localBranch}:${remoteBranch}`
+      : localBranch
   )
 
-  if (tagsToPush !== null) {
+  if (assisted === undefined && tagsToPush !== null) {
     args.push(...tagsToPush)
   }
 
