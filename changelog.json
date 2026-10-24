@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.9": [
+      "[Fixed] Prevent GitHub Desktop from crashing when Copilot stops unexpectedly - #23066"
+    ],
     "3.6.9-beta1": [
       "[Fixed] Prevent GitHub Desktop from crashing when Copilot stops unexpectedly - #23066"
     ],
