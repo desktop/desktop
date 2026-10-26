@@ -631,6 +631,7 @@ describe('Copilot assisted commit prompt and session policy', () => {
     assert.strictEqual(config.skipCustomInstructions, false)
     assert.strictEqual(config.configDirectory, undefined)
     assert.strictEqual(config.disabledMcpServers, undefined)
+    assert.strictEqual(Object.hasOwn(config, 'remoteSession'), false)
     for (const value of [
       config.coauthorEnabled,
       config.enableConfigDiscovery,

@@ -497,7 +497,6 @@ export function getAssistedCommitSessionConfig(
     skipEmbeddingRetrieval: true,
     embeddingCacheStorage: 'in-memory',
     mcpOAuthTokenStorage: 'in-memory',
-    remoteSession: 'off',
     onPermissionRequest: async () => ({ kind: 'reject' }),
   }
 }
