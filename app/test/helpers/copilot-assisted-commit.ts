@@ -4,7 +4,7 @@ import type {
   SessionConfig,
   SessionEventPayload,
 } from '@github/copilot-sdk'
-import type { InstructionSource, Model } from '../../src/lib/copilot/types'
+import type { Model } from '../../src/lib/copilot/types'
 import { TestContext } from 'node:test'
 import { Account } from '../../src/models/account'
 import {
@@ -19,7 +19,6 @@ import {
 import {
   ICopilotPlanningClient,
   ICopilotPlanningSession,
-  ICopilotGlobalInstructions,
 } from '../../src/lib/copilot-operation'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 import {
@@ -166,13 +165,9 @@ export function createMockPlanner(t: TestContext) {
       assistantMessage(JSON.stringify(wholeSelectionResponse()))
   )
   const disconnect = t.mock.fn(async () => {})
-  const getInstructionSources = t.mock.fn(
-    async (): Promise<ReadonlyArray<InstructionSource>> => []
-  )
   const messages = new Set<(event: AssistantMessageEvent) => void>()
   const idle = new Set<() => void>()
   const session: ICopilotPlanningSession = {
-    getInstructionSources,
     onSessionError: handler => {
       errors.add(handler)
       return () => errors.delete(handler)
@@ -199,14 +194,7 @@ export function createMockPlanner(t: TestContext) {
   const createSession = t.mock.fn(async (_config: SessionConfig) => session)
   const stop = t.mock.fn(async (): Promise<ReadonlyArray<Error>> => [])
   const forceStop = t.mock.fn(async () => {})
-  const getGlobalInstructions = t.mock.fn(
-    async (): Promise<ICopilotGlobalInstructions> => ({
-      directory: '/synthetic/home/.copilot',
-      sources: [],
-    })
-  )
   const client: ICopilotPlanningClient = {
-    getGlobalInstructions,
     createSession,
     stop,
     forceStop,
@@ -237,8 +225,6 @@ export function createMockPlanner(t: TestContext) {
     forceStop,
     listModels,
     cachedModels,
-    getGlobalInstructions,
-    getInstructionSources,
     emitError: (data: SessionEventPayload<'session.error'>['data']) =>
       errors.forEach(handler => handler(data)),
     listenerCount: () => errors.size + messages.size + idle.size,

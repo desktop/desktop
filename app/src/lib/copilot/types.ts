@@ -1,9 +1,4 @@
-import type { CopilotClient, CopilotSession } from '@github/copilot-sdk'
-
-/** Instruction metadata returned by the SDK's public session RPC API. */
-export type InstructionSource = Awaited<
-  ReturnType<CopilotSession['rpc']['instructions']['getSources']>
->['sources'][number]
+import type { CopilotClient } from '@github/copilot-sdk'
 
 /** Model metadata returned by the SDK's public RPC API. */
 export type Model = Awaited<
