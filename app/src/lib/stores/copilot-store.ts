@@ -61,10 +61,6 @@ import {
   parseCopilotAssistedCommitResponse,
 } from '../copilot-assisted-commit'
 import { IAssistedCommitAnalysis } from '../../models/assisted-commit'
-import {
-  createAssistedCommitInstructionScope,
-  IAssistedCommitInstructionScope,
-} from '../copilot-assisted-commit-instructions'
 import { getCopilotRuntimePath } from '../copilot-runtime'
 import { startTimer } from '../../ui/lib/timing'
 import { join } from 'path'
@@ -1284,7 +1280,6 @@ export class CopilotStore extends BaseStore {
     const timer = setTimeout(() => deadline.abort(), timeoutMs)
     let client: ICopilotPlanningClient | null = null
     let session: ICopilotPlanningSession | null = null
-    let instructions: IAssistedCommitInstructionScope | null = null
     let failed = false
     let failure: unknown
     let disposed = false
@@ -1296,7 +1291,7 @@ export class CopilotStore extends BaseStore {
       const cleanedRules = getCleanedEnforcedRuleDescriptions(
         options.commitMessageRules
       )
-      buildAssistedCommitUserPrompt(analysis, tags, cleanedRules)
+      const prompt = buildAssistedCommitUserPrompt(analysis, tags, cleanedRules)
       let modelId: string
       let reasoningEffort: ReasoningEffort | undefined
       let provider: CopilotProviderConfig | undefined
@@ -1324,45 +1319,12 @@ export class CopilotStore extends BaseStore {
       )
       throwIfCancelled()
       const planningClient = client
-      const globalInstructions = await awaitCancellableCopilotOperation(
-        () => planningClient.getGlobalInstructions(),
-        { signal, cancellationError }
-      )
-      instructions = await awaitCancellableCopilotOperation(
-        () =>
-          createAssistedCommitInstructionScope(globalInstructions, {
-            signal,
-            cancellationError,
-          }),
-        {
-          signal,
-          cancellationError,
-          disposeLateValue: scope => scope.dispose(),
-          onLateError: error => {
-            if (
-              error instanceof CopilotAssistedCommitError &&
-              (error.code === 'cancelled' || error.code === 'timed-out')
-            ) {
-              return
-            }
-            log.error(
-              'Copilot: Interrupted instruction setup failed',
-              error instanceof Error
-                ? error
-                : new Error('Instruction setup failed', { cause: error })
-            )
-          },
-        }
-      )
-      throwIfCancelled()
-      const instructionDirectory = instructions.directory
       session = await awaitCancellableCopilotOperation(
         () =>
           planningClient.createSession({
             ...getAssistedCommitSessionConfig(
               repositoryPath,
-              buildAssistedCommitSystemPrompt(tags, mode),
-              instructionDirectory
+              buildAssistedCommitSystemPrompt(tags, mode)
             ),
             clientName: CopilotClientNames['commit-message-generation'],
             model: modelId,
@@ -1383,18 +1345,6 @@ export class CopilotStore extends BaseStore {
           cancellationError,
           disposeLateValue: lateSession => lateSession.disconnect(),
         }
-      )
-      throwIfCancelled()
-      const planningSession = session
-      const instructionSources = await awaitCancellableCopilotOperation(
-        () => planningSession.getInstructionSources(),
-        { signal, cancellationError }
-      )
-      const prompt = buildAssistedCommitUserPrompt(
-        analysis,
-        tags,
-        cleanedRules,
-        instructionSources
       )
       throwIfCancelled()
       const response = await sendCopilotPlanningRequest(
@@ -1425,11 +1375,6 @@ export class CopilotStore extends BaseStore {
       } finally {
         disposed = true
         fileSystems.forEach(fs => fs.dispose())
-      }
-      try {
-        await instructions?.dispose()
-      } catch (error) {
-        cleanupErrors.push(error)
       }
       if (cleanupErrors.length > 0) {
         throw new CopilotAssistedCommitError(

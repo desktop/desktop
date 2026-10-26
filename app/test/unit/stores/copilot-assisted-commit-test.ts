@@ -1,7 +1,5 @@
 import assert from 'node:assert'
 import { setImmediate } from 'node:timers/promises'
-import { access, readFile } from 'fs/promises'
-import { join } from 'path'
 import { describe, it } from 'node:test'
 import type { Model } from '../../../src/lib/copilot/types'
 import {
@@ -76,6 +74,8 @@ describe('CopilotStore constrained assisted planner', () => {
     assert.strictEqual(config.enableSessionStore, false)
     assert.strictEqual(config.systemMessage?.mode, 'append')
     assert.strictEqual(config.workingDirectory, repositoryPath)
+    assert.strictEqual(config.configDirectory, undefined)
+    assert.strictEqual(config.skipCustomInstructions, false)
     assert.strictEqual(typeof config.createSessionFsProvider, 'function')
     assert.ok(scheduled.mock.calls.some(call => call.arguments[1] === 12345))
     const prompt = mock.send.mock.calls[0].arguments[0].prompt
@@ -390,72 +390,28 @@ describe('CopilotStore constrained assisted planner', () => {
     assert.strictEqual(mock.forceStop.mock.callCount(), 1)
   })
 
-  it('cancels pending SDK global instruction discovery before creating a session', async t => {
+  it('leaves instruction loading entirely to the SDK without discovery or source RPCs', async t => {
     const mock = createMockPlanner(t)
-    const discovery =
-      deferred<Awaited<ReturnType<typeof mock.client.getGlobalInstructions>>>()
-    const started = deferred<void>()
-    mock.getGlobalInstructions.mock.mockImplementation(() => {
-      started.resolve()
-      return discovery.promise
+    const discovery = t.mock.fn(async () => {
+      assert.fail('Desktop must not discover custom instructions')
     })
-    const controller = new AbortController()
-    const operation = mock.store.proposeAssistedCommitPlan(
-      account,
-      syntheticAnalysis,
-      repositoryPath,
-      {
-        request: syntheticBYOKRequest(),
-        signal: controller.signal,
-      }
-    )
-    await started.promise
-    controller.abort()
-    await assert.rejects(operation, assertPlanningError('cancelled'))
-    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
-    assert.strictEqual(mock.createSession.mock.callCount(), 0)
-    discovery.resolve({ directory: '/synthetic/home/.copilot', sources: [] })
-    await setImmediate()
-    assert.strictEqual(mock.createSession.mock.callCount(), 0)
-  })
-
-  it('supplies only SDK-discovered instructions in an owned config and removes it on success', async t => {
-    const mock = createMockPlanner(t)
-    const content = 'Global commit message instructions'
-    mock.getGlobalInstructions.mock.mockImplementation(async () => ({
-      directory: '/synthetic/home/.copilot',
-      sources: [
-        {
-          id: 'home-copilot',
-          label: 'Global',
-          sourcePath: '/synthetic/home/.copilot/copilot-instructions.md',
-          content,
-          type: 'home',
-          location: 'user',
-        },
-      ],
-    }))
-    let configDirectory: string | undefined
-    mock.createSession.mock.mockImplementation(async config => {
-      assert.ok(config.configDirectory)
-      configDirectory = config.configDirectory
-      assert.strictEqual(
-        await readFile(
-          join(config.configDirectory, 'copilot-instructions.md'),
-          'utf8'
-        ),
-        content
-      )
-      return mock.session
+    const sources = t.mock.fn(async () => {
+      assert.fail('Desktop must not fetch instruction sources')
     })
+    Object.assign(mock.client, { getGlobalInstructions: discovery })
+    Object.assign(mock.session, { getInstructionSources: sources })
     await mock.store.proposeAssistedCommitPlan(
       account,
       syntheticAnalysis,
       repositoryPath,
       { request: syntheticBYOKRequest() }
     )
-    assert.ok(configDirectory)
-    await assert.rejects(access(configDirectory), /ENOENT/)
+    assert.strictEqual(discovery.mock.callCount(), 0)
+    assert.strictEqual(sources.mock.callCount(), 0)
+    assert.strictEqual(
+      mock.createSession.mock.calls[0].arguments[0].configDirectory,
+      undefined
+    )
   })
 
   it('force-stops pending session setup and disconnects any late-created session once', async t => {
@@ -484,36 +440,6 @@ describe('CopilotStore constrained assisted planner', () => {
     creation.resolve(mock.session)
     await setImmediate()
     assert.strictEqual(mock.disconnect.mock.callCount(), 1)
-  })
-
-  it('cancels pending scoped instruction metadata without sending a prompt or retaining config', async t => {
-    const mock = createMockPlanner(t)
-    const metadata =
-      deferred<Awaited<ReturnType<typeof mock.session.getInstructionSources>>>()
-    const started = deferred<void>()
-    mock.getInstructionSources.mock.mockImplementation(() => {
-      started.resolve()
-      return metadata.promise
-    })
-    const controller = new AbortController()
-    const operation = mock.store.proposeAssistedCommitPlan(
-      account,
-      syntheticAnalysis,
-      repositoryPath,
-      {
-        request: syntheticBYOKRequest(),
-        signal: controller.signal,
-      }
-    )
-    await started.promise
-    const config = mock.createSession.mock.calls[0].arguments[0]
-    assert.ok(config.configDirectory)
-    controller.abort()
-    await assert.rejects(operation, assertPlanningError('cancelled'))
-    assert.strictEqual(mock.send.mock.callCount(), 0)
-    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
-    await assert.rejects(access(config.configDirectory), /ENOENT/)
-    metadata.resolve([])
   })
 
   it('cancels during a request, releases listeners and tears down the owned runtime', async t => {

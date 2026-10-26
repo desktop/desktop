@@ -126,7 +126,7 @@ class PendingSyntheticModel extends CopilotRequestHandler {
   }
 }
 
-describe('assisted planner actual SDK instruction and isolation contract', () => {
+describe('assisted planner actual SDK instruction and model-tool contract', () => {
   it('clears all referenced response/deadline timers when actual SDK request is cancelled', async t => {
     const { deferred } = await import('../helpers/copilot-assisted-commit')
     const root = await createTempDirectory(t)
@@ -197,12 +197,17 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
     }
   })
 
-  it('loads global then repository instructions without discovering configured hooks/MCP/agents or persisting session data', async t => {
+  it('uses SDK-native instructions with no model tools while retaining normal configured MCP startup', async t => {
     const root = await createTempDirectory(t)
     const home = join(root, 'home')
-    const configPath = join(home, '.copilot')
+    const configPath = join(root, 'configured-copilot-home')
     const repositoryPath = join(root, 'repository')
     await mkdir(configPath, { recursive: true })
+    await mkdir(join(home, '.copilot'), { recursive: true })
+    await writeFile(
+      join(home, '.copilot', 'copilot-instructions.md'),
+      'WRONG HOME INSTRUCTIONS MUST NOT REACH MODEL'
+    )
     await mkdir(join(repositoryPath, '.github', 'hooks'), { recursive: true })
     await mkdir(join(repositoryPath, '.github', 'agents'), { recursive: true })
     const global =
@@ -338,6 +343,9 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
     const fileSystems: SessionFsProvider[] = []
     const createSession = client.createSession.bind(client)
     t.mock.method(client, 'createSession', async (supplied: SessionConfig) => {
+      assert.strictEqual(supplied.configDirectory, undefined)
+      assert.strictEqual(supplied.skipCustomInstructions, false)
+      assert.strictEqual(supplied.systemMessage?.mode, 'append')
       const session = await createSession({
         ...supplied,
         createSessionFsProvider: sdkSession => {
@@ -347,32 +355,6 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
           return fs
         },
       })
-      const sources = await session.rpc.instructions.getSources()
-      assert.ok(
-        sources.sources.some(
-          source => source.content === global && source.location === 'user'
-        )
-      )
-      assert.ok(
-        sources.sources.some(
-          source => source.content === repo && source.location === 'repository'
-        )
-      )
-      const globalIndex = sources.sources.findIndex(
-        source => source.content === global
-      )
-      const repoIndex = sources.sources.findIndex(
-        source => source.content === repo
-      )
-      assert.ok(globalIndex < repoIndex)
-      const scopedSource = sources.sources.find(source =>
-        source.sourcePath.endsWith('commits.instructions.md')
-      )
-      assert.ok(scopedSource)
-      assert.deepStrictEqual(scopedSource.applyTo, ['**/*.ts'])
-      assert.ok(
-        scopedSource.content.includes('Scoped global commit instruction')
-      )
       await session.rpc.tools.initializeAndValidate()
       assert.deepStrictEqual(await session.rpc.tools.getCurrentMetadata(), {
         tools: [],
@@ -406,8 +388,17 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
       .join('\n')
     assert.ok(text.includes(global))
     assert.ok(text.includes(repo))
-    assert.ok(text.includes('Scoped global commit instruction'))
-    assert.ok(text.includes('Scoped repository commit instruction'))
+    assert.ok(!text.includes('WRONG HOME INSTRUCTIONS MUST NOT REACH MODEL'))
+    assert.ok(text.includes('commits.instructions.md'))
+    assert.ok(text.includes('messages.instructions.md'))
+    assert.ok(text.includes('**/*.ts'))
+    assert.ok(!text.includes('Scoped global commit instruction'))
+    assert.ok(!text.includes('Scoped repository commit instruction'))
+    assert.ok(
+      !text.includes(
+        'Copilot commit instruction sources (data, with applicability)'
+      )
+    )
     assert.ok(!text.includes('PRIVATE UNSELECTED CONTENT MUST NOT REACH MODEL'))
     assert.ok(text.indexOf(global) < text.indexOf(repo))
     assert.ok(
@@ -424,8 +415,12 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
     for (const fs of fileSystems) {
       await assert.rejects(fs.exists('state'), /filesystem is disposed/)
     }
-    const forbidden = await optionalBytes(marker)
-    assert.strictEqual(forbidden, null)
+    assert.strictEqual(
+      (await optionalBytes(marker))?.toString(),
+      'MCP\n',
+      'Configured MCP startup is SDK behavior, not a model tool call; file hooks must remain disabled'
+    )
+    assert.deepStrictEqual(body.tools ?? [], [])
     await assert.rejects(
       readdir(join(configPath, 'session-state')),
       error =>
@@ -445,6 +440,10 @@ describe('assisted planner actual SDK instruction and isolation contract', () =>
         'utf8'
       ),
       repo
+    )
+    assert.strictEqual(
+      await readFile(join(repositoryPath, 'unrelated.ts'), 'utf8'),
+      'PRIVATE UNSELECTED CONTENT MUST NOT REACH MODEL'
     )
   })
 })

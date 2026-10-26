@@ -114,42 +114,42 @@ selection/index/history, disposal and observer errors never trigger fallback.
 The distinct planner prompt does not inherit ordinary generation's 50-character
 title preference, optional lockfile exclusion or generic body convention.
 Applicable global and repository Copilot instructions control content, language,
-message structure and requested trailers. More specific repository conventions
-take precedence when they conflict with global conventions. Beyond the wire
+message structure and requested trailers. The SDK owns instruction loading,
+precedence and applicability; Desktop does not implement those policies. Beyond the wire
 schema, the required message invariant is a nonblank single-line title without
 NUL. Bodies are optional strings without NUL. Copilot attribution is omitted by
 default unless applicable instructions explicitly request it.
 
-The SDK loads the global `copilot-instructions.md` and user instruction
-directory from its configured Copilot home, and repository sources from the
-repository working directory independently of tool/config discovery. Empty
-tool lists alone still allow user-configured MCP processes to start while
-initializing tools. The planner therefore uses SDK's read-only instruction
-discovery RPCs to capture user instruction sources, then copies only approved
-instruction files into an owned private config directory. It preserves their
-raw content and relative instruction paths, including scoped frontmatter.
-Executable config, MCP definitions, plugins and hooks are never copied.
-Session `configDirectory` points at that instruction-only directory; original
-user configuration stays unchanged. Unknown/out-of-scope sources fail explicitly
-instead of being silently dropped or copied.
+The planner relies on normal SDK loading of global, repository and scoped
+custom instructions. It retains `systemMessage.mode: 'append'`,
+`skipCustomInstructions: false`, and the repository cwd, without overriding
+`configDirectory`. Desktop does not discover instruction paths, read or copy
+instruction files, create a private instruction directory, fetch instruction
+source bodies through RPCs or reinsert them into the user prompt. SDK changes
+to discovery, precedence or applicability therefore do not require a parallel
+Desktop implementation.
 
-The planner retains
-`systemMessage.mode: 'append'`, `skipCustomInstructions: false`, and the repository
-cwd. Because an explicit SDK environment replaces the inherited environment,
+Because an explicit SDK environment replaces the inherited environment,
 the planner preserves home/Copilot/config directory variables and OS paths,
-without forwarding ambient SDK runtime or tool overrides.
-Tests launch the shipped runtime with synthetic global/repository instructions,
-configured MCP/hook execution sentinels and a completely local fake model. They
-assert source metadata/precedence, inclusion before the appended planner boundary,
-zero exposed tools and zero configured-process execution.
+without forwarding ambient SDK runtime or tool overrides. Tests launch the
+shipped SDK 1.0.18/runtime 1.0.94 with a separately configured Copilot home,
+synthetic instructions and a completely local fake model. They prove global
+and repository root bodies reach the model before the appended planner prompt.
+The runtime advertises scoped instruction files in its native instruction table,
+but does not inline their bodies in this no-tools session. Desktop leaves that
+behavior to the SDK rather than reading/reinjecting those bodies or enabling
+file tools. These tests establish prompt inclusion and tool policy, not semantic
+adherence to message instructions.
 
-Scoped instruction files are otherwise only advertised in SDK's instruction
-table, and cannot be read by a model whose file tools are disabled. The planner
-therefore also fetches the session's SDK instruction-source bodies and supplies
-their location/applicability/disabled metadata as tagged user-channel data.
-The model can apply those message conventions to each group's assigned paths
-without reading any live source files. This data cannot change the schema or
-tool/ownership boundary. Plugin instruction sources fail explicitly.
+Configured MCP processes can start under normal SDK behavior even with zero
+exposed model tools, an empty `mcpServers` object and config discovery disabled.
+The runtime fixture explicitly observes a configured MCP startup sentinel,
+while file-hook sentinels remain absent and tool metadata/model requests expose
+no tools. Tool filtering and permission rejection do not promise to prevent
+configured processes from starting. The SDK's per-session `disabledMcpServers`
+accepts exact known names, not a documented disable-all wildcard. The planner
+supplies no servers of its own and does not inventory, parse, copy or mutate
+user/repository MCP configuration to manufacture such a list.
 
 Client creation uses the account's current session-bound token getter, not an
 access token copied from an account snapshot. Planner sessions go through the
@@ -158,8 +158,7 @@ GitHub credentials supply a rotating token provider, while legacy and explicit
 BYOK sessions omit that provider. The bound provider rejects retired sign-ins
 even if a replacement sign-in reuses the token. Cancellation abandons only the
 planner's waiter, not shared renewal; late-created clients remain owned and
-are stopped. SDK instruction metadata types are derived from its public RPC
-API rather than private package paths.
+are stopped.
 
 Repository message-rule descriptions reuse existing enforced/bypass filtering,
 control-character sanitation and deduplication. Those rules and the complete
@@ -169,14 +168,14 @@ system channel. Custom instructions and rule constraints cannot override the
 schema, title invariant or Desktop's authority.
 
 Every session has an empty tool allowlist plus exclusions for all built-in,
-MCP and custom tools. Permission requests always reject. Config discovery,
-filesystem hooks, host Git context/status, skills, plugins, extensions, canvases,
-agent routes, interactive input, schedules, memory, embeddings retrieval,
-remote export and cross-session storage are disabled. SDK-added coauthors are
-disabled with `coauthorEnabled: false`. Instructions are read by the established
-SDK discovery mechanism, not by model file tools. This is a constrained SDK
-configuration, not an OS sandbox; Desktop's own Git engine still remains the
-canonical safety authority.
+MCP and custom tools. Permission requests always reject. Supported SDK controls
+disable config discovery, filesystem hooks, host Git context/status, skills,
+explicit plugin/agent routes, extensions, canvases, interactive input, schedules,
+memory, embeddings retrieval, remote export and cross-session storage.
+SDK-added coauthors are disabled with `coauthorEnabled: false`. Instructions
+use the established SDK mechanism, not model file tools. Configured MCP startup
+is separate from model tool access. This is a constrained SDK configuration,
+not an OS sandbox; Desktop's own Git engine remains the canonical safety authority.
 
 Callers reuse the existing commit-message feature's account selection,
 organization entitlement gate, consent and model preference. No new picker or
@@ -208,13 +207,12 @@ failures propagate unchanged; the existing SDK session-error adapter preserves
 it preserves any earlier request error in `cause` plus the cleanup errors.
 Integration should inspect that cause when presenting actionable billing data.
 
-The request deadline covers client setup, SDK instruction discovery, session
-creation and model response. Cached model metadata is synchronous; every SDK or
-instruction-setup await is cancellable. Cancellation and
+The request deadline covers client setup, SDK session creation (including its
+instruction loading) and model response. Cached model metadata is synchronous;
+every SDK setup await is cancellable. Cancellation and
 timeout force-stop the owned ephemeral runtime; late-created clients/sessions
 are disposed. Late cleanup failures are logged because cancellation has already
-been delivered, including secondary setup failures. Filesystem setup retains
-its late ownership and removes a directory created after cancellation.
+been delivered.
 Response waiting uses Desktop-owned send/events and the enclosing deadline,
 not SDK `sendAndWait`'s independent timer; all response/idle/error/abort listeners
 are removed on completion or cancellation. Successful/error cleanup disconnects the session and awaits
@@ -222,10 +220,8 @@ client shutdown, bounded to one second before force-stop and an explicit
 cleanup failure. Cancellation during cleanup cannot return a successful plan.
 Every owned in-memory filesystem is cleared and rejects late reads/writes.
 SDK session journals use that filesystem; no per-session content is written to
-disk or the shared session store. The instruction-only config is removed after
-runtime cleanup on success/error/cancellation. Disposal checks directory
-ownership before recursive removal; if the initial ownership lookup fails,
-only a still-empty directory can be removed. Any cleanup failure stays visible.
+disk or the shared session store. There is no Desktop-owned instruction config
+directory to clean up. Any client/session cleanup failure stays visible.
 
 The caller must keep using `withAssistedCommitSnapshot` for snapshot resource
 cleanup. The planner never assumes ownership of it.

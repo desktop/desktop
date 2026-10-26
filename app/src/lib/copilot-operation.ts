@@ -91,21 +91,10 @@ import type {
   SessionConfig,
   SessionEventPayload,
 } from '@github/copilot-sdk'
-import type { InstructionSource } from './copilot/types'
-import { realpath } from 'fs/promises'
-import { dirname, isAbsolute, join, relative, sep } from 'path'
-import { isErrnoException } from './errno-exception'
 import { getCopilotPaymentRequiredErrorFromSessionError } from './copilot-error'
-
-/** SDK-discovered user instructions, separate from executable user configuration. */
-export interface ICopilotGlobalInstructions {
-  readonly directory: string
-  readonly sources: ReadonlyArray<InstructionSource>
-}
 
 /** The SDK message/session surface used by the constrained planner. */
 export interface ICopilotMessageSession {
-  getInstructionSources(): Promise<ReadonlyArray<InstructionSource>>
   onSessionError(
     handler: (data: SessionEventPayload<'session.error'>['data']) => void
   ): () => void
@@ -127,7 +116,6 @@ export interface ICopilotPlanningSession extends ICopilotMessageSession {
 
 /** The existing SDK client surface needed for an owned planning session. */
 export interface ICopilotPlanningClient {
-  getGlobalInstructions(): Promise<ICopilotGlobalInstructions>
   createSession(config: SessionConfig): Promise<ICopilotPlanningSession>
   stop(): Promise<ReadonlyArray<Error>>
   forceStop(): Promise<void>
@@ -138,8 +126,6 @@ export function getCopilotMessageSession(
   session: CopilotSession
 ): ICopilotMessageSession {
   return {
-    getInstructionSources: async () =>
-      (await session.rpc.instructions.getSources()).sources,
     onSessionError: handler =>
       session.on('session.error', event => handler(event.data)),
     sendAndWait: (options, timeoutMs) =>
@@ -244,65 +230,6 @@ export function getCopilotPlanningClient(
     client.createSession(config)
 ): ICopilotPlanningClient {
   return {
-    getGlobalInstructions: async () => {
-      await client.start()
-      const discovery = await client.rpc.instructions.getDiscoveryPaths({})
-      const preferred = discovery.paths.find(
-        path =>
-          path.location === 'user' &&
-          path.kind === 'file' &&
-          path.preferredForCreation
-      )
-      if (preferred === undefined) {
-        throw new Error(
-          'Copilot SDK could not locate the global instruction directory'
-        )
-      }
-      const discovered = await client.rpc.instructions.discover({})
-      const sources = discovered.sources.filter(
-        source => source.location === 'user'
-      )
-      const directory = dirname(preferred.path)
-      const roots = [
-        { path: directory, prefix: '' },
-        ...discovery.paths
-          .filter(path => path.location === 'user' && path.kind === 'directory')
-          .map(path => ({ path: path.path, prefix: 'instructions' })),
-      ]
-      const resolvedRoots = await Promise.all(
-        roots.map(async root => {
-          try {
-            return { ...root, path: await realpath(root.path) }
-          } catch (error) {
-            if (isErrnoException(error) && error.code === 'ENOENT') {
-              return root
-            }
-            throw error
-          }
-        })
-      )
-      return {
-        directory,
-        sources: sources.map(source => {
-          if (!isAbsolute(source.sourcePath)) {
-            return source
-          }
-          for (const root of [...roots, ...resolvedRoots]) {
-            const path = relative(root.path, source.sourcePath)
-            if (
-              path !== '' &&
-              !isAbsolute(path) &&
-              !path.split(sep).includes('..')
-            ) {
-              return { ...source, sourcePath: join(root.prefix, path) }
-            }
-          }
-          throw new Error(
-            'Copilot SDK returned a global instruction outside its discovery roots'
-          )
-        }),
-      }
-    },
     createSession: async config =>
       getCopilotPlanningSession(await createSession(config)),
     stop: () => client.stop(),
