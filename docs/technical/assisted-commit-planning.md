@@ -171,11 +171,16 @@ Every session has an empty tool allowlist plus exclusions for all built-in,
 MCP and custom tools. Permission requests always reject. Supported SDK controls
 disable config discovery, filesystem hooks, host Git context/status, skills,
 explicit plugin/agent routes, extensions, canvases, interactive input, schedules,
-memory, embeddings retrieval, remote export and cross-session storage.
+memory, embeddings retrieval and cross-session storage.
 SDK-added coauthors are disabled with `coauthorEnabled: false`. Instructions
 use the established SDK mechanism, not model file tools. Configured MCP startup
 is separate from model tool access. This is a constrained SDK configuration,
 not an OS sandbox; Desktop's own Git engine remains the canonical safety authority.
+
+Session configuration follows supported SDK options and normal local-session
+defaults. The planner omits the obsolete `remoteSession` option: SDK 1.0.18
+documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
+exposes that option. No replacement remote/export policy is emulated.
 
 Callers reuse the existing commit-message feature's account selection,
 organization entitlement gate, consent and model preference. No new picker or
