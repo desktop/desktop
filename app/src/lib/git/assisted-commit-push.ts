@@ -283,6 +283,29 @@ async function readRegularConfigurationInput(path: string) {
     }
   } catch (error) {
     if (isErrnoException(error) && error.code === 'ENOENT') {
+      let parent = dirname(path)
+      for (;;) {
+        try {
+          if (!(await stat(parent)).isDirectory()) {
+            throw new AssistedCommitFileVersionMismatchError(path, {
+              cause: error,
+            })
+          }
+          break
+        } catch (ancestorError) {
+          if (
+            !isErrnoException(ancestorError) ||
+            ancestorError.code !== 'ENOENT'
+          ) {
+            throw ancestorError
+          }
+          const next = dirname(parent)
+          if (next === parent) {
+            throw ancestorError
+          }
+          parent = next
+        }
+      }
       return { physical: null, bytes: null }
     }
     if (isAssistedCommitPathLayoutError(error)) {
@@ -326,6 +349,30 @@ function readRegularConfigurationInputSync(path: string) {
     }
   } catch (error) {
     if (isErrnoException(error) && error.code === 'ENOENT') {
+      let parent = dirname(path)
+      for (;;) {
+        try {
+          // eslint-disable-next-line no-sync
+          if (!statSync(parent).isDirectory()) {
+            throw new AssistedCommitFileVersionMismatchError(path, {
+              cause: error,
+            })
+          }
+          break
+        } catch (ancestorError) {
+          if (
+            !isErrnoException(ancestorError) ||
+            ancestorError.code !== 'ENOENT'
+          ) {
+            throw ancestorError
+          }
+          const next = dirname(parent)
+          if (next === parent) {
+            throw ancestorError
+          }
+          parent = next
+        }
+      }
       return { physical: null, bytes: null }
     }
     if (isAssistedCommitPathLayoutError(error)) {
@@ -575,10 +622,11 @@ async function readConfigurationFiles(
         return []
       }
       if (override !== undefined) {
-        if (
-          result.stdout !== `${override}\n` &&
-          result.stdout !== `${override}\r\n`
-        ) {
+        const native = result.stdout.replace(__WIN32__ ? /\r?\n$/ : /\n$/, '')
+        const sameSpelling = __WIN32__
+          ? native.replace(/\\/g, '/') === override.replace(/\\/g, '/')
+          : native === override
+        if (!sameSpelling) {
           throw new AssistedCommitFileVersionMismatchError(override)
         }
         return [rebaseNativePath(repository.path, override)]
