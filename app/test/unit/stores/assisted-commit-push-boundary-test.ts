@@ -609,8 +609,8 @@ describe('assisted native push boundary', () => {
     assert.ok(publicationLockReadFlags.length > 0)
     for (const flags of publicationLockReadFlags) {
       assert.strictEqual(
-        flags & FileSystemSync.constants.O_NONBLOCK,
-        FileSystemSync.constants.O_NONBLOCK
+        flags & (FileSystemSync.constants.O_NONBLOCK ?? 0),
+        FileSystemSync.constants.O_NONBLOCK ?? 0
       )
     }
     assert.strictEqual(await remote.tip(), outcome.result.head.sha)
@@ -705,12 +705,14 @@ describe('assisted native push boundary', () => {
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const previous = process.env.GIT_CONFIG_GLOBAL
       process.env.GIT_CONFIG_GLOBAL = globalConfiguration
+      let changed = false
       afterConfigurationRead = async () => {
         afterConfigurationRead = undefined
         await FileSystem.appendFile(
           globalConfiguration,
           `[include]\n\tpath = "${included.replace(/\\/g, '\\\\')}"\n`
         )
+        changed = true
       }
       capturePushes = true
       try {
@@ -718,7 +720,12 @@ describe('assisted native push boundary', () => {
           repository,
           h.request(repository)
         )
-        assert.ok(outcome.kind === 'push-error')
+        assert.strictEqual(
+          changed,
+          true,
+          'The configuration graph mutation must execute'
+        )
+        assert.ok(outcome.kind === 'push-error', JSON.stringify(outcome))
         assert.strictEqual(outcome.attempted, false)
         assert.strictEqual(await fixtures.count(source), 2)
         assert.strictEqual(await remote.tip(), remote.originalTip)
@@ -1777,7 +1784,10 @@ describe('assisted native push boundary', () => {
               cause =>
                 cause instanceof Error &&
                 'code' in cause &&
-                cause.code === failureCode
+                (cause.code === failureCode ||
+                  (__WIN32__ &&
+                    failureCode === 'ENOTDIR' &&
+                    cause.code === 'ENOENT'))
             )
         )
         assert.strictEqual(await fixtures.count(source), 2)
@@ -2178,7 +2188,9 @@ describe('assisted native push boundary', () => {
   })
 
   for (const variable of ['GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM'] as const) {
-    it(`preserves literal newline-bearing ${variable} paths during certification`, async t => {
+    it(`preserves literal ${
+      __WIN32__ ? 'space-and-apostrophe' : 'newline-bearing'
+    } ${variable} paths during certification`, async t => {
       reset()
       t.after(reset)
       const source = await fixtures.seed(t, { file: 'before\n' })
@@ -2189,7 +2201,9 @@ describe('assisted native push boundary', () => {
       h.dispatcher.setPushAfterAssistedCommit(repository, true)
       const target = join(
         await temporary.createTempDirectory(t),
-        'missing\nconfiguration'
+        __WIN32__
+          ? "missing configuration's literal path"
+          : 'missing\nconfiguration'
       )
       const failure = Object.assign(
         new Error('Literal configuration input EIO'),
@@ -3725,7 +3739,10 @@ describe('assisted native push boundary', () => {
     )
   })
 
-  for (const branch of ['master', 'feature/"quoted.branch']) {
+  for (const branch of [
+    'master',
+    __WIN32__ ? "feature/quoted'branch" : 'feature/"quoted.branch',
+  ]) {
     it(`round-trips literal tracking names through native stdin configuration for ${branch}`, async t => {
       reset()
       t.after(reset)
@@ -3734,7 +3751,7 @@ describe('assisted native push boundary', () => {
         await fixtures.rawGit(source, ['branch', '--move', branch])
       }
       const remote = await remotes.addBareRemote(t, source, {
-        name: 'o"rigin',
+        name: __WIN32__ ? "o'rigin" : 'o"rigin',
         publish: false,
       })
       const configPath = join(source.path, '.git', 'config')

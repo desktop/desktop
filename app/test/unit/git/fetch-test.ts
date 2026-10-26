@@ -20,97 +20,113 @@ function branchWithName(branches: ReadonlyArray<Branch>, name: string) {
 
 describe('git/fetch', () => {
   for (const recurseSubmodules of [true, false]) {
-    it(`preserves native submodule fetch behavior, recursion ${recurseSubmodules}`, async t => {
-      const child = await seed(t, { child: 'before\n' })
-      const parent = await seed(t, { file: 'Parent file\n' })
-      await rawGit(parent, [
-        '-c',
-        'protocol.file.allow=always',
-        'submodule',
-        'add',
-        '--',
-        child.path,
-        'module',
-      ])
-      await rawGit(parent, ['commit', '-m', 'Add clean submodule'])
-      const path = await createTempDirectory(t)
-      await rawGit(parent, ['clone', '--', parent.path, path])
-      const repository = new Repository(path, -1, null, false)
-      await rawGit(repository, [
-        '-c',
-        'protocol.file.allow=always',
-        'submodule',
-        'update',
-        '--init',
-      ])
-      const module = new Repository(Path.join(path, 'module'), -1, null, false)
-      await rawGit(module, [
-        'config',
-        '--local',
-        '--',
-        'protocol.file.allow',
-        'always',
-      ])
-      await rawGit(repository, [
-        'config',
-        '--local',
-        '--',
-        'fetch.recurseSubmodules',
-        'true',
-      ])
-      const childRef = await rawGit(child, ['symbolic-ref', 'HEAD'])
-      const tracking = `refs/remotes/origin/${childRef.slice(
-        'refs/heads/'.length
-      )}`
-      const original = await tip(child)
-      const parentRef = await rawGit(parent, ['symbolic-ref', 'HEAD'])
-      await rawGit(repository, [
-        'branch',
-        '--track',
-        '--',
-        'local-behind',
-        `refs/remotes/origin/${parentRef.slice('refs/heads/'.length)}`,
-      ])
-      await writeFile(Path.join(child.path, 'child'), 'Upstream child\n')
-      await rawGit(child, ['add', '--', 'child'])
-      await rawGit(child, ['commit', '-m', 'Advance submodule'])
-      const latest = await tip(child)
-      await rawGit(parent, [
-        'update-index',
-        '--cacheinfo',
-        `160000,${latest},module`,
-      ])
-      await rawGit(parent, ['commit', '-m', 'Advance submodule link'])
-      const remote = { name: 'origin', url: parent.path }
-      if (recurseSubmodules) {
-        await fetch(repository, remote)
-      } else {
-        await fetch(repository, remote, undefined, false, false)
-      }
-      const branches = await getBranchesDifferingFromUpstream(repository)
-      if (recurseSubmodules) {
-        await fastForwardBranches(repository, branches)
-      } else {
-        await fastForwardBranches(repository, branches, false)
-      }
-      assert.strictEqual(
-        await rawGit(module, ['rev-parse', '--verify', tracking]),
-        recurseSubmodules ? latest : original
-      )
-      assert.strictEqual(await tip(module), original)
-      assert.strictEqual(
-        await readFile(Path.join(module.path, 'child'), 'utf8'),
-        'before\n'
-      )
-      assert.strictEqual(
+    for (const autoCRLF of [false, true]) {
+      it(`preserves native submodule fetch behavior, recursion ${recurseSubmodules}, autocrlf ${autoCRLF}`, async t => {
+        const child = await seed(t, { child: 'before\n' })
+        const parent = await seed(t, { file: 'Parent file\n' })
+        await rawGit(parent, [
+          '-c',
+          `core.autocrlf=${autoCRLF}`,
+          '-c',
+          'protocol.file.allow=always',
+          'submodule',
+          'add',
+          '--',
+          child.path,
+          'module',
+        ])
+        await rawGit(parent, ['commit', '-m', 'Add clean submodule'])
+        const path = await createTempDirectory(t)
+        await rawGit(parent, ['clone', '--', parent.path, path])
+        const repository = new Repository(path, -1, null, false)
         await rawGit(repository, [
-          'rev-parse',
-          '--verify',
-          'refs/heads/local-behind',
-        ]),
-        await tip(parent)
-      )
-    })
+          '-c',
+          `core.autocrlf=${autoCRLF}`,
+          '-c',
+          'protocol.file.allow=always',
+          'submodule',
+          'update',
+          '--init',
+        ])
+        const module = new Repository(
+          Path.join(path, 'module'),
+          -1,
+          null,
+          false
+        )
+        const originalWorkingBytes = await readFile(
+          Path.join(module.path, 'child')
+        )
+        await rawGit(module, [
+          'config',
+          '--local',
+          '--',
+          'protocol.file.allow',
+          'always',
+        ])
+        await rawGit(repository, [
+          'config',
+          '--local',
+          '--',
+          'fetch.recurseSubmodules',
+          'true',
+        ])
+        const childRef = await rawGit(child, ['symbolic-ref', 'HEAD'])
+        const tracking = `refs/remotes/origin/${childRef.slice(
+          'refs/heads/'.length
+        )}`
+        const original = await tip(child)
+        const parentRef = await rawGit(parent, ['symbolic-ref', 'HEAD'])
+        await rawGit(repository, [
+          'branch',
+          '--track',
+          '--',
+          'local-behind',
+          `refs/remotes/origin/${parentRef.slice('refs/heads/'.length)}`,
+        ])
+        await writeFile(Path.join(child.path, 'child'), 'Upstream child\n')
+        await rawGit(child, ['add', '--', 'child'])
+        await rawGit(child, ['commit', '-m', 'Advance submodule'])
+        const latest = await tip(child)
+        await rawGit(parent, [
+          'update-index',
+          '--cacheinfo',
+          `160000,${latest},module`,
+        ])
+        await rawGit(parent, ['commit', '-m', 'Advance submodule link'])
+        const remote = { name: 'origin', url: parent.path }
+        if (recurseSubmodules) {
+          await fetch(repository, remote)
+        } else {
+          await fetch(repository, remote, undefined, false, false)
+        }
+        const branches = await getBranchesDifferingFromUpstream(repository)
+        if (recurseSubmodules) {
+          await fastForwardBranches(repository, branches)
+        } else {
+          await fastForwardBranches(repository, branches, false)
+        }
+        assert.strictEqual(
+          await rawGit(module, ['rev-parse', '--verify', tracking]),
+          recurseSubmodules ? latest : original
+        )
+        assert.strictEqual(await tip(module), original)
+        assert.strictEqual(
+          await readFile(Path.join(module.path, 'child')).then(bytes =>
+            bytes.equals(originalWorkingBytes)
+          ),
+          true
+        )
+        assert.strictEqual(
+          await rawGit(repository, [
+            'rev-parse',
+            '--verify',
+            'refs/heads/local-behind',
+          ]),
+          await tip(parent)
+        )
+      })
+    }
   }
 
   describe('fastForwardBranches', () => {
