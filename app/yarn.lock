@@ -711,10 +711,10 @@ dompurify@^3.4.17:
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
-dugite@^3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.3.1.tgz#0b8e4b9133485e610630b8fb444d8825a565fdfa"
-  integrity sha512-o7V48sOZGfxlzHlutgc2lKCBXfu5UTIOiep/NSVOiWVdF+02UC9QWAQnQ4V1+B9Bmw9IiA4i4aYQf8izic0E8w==
+dugite@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.3.2.tgz#11ef5893b77ce57a3cc87eab585694bffe67234b"
+  integrity sha512-deO3178Y8uQ0y4Es5eD31PST78nyWskfqLDi+Za5UBHYvdlMMwuFirwShgCuX+8aT3B1BZ6xlr4Bb8j0eq4Bag==
   dependencies:
     progress "^2.0.3"
     tar-stream "^3.1.7"
