@@ -15,6 +15,31 @@ import { createTempDirectory } from '../../helpers/temp'
 import { acquireAssistedCommitGitLease } from '../../../src/lib/git/repository-operation'
 
 describe('frozen assisted push destination inputs', () => {
+  it('round-trips Windows-shaped destination paths through native configuration serialization', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const target = join(await createTempDirectory(t), 'rewrite-config')
+    const value = "C:\\Users\\RUNNER~1\\Temp\\receiver's repository"
+    await rawGit(source, [
+      'config',
+      '--file',
+      target,
+      '--',
+      'url.replacement.insteadOf',
+      value,
+    ])
+    assert.strictEqual(
+      await rawGit(source, [
+        'config',
+        '--file',
+        target,
+        '--get',
+        '--',
+        'url.replacement.insteadOf',
+      ]),
+      value
+    )
+  })
+
   it('retains Dugite installation authority in entry and follow-up environment certificates', async () => {
     const before = captureAssistedCommitPushEnvironment({
       LOCAL_GIT_DIRECTORY: 'Original native installation',
@@ -236,9 +261,24 @@ describe('frozen assisted push destination inputs', () => {
         destination,
         { ref: remote.branchRef, sha: await tip(source) }
       )
-      await writeFile(
+      await rawGit(source, [
+        'config',
+        '--file',
         target,
-        `[url "replacement"]\n\tinsteadOf = ${remote.path}\n`
+        '--',
+        'url.replacement.insteadOf',
+        remote.path,
+      ])
+      assert.strictEqual(
+        await rawGit(source, [
+          'config',
+          '--file',
+          target,
+          '--get',
+          '--',
+          'url.replacement.insteadOf',
+        ]),
+        remote.path
       )
       assert.throws(enter, /changed/)
       assert.strictEqual(await remote.tip(), remote.originalTip)
@@ -263,9 +303,24 @@ describe('frozen assisted push destination inputs', () => {
         destination,
         { ref: remote.branchRef, sha: await tip(source) }
       )
-      await writeFile(
+      await rawGit(source, [
+        'config',
+        '--file',
         target,
-        `[url "replacement"]\n\tinsteadOf = ${remote.path}\n`
+        '--',
+        'url.replacement.insteadOf',
+        remote.path,
+      ])
+      assert.strictEqual(
+        await rawGit(source, [
+          'config',
+          '--file',
+          target,
+          '--get',
+          '--',
+          'url.replacement.insteadOf',
+        ]),
+        remote.path
       )
       assert.throws(enter, /changed/)
     })
