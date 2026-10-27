@@ -2215,6 +2215,100 @@ describe('CommitMessage', () => {
       )
     })
 
+    it('announces a successful manual commit after switching from a settled assisted error', async t => {
+      const state: AssistedCommitRunState = {
+        kind: 'error',
+        runId: 'stopped-run',
+        retry: null,
+        settling: false,
+        selectionNeedsReview: false,
+        error: new ErrorWithMetadata(new Error('Planning stopped'), {}),
+      }
+      const onCreateCommit = t.mock.fn(async () => true)
+      const harness = renderWithCommitModes({
+        commitMode: 'copilot',
+        assistedCommitState: state,
+        commitMessage: {
+          ...DefaultCommitMessage,
+          summary: 'Manual commit after planning stopped',
+        },
+        onCreateCommit,
+      })
+      harness.rerender({ commitMode: 'manual' })
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Commit 1 file to main',
+          exact: true,
+        })
+      )
+      await waitFor(() =>
+        assert.strictEqual(onCreateCommit.mock.callCount(), 1)
+      )
+      const commit = createCommit()
+      harness.rerender({
+        commitMode: 'manual',
+        assistedCommitState: state,
+        mostRecentLocalCommit: commit,
+      })
+      await waitFor(() => {
+        const live = harness.view.container.querySelector(
+          'span[aria-live="polite"][aria-atomic="true"]'
+        )
+        assert.ok(live)
+        assert.strictEqual(
+          live.textContent,
+          `Committed Just now - ${commit.summary} (Sha: ${commit.shortSha})`
+        )
+      })
+    })
+
+    for (const previous of [
+      { kind: 'analyzing', runId: 'run', cancelRequested: false },
+      {
+        kind: 'error',
+        runId: 'run',
+        retry: 'recovery',
+        settling: false,
+        selectionNeedsReview: false,
+        error: new ErrorWithMetadata(new Error('Rollback needed'), {}),
+      },
+      {
+        kind: 'error',
+        runId: 'run',
+        retry: 'refresh',
+        settling: false,
+        selectionNeedsReview: false,
+        error: new ErrorWithMetadata(new Error('Refresh needed'), {}),
+      },
+      {
+        kind: 'error',
+        runId: 'run',
+        retry: null,
+        settling: true,
+        selectionNeedsReview: false,
+        error: new ErrorWithMetadata(new Error('Still settling'), {}),
+      },
+    ] as const) {
+      it(`does not announce an earlier ${previous.kind}${
+        previous.kind === 'error' ? `/${previous.retry}` : ''
+      } commit as manual success`, async () => {
+        const harness = renderWithCommitModes({
+          commitMode: 'manual',
+          assistedCommitState: previous,
+        })
+        harness.rerender({
+          commitMode: 'manual',
+          assistedCommitState: { kind: 'idle' },
+          mostRecentLocalCommit: createCommit(),
+        })
+        const live = harness.view.container.querySelector(
+          'span[aria-live="polite"][aria-atomic="true"]'
+        )
+        assert.ok(live)
+        assert.ok(!live.textContent?.includes('Committed Just now'))
+      })
+    }
+
     it('never announces transient assisted commits as completed before acceptance', async () => {
       const commit = createCommit()
       const harness = renderWithCommitModes({
