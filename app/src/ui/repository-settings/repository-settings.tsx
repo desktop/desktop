@@ -348,13 +348,12 @@ export class RepositorySettings extends React.Component<
       ) {
         // If it's now configured to use the global config, just delete the local
         // user info in this repository.
+        shouldRefreshAuthor = true
         await this.props.dispatcher.updateRepositoryCommitter(
           this.props.repository,
           null,
           null
         )
-
-        shouldRefreshAuthor = true
       } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
         // Otherwise, update the local name and email if needed
         const name =
@@ -366,12 +365,12 @@ export class RepositorySettings extends React.Component<
             ? this.state.committerEmail
             : undefined
         if (name !== undefined || email !== undefined) {
+          shouldRefreshAuthor = true
           await this.props.dispatcher.updateRepositoryCommitter(
             this.props.repository,
             name,
             email
           )
-          shouldRefreshAuthor = true
         }
       }
     } catch (error) {
