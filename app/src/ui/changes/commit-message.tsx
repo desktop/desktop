@@ -513,7 +513,7 @@ export class CommitMessage extends React.Component<
     if (
       !this.isCopilotCommitMode &&
       (prevProps.assistedCommitState === undefined ||
-        prevProps.assistedCommitState.kind === 'idle') &&
+        !isAssistedCommitRepositoryLocked(prevProps.assistedCommitState)) &&
       prevProps.mostRecentLocalCommit?.sha !==
         this.props.mostRecentLocalCommit?.sha &&
       this.props.mostRecentLocalCommit !== null
