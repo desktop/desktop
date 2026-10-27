@@ -407,7 +407,8 @@ export class CopilotCommitPanel extends React.Component<
         <div className="caption">{this.renderCaption()}</div>
         <AriaLiveContainer
           message={
-            this.props.runState?.kind === 'error'
+            this.props.runState?.kind === 'error' ||
+            this.props.runState?.kind === 'push-error'
               ? null
               : this.props.runState !== undefined &&
                 this.props.runState.kind !== 'idle'
