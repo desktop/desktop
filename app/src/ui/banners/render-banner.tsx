@@ -19,6 +19,7 @@ import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
 import { OSVersionNoLongerSupportedBanner } from './os-version-no-longer-supported-banner'
+import { FetchAllRepositoriesBanner } from './fetch-all-repositories-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -171,6 +172,26 @@ export function renderBanner(
       )
     case BannerType.OSVersionNoLongerSupported:
       return <OSVersionNoLongerSupportedBanner onDismissed={onDismissed} />
+    case BannerType.FetchAllRepositories:
+      if (banner.successful) {
+        return (
+          <SuccessBanner
+            timeout={5000}
+            onDismissed={onDismissed}
+            key="fetch-all-repositories"
+          >
+            {banner.message}
+          </SuccessBanner>
+        )
+      }
+
+      return (
+        <FetchAllRepositoriesBanner
+          message={banner.message}
+          onDismissed={onDismissed}
+          key="fetch-all-repositories"
+        />
+      )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }

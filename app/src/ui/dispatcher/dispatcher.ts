@@ -775,6 +775,15 @@ export class Dispatcher {
     return this.appStore._fetch(repository, fetchType)
   }
 
+  /**
+   * Fetch every cloned, non-missing repository from its remote.
+   *
+   * One repository failing does not stop the others.
+   */
+  public fetchAllRepositories(): Promise<void> {
+    return this.appStore._fetchAllRepositories()
+  }
+
   /** Publish the repository to GitHub with the given properties. */
   public publishRepository(
     repository: Repository,

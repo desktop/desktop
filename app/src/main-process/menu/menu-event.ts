@@ -3,6 +3,7 @@ export type MenuEvent =
   | 'force-push'
   | 'pull'
   | 'fetch'
+  | 'fetch-all'
   | 'show-changes'
   | 'show-history'
   | 'add-local-repository'

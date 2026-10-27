@@ -212,6 +212,23 @@ describe('main-process menu', () => {
       askForConfirmationOnRepositoryRemoval: false,
     }
 
+    it('adds Fetch all repositories next to Fetch', () => {
+      const template = buildDefaultMenuTemplate(baseParams)
+      const repository = template.find(item => item.id === 'repository')
+      assert.ok(Array.isArray(repository?.submenu))
+
+      const fetchAll = repository.submenu.find(item => item.id === 'fetch-all')
+      assert.notEqual(fetchAll, undefined)
+      if (fetchAll === undefined) {
+        return
+      }
+      assert.equal(fetchAll.accelerator, 'CmdOrCtrl+Shift+Y')
+      assert.ok(
+        repository.submenu.findIndex(item => item.id === 'fetch') <
+          repository.submenu.indexOf(fetchAll)
+      )
+    })
+
     it('provides a gated Copilot handoff without replacing the editor command', () => {
       const template = buildDefaultMenuTemplate(baseParams)
       const repository = template.find(item => item.id === 'repository')

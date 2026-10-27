@@ -6,3 +6,11 @@ export enum FetchType {
   BackgroundTask,
   UserInitiatedTask,
 }
+
+/** Progress for a user-initiated fetch of every local repository. */
+export interface IFetchAllProgress {
+  /** Repositories whose fetch has settled, including failures. */
+  readonly completed: number
+  /** Repositories selected for this fetch. */
+  readonly total: number
+}

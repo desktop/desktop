@@ -120,6 +120,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'push',
   'pull',
   'fetch',
+  'fetch-all',
   'branch',
   'repository',
   'go-to-commit-message',
@@ -454,6 +455,14 @@ function getAppMenuBuilder(state: IAppState): MenuStateBuilder {
 
   menuStateBuilder.setEnabled('increase-active-resizable-width', enabled)
   menuStateBuilder.setEnabled('decrease-active-resizable-width', enabled)
+
+  const canFetchAll =
+    !state.showWelcomeFlow &&
+    state.fetchAllProgress === null &&
+    state.repositories.some(
+      repository => repository instanceof Repository && !repository.missing
+    )
+  menuStateBuilder.setEnabled('fetch-all', canFetchAll)
 
   return menuStateBuilder
 }

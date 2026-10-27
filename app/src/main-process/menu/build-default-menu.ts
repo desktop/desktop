@@ -337,6 +337,14 @@ export function buildDefaultMenuTemplate({
         click: emit('fetch'),
       },
       {
+        id: 'fetch-all',
+        label: __DARWIN__
+          ? 'Fetch All Repositories'
+          : 'Fetch &all repositories',
+        accelerator: 'CmdOrCtrl+Shift+Y',
+        click: emit('fetch-all'),
+      },
+      {
         label: removeRepoLabel,
         id: 'remove-repository',
         accelerator: 'CmdOrCtrl+Backspace',

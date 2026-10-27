@@ -49,6 +49,7 @@ import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
+import { IFetchAllProgress } from '../models/fetch'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
@@ -151,6 +152,12 @@ export interface IAppState {
   readonly allPopups: ReadonlyArray<Popup>
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
+
+  /**
+   * Set while "Fetch all repositories" is running. Null when idle.
+   * `completed` counts repositories that have settled, including failures.
+   */
+  readonly fetchAllProgress: IFetchAllProgress | null
 
   /**
    * The shape of the drag element rendered in the `app.renderDragElement`. It

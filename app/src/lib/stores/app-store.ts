@@ -68,7 +68,7 @@ import {
   ImageDiffType,
   ITextDiff,
 } from '../../models/diff'
-import { FetchType } from '../../models/fetch'
+import { FetchType, IFetchAllProgress } from '../../models/fetch'
 import {
   GitHubRepository,
   hasWritePermission,
@@ -251,6 +251,14 @@ import {
 } from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
+import {
+  describeFetchAllFailure,
+  FetchAllConcurrency,
+  formatFetchAllSummary,
+  IFetchAllRepositoryFailure,
+  isMissingRepositoryError,
+  mapWithConcurrency,
+} from '../fetch-all-repositories'
 import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
@@ -614,6 +622,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private focusCommitMessage = false
   private currentFoldout: Foldout | null = null
   private currentBanner: Banner | null = null
+
+  /** Set for the lifetime of a fetch-all operation. Guards against re-entry. */
+  private fetchAllInProgress = false
+  private fetchAllProgress: IFetchAllProgress | null = null
+  /**
+   * Repository ids whose fetch errors should be summarized instead of shown
+   * as error dialogs. Only fetch errors for these ids are captured.
+   */
+  private readonly fetchAllSuppressedRepositoryIds = new Set<number>()
+  private fetchAllCapturedErrors: IFetchAllRepositoryFailure[] = []
+
   private emitQueued = false
 
   private readonly localRepositoryStateLookup = new Map<
@@ -803,7 +822,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       shell,
       this.statsStore,
       (repo, store) => this.onGitStoreUpdated(repo, store),
-      error => this.emitError(error)
+      error => this.onGitStoreError(error)
     )
 
     window.addEventListener('resize', () => {
@@ -1280,6 +1299,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentPopup: this.popupManager.currentPopup,
       allPopups: this.popupManager.allPopups,
       currentFoldout: this.currentFoldout,
+      currentBanner: this.currentBanner,
+      fetchAllProgress: this.fetchAllProgress,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
       focusCommitMessage: this.focusCommitMessage,
@@ -1295,7 +1316,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
       isUpdateShowcaseVisible: this.isUpdateShowcaseVisible,
-      currentBanner: this.currentBanner,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
       useExternalCredentialHelper: this.useExternalCredentialHelper,
@@ -5234,7 +5254,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, async () => {
+    await this.withPushPullFetch(repository, async () => {
       const branch = this.getBranchToPush(repository, options)
 
       if (branch === undefined) {
@@ -5455,14 +5475,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /**
+   * @returns false when a fetch, push, or pull is already running for this
+   *          repository and `fn` was not invoked.
+   */
   private async withPushPullFetch(
     repository: Repository,
     fn: () => Promise<void>
-  ): Promise<void> {
+  ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     // Don't allow concurrent network operations.
     if (state.isPushPullFetchInProgress) {
-      return
+      return false
     }
 
     this.repositoryStateCache.update(repository, () => ({
@@ -5478,6 +5502,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }))
       this.emitUpdate()
     }
+
+    return true
   }
 
   public async _pull(repository: Repository): Promise<void> {
@@ -5488,7 +5514,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   private async performPull(repository: Repository): Promise<void> {
-    return this.withPushPullFetch(repository, async () => {
+    await this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
       const remote = gitStore.currentRemote
 
@@ -5924,8 +5950,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * if _any_ fetches or pulls are currently in-progress.
    */
   public _fetch(repository: Repository, fetchType: FetchType): Promise<void> {
-    return this.withRefreshedGitHubRepository(repository, repository => {
-      return this.performFetch(repository, fetchType)
+    return this.withRefreshedGitHubRepository(repository, async repository => {
+      await this.performFetch(repository, fetchType)
     })
   }
 
@@ -5940,8 +5966,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     remote: IRemote,
     fetchType: FetchType
   ): Promise<void> {
-    return this.withRefreshedGitHubRepository(repository, repository => {
-      return this.performFetch(repository, fetchType, [remote])
+    return this.withRefreshedGitHubRepository(repository, async repository => {
+      await this.performFetch(repository, fetchType, [remote])
     })
   }
 
@@ -5956,8 +5982,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fetchType: FetchType,
     remotes?: IRemote[]
-  ): Promise<void> {
-    await this.withPushPullFetch(repository, async () => {
+  ): Promise<boolean> {
+    return this.withPushPullFetch(repository, async () => {
       const gitStore = this.gitStoreCache.get(repository)
 
       try {
@@ -6016,6 +6042,220 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     })
+  }
+
+  /**
+   * Fetch every cloned repository that is still on disk.
+   *
+   * Uses the same per-repository fetch as Repository > Fetch (remotes, auth,
+   * fast-forward, and ahead/behind refresh). Repositories are fetched a few
+   * at a time. A failure in one repository is recorded and the rest continue.
+   * Fetch errors are summarized in a banner instead of one dialog per
+   * repository. The fetch itself is non-interactive so a missing credential
+   * does not pop an auth prompt for every repository.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _fetchAllRepositories(): Promise<void> {
+    if (this.fetchAllInProgress) {
+      return
+    }
+
+    const repositories = this.repositories.filter(
+      repository => !repository.missing
+    )
+    if (repositories.length === 0) {
+      return
+    }
+
+    this.fetchAllInProgress = true
+    this.fetchAllCapturedErrors = []
+    this.setFetchAllProgress({ completed: 0, total: repositories.length })
+    log.info(`Fetching all repositories (${repositories.length})`)
+
+    try {
+      await mapWithConcurrency(
+        repositories,
+        FetchAllConcurrency,
+        repository => this.fetchRepositoryForFetchAll(repository),
+        progress => this.setFetchAllProgress(progress)
+      )
+
+      const failures = this.fetchAllCapturedErrors
+      const message = formatFetchAllSummary(repositories.length, failures)
+      log.info(message)
+      for (const failure of failures) {
+        log.info(`Could not fetch ${failure.name}: ${failure.message}`)
+      }
+
+      this._setBanner({
+        type: BannerType.FetchAllRepositories,
+        message,
+        successful: failures.length === 0,
+      })
+    } finally {
+      this.fetchAllInProgress = false
+      this.fetchAllSuppressedRepositoryIds.clear()
+      this.fetchAllCapturedErrors = []
+      this.setFetchAllProgress(null)
+    }
+  }
+
+  /**
+   * Fetch one repository as part of fetch-all.
+   *
+   * Errors are recorded on `fetchAllCapturedErrors` and are not rethrown, so
+   * a single repository cannot abort the batch.
+   */
+  private async fetchRepositoryForFetchAll(
+    repository: Repository
+  ): Promise<void> {
+    if (!(await pathExists(repository.path))) {
+      await this._updateRepositoryMissing(repository, true)
+      this.recordFetchAllFailure(repository, 'Repository folder is missing')
+      return
+    }
+
+    await this.withRefreshedGitHubRepository(repository, async repository => {
+      this.fetchAllSuppressedRepositoryIds.add(repository.id)
+
+      try {
+        const gitStore = this.gitStoreCache.get(repository)
+        try {
+          await gitStore.loadRemotes()
+        } catch (error) {
+          this.recordFetchAllFailure(repository, describeFetchAllFailure(error))
+          if (isMissingRepositoryError(error)) {
+            await this._updateRepositoryMissing(repository, true)
+          }
+          return
+        }
+
+        const hasRemote =
+          gitStore.currentRemote !== null ||
+          gitStore.defaultRemote !== null ||
+          gitStore.upstreamRemote !== null
+
+        if (!hasRemote) {
+          this.recordFetchAllFailure(repository, 'No remote configured')
+          return
+        }
+
+        let ran = false
+        for (let attempt = 0; attempt < 2 && !ran; attempt++) {
+          if (
+            this.repositoryStateCache.get(repository).isPushPullFetchInProgress
+          ) {
+            await this.waitForPushPullFetch(repository)
+          }
+          // Background so credential prompts don't stack up across
+          // repositories. performFetch still fast-forwards and refreshes
+          // ahead/behind the same way a normal fetch does.
+          ran = await this.performFetch(repository, FetchType.BackgroundTask)
+        }
+
+        if (!ran && !this.hasFetchAllFailure(repository)) {
+          this.recordFetchAllFailure(
+            repository,
+            'A fetch is already in progress'
+          )
+        }
+
+        if (
+          this.fetchAllFailureMessage(repository) ===
+          'Repository folder is missing'
+        ) {
+          await this._updateRepositoryMissing(repository, true)
+        }
+      } catch (error) {
+        if (!this.hasFetchAllFailure(repository)) {
+          this.recordFetchAllFailure(repository, describeFetchAllFailure(error))
+        }
+        if (isMissingRepositoryError(error)) {
+          await this._updateRepositoryMissing(repository, true)
+        }
+      } finally {
+        this.fetchAllSuppressedRepositoryIds.delete(repository.id)
+      }
+    })
+  }
+
+  private async waitForPushPullFetch(repository: Repository): Promise<void> {
+    const timeoutAt = Date.now() + 2 * 60 * 1000
+    while (
+      this.repositoryStateCache.get(repository).isPushPullFetchInProgress
+    ) {
+      if (Date.now() > timeoutAt) {
+        return
+      }
+      await new Promise<void>(resolve => {
+        window.setTimeout(resolve, 200)
+      })
+    }
+  }
+
+  private setFetchAllProgress(progress: IFetchAllProgress | null) {
+    this.fetchAllProgress = progress
+    this.emitUpdate()
+  }
+
+  private hasFetchAllFailure(repository: Repository): boolean {
+    return this.fetchAllFailureMessage(repository) !== null
+  }
+
+  private fetchAllFailureMessage(repository: Repository): string | null {
+    return (
+      this.fetchAllCapturedErrors.find(failure => failure.id === repository.id)
+        ?.message ?? null
+    )
+  }
+
+  private recordFetchAllFailure(repository: Repository, message: string) {
+    if (
+      this.fetchAllCapturedErrors.some(failure => failure.id === repository.id)
+    ) {
+      return
+    }
+
+    this.fetchAllCapturedErrors.push({
+      id: repository.id,
+      name: nameOf(repository),
+      message,
+    })
+  }
+
+  /**
+   * Fetch errors raised while fetch-all is running for that repository are
+   * kept for the summary banner. Every other git error is shown as usual.
+   */
+  private onGitStoreError(error: Error) {
+    if (this.tryCaptureFetchAllError(error)) {
+      return
+    }
+
+    this.emitError(error)
+  }
+
+  private tryCaptureFetchAllError(error: Error): boolean {
+    if (!(error instanceof ErrorWithMetadata)) {
+      return false
+    }
+
+    if (error.metadata.retryAction?.type !== RetryActionType.Fetch) {
+      return false
+    }
+
+    const repository = error.metadata.repository
+    if (!(repository instanceof Repository)) {
+      return false
+    }
+
+    if (!this.fetchAllSuppressedRepositoryIds.has(repository.id)) {
+      return false
+    }
+
+    this.recordFetchAllFailure(repository, describeFetchAllFailure(error))
+    return true
   }
 
   public _endWelcomeFlow(): Promise<void> {

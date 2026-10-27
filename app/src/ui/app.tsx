@@ -57,7 +57,8 @@ import {
   WorktreeDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbol } from './octicons'
+import { iconForRepository, OcticonSymbol, syncClockwise } from './octicons'
+import { formatFetchAllProgress } from '../lib/fetch-all-repositories'
 import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
@@ -465,6 +466,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.pull()
       case 'fetch':
         return this.fetch()
+      case 'fetch-all':
+        return this.fetchAllRepositories()
       case 'show-changes':
         return this.showChanges(true)
       case 'show-history':
@@ -1042,6 +1045,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.fetch(state.repository, FetchType.UserInitiatedTask)
+  }
+
+  private fetchAllRepositories() {
+    this.props.dispatcher.fetchAllRepositories()
   }
 
   private showStashedChanges() {
@@ -3409,6 +3416,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
+        fetchAllProgress={this.state.fetchAllProgress}
       />
     )
   }
@@ -3532,7 +3540,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    const tooltip = repository && !isOpen ? repository.path : undefined
+    const fetchAllProgress = this.state.fetchAllProgress
+    const tooltip =
+      fetchAllProgress !== null
+        ? formatFetchAllProgress(fetchAllProgress)
+        : repository && !isOpen
+        ? repository.path
+        : undefined
 
     const foldoutWidth = clamp(this.state.sidebarWidth)
 
@@ -3552,9 +3566,16 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <ToolbarDropdown
-        icon={icon}
+        icon={fetchAllProgress !== null ? syncClockwise : icon}
+        iconClassName={fetchAllProgress !== null ? 'spin' : undefined}
         title={title}
-        description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        description={
+          fetchAllProgress !== null
+            ? formatFetchAllProgress(fetchAllProgress)
+            : __DARWIN__
+            ? 'Current Repository'
+            : 'Current repository'
+        }
         tooltip={tooltip}
         foldoutStyle={foldoutStyle}
         onContextMenu={this.onRepositoryToolbarButtonContextMenu}

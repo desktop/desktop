@@ -17,6 +17,7 @@ export enum BannerType {
   SuccessfulReorder = 'SuccessfulReorder',
   ConflictsFound = 'ConflictsFound',
   OSVersionNoLongerSupported = 'OSVersionNoLongerSupported',
+  FetchAllRepositories = 'FetchAllRepositories',
 }
 
 export type Banner =
@@ -122,3 +123,10 @@ export type Banner =
       readonly onOpenConflictsDialog: () => void
     }
   | { readonly type: BannerType.OSVersionNoLongerSupported }
+  | {
+      readonly type: BannerType.FetchAllRepositories
+      /** One-line summary of the fetch-all result. */
+      readonly message: string
+      /** True when every selected repository was fetched. */
+      readonly successful: boolean
+    }

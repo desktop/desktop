@@ -27,6 +27,10 @@ import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import { IFetchAllProgress } from '../../models/fetch'
+import { formatFetchAllProgress } from '../../lib/fetch-all-repositories'
+import { Loading } from '../lib/loading'
+import { syncClockwise } from '../octicons'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -75,6 +79,9 @@ interface IRepositoriesListProps {
   readonly filterText: string
 
   readonly dispatcher: Dispatcher
+
+  /** Set while every repository is being fetched. Null when idle. */
+  readonly fetchAllProgress: IFetchAllProgress | null
 }
 
 interface IRepositoriesListState {
@@ -339,6 +346,7 @@ export class RepositoriesList extends React.Component<
 
     return (
       <div className="repository-list">
+        {this.renderFetchAllRepositories()}
         <SectionFilterList<IRepositoryListItem, RepositoryListGroup>
           rowHeight={RowHeight}
           selectedItem={selectedItem}
@@ -366,6 +374,50 @@ export class RepositoriesList extends React.Component<
 
   private onSelectionChanged = (selectedItem: IRepositoryListItem | null) => {
     this.setState({ selectedItem })
+  }
+
+  private canFetchAllRepositories(): boolean {
+    return this.props.repositories.some(
+      repository => repository instanceof Repository && !repository.missing
+    )
+  }
+
+  private onFetchAllRepositories = () => {
+    if (this.props.fetchAllProgress !== null) {
+      return
+    }
+
+    this.props.dispatcher.fetchAllRepositories()
+  }
+
+  private renderFetchAllRepositories() {
+    const progress = this.props.fetchAllProgress
+    const canFetch = this.canFetchAllRepositories()
+    const busy = progress !== null
+    const label =
+      progress !== null
+        ? formatFetchAllProgress(progress)
+        : __DARWIN__
+        ? 'Fetch All Repositories'
+        : 'Fetch all repositories'
+
+    return (
+      <div className="fetch-all-repositories">
+        <Button
+          className="fetch-all-repositories-button"
+          disabled={!canFetch || busy}
+          onClick={this.onFetchAllRepositories}
+          tooltip={
+            busy
+              ? 'Fetching every repository from its remote'
+              : 'Fetch every repository from its remote'
+          }
+        >
+          {busy ? <Loading /> : <Octicon symbol={syncClockwise} />}
+          {label}
+        </Button>
+      </div>
+    )
   }
 
   private renderPostFilter = () => {
