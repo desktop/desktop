@@ -67,7 +67,7 @@ async function fixture(t: TestContext) {
   let matchesDirectory: ((value: unknown) => Promise<boolean>) | undefined
   let matchesConfiguration: ((value: unknown) => Promise<boolean>) | undefined
   t.after(async () => {
-    const run = h.appStore['assistedCommitRuns'].get(repository.id)
+    const run = h.assisted.state['runs'].get(repository.id)
     run?.lease?.release()
     run?.resourceProtection?.release()
     for (const directory of directories) {
@@ -116,7 +116,7 @@ async function fixture(t: TestContext) {
     }
   )
   const currentRun = () => {
-    const run = h.appStore['assistedCommitRuns'].get(repository.id)
+    const run = h.assisted.state['runs'].get(repository.id)
     assert.ok(run)
     return run
   }
@@ -242,7 +242,7 @@ describe('AppStore owned temporary cleanup retry', () => {
     assert.equal(run.lease, undefined)
     assert.equal(run.resourceProtection, undefined)
     assert.equal(
-      h.appStore['assistedCommitSelectionReaders'].has(h.repository.id),
+      h.assisted.state['selectionReaders'].has(h.repository.id),
       false
     )
     assert.equal(isRepositoryGitPaused(h.repository.path), false)
@@ -518,8 +518,8 @@ describe('AppStore owned temporary cleanup retry', () => {
     )
     let runTip: string | undefined
     let externalTip: string | undefined
-    const onProgress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, progress) => {
+    const onProgress = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, progress) => {
       onProgress(run, progress)
       if (progress.kind === 'committing' && progress.index === 1) {
         runTip = await tip(h.repository)

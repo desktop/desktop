@@ -1,4 +1,3 @@
-import { IRepositoryState, ChangesSelectionKind } from '../app-state'
 import {
   IAssistedCommitHead,
   IAssistedCommitSnapshot,
@@ -9,8 +8,8 @@ import {
   DiffSelectionType,
   DiffType,
   IDiff,
-  ITextDiff,
   ILargeTextDiff,
+  ITextDiff,
 } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import {
@@ -18,6 +17,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState } from '../../models/tip'
+import { ChangesSelectionKind, IRepositoryState } from '../app-state'
 import {
   assistedCommitInputIdentityMatches,
   getAssistedCommitInputVersions,

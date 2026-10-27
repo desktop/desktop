@@ -1,7 +1,7 @@
-import { ChangesSelectionKind } from '../app-state'
 import { DiffSelectionType, DiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
+import { ChangesSelectionKind } from '../app-state'
 import { getAssistedCommitInputVersions } from '../assisted-commit-request'
 import { arrayEquals } from '../equality'
 import { getWorkingDirectoryDiff } from '../git'
@@ -9,22 +9,27 @@ import {
   AssistedCommitError,
   readAssistedCommitHead,
 } from '../git/assisted-commit'
-import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { AssistedCommitSelection } from './selection'
+import { AssistedCommitState } from './state'
+import { IAssistedCommitRun } from './types'
 
 /** Result of verifying and installing the current display diff. */
 export type SelectionDisplayResult =
   | { readonly kind: 'updated' | 'unchanged' }
-  | { readonly kind: 'invalid'; readonly error: AssistedCommitError }
+  | {
+      readonly kind: 'invalid'
+      readonly error: AssistedCommitError
+      readonly run: IAssistedCommitRun | undefined
+    }
 
 /** Refresh display bounds without manufacturing or broadening selected-change authority. */
 export async function updateWorkingDirectorySelectionDiff(
   repository: Repository,
-  cache: RepositoryStateCache,
+  state: AssistedCommitState,
   selections: AssistedCommitSelection,
-  hideWhitespace: boolean,
-  engineOwnsSelection: boolean
+  hideWhitespace: boolean
 ): Promise<SelectionDisplayResult> {
+  const cache = state.cache
   const stateBeforeLoad = cache.get(repository)
   const changesStateBeforeLoad = stateBeforeLoad.changesState
 
@@ -97,6 +102,9 @@ export async function updateWorkingDirectorySelectionDiff(
   }
 
   const basis = selections.getRestored(currentlySelectedFile.selection)
+  const active = state.selectionOwner(repository)
+  const engineOwnsSelection =
+    active?.snapshotAuthorized === true && !active.finished
   const retainedBasis =
     selections.getBasis(currentlySelectedFile.selection) ??
     (currentlySelectedFile.selection.getSelectionType() ===
@@ -140,6 +148,7 @@ export async function updateWorkingDirectorySelectionDiff(
     ) {
       return {
         kind: 'invalid',
+        run: active,
         error: new AssistedCommitError(
           'selection-changed',
           'The original partial diff changed during display refresh. Review and reselect current changes.'
@@ -164,6 +173,7 @@ export async function updateWorkingDirectorySelectionDiff(
       ) {
         return {
           kind: 'invalid',
+          run: active,
           error: new AssistedCommitError(
             'selection-changed',
             'The selected diff changed during refresh. Review and reselect current changes.'
@@ -182,6 +192,7 @@ export async function updateWorkingDirectorySelectionDiff(
     ) {
       return {
         kind: 'invalid',
+        run: active,
         error: new AssistedCommitError(
           'selection-changed',
           'Selected files changed while their diff was being verified. Review and reselect current changes.'

@@ -73,9 +73,7 @@ function resolveHookPopups(
     handled.add(popup.id)
     const resolution = action(index)
     if (resolution === 'cancel') {
-      h.cancel(
-        h.appStore['assistedCommitRuns'].values().next().value!.repository
-      )
+      h.cancel(h.assisted.state['runs'].values().next().value!.repository)
     } else {
       popup.resolve(resolution)
     }

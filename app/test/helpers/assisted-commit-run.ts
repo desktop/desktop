@@ -101,7 +101,8 @@ export async function createAssistedCommitRunHarness(
   )
   appStore['accounts'] = [account]
   appStore['windowState'] = 'hidden'
-  appStore['assistedCommitDisclaimerLastSeen'] = Date.now()
+  const assisted = appStore['assistedCommits']
+  assisted.dialogs['lastConsent'] = Date.now()
   const dispatcher = new Dispatcher(
     appStore,
     stores.repositoryStateCache,
@@ -159,6 +160,7 @@ export async function createAssistedCommitRunHarness(
   }
   return {
     appStore,
+    assisted,
     dispatcher,
     planner,
     propose,

@@ -95,9 +95,9 @@ describe('assisted runs on upstream credential and worktree APIs', () => {
         splitResponse(analysis)
       )
       const originalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
-      const onProgress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
+      const onProgress = h.assisted.context['progress'].bind(h.assisted.context)
       let changed = false
-      h.appStore['onAssistedCommitProgress'] = async (run, progress) => {
+      h.assisted.context['progress'] = async (run, progress) => {
         onProgress(run, progress)
         if (progress.kind === 'committing' && progress.index === 1) {
           assert.equal(await count(repository), 2)

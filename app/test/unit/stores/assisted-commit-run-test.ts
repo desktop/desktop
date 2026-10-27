@@ -189,7 +189,7 @@ describe('AppStore assisted commit runs', () => {
     const repository = await h.register(source)
     await h.dispatcher.changeIncludeAllFiles(repository, false)
     h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const draft = {
       ...DefaultCommitMessage,
       summary: 'Manual draft',
@@ -384,10 +384,8 @@ describe('AppStore assisted commit runs', () => {
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
     const originalHead = await tip(repository)
-    const refresh = h.appStore['refreshAssistedCommitRepository'].bind(
-      h.appStore
-    )
-    h.appStore['refreshAssistedCommitRepository'] = async (...args) => {
+    const refresh = h.assisted.recovery['refresh'].bind(h.assisted.recovery)
+    h.assisted.recovery['refresh'] = async (...args) => {
       if (
         h.state(repository).changesState.assistedCommit.kind === 'finishing'
       ) {
@@ -413,7 +411,7 @@ describe('AppStore assisted commit runs', () => {
     await writeFile(join(source.path, 'file.txt'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const popupReady = awaitPopup(h, PopupType.AssistedCommitDisclaimer)
     t.after(() => popupReady.subscription.dispose())
     const operation = h.dispatcher.createCopilotAssistedCommits(
@@ -439,7 +437,7 @@ describe('AppStore assisted commit runs', () => {
       h.appStore['commitMessageGenerationDisclaimerLastSeen'],
       null
     )
-    assert.ok(h.appStore['assistedCommitDisclaimerLastSeen'] !== null)
+    assert.ok(h.assisted.dialogs['lastConsent'] !== null)
   })
 
   for (const action of [
@@ -454,7 +452,7 @@ describe('AppStore assisted commit runs', () => {
       await writeFile(join(source.path, 'two.txt'), 'TWO\n')
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.appStore['assistedCommitDisclaimerLastSeen'] = null
+      h.assisted.dialogs['lastConsent'] = null
       const originalIndex = await optionalBytes(await indexPath(repository))
       const popupReady = awaitPopup(h, PopupType.AssistedCommitDisclaimer)
       t.after(() => popupReady.subscription.dispose())
@@ -511,7 +509,7 @@ describe('AppStore assisted commit runs', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const popupReady = awaitPopup(h, PopupType.AssistedCommitDisclaimer)
     t.after(() => popupReady.subscription.dispose())
     const operation = h.dispatcher.createCopilotAssistedCommits(
@@ -538,8 +536,7 @@ describe('AppStore assisted commit runs', () => {
     await writeFile(join(source.path, 'file.txt'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] =
-      Date.now() - 29 * 24 * 60 * 60 * 1000
+    h.assisted.dialogs['lastConsent'] = Date.now() - 29 * 24 * 60 * 60 * 1000
     assert.strictEqual(
       (
         await h.dispatcher.createCopilotAssistedCommits(
@@ -551,8 +548,7 @@ describe('AppStore assisted commit runs', () => {
     )
     await writeFile(join(source.path, 'file.txt'), 'again\n')
     await h.appStore._loadStatus(repository)
-    h.appStore['assistedCommitDisclaimerLastSeen'] =
-      Date.now() - 31 * 24 * 60 * 60 * 1000
+    h.assisted.dialogs['lastConsent'] = Date.now() - 31 * 24 * 60 * 60 * 1000
     h.appStore['commitMessageGenerationDisclaimerLastSeen'] = Date.now()
     const popupReady = awaitPopup(h, PopupType.AssistedCommitDisclaimer)
     t.after(() => popupReady.subscription.dispose())
@@ -632,8 +628,8 @@ describe('AppStore assisted commit runs', () => {
     const repository = await h.register(source)
     h.propose.mock.restore()
     h.planner.send.mock.mockImplementation(async options => {
-      const analysis = h.appStore['assistedCommitRuns'].get(repository.id)
-        ?.snapshot?.analysis
+      const analysis = h.assisted.state['runs'].get(repository.id)?.snapshot
+        ?.analysis
       assert.ok(analysis)
       const addition = analysis.changes.find(
         change => change.path === 'replaced/child'
@@ -1014,7 +1010,7 @@ describe('AppStore assisted commit runs', () => {
                   ),
                 ]
         }
-        h.appStore['abortUnauthorizedAssistedCommitRuns']()
+        h.assisted.context['abortUnauthorized']()
         return wholeSelectionResponse(analysis)
       })
       const result = await h.dispatcher.createCopilotAssistedCommits(
@@ -1053,8 +1049,8 @@ describe('AppStore assisted commit runs', () => {
     ])
     let runTip: string | undefined
     let externalTip: string | undefined
-    const observer = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, progress) => {
+    const observer = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, progress) => {
       observer(run, progress)
       if (progress.kind === 'committing' && progress.index === 1) {
         runTip = await tip(repository)
@@ -1136,8 +1132,8 @@ describe('AppStore assisted commit runs', () => {
     const originalIndex = await optionalBytes(await indexPath(repository))
     assert.ok(originalIndex)
     let changedIndex: Buffer | undefined
-    const observer = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, progress) => {
+    const observer = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, progress) => {
       observer(run, progress)
       if (progress.kind === 'committing' && progress.index === 1) {
         changedIndex = Buffer.concat([
@@ -1376,7 +1372,7 @@ describe('AppStore assisted commit runs', () => {
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
     h.runtime.mock.mockImplementation(async () => false)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const result = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
