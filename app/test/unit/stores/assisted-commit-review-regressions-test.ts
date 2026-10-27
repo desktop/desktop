@@ -150,7 +150,7 @@ describe('assisted run hostile review regressions', () => {
   it('does not authorize an unverifiable initial partial basis', async t => {
     const { h, repository } = await partialSelectionFixture(t, 1)
     const request = h.request(repository)
-    h.appStore['workingDirectorySelectionDiffs'].delete(
+    h.appStore['assistedCommitSelection']['bases'].delete(
       request.files[0].selection
     )
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -268,7 +268,7 @@ describe('assisted run hostile review regressions', () => {
     const { h, repository } = await partialSelectionFixture(t)
     h.dispatcher.setCommitMode(repository, 'manual')
     const selected = h.request(repository).files[0]
-    h.appStore['workingDirectorySelectionDiffs'].delete(selected.selection)
+    h.appStore['assistedCommitSelection']['bases'].delete(selected.selection)
     await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
     h.dispatcher.setCommitMode(repository, 'copilot')
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -1308,10 +1308,13 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'b'), 'selected b\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const recoveryDiff = h.appStore['getAssistedCommitRecoveryDiff'].bind(
-      h.appStore
-    )
-    h.appStore['getAssistedCommitRecoveryDiff'] = async (repo, file) => {
+    const recoveryDiff = h.appStore['assistedCommitSelection'][
+      'getRecoveryDiff'
+    ].bind(h.appStore['assistedCommitSelection'])
+    h.appStore['assistedCommitSelection']['getRecoveryDiff'] = async (
+      repo,
+      file
+    ) => {
       const diff = await recoveryDiff(repo, file)
       if (file.path === 'a') {
         await writeFile(join(repository.path, 'b'), 'new unselected b\n')
@@ -2152,11 +2155,14 @@ describe('assisted run hostile review regressions', () => {
   it('fences uncaptured cancellation after awaited HEAD verification, not only before it', async t => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
     h.appStore['assistedCommitDisclaimerLastSeen'] = null
-    const verifyHead = h.appStore['assertAssistedCommitCapturedHead'].bind(
-      h.appStore
-    )
+    const verifyHead = h.appStore['assistedCommitSelection'][
+      'assertCapturedHead'
+    ].bind(h.appStore['assistedCommitSelection'])
     let changed = false
-    h.appStore['assertAssistedCommitCapturedHead'] = (run, head) => {
+    h.appStore['assistedCommitSelection']['assertCapturedHead'] = (
+      run,
+      head
+    ) => {
       verifyHead(run, head)
       if (!changed) {
         changed = true
@@ -2667,15 +2673,16 @@ describe('assisted run hostile review regressions', () => {
     const finishFence = deferred<void>()
     const readerEntered = deferred<void>()
     const finishReader = deferred<void>()
-    const verify = h.appStore['verifyAssistedCommitSelectionFence'].bind(
-      h.appStore
+    const verify = h.appStore['assistedCommitSelection']['verifyFence'].bind(
+      h.appStore['assistedCommitSelection']
     )
     let paused = false
-    h.appStore['verifyAssistedCommitSelectionFence'] = async run => {
+    h.appStore['assistedCommitSelection']['verifyFence'] = async run => {
+      const owner = h.appStore['assistedCommitRuns'].get(run.repository.id)
       if (
         !paused &&
-        run.lease === undefined &&
-        run.selectionReaders.size === 0
+        owner?.lease === undefined &&
+        owner?.selectionReaders.size === 0
       ) {
         paused = true
         fenceEntered.resolve()
@@ -2895,9 +2902,13 @@ describe('assisted run hostile review regressions', () => {
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error' && state.retry === 'refresh')
     h.appStore['restoreAssistedCommitSelection'] = restore
-    const getDiff = h.appStore['getAssistedCommitRecoveryDiff'].bind(h.appStore)
+    const getDiff = h.appStore['assistedCommitSelection'][
+      'getRecoveryDiff'
+    ].bind(h.appStore['assistedCommitSelection'])
     let injected = false
-    h.appStore['getAssistedCommitRecoveryDiff'] = async (...args) => {
+    h.appStore['assistedCommitSelection']['getRecoveryDiff'] = async (
+      ...args
+    ) => {
       const diff = await getDiff(...args)
       if (!injected) {
         injected = true
@@ -3208,7 +3219,7 @@ describe('assisted run hostile review regressions', () => {
     assert.strictEqual(await count(repository), 1)
     assert.strictEqual(h.commits.mock.callCount(), 0)
     assert.ok(
-      h.appStore['assistedCommitRestoredSelections'].has(selected.selection)
+      h.appStore['assistedCommitSelection']['restored'].has(selected.selection)
     )
   })
 
@@ -3294,12 +3305,12 @@ describe('assisted run hostile review regressions', () => {
       h.request(repository)
     )
     h.dispatcher.setCommitMode(repository, 'manual')
-    const certify = h.appStore['assertManualCommitSelectionAuthority'].bind(
-      h.appStore
+    const certify = h.appStore['assistedCommitSelection']['verifyManual'].bind(
+      h.appStore['assistedCommitSelection']
     )
     const changed = [...current]
     changed[25] = 'NEW unauthorized after certification\n'
-    h.appStore['assertManualCommitSelectionAuthority'] = async (...args) => {
+    h.appStore['assistedCommitSelection']['verifyManual'] = async (...args) => {
       const result = await certify(...args)
       await writeFile(join(repository.path, 'file'), changed.join(''))
       return result

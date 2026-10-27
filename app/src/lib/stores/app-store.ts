@@ -1,3 +1,8 @@
+import { updateWorkingDirectorySelectionDiff } from '../assisted-commit/selection-display'
+import {
+  AssistedCommitSelection,
+  assistedCommitHeadMatches,
+} from '../assisted-commit/selection'
 import * as Path from 'path'
 import { randomUUID } from 'crypto'
 import { writeFile } from 'fs/promises'
@@ -65,11 +70,8 @@ import {
 import {
   DiffSelection,
   DiffSelectionType,
-  DiffType,
-  IDiff,
   ImageDiffType,
   ITextDiff,
-  ILargeTextDiff,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
@@ -128,14 +130,12 @@ import {
   assistedCommitRequestsEqual,
   freezeAssistedCommitRequest,
   getAssistedCommitInputVersions,
-  assistedCommitInputIdentityMatches,
 } from '../assisted-commit-request'
 import {
   assistedCommitErrorCauses,
   getAssistedCommitCleanupToken,
   getAssistedCommitRecovery,
   isAssistedCommitCancellation,
-  reconcileAssistedCommitSelection,
 } from '../assisted-commit-run'
 import { planAssistedCommits } from '../assisted-commit-planning'
 import {
@@ -156,7 +156,6 @@ import {
   acceptVerifiedAssistedCommitTransaction,
   withAssistedCommitSnapshot,
   getAssistedCommitExecutionMetadata,
-  readAssistedCommitHead,
 } from '../git/assisted-commit'
 import {
   acquireAssistedCommitGitLease,
@@ -270,7 +269,6 @@ import {
   getCommitDiff,
   getMergeBase,
   getRemotes,
-  getWorkingDirectoryDiff,
   isCoAuthoredByTrailer,
   pull as pullRepo,
   push as pushRepo,
@@ -733,19 +731,6 @@ interface IAssistedCommitRun {
   cleanupToken?: IAssistedCommitCleanupToken
 }
 
-interface IRestoredAssistedCommitSelection {
-  readonly text: string | null
-  readonly head: IAssistedCommitHead
-  readonly version: string
-}
-
-interface IWorkingDirectorySelectionBasis {
-  readonly text: string | null
-  readonly sourceSelectionType:
-    | DiffSelectionType.All
-    | DiffSelectionType.Partial
-}
-
 interface IAssistedCommitSettlement {
   readonly done: Promise<void>
   readonly complete: () => void
@@ -920,6 +905,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitMessageGenerationDisclaimerLastSeen: number | null = null
   private commitMessageGenerationButtonClicked: boolean = false
   private assistedCommitDisclaimerLastSeen: number | null = null
+  private readonly assistedCommitSelection: AssistedCommitSelection
   private readonly assistedCommitRuns = new Map<number, IAssistedCommitRun>()
   private readonly assistedCommitIntents = new WeakMap<
     IAssistedCommitIntent,
@@ -937,14 +923,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     Repository
   >()
   private readonly assistedCommitHistoryReaders = new Set<number>()
-  private readonly assistedCommitRestoredSelections = new WeakMap<
-    DiffSelection,
-    IRestoredAssistedCommitSelection
-  >()
-  private readonly workingDirectorySelectionDiffs = new WeakMap<
-    DiffSelection,
-    IWorkingDirectorySelectionBasis
-  >()
   private readonly assistedCommitSelectionReaders = new Map<
     number,
     {
@@ -990,6 +968,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly copilotStore: CopilotStore
   ) {
     super()
+    this.assistedCommitSelection = new AssistedCommitSelection(
+      this.repositoryStateCache,
+      () => this.hideWhitespaceInChangesDiff
+    )
 
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
@@ -3370,7 +3352,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       run === undefined &&
       !state.changesState.workingDirectory.files.some(file =>
-        this.assistedCommitRestoredSelections.has(file.selection)
+        this.assistedCommitSelection.hasRestored(file.selection)
       )
     ) {
       return operation()
@@ -3486,7 +3468,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
         if (!run.finalized && run.selectionFence !== undefined) {
           await withRepositoryGitOperation(run.repository.path, 'read', () =>
-            this.verifyAssistedCommitSelectionFence(run)
+            this.assistedCommitSelection.verifyFence(run)
           )
         }
       } while (run.selectionReaders.size > 0)
@@ -3497,173 +3479,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await Promise.all([...run.selectionReaders])
       }
       run.selectionReadersClosed = true
-    }
-  }
-
-  private async verifyRestoredAssistedCommitSelections(
-    repository: Repository,
-    selectedFiles: ReadonlyArray<WorkingDirectoryFileChange> = this.repositoryStateCache.get(
-      repository
-    ).changesState.workingDirectory.files
-  ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
-    const certified = new Map<string, ITextDiff | ILargeTextDiff>()
-    const files = selectedFiles.filter(
-      file =>
-        file.selection.getSelectionType() !== DiffSelectionType.None &&
-        this.assistedCommitRestoredSelections.has(file.selection)
-    )
-    if (files.length === 0) {
-      return certified
-    }
-    for (const file of files) {
-      const authority = this.assistedCommitRestoredSelections.get(
-        file.selection
-      )
-      if (authority?.text === null) {
-        continue
-      }
-      const diff = await this.getAssistedCommitRecoveryDiff(repository, file)
-      if (
-        authority === undefined ||
-        diff === null ||
-        (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
-        diff.text !== authority.text
-      ) {
-        throw new AssistedCommitError(
-          'selection-changed',
-          'Restored selected changes no longer match their verified diff. Review and reselect current changes.'
-        )
-      }
-      if (file.selection.getSelectionType() === DiffSelectionType.Partial) {
-        certified.set(file.id, diff)
-      }
-    }
-    const head = await readAssistedCommitHead(repository)
-    const versions = await getAssistedCommitInputVersions(repository, files)
-    if (
-      files.some((file, index) => {
-        const authority = this.assistedCommitRestoredSelections.get(
-          file.selection
-        )
-        return (
-          authority === undefined ||
-          authority.head.ref !== head.ref ||
-          authority.head.sha !== head.sha ||
-          authority.version !== versions[index]
-        )
-      })
-    ) {
-      throw new AssistedCommitError(
-        'selection-changed',
-        'Restored selected files changed before refresh or commit admission. Review and reselect current changes.'
-      )
-    }
-    return certified
-  }
-
-  private async assertManualCommitSelectionAuthority(
-    repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
-    const restored = files.filter(file =>
-      this.assistedCommitRestoredSelections.has(file.selection)
-    )
-    if (restored.length === 0) {
-      return new Map()
-    }
-    const assertCurrentSelection = () => {
-      const changes =
-        this.repositoryStateCache.get(repository).changesState.workingDirectory
-      if (
-        restored.some(file => {
-          const current = changes.findFileWithID(file.id)
-          return (
-            current === null ||
-            !file.selection.equals(current.selection) ||
-            JSON.stringify(file.status) !== JSON.stringify(current.status)
-          )
-        })
-      ) {
-        throw new AssistedCommitError(
-          'selection-changed',
-          'Restored selected changes changed before manual commit admission. Review and reselect current changes.'
-        )
-      }
-    }
-    assertCurrentSelection()
-    const certified = await withRepositoryGitErrorPropagation(() =>
-      this.verifyRestoredAssistedCommitSelections(repository, restored)
-    )
-    assertCurrentSelection()
-    return certified
-  }
-
-  private async verifyRequestedAssistedCommitSelection(
-    repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): Promise<ReadonlyArray<string>> {
-    const protection = protectAssistedCommitResources(repository.path)
-    try {
-      return await withRepositoryGitOperation(repository.path, 'read', () =>
-        withRepositoryGitErrorPropagation(async () => {
-          const versions = await getAssistedCommitInputVersions(
-            repository,
-            files
-          )
-          await this.verifyRestoredAssistedCommitSelections(repository, files)
-          for (const file of files) {
-            const retained = this.workingDirectorySelectionDiffs.get(
-              file.selection
-            )
-            const type = file.selection.getSelectionType()
-            if (type !== DiffSelectionType.Partial && retained === undefined) {
-              continue
-            }
-            if (
-              type === DiffSelectionType.All &&
-              retained?.sourceSelectionType === DiffSelectionType.Partial
-            ) {
-              throw new AssistedCommitError(
-                'selection-changed',
-                'The original partial selection became whole-file selection during refresh. Review and reselect current changes.'
-              )
-            }
-            const basis =
-              retained?.text ??
-              this.assistedCommitRestoredSelections.get(file.selection)?.text
-            const diff = await this.getAssistedCommitRecoveryDiff(
-              repository,
-              file
-            )
-            if (
-              basis === undefined ||
-              basis === null ||
-              diff === null ||
-              (diff.kind !== DiffType.Text &&
-                diff.kind !== DiffType.LargeText) ||
-              diff.text !== basis
-            ) {
-              throw new AssistedCommitError(
-                'selection-changed',
-                'The selected partial diff no longer matches its original basis. Review and reselect current changes.'
-              )
-            }
-          }
-          const current = await getAssistedCommitInputVersions(
-            repository,
-            files
-          )
-          if (!arrayEquals(versions, current)) {
-            throw new AssistedCommitError(
-              'selection-changed',
-              'Selected files changed while their selection was being verified. Review and reselect current changes.'
-            )
-          }
-          return versions
-        })
-      )
-    } finally {
-      protection.release()
     }
   }
 
@@ -3696,7 +3511,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
     await getAssistedCommitProtectedPaths(repository.path)
     try {
-      await this.verifyRestoredAssistedCommitSelections(repository)
+      await this.assistedCommitSelection.verifyRestored(repository)
     } catch (error) {
       if (
         error instanceof AssistedCommitError &&
@@ -3716,7 +3531,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return status
       }
       try {
-        await this.verifyAssistedCommitSelectionFence(assistedRun)
+        await this.assistedCommitSelection.verifyFence(assistedRun)
       } catch (error) {
         this.invalidateAssistedCommitSelection(repository, assistedRun, error)
         return status
@@ -3742,7 +3557,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         !excludeNewFiles &&
         assistedRun?.snapshot === undefined &&
         !state.workingDirectory.files.some(file =>
-          this.assistedCommitRestoredSelections.has(file.selection)
+          this.assistedCommitSelection.hasRestored(file.selection)
         )
           ? status
           : {
@@ -3772,7 +3587,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.updateChangesWorkingDirectoryDiff(repository)
     if (assistedRun?.selectionFence !== undefined) {
       try {
-        await this.verifyAssistedCommitSelectionFence(assistedRun)
+        await this.assistedCommitSelection.verifyFence(assistedRun)
       } catch (error) {
         this.invalidateAssistedCommitSelection(repository, assistedRun, error)
       }
@@ -4222,253 +4037,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async updateChangesWorkingDirectoryDiffCore(
     repository: Repository
   ): Promise<void> {
-    const stateBeforeLoad = this.repositoryStateCache.get(repository)
-    const changesStateBeforeLoad = stateBeforeLoad.changesState
-
-    if (
-      changesStateBeforeLoad.selection.kind !==
-      ChangesSelectionKind.WorkingDirectory
-    ) {
-      return
-    }
-
-    const selectionBeforeLoad = changesStateBeforeLoad.selection
-    const selectedFileIDsBeforeLoad = selectionBeforeLoad.selectedFileIDs
-
-    // We only render diffs when a single file is selected.
-    if (selectedFileIDsBeforeLoad.length !== 1) {
-      if (selectionBeforeLoad.diff !== null) {
-        this.repositoryStateCache.updateChangesState(repository, () => ({
-          selection: {
-            ...selectionBeforeLoad,
-            diff: null,
-          },
-        }))
-        this.emitUpdate()
-      }
-      return
-    }
-
-    const selectedFileIdBeforeLoad = selectedFileIDsBeforeLoad[0]
-    const selectedFileBeforeLoad =
-      changesStateBeforeLoad.workingDirectory.findFileWithID(
-        selectedFileIdBeforeLoad
-      )
-
-    if (selectedFileBeforeLoad === null) {
-      return
-    }
-
-    const diff = await getWorkingDirectoryDiff(
+    const run = this.getAssistedCommitSelectionOwner(repository)
+    const result = await updateWorkingDirectorySelectionDiff(
       repository,
-      selectedFileBeforeLoad,
-      this.hideWhitespaceInChangesDiff
+      this.repositoryStateCache,
+      this.assistedCommitSelection,
+      this.hideWhitespaceInChangesDiff,
+      run?.snapshotAuthorized === true && !run.finished
     )
-
-    const stateAfterLoad = this.repositoryStateCache.get(repository)
-    const changesState = stateAfterLoad.changesState
-
-    // A different file (or files) could have been selected while we were
-    // loading the diff in which case we no longer care about the diff we
-    // just loaded.
-    if (
-      changesState.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-      !arrayEquals(
-        changesState.selection.selectedFileIDs,
-        selectedFileIDsBeforeLoad
-      )
-    ) {
-      return
+    if (result.kind === 'invalid') {
+      this.invalidateAssistedCommitSelection(repository, run, result.error)
+    } else if (result.kind === 'updated') {
+      this.emitUpdate()
     }
-
-    const selectedFileID = changesState.selection.selectedFileIDs[0]
-
-    if (selectedFileID !== selectedFileIdBeforeLoad) {
-      return
-    }
-
-    const currentlySelectedFile =
-      changesState.workingDirectory.findFileWithID(selectedFileID)
-    if (currentlySelectedFile === null) {
-      return
-    }
-
-    const basis = this.assistedCommitRestoredSelections.get(
-      currentlySelectedFile.selection
-    )
-    const active = this.getAssistedCommitSelectionOwner(repository)
-    const engineOwnsSelection =
-      active?.snapshotAuthorized === true && !active.finished
-    const retainedBasis =
-      this.workingDirectorySelectionDiffs.get(
-        currentlySelectedFile.selection
-      ) ??
-      (currentlySelectedFile.selection.getSelectionType() ===
-        DiffSelectionType.Partial && !engineOwnsSelection
-        ? {
-            text: basis?.text ?? null,
-            sourceSelectionType: DiffSelectionType.Partial,
-          }
-        : undefined)
-    if (
-      basis === undefined &&
-      retainedBasis !== undefined &&
-      changesState.commitMode === 'copilot' &&
-      changesState.assistedCommitAvailable
-    ) {
-      const canonical = await getWorkingDirectoryDiff(
-        repository,
-        currentlySelectedFile,
-        false,
-        { noTextconv: true }
-      )
-      const latest = this.repositoryStateCache.get(repository).changesState
-      if (
-        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-        !arrayEquals(
-          latest.selection.selectedFileIDs,
-          selectedFileIDsBeforeLoad
-        ) ||
-        latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
-          currentlySelectedFile.selection
-      ) {
-        return
-      }
-      if (
-        retainedBasis.text === null ||
-        (canonical.kind !== DiffType.Text &&
-          canonical.kind !== DiffType.LargeText) ||
-        (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
-        canonical.text !== retainedBasis.text ||
-        diff.text !== retainedBasis.text
-      ) {
-        this.invalidateAssistedCommitSelection(
-          repository,
-          active,
-          new AssistedCommitError(
-            'selection-changed',
-            'The original partial diff changed during display refresh. Review and reselect current changes.'
-          )
-        )
-        return
-      }
-    }
-    if (basis !== undefined) {
-      if (basis.text !== null) {
-        const canonical = await getWorkingDirectoryDiff(
-          repository,
-          currentlySelectedFile,
-          false,
-          { noTextconv: true }
-        )
-        if (
-          (canonical.kind !== DiffType.Text &&
-            canonical.kind !== DiffType.LargeText) ||
-          (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
-          canonical.text !== basis.text ||
-          diff.text !== basis.text
-        ) {
-          this.invalidateAssistedCommitSelection(
-            repository,
-            active,
-            new AssistedCommitError(
-              'selection-changed',
-              'The selected diff changed during refresh. Review and reselect current changes.'
-            )
-          )
-          return
-        }
-      }
-      const head = await readAssistedCommitHead(repository)
-      const versions = await getAssistedCommitInputVersions(repository, [
-        currentlySelectedFile,
-      ])
-      if (
-        head.ref !== basis.head.ref ||
-        head.sha !== basis.head.sha ||
-        versions[0] !== basis.version
-      ) {
-        this.invalidateAssistedCommitSelection(
-          repository,
-          active,
-          new AssistedCommitError(
-            'selection-changed',
-            'Selected files changed while their diff was being verified. Review and reselect current changes.'
-          )
-        )
-        return
-      }
-      const latest = this.repositoryStateCache.get(repository).changesState
-      if (
-        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-        !arrayEquals(
-          latest.selection.selectedFileIDs,
-          selectedFileIDsBeforeLoad
-        ) ||
-        latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
-          currentlySelectedFile.selection
-      ) {
-        return
-      }
-    }
-
-    const selectableLines = new Set<number>()
-    if (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText) {
-      // The diff might have changed dramatically since last we loaded it.
-      // Ideally we would be more clever about validating that any partial
-      // selection state is still valid by ensuring that selected lines still
-      // exist but for now we'll settle on just updating the selectable lines
-      // such that any previously selected line which now no longer exists or
-      // has been turned into a context line isn't still selected.
-      diff.hunks.forEach(h => {
-        h.lines.forEach((line, index) => {
-          if (line.isIncludeableLine()) {
-            selectableLines.add(h.unifiedDiffStart + index)
-          }
-        })
-      })
-    }
-
-    const newSelection =
-      currentlySelectedFile.selection.withSelectableLines(selectableLines)
-    if (basis !== undefined) {
-      this.assistedCommitRestoredSelections.set(newSelection, basis)
-    }
-    if (retainedBasis !== undefined) {
-      this.workingDirectorySelectionDiffs.set(newSelection, retainedBasis)
-    }
-    this.repositoryStateCache.updateChangesState(repository, latest => {
-      const unchanged = {
-        selection: latest.selection,
-        workingDirectory: latest.workingDirectory,
-      }
-      if (
-        latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-        !arrayEquals(
-          latest.selection.selectedFileIDs,
-          selectedFileIDsBeforeLoad
-        )
-      ) {
-        return unchanged
-      }
-      const currentFile = latest.workingDirectory.findFileWithID(selectedFileID)
-      if (
-        currentFile === null ||
-        currentFile.selection !== currentlySelectedFile.selection
-      ) {
-        return unchanged
-      }
-      const selectedFile = currentFile.withSelection(newSelection)
-      return {
-        selection: { ...latest.selection, diff },
-        workingDirectory: WorkingDirectoryStatus.fromFiles(
-          latest.workingDirectory.files.map(file =>
-            file.id === selectedFile.id ? selectedFile : file
-          )
-        ),
-      }
-    })
-    this.emitUpdate()
   }
 
   public _hideStashedChanges(repository: Repository) {
@@ -4673,7 +4254,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       undefined,
       () =>
-        this.verifyRequestedAssistedCommitSelection(repository, frozen.files)
+        this.assistedCommitSelection.verifyRequested(repository, frozen.files)
     )
     const intent = Object.freeze({ id: randomUUID() })
     this.assistedCommitIntents.set(intent, {
@@ -4790,7 +4371,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
         run,
         () =>
-          this.verifyRequestedAssistedCommitSelection(
+          this.assistedCommitSelection.verifyRequested(
             repository,
             run.request.files
           )
@@ -4819,7 +4400,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) {
         const accepted = await this.requestAssistedCommitConsent(run)
         if (!accepted && !run.controller.signal.aborted) {
-          await this.assertUncapturedAssistedCommitSelection(run)
+          await this.assistedCommitSelection.certifyUncaptured(run)
           run.declined = true
           throw new AssistedCommitError(
             'cancelled',
@@ -4851,7 +4432,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.assertFreshAssistedCommitInputs(run)
       await run.lease.run(
         () =>
-          this.verifyRequestedAssistedCommitSelection(
+          this.assistedCommitSelection.verifyRequested(
             repository,
             run.request.files
           ),
@@ -4870,17 +4451,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
           async snapshot => {
             run.snapshot = snapshot
             this.checkAssistedCommitRun(run)
-            this.assertAssistedCommitCapturedHead(run, snapshot.originalHead)
-            await this.verifyRequestedAssistedCommitSelection(
+            this.assistedCommitSelection.assertCapturedHead(
+              run,
+              snapshot.originalHead
+            )
+            await this.assistedCommitSelection.verifyRequested(
               repository,
               run.request.files
             )
             await this.assertFreshAssistedCommitInputs(run)
             run.snapshotAuthorized = true
-            this.retireAssistedCommitSelectionAuthority(
-              repository,
-              run.request.files
-            )
+            this.assistedCommitSelection.retire(repository, run.request.files)
             const checked =
               snapshot.analysis.changes.length === 0
                 ? await validateAssistedCommitPlan(
@@ -5072,11 +4653,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
           try {
             if (run.lease !== undefined) {
               await run.lease.run(
-                () => this.assertUncapturedAssistedCommitSelection(run),
+                () => this.assistedCommitSelection.certifyUncaptured(run),
                 true
               )
             } else {
-              await this.assertUncapturedAssistedCommitSelection(run)
+              await this.assistedCommitSelection.certifyUncaptured(run)
             }
           } catch (selectionError) {
             error = new AggregateError(
@@ -5196,7 +4777,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   await this._refreshRepository(
                     deferredRepository ?? repository
                   )
-                  await this.verifyAssistedCommitSelectionFence(run)
+                  await this.assistedCommitSelection.verifyFence(run)
                 })
               if (run.lease !== undefined) {
                 await run.lease.run(refresh, true)
@@ -5429,75 +5010,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     run.resourceProtection = protection
   }
 
-  private async assertUncapturedAssistedCommitSelection(
-    run: IAssistedCommitRun
-  ): Promise<void> {
-    const versions = await getAssistedCommitInputVersions(
-      run.repository,
-      run.request.files
-    )
-    if (
-      run.inputVersions !== undefined &&
-      !arrayEquals(versions, run.inputVersions)
-    ) {
-      throw new AssistedCommitError(
-        'selection-changed',
-        'Selected files changed while waiting. Retry refresh and reselect current changes.'
-      )
-    }
-    const head = await readAssistedCommitHead(run.repository)
-    this.assertAssistedCommitCapturedHead(run, head)
-    const bases = new Map<
-      DiffSelection,
-      { readonly index: number; readonly text: string | null }
-    >()
-    for (const [index, file] of run.request.files.entries()) {
-      if (file.selection.getSelectionType() === DiffSelectionType.Partial) {
-        const diff = await this.getAssistedCommitRecoveryDiff(
-          run.repository,
-          file
-        )
-        const originalText =
-          this.workingDirectorySelectionDiffs.get(file.selection)?.text ??
-          this.assistedCommitRestoredSelections.get(file.selection)?.text
-        if (
-          diff === null ||
-          (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
-          originalText === undefined ||
-          originalText !== diff.text
-        ) {
-          throw new AssistedCommitError(
-            'selection-changed',
-            'The original partial diff could not be verified. Review and reselect current changes.'
-          )
-        }
-        bases.set(file.selection, { index, text: diff.text })
-      } else {
-        bases.set(file.selection, { index, text: null })
-      }
-    }
-    const latestHead = await readAssistedCommitHead(run.repository)
-    this.assertAssistedCommitCapturedHead(run, latestHead)
-    const latestVersions = await getAssistedCommitInputVersions(
-      run.repository,
-      run.request.files
-    )
-    if (!arrayEquals(versions, latestVersions)) {
-      throw new AssistedCommitError(
-        'selection-changed',
-        'Selected files changed while checking cancellation. Retry refresh and reselect current changes.'
-      )
-    }
-    for (const [selection, basis] of bases) {
-      this.assistedCommitRestoredSelections.set(selection, {
-        text: basis.text,
-        head: latestHead,
-        version: latestVersions[basis.index],
-      })
-    }
-    run.selectionFence = { head: latestHead, versions: latestVersions }
-  }
-
   private isAssistedCommitDisclaimerFresh(): boolean {
     return (
       this.assistedCommitDisclaimerLastSeen !== null &&
@@ -5694,7 +5206,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       state.changesState.showCoAuthoredBy !==
         run.initialState.changesState.showCoAuthoredBy ||
       !tipEquals(state.branchesState.tip, run.initialState.branchesState.tip) ||
-      !this.assistedCommitHeadMatches(
+      !assistedCommitHeadMatches(
         run.initialState.branchesState.tip,
         state.branchesState.tip
       )
@@ -5728,58 +5240,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       throw new AssistedCommitError(
         'selection-changed',
         'Selected files changed while waiting. Review your selection and try again.'
-      )
-    }
-  }
-
-  private assistedCommitHeadMatches(
-    first: IRepositoryState['branchesState']['tip'],
-    second: IRepositoryState['branchesState']['tip']
-  ): boolean {
-    if (first.kind !== second.kind) {
-      return false
-    }
-    if (first.kind === TipState.Valid && second.kind === TipState.Valid) {
-      return (
-        first.branch.ref === second.branch.ref &&
-        first.branch.tip.sha === second.branch.tip.sha
-      )
-    }
-    if (first.kind === TipState.Unborn && second.kind === TipState.Unborn) {
-      return first.ref === second.ref
-    }
-    if (first.kind === TipState.Detached && second.kind === TipState.Detached) {
-      return first.currentSha === second.currentSha
-    }
-    return false
-  }
-
-  private assertAssistedCommitCapturedHead(
-    run: IAssistedCommitRun,
-    head: IAssistedCommitHead
-  ): void {
-    const tip = run.initialState.branchesState.tip
-    const expected =
-      tip.kind === TipState.Valid
-        ? { ref: tip.branch.ref, sha: tip.branch.tip.sha }
-        : tip.kind === TipState.Unborn
-        ? {
-            ref: tip.ref.startsWith('refs/heads/')
-              ? tip.ref
-              : `refs/heads/${tip.ref}`,
-            sha: null,
-          }
-        : tip.kind === TipState.Detached
-        ? { ref: null, sha: tip.currentSha }
-        : undefined
-    if (
-      expected === undefined ||
-      expected.ref !== head.ref ||
-      expected.sha !== head.sha
-    ) {
-      throw new AssistedCommitError(
-        'repository-changed',
-        'The intended branch or HEAD changed before capture. Review the repository and try again.'
       )
     }
   }
@@ -6055,224 +5515,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     error: unknown
   ): Promise<boolean> {
     await this.refreshAssistedCommitRepository(run.repository, false)
-    const current = this.repositoryStateCache.get(run.repository)
-    const tip = current.branchesState.tip
-    const snapshot = run.snapshotAuthorized === true ? run.snapshot : undefined
-    const currentHead =
-      run.recovery === undefined && run.result === undefined
-        ? await readAssistedCommitHead(run.repository)
-        : undefined
-    const sameHead =
-      snapshot === undefined
-        ? this.assistedCommitHeadMatches(
-            run.initialState.branchesState.tip,
-            tip
-          )
-        : currentHead !== undefined
-        ? currentHead.ref === snapshot.originalHead.ref &&
-          currentHead.sha === snapshot.originalHead.sha
-        : snapshot.originalHead.sha === null
-        ? tip.kind === TipState.Unborn
-        : getTipSha(tip) === snapshot.originalHead.sha
-    const versions = await getAssistedCommitInputVersions(
-      run.repository,
-      run.request.files
-    )
-    const original = new Map(
-      run.initialState.changesState.workingDirectory.files.map(file => [
-        file.id,
-        file,
-      ])
-    )
-    let needsReview = !sameHead
-    const files: WorkingDirectoryFileChange[] = []
-    const bases = new Map<
-      DiffSelection,
-      { readonly index: number; readonly text: string | null }
-    >()
-    for (const file of current.changesState.workingDirectory.files) {
-      const previous = original.get(file.id)
-      if (
-        previous === undefined ||
-        previous.selection.getSelectionType() === DiffSelectionType.None
-      ) {
-        files.push(file.withIncludeAll(false))
-      } else if (
-        sameHead &&
-        (previous.selection.getSelectionType() !== DiffSelectionType.Partial ||
-          snapshot === undefined) &&
-        run.request.files.some(
-          (selected, index) =>
-            selected.id === file.id &&
-            run.inputVersions?.[index] === versions[index]
-        )
-      ) {
-        const diff =
-          previous.selection.getSelectionType() === DiffSelectionType.Partial
-            ? await this.getAssistedCommitRecoveryDiff(run.repository, file)
-            : null
-        const text =
-          diff !== null &&
-          (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText)
-            ? diff.text
-            : null
-        if (
-          previous.selection.getSelectionType() === DiffSelectionType.Partial &&
-          (text === null ||
-            text !==
-              this.workingDirectorySelectionDiffs.get(previous.selection)?.text)
-        ) {
-          files.push(file.withIncludeAll(false))
-          needsReview = true
-          continue
-        }
-        bases.set(previous.selection, {
-          index: run.request.files.findIndex(
-            selected => selected.id === file.id
-          ),
-          text,
-        })
-        files.push(file.withSelection(previous.selection))
-      } else if (
-        sameHead &&
-        snapshot !== undefined &&
-        run.request.files.some(
-          (selected, index) =>
-            selected.id === file.id &&
-            assistedCommitInputIdentityMatches(
-              run.inputVersions?.[index],
-              versions[index]
-            )
-        )
-      ) {
-        const diff = await this.getAssistedCommitRecoveryDiff(
-          run.repository,
-          file
-        )
-        if (
-          diff !== null &&
-          (diff.kind === DiffType.Text || diff.kind === DiffType.LargeText)
-        ) {
-          const reconciled = reconcileAssistedCommitSelection(
-            snapshot,
-            file,
-            diff
-          )
-          bases.set(reconciled.selection, {
-            index: run.request.files.findIndex(
-              selected => selected.id === file.id
-            ),
-            text: diff.text,
-          })
-          files.push(file.withSelection(reconciled.selection))
-          needsReview ||= reconciled.needsReview
-        } else {
-          files.push(file.withIncludeAll(false))
-          needsReview = true
-        }
-      } else {
-        files.push(file.withIncludeAll(false))
-        needsReview = true
-      }
-    }
-    needsReview ||= run.request.files.some(
-      file => !files.some(current => current.id === file.id)
-    )
-    const latestHead = await readAssistedCommitHead(run.repository)
-    const expectedHead = currentHead ?? snapshot?.originalHead
-    if (
-      expectedHead !== undefined &&
-      (latestHead.ref !== expectedHead.ref ||
-        latestHead.sha !== expectedHead.sha)
-    ) {
-      throw new AssistedCommitError(
-        'repository-changed',
-        'HEAD changed while restoring selection. Retry refresh after repository changes stop.'
-      )
-    }
-    const latestVersions = await getAssistedCommitInputVersions(
-      run.repository,
-      run.request.files
-    )
-    if (!arrayEquals(versions, latestVersions)) {
-      throw new AssistedCommitError(
-        'selection-changed',
-        'Selected files changed while restoring selection. Retry refresh after editing stops.'
-      )
-    }
-    for (const [selection, basis] of bases) {
-      this.assistedCommitRestoredSelections.set(selection, {
-        text: basis.text,
-        head: latestHead,
-        version: latestVersions[basis.index],
-      })
-    }
-    run.selectionFence = { head: latestHead, versions: latestVersions }
-    const verified = new Map(files.map(file => [file.id, file]))
-    this.repositoryStateCache.updateChangesState(run.repository, changes => ({
-      workingDirectory: WorkingDirectoryStatus.fromFiles(
-        changes.workingDirectory.files.map(file => {
-          const checked = verified.get(file.id)
-          return checked !== undefined &&
-            JSON.stringify(checked.status) === JSON.stringify(file.status)
-            ? file.withSelection(checked.selection)
-            : file.withIncludeAll(false)
-        })
-      ),
-      selection:
-        changes.selection.kind === ChangesSelectionKind.WorkingDirectory
-          ? { ...changes.selection, diff: null }
-          : changes.selection,
-    }))
-    return needsReview
-  }
-
-  private async getAssistedCommitRecoveryDiff(
-    repository: Repository,
-    file: WorkingDirectoryFileChange
-  ): Promise<IDiff | null> {
-    const canonical = await getWorkingDirectoryDiff(repository, file, false, {
-      noTextconv: true,
-    })
-    const displayed = await getWorkingDirectoryDiff(
-      repository,
-      file,
-      this.hideWhitespaceInChangesDiff
-    )
-    if (
-      (canonical.kind === DiffType.Text ||
-        canonical.kind === DiffType.LargeText) &&
-      (displayed.kind === DiffType.Text ||
-        displayed.kind === DiffType.LargeText) &&
-      canonical.text === displayed.text
-    ) {
-      return canonical
-    }
-    return null
-  }
-
-  private async verifyAssistedCommitSelectionFence(
-    run: IAssistedCommitRun
-  ): Promise<void> {
-    const fence = run.selectionFence
-    if (fence === undefined) {
-      return
-    }
-    const head = await readAssistedCommitHead(run.repository)
-    const versions = await getAssistedCommitInputVersions(
-      run.repository,
-      run.request.files
-    )
-    if (
-      head.ref !== fence.head.ref ||
-      head.sha !== fence.head.sha ||
-      !arrayEquals(versions, fence.versions)
-    ) {
-      throw new AssistedCommitError(
-        'selection-changed',
-        'Repository or selected files changed during refresh. Retry refresh before committing.'
-      )
-    }
+    return this.assistedCommitSelection.restore(run)
   }
 
   /**
@@ -6341,20 +5584,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
         false,
         partialSelection
       )
-    }
-  }
-
-  private retireAssistedCommitSelectionAuthority(
-    repository: Repository,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
-  ): void {
-    const ids = new Set(files.map(file => file.id))
-    for (const file of this.repositoryStateCache.get(repository).changesState
-      .workingDirectory.files) {
-      if (ids.has(file.id)) {
-        this.assistedCommitRestoredSelections.delete(file.selection)
-        this.workingDirectorySelectionDiffs.delete(file.selection)
-      }
     }
   }
 
@@ -6460,10 +5689,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (run.recovery === undefined && run.result === undefined) {
           // No transaction changed history. Reconcile current content, not a stale cleanup fence.
           run.selectionFence = undefined
-          for (const file of this.repositoryStateCache.get(repository)
-            .changesState.workingDirectory.files) {
-            this.assistedCommitRestoredSelections.delete(file.selection)
-          }
+          this.assistedCommitSelection.clearRestored(repository)
         }
         return withRepositoryGitErrorPropagation(async () => {
           const restore = async () => {
@@ -6481,7 +5707,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             await this._refreshRepository(deferredRepository ?? repository)
           }
           if (!run.finalized) {
-            await this.verifyAssistedCommitSelectionFence(run)
+            await this.assistedCommitSelection.verifyFence(run)
           }
           return needsReview
         })
@@ -6613,7 +5839,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     this.assertNoAssistedCommitRun(repository)
     await this.withAssistedCommitSelectionReader(repository, undefined, () =>
-      this.verifyRestoredAssistedCommitSelections(repository)
+      this.assistedCommitSelection.verifyRestored(repository)
     )
     const state = this.repositoryStateCache.get(repository)
     const files = state.changesState.workingDirectory.files
@@ -6627,7 +5853,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const result = await gitStore.performFailableOperation(
         async () => {
           const certifiedPartialDiffs =
-            await this.assertManualCommitSelectionAuthority(
+            await this.assistedCommitSelection.verifyManual(
               repository,
               selectedFiles
             )
@@ -6653,7 +5879,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
 
       if (result !== undefined) {
-        this.retireAssistedCommitSelectionAuthority(repository, selectedFiles)
+        this.assistedCommitSelection.retire(repository, selectedFiles)
       }
       this.finishManualCommitSelectionConsumption(repository)
       if (result !== undefined) {
@@ -6844,29 +6070,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     diffSelection: DiffSelection
   ): Promise<void> {
     this.assertNoAssistedCommitRun(repository)
-    const state = this.repositoryStateCache.get(repository).changesState
-    const displayed = state.selection
-    const current = state.workingDirectory.findFileWithID(file.id)
-    const basis =
-      displayed.kind === ChangesSelectionKind.WorkingDirectory &&
-      displayed.selectedFileIDs.length === 1 &&
-      displayed.selectedFileIDs[0] === file.id &&
-      displayed.diff !== null &&
-      (displayed.diff.kind === DiffType.Text ||
-        displayed.diff.kind === DiffType.LargeText)
-        ? displayed.diff.text
-        : current === null
-        ? undefined
-        : this.workingDirectorySelectionDiffs.get(current.selection)?.text
-    const type = diffSelection.getSelectionType()
-    if (type !== DiffSelectionType.None) {
-      this.workingDirectorySelectionDiffs.set(diffSelection, {
-        text: basis ?? null,
-        sourceSelectionType: type,
-      })
-    } else {
-      this.workingDirectorySelectionDiffs.delete(diffSelection)
-    }
+    this.assistedCommitSelection.recordLineSelection(
+      repository,
+      file,
+      diffSelection
+    )
     this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
     return Promise.resolve()
   }
@@ -8531,7 +7739,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (
         files.some(file =>
-          this.assistedCommitRestoredSelections.has(file.selection)
+          this.assistedCommitSelection.hasRestored(file.selection)
         )
       ) {
         this.manualCommitSelectionSettlements.set(repository.id, {
