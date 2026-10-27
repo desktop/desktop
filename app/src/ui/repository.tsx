@@ -382,8 +382,8 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
-        isMultiCommitOperationInProgress={
-          mcos !== null ||
+        isMultiCommitOperationInProgress={mcos !== null}
+        isAssistedCommitRepositoryLocked={
           isRepositoryAffectedByAssistedCommit(repository.path) ||
           isAssistedCommitRepositoryLocked(
             this.props.state.changesState.assistedCommit
