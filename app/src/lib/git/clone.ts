@@ -6,12 +6,77 @@ import { getDefaultBranch } from '../helpers/default-branch'
 import { envForRemoteOperation } from './environment'
 import { homedir } from 'os'
 import * as Path from 'path'
+import { unescape as decodeFilePath } from 'querystring'
+import { Repository } from '../../models/repository'
+import { getRepositoryType } from './rev-parse'
+import { listWorktrees } from './worktree'
 import {
   canonicalMutationPath,
+  getAssistedCommitProtectedPaths,
+  withoutRepositoryGitAccess,
+  withRepositoryGitOperation,
   withRepositoryGitResourceMutation,
 } from './repository-operation'
 
 const unsupportedCloneProtocols: ReadonlyArray<string> = ['ext', 'ext.exe']
+
+function getLocalCloneSourcePath(url: string): string | null {
+  if (url.startsWith('file://')) {
+    const start = url.indexOf('/', 'file://'.length)
+    if (start === -1) {
+      return null
+    }
+    // Git ignores file URL authorities and decodes paths without stripping # or ?.
+    const path = decodeFilePath(url.slice(start))
+    return __WIN32__ && /^\/[a-z]:/i.test(path) ? path.slice(1) : path
+  }
+  const colon = url.indexOf(':')
+  const slash = url.indexOf('/')
+  if (
+    colon !== -1 &&
+    (slash === -1 || colon < slash) &&
+    !(__WIN32__ && /^[a-z]:/i.test(url))
+  ) {
+    return null
+  }
+  return Path.resolve(__dirname, url)
+}
+
+async function withLocalCloneSourceRead(
+  path: string,
+  operation: () => Promise<void>,
+  tryGitSuffix = true
+): Promise<void> {
+  return withRepositoryGitOperation(path, 'read', async () => {
+    const type = await getRepositoryType(path)
+    if (type.kind === 'missing' && tryGitSuffix) {
+      // Git also accepts a repository name with its trailing .git omitted.
+      return withLocalCloneSourceRead(`${path}.git`, operation, false)
+    }
+    if (type.kind !== 'regular' && type.kind !== 'bare') {
+      return operation()
+    }
+    const resources = await getAssistedCommitProtectedPaths(path)
+    const worktrees = await listWorktrees(new Repository(path, -1, null, false))
+    const paths = [
+      ...new Set(
+        await Promise.all(
+          [...resources, ...worktrees.map(worktree => worktree.path)].map(
+            canonicalMutationPath
+          )
+        )
+      ),
+    ]
+    // Peer worktrees publish into the same refs and object store that clone reads.
+    const read = (index: number): Promise<void> =>
+      index === paths.length
+        ? operation()
+        : withRepositoryGitOperation(paths[index], 'read', () =>
+            read(index + 1)
+          )
+    return read(0)
+  })
+}
 
 /**
  * Check whether a resolved clone path targets a sensitive location that
@@ -96,9 +161,13 @@ export async function clone(
   const operationPath = Path.resolve(__dirname, path)
   return withRepositoryGitResourceMutation([operationPath], async () => {
     const destination = await canonicalMutationPath(operationPath)
-    return withRepositoryGitResourceMutation([destination], () =>
-      cloneCore(url, path, options, progressCallback)
-    )
+    return withRepositoryGitResourceMutation([destination], () => {
+      const source = getLocalCloneSourcePath(url)
+      const operation = () => cloneCore(url, path, options, progressCallback)
+      return source === null
+        ? operation()
+        : withLocalCloneSourceRead(source, operation)
+    })
   })
 }
 
@@ -147,12 +216,16 @@ async function cloneCore(
           progress.kind === 'progress' ? progress.details.text : progress.text
         const value = progress.percent
 
-        progressCallback({ kind, title, description, value })
+        withoutRepositoryGitAccess(() =>
+          progressCallback({ kind, title, description, value })
+        )
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0 })
+    withoutRepositoryGitAccess(() =>
+      progressCallback({ kind, title, value: 0 })
+    )
   }
 
   if (options.branch) {

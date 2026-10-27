@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
 import { existsSync } from 'fs'
@@ -11,11 +11,19 @@ import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { isGitError } from '../../../src/lib/git/core'
-import { realpath } from 'fs/promises'
+import { realpath, symlink, writeFile } from 'fs/promises'
 import {
   acquireAssistedCommitGitLease,
+  getAssistedCommitProtectedPaths,
+  hasRepositoryGitOperationAccess,
+  IAssistedCommitGitLease,
   protectAssistedCommitResources,
+  withoutRepositoryGitAccess,
 } from '../../../src/lib/git/repository-operation'
+import { rollbackAssistedCommitTransaction } from '../../../src/lib/git/assisted-commit'
+import { Repository } from '../../../src/models/repository'
+import { rawGit, request, single, tip } from '../../helpers/assisted-commit'
+import { deferred } from '../../helpers/copilot-assisted-commit'
 
 async function createEmptyBareRepository(
   t: import('node:test').TestContext
@@ -245,6 +253,207 @@ describe('git/clone', () => {
     await clone(source.path, destination, {})
     assert.strictEqual(existsSync(path.join(destination, 'README.md')), true)
     assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+  })
+
+  describe('local source coordination', () => {
+    async function sourceFixture(t: TestContext, sharedPeer = false) {
+      const source = await setupEmptyRepository(t)
+      await makeCommit(source, {
+        entries: [{ path: 'file.txt', contents: 'before\n' }],
+      })
+      const original = await tip(source)
+      const parent = await createTempDirectory(t)
+      const destination = path.join(parent, 'clone')
+      let active = source
+      if (sharedPeer) {
+        const peer = path.join(parent, 'active-peer')
+        await rawGit(source, [
+          'worktree',
+          'add',
+          '-b',
+          'active-peer',
+          '--',
+          peer,
+        ])
+        active = new Repository(peer, -1, null, false)
+      }
+      return { source, active, original, parent, destination }
+    }
+
+    for (const kind of [
+      'path',
+      'relative-path',
+      'symlink-path',
+      'git-directory',
+      'git-suffix',
+      'colon-path',
+      'file-url',
+      'file-url-authority',
+      'file-url-literal',
+      'shared-peer-path',
+      'shared-peer-file-url',
+    ] as const) {
+      it(`waits for local source recovery rather than copying transient commits (${kind})`, async t => {
+        const sharedPeer = kind.startsWith('shared-peer')
+        const { source, active, original, parent, destination } =
+          await sourceFixture(t, sharedPeer)
+        let url = source.path
+        if (
+          kind === 'symlink-path' ||
+          kind.startsWith('file-url') ||
+          kind === 'colon-path'
+        ) {
+          const alias = path.join(
+            parent,
+            kind === 'colon-path' && !__WIN32__
+              ? 'source:local'
+              : 'source space#percent%'
+          )
+          await symlink(source.path, alias, __WIN32__ ? 'junction' : 'dir')
+          url = alias
+        }
+        if (kind === 'relative-path') {
+          url = path.relative(
+            path.resolve(__dirname, '../../../src/lib/git'),
+            source.path
+          )
+        } else if (kind === 'git-directory') {
+          url = path.join(source.path, '.git')
+        } else if (kind === 'git-suffix') {
+          url = path.join(parent, 'source-with-suffix')
+          await symlink(
+            source.path,
+            `${url}.git`,
+            __WIN32__ ? 'junction' : 'dir'
+          )
+        } else if (kind.includes('file-url')) {
+          url = pathToFileURL(url).href
+          if (kind === 'file-url-authority') {
+            url = url.replace('file:///', 'file://clone-local/')
+          } else if (kind === 'file-url-literal') {
+            url = url
+              .replaceAll('%20', ' ')
+              .replaceAll('%23', '#')
+              .replaceAll('%25', '%')
+          }
+        }
+        await writeFile(
+          path.join(active.path, 'file.txt'),
+          'transient selected content\n'
+        )
+        const lease = await acquireAssistedCommitGitLease(
+          active.path,
+          await getAssistedCommitProtectedPaths(active.path)
+        )
+        t.after(() => lease.release())
+        const result = await lease.run(async () =>
+          single(active, await request(active))
+        )
+        assert.notStrictEqual(await tip(active), original)
+        const entered = deferred<void>()
+        const cloning = clone(url, destination, {}, () => entered.resolve())
+        let timeout: ReturnType<typeof setTimeout> | undefined
+        const beganBeforeRecovery = await Promise.race([
+          entered.promise.then(() => true),
+          new Promise<false>(resolve => {
+            timeout = setTimeout(() => resolve(false), 200)
+          }),
+        ])
+        if (timeout !== undefined) {
+          clearTimeout(timeout)
+        }
+        try {
+          await lease.run(() => rollbackAssistedCommitTransaction(result))
+        } finally {
+          lease.release()
+          await cloning
+        }
+        assert.strictEqual(
+          beganBeforeRecovery,
+          false,
+          'Clone must not begin reading an active assisted source'
+        )
+        assert.strictEqual(await tip(active), original)
+        const cloned = new Repository(destination, -1, null, false)
+        assert.strictEqual(await tip(cloned), original)
+        if (sharedPeer) {
+          assert.strictEqual(
+            await rawGit(cloned, [
+              'rev-parse',
+              'refs/remotes/origin/active-peer',
+            ]),
+            original
+          )
+        }
+      })
+    }
+
+    for (const sharedPeer of [false, true]) {
+      it(`retains its source read through native clone completion (shared peer=${sharedPeer})`, async t => {
+        const { source, active, destination } = await sourceFixture(
+          t,
+          sharedPeer
+        )
+        const protectedPaths = await getAssistedCommitProtectedPaths(
+          active.path
+        )
+        let acquiring: Promise<IAssistedCommitGitLease> | undefined
+        let acquired = false
+        const observations: boolean[] = []
+        await clone(pathToFileURL(source.path).href, destination, {}, () => {
+          if (acquiring === undefined) {
+            acquiring = withoutRepositoryGitAccess(() =>
+              acquireAssistedCommitGitLease(active.path, protectedPaths)
+            ).then(lease => {
+              acquired = true
+              return lease
+            })
+          }
+          observations.push(acquired)
+        })
+        assert.ok(acquiring)
+        const lease = await acquiring
+        lease.release()
+        assert.ok(
+          observations.length > 1,
+          'Real file transport must report native progress'
+        )
+        assert.ok(
+          observations.every(value => value === false),
+          'A later lease must drain the complete clone, not just source metadata probes'
+        )
+        assert.strictEqual(existsSync(path.join(destination, 'file.txt')), true)
+      })
+    }
+
+    it('does not lend the source read to progress observers', async t => {
+      const { source, destination } = await sourceFixture(t)
+      const access: boolean[] = []
+      await clone(source.path, destination, {}, () => {
+        access.push(hasRepositoryGitOperationAccess(source.path))
+      })
+      assert.ok(access.length > 0)
+      assert.ok(access.every(value => value === false))
+    })
+
+    it('keeps the destination reserved while waiting for an active source', async t => {
+      const { source, destination } = await sourceFixture(t)
+      const lease = await acquireAssistedCommitGitLease(source.path)
+      t.after(() => lease.release())
+      const cloning = clone(source.path, destination, {})
+      try {
+        await new Promise(resolve => setTimeout(resolve, 200))
+        assert.strictEqual(existsSync(destination), false)
+        await assert.rejects(
+          acquireAssistedCommitGitLease(destination),
+          /being removed/
+        )
+      } finally {
+        lease.release()
+        await cloning
+      }
+      assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+    })
   })
 
   it('clones with a specific branch', async t => {
