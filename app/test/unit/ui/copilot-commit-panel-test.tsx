@@ -7,6 +7,49 @@ import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 describe('Copilot commit run panel', () => {
+  for (const settling of [false, true]) {
+    it(`announces push errors only through their alert while settling=${settling}`, async () => {
+      const view = render(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={true}
+          runState={{
+            kind: 'pushing',
+            runId: 'run',
+            phase: 'push',
+            progress: null,
+          }}
+        />
+      )
+      const live = view.container.querySelector('[aria-live="polite"]')
+      assert.ok(live)
+      assert.match(live.textContent ?? '', /Pushing commits/)
+      view.rerender(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={false}
+          runState={{
+            kind: 'push-error',
+            runId: 'run',
+            attempted: true,
+            settling,
+            error: new ErrorWithMetadata(new Error('Actual push error'), {}),
+          }}
+          onRetryPush={() => {}}
+          onDismissError={() => {}}
+          onErrorDetails={() => {}}
+        />
+      )
+      assert.strictEqual(screen.getAllByRole('alert').length, 1)
+      assert.match(
+        screen.getByRole('alert').textContent ?? '',
+        /Actual push error/
+      )
+      assert.strictEqual(live.textContent, '')
+      assert.ok(screen.getByRole('button', { name: 'Retry push' }))
+    })
+  }
+
   it('announces real push progress and removes rollback Cancel at native push entry', async () => {
     const view = render(
       <CopilotCommitPanel
