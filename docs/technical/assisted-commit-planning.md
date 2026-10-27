@@ -2,7 +2,7 @@
 
 The assisted commit planner consumes frozen selected-only analysis, proposes
 commit groups and messages, and validates the complete plan before execution.
-The [AppStore run integration](assisted-commit-runs.md) owns the application
+The [assisted commit feature owners](assisted-commit-runs.md) own the application
 workflow, consent and optional push; the
 [transaction engine](assisted-commit-transactions.md) owns Git execution and
 recovery. Ordinary message generation uses a separate prompt and request path.
@@ -185,7 +185,8 @@ documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
 exposes that option. No replacement remote/export policy is emulated.
 
 Callers share the commit-message feature's account selection, organization
-entitlement gate and model preference; AppStore owns assisted consent.
+entitlement gate and model preference; the feature's dialog owner manages
+assisted consent.
 Model selection uses the same picker and persisted preference.
 Explicit built-in model IDs are retained when metadata is unavailable; planning
 borrows already cached metadata and never starts an unowned shared-cache fetch.
@@ -290,7 +291,8 @@ Allow-empty must bypass **all model analysis** with an explicit caller title.
 Non-empty planner invocation rejects empty analysis even if an integration
 accidentally calls it. The [transaction engine](assisted-commit-transactions.md)
 owns commit progress, hook callbacks and selected-content checks.
-[AppStore](assisted-commit-runs.md) coordinates their UI controls, visible errors,
-cancellation, result acceptance/rollback and optional push/retry.
+The [assisted commit feature owners](assisted-commit-runs.md) coordinate their UI
+controls, visible errors, cancellation, result acceptance/rollback and optional
+push/retry through the coordinator and its execution, recovery and push modules.
 Do not turn a checked plan into a JSON capability or execute it outside the
 active snapshot scope.

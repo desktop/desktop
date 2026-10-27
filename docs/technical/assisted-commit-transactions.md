@@ -2,7 +2,7 @@
 
 The transaction engine captures selected content, validates plans, executes
 local commits and recovers owned history, index and temporary resources.
-The [AppStore run integration](assisted-commit-runs.md) owns the Changes action,
+The [assisted commit feature owners](assisted-commit-runs.md) coordinate the Changes action,
 consent, Git reader coordination, cancellation, local acceptance and optional
 push. Manual commits use a separate execution path.
 The separate [assisted commit planner](assisted-commit-planning.md) proposes
@@ -76,7 +76,7 @@ if (options.signal?.aborted) {
 }
 ```
 
-For an opted-in push, AppStore instead calls
+For an opted-in push, the feature's `push.ts` owner instead calls
 `prepareAssistedCommitTransactionForPush` from the native push spawn preparation.
 It verifies the retained result and destination under real HEAD/ref/index fences,
 awaits owned fence cleanup, then returns a one-shot synchronous acceptance check.
