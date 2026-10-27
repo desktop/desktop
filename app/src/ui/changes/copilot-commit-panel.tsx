@@ -363,8 +363,10 @@ export class CopilotCommitPanel extends React.Component<
         <div className="caption">{this.renderCaption()}</div>
         <AriaLiveContainer
           message={
-            this.props.runState !== undefined &&
-            this.props.runState.kind !== 'idle'
+            this.props.runState?.kind === 'error'
+              ? null
+              : this.props.runState !== undefined &&
+                this.props.runState.kind !== 'idle'
               ? getRunStatus(this.props.runState)
               : this.props.isWorking
               ? 'Copilot is splitting your changes into commits'

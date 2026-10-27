@@ -169,6 +169,76 @@ describe('Copilot commit run panel', () => {
   })
 
   for (const retry of [null, 'recovery', 'refresh'] as const) {
+    for (const settling of [false, true]) {
+      it(`announces error/${retry} only through its alert while settling=${settling}`, async () => {
+        const view = render(
+          <CopilotCommitPanel
+            filesSelectedCount={1}
+            isWorking={true}
+            runState={{
+              kind: 'analyzing',
+              runId: 'run',
+              cancelRequested: false,
+            }}
+          />
+        )
+        const live = view.container.querySelector('[aria-live="polite"]')
+        assert.ok(live)
+        assert.match(live.textContent ?? '', /Planning selected changes/)
+        view.rerender(
+          <CopilotCommitPanel
+            filesSelectedCount={1}
+            isWorking={settling}
+            runState={{
+              kind: 'error',
+              runId: 'run',
+              retry,
+              settling,
+              selectionNeedsReview: true,
+              error: new ErrorWithMetadata(
+                new Error('Current failure details'),
+                {}
+              ),
+            }}
+            onRetryRecovery={() => {}}
+            onDismissError={() => {}}
+          />
+        )
+        assert.strictEqual(screen.getAllByRole('alert').length, 1)
+        assert.match(
+          screen.getByRole('alert').textContent ?? '',
+          /Current failure details/
+        )
+        assert.strictEqual(live.textContent, '')
+      })
+    }
+  }
+
+  it('keeps cancellation, rollback, refresh and finalization progress in the polite live region', async () => {
+    for (const state of [
+      { kind: 'analyzing', runId: 'run', cancelRequested: true },
+      { kind: 'rolling-back', runId: 'run' },
+      { kind: 'refreshing', runId: 'run' },
+      { kind: 'closing', runId: 'run' },
+    ] as const) {
+      const view = render(
+        <CopilotCommitPanel
+          filesSelectedCount={1}
+          isWorking={true}
+          runState={state}
+        />
+      )
+      const title = view.container.querySelector('.caption .title')
+      const live = view.container.querySelector('[aria-live="polite"]')
+      assert.ok(title && live)
+      assert.notStrictEqual(live.textContent, '')
+      assert.strictEqual(live.textContent, title.textContent)
+      assert.strictEqual(screen.queryByRole('alert'), null)
+      view.unmount()
+    }
+  })
+
+  for (const retry of [null, 'recovery', 'refresh'] as const) {
     it(`keeps ${
       retry === null ? 'Dismiss' : 'Retry'
     } disabled while error ownership is settling`, async () => {
