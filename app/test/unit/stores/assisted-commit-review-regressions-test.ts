@@ -105,7 +105,7 @@ describe('assisted run hostile review regressions', () => {
     changed[25] = 'NEW unauthorized before first click\n'
     await writeFile(join(repository.path, 'file'), changed.join(''))
     const index = await optionalBytes(await indexPath(repository))
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const subscription = h.appStore.onDidUpdate(() => {
       const popup = h.appStore['popupManager'].currentPopup
       if (popup?.type === PopupType.AssistedCommitDisclaimer) {
@@ -150,9 +150,7 @@ describe('assisted run hostile review regressions', () => {
   it('does not authorize an unverifiable initial partial basis', async t => {
     const { h, repository } = await partialSelectionFixture(t, 1)
     const request = h.request(repository)
-    h.appStore['assistedCommitSelection']['bases'].delete(
-      request.files[0].selection
-    )
+    h.assisted.selections['bases'].delete(request.files[0].selection)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       request
@@ -268,7 +266,7 @@ describe('assisted run hostile review regressions', () => {
     const { h, repository } = await partialSelectionFixture(t)
     h.dispatcher.setCommitMode(repository, 'manual')
     const selected = h.request(repository).files[0]
-    h.appStore['assistedCommitSelection']['bases'].delete(selected.selection)
+    h.assisted.selections['bases'].delete(selected.selection)
     await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
     h.dispatcher.setCommitMode(repository, 'copilot')
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -430,7 +428,7 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const shown = deferred<void>()
     const subscription = h.appStore.onDidUpdate(() => {
       if (
@@ -474,9 +472,9 @@ describe('assisted run hostile review regressions', () => {
     )
     await analyzing.promise
     try {
-      const run = h.appStore['assistedCommitRuns'].get(repository.id)
+      const run = h.assisted.state['runs'].get(repository.id)
       assert.ok(run)
-      const assisted = h.appStore['onAssistedCommitHookFailure'](
+      const assisted = h.assisted.dialogs['requestHookFailure'](
         run,
         'assisted-hook',
         'output'
@@ -509,7 +507,7 @@ describe('assisted run hostile review regressions', () => {
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
     const failure = new Error('Status reconciliation unavailable')
-    h.appStore['restoreAssistedCommitSelection'] = async () => {
+    h.assisted.recovery['restore'] = async () => {
       throw failure
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -535,8 +533,8 @@ describe('assisted run hostile review regressions', () => {
     const repository = await h.register(source)
     const originalIndex = await optionalBytes(await indexPath(repository))
     assert.ok(originalIndex)
-    const observer = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, progress) => {
+    const observer = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, progress) => {
       observer(run, progress)
       if (progress.kind === 'committing' && progress.index === 1) {
         await writeFile(
@@ -555,12 +553,12 @@ describe('assisted run hostile review regressions', () => {
     const failed = h.state(repository).changesState.assistedCommit
     assert.ok(failed.kind === 'error' && failed.retry === 'recovery')
     await writeFile(await indexPath(repository), originalIndex)
-    h.appStore['restoreAssistedCommitSelection'] = async () => false
+    h.assisted.recovery['restore'] = async () => false
     const refreshError = new Error('Post-recovery refresh failed')
     h.appStore._refreshRepository = async () => {
       throw refreshError
     }
-    h.appStore['deferredAssistedCommitRefreshes'].set(repository.id, repository)
+    h.assisted.readers['deferredRefreshes'].set(repository.id, repository)
     await h.dispatcher.retryCopilotAssistedCommitRecovery(
       repository,
       failed.runId
@@ -576,8 +574,8 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'first selection\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const progress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, step) => {
+    const progress = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, step) => {
       progress(run, step)
       if (step.kind === 'capturing') {
         await writeFile(
@@ -614,9 +612,7 @@ describe('assisted run hostile review regressions', () => {
     await analyzing.promise
     h.cancel(repository)
     try {
-      assert.doesNotThrow(() =>
-        h.appStore['abortUnauthorizedAssistedCommitRuns']()
-      )
+      assert.doesNotThrow(() => h.assisted.context['abortUnauthorized']())
     } finally {
       finish.resolve()
       await operation
@@ -892,7 +888,7 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['restoreAssistedCommitSelection'] = async () => {
+    h.assisted.recovery['restore'] = async () => {
       throw new Error('Refresh unavailable')
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -1131,10 +1127,8 @@ describe('assisted run hostile review regressions', () => {
       status = h.appStore._loadStatus(repository)
       return wholeSelectionResponse(analysis)
     })
-    const refresh = h.appStore['refreshAssistedCommitRepository'].bind(
-      h.appStore
-    )
-    h.appStore['refreshAssistedCommitRepository'] = async (...args) => {
+    const refresh = h.assisted.recovery['refresh'].bind(h.assisted.recovery)
+    h.assisted.recovery['refresh'] = async (...args) => {
       await refresh(...args)
       if (args[1]) {
         await writeFile(
@@ -1222,11 +1216,11 @@ describe('assisted run hostile review regressions', () => {
     let waiting = false
     const refresh = h.appStore._refreshRepository.bind(h.appStore)
     h.appStore._refreshRepository = async repo => {
-      const run = h.appStore['assistedCommitRuns'].get(repository.id)
+      const run = h.assisted.state['runs'].get(repository.id)
       if (
         !waiting &&
         run?.reconciling &&
-        !h.appStore['deferredAssistedCommitRefreshes'].has(repository.id)
+        !h.assisted.readers['deferredRefreshes'].has(repository.id)
       ) {
         waiting = true
         refreshing.resolve()
@@ -1235,10 +1229,7 @@ describe('assisted run hostile review regressions', () => {
       return refresh(repo)
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
-      h.appStore['deferredAssistedCommitRefreshes'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredRefreshes'].set(repository.id, repository)
       h.cancel(repository)
       return wholeSelectionResponse(analysis)
     })
@@ -1279,7 +1270,7 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const cancellationObserved = deferred<void>()
     let cancelled = false
     const subscription = h.appStore.onDidUpdate(() => {
@@ -1308,13 +1299,10 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'b'), 'selected b\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const recoveryDiff = h.appStore['assistedCommitSelection'][
-      'getRecoveryDiff'
-    ].bind(h.appStore['assistedCommitSelection'])
-    h.appStore['assistedCommitSelection']['getRecoveryDiff'] = async (
-      repo,
-      file
-    ) => {
+    const recoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
       const diff = await recoveryDiff(repo, file)
       if (file.path === 'a') {
         await writeFile(join(repository.path, 'b'), 'new unselected b\n')
@@ -1540,10 +1528,8 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const restore = h.appStore['restoreAssistedCommitSelection'].bind(
-      h.appStore
-    )
-    h.appStore['restoreAssistedCommitSelection'] = async () => {
+    const restore = h.assisted.recovery['restore'].bind(h.assisted.recovery)
+    h.assisted.recovery['restore'] = async () => {
       throw new Error('Synthetic initial restoration failure')
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -1556,7 +1542,7 @@ describe('assisted run hostile review regressions', () => {
     )
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error' && state.retry === 'refresh')
-    h.appStore['restoreAssistedCommitSelection'] = restore
+    h.assisted.recovery['restore'] = restore
     let threw = false
     const subscription = h.appStore.onDidUpdate(() => {
       if (
@@ -1578,10 +1564,7 @@ describe('assisted run hostile review regressions', () => {
       'idle'
     )
     assert.strictEqual(h.state(repository).isCommitting, false)
-    assert.strictEqual(
-      h.appStore['assistedCommitRuns'].has(repository.id),
-      false
-    )
+    assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
     assert.strictEqual(await count(repository), 1)
   })
 
@@ -1651,7 +1634,7 @@ describe('assisted run hostile review regressions', () => {
       await writeFile(join(source.path, 'file'), 'selected\n')
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.appStore['assistedCommitDisclaimerLastSeen'] = null
+      h.assisted.dialogs['lastConsent'] = null
       const shown = deferred<void>()
       const subscription = h.appStore.onDidUpdate(() => {
         if (
@@ -1768,8 +1751,8 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'first selection\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const progress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
-    h.appStore['onAssistedCommitProgress'] = async (run, step) => {
+    const progress = h.assisted.context['progress'].bind(h.assisted.context)
+    h.assisted.context['progress'] = async (run, step) => {
       progress(run, step)
       if (step.kind === 'capturing') {
         await writeFile(
@@ -1878,9 +1861,9 @@ describe('assisted run hostile review regressions', () => {
     )
     await analyzing.promise
     try {
-      const run = h.appStore['assistedCommitRuns'].get(repository.id)
+      const run = h.assisted.state['runs'].get(repository.id)
       assert.ok(run)
-      const first = h.appStore['onAssistedCommitHookFailure'](
+      const first = h.assisted.dialogs['requestHookFailure'](
         run,
         'first',
         'output'
@@ -1890,7 +1873,7 @@ describe('assisted run hostile review regressions', () => {
       const stale = popup.resolve
       stale('ignore')
       assert.strictEqual(await first, 'ignore')
-      const next = h.appStore['onAssistedCommitHookFailure'](
+      const next = h.assisted.dialogs['requestHookFailure'](
         run,
         'next',
         'output'
@@ -1987,11 +1970,9 @@ describe('assisted run hostile review regressions', () => {
       await writeFile(join(source.path, 'file'), 'selected\n')
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      const restore = h.appStore['restoreAssistedCommitSelection'].bind(
-        h.appStore
-      )
+      const restore = h.assisted.recovery['restore'].bind(h.assisted.recovery)
       if (action === 'retry') {
-        h.appStore['restoreAssistedCommitSelection'] = async () => {
+        h.assisted.recovery['restore'] = async () => {
           throw new Error('Synthetic reconciliation failure')
         }
         h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -2010,7 +1991,7 @@ describe('assisted run hostile review regressions', () => {
       const failure = h.state(repository).changesState.assistedCommit
       assert.ok(failure.kind === 'error')
       assert.strictEqual(failure.retry, action === 'retry' ? 'refresh' : null)
-      h.appStore['restoreAssistedCommitSelection'] = restore
+      h.assisted.recovery['restore'] = restore
       h.propose.mock.mockImplementation(async (_account, analysis) =>
         wholeSelectionResponse(analysis)
       )
@@ -2073,13 +2054,8 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const refresh = h.appStore['refreshAssistedCommitRepository'].bind(
-      h.appStore
-    )
-    h.appStore['refreshAssistedCommitRepository'] = async (
-      repo,
-      afterSuccess
-    ) => {
+    const refresh = h.assisted.recovery['refresh'].bind(h.assisted.recovery)
+    h.assisted.recovery['refresh'] = async (repo, afterSuccess) => {
       if (afterSuccess) {
         throw new Error('Synthetic finishing refresh failure')
       }
@@ -2092,7 +2068,7 @@ describe('assisted run hostile review regressions', () => {
     assert.strictEqual(outcome.kind, 'error')
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error' && state.retry === null)
-    const run = h.appStore['assistedCommitRuns'].get(repository.id)
+    const run = h.assisted.state['runs'].get(repository.id)
     assert.ok(
       run?.finished && run.result !== undefined && run.lease === undefined
     )
@@ -2127,10 +2103,7 @@ describe('assisted run hostile review regressions', () => {
       return refresh(repo)
     }
     h.propose.mock.mockImplementation(async () => {
-      h.appStore['deferredAssistedCommitRefreshes'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredRefreshes'].set(repository.id, repository)
       throw new Error('Synthetic planning failure')
     })
     const operation = h.dispatcher
@@ -2143,7 +2116,7 @@ describe('assisted run hostile review regressions', () => {
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error')
     h.dispatcher.dismissCopilotAssistedCommitError(repository, state.runId)
-    const preserved = h.appStore['assistedCommitRuns'].has(repository.id)
+    const preserved = h.assisted.state['runs'].has(repository.id)
     finish.resolve()
     const outcome = await operation
     assert.strictEqual(preserved, true)
@@ -2154,15 +2127,12 @@ describe('assisted run hostile review regressions', () => {
 
   it('fences uncaptured cancellation after awaited HEAD verification, not only before it', async t => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
-    const verifyHead = h.appStore['assistedCommitSelection'][
-      'assertCapturedHead'
-    ].bind(h.appStore['assistedCommitSelection'])
+    h.assisted.dialogs['lastConsent'] = null
+    const verifyHead = h.assisted.selections['assertCapturedHead'].bind(
+      h.assisted.selections
+    )
     let changed = false
-    h.appStore['assistedCommitSelection']['assertCapturedHead'] = (
-      run,
-      head
-    ) => {
+    h.assisted.selections['assertCapturedHead'] = (run, head) => {
       verifyHead(run, head)
       if (!changed) {
         changed = true
@@ -2198,10 +2168,8 @@ describe('assisted run hostile review regressions', () => {
     async t => {
       const { h, repository } = await partialSelectionFixture(t)
       await rawGit(repository, ['config', 'diff.prefix.textconv', 'head -n 20'])
-      const restore = h.appStore['restoreAssistedCommitSelection'].bind(
-        h.appStore
-      )
-      h.appStore['restoreAssistedCommitSelection'] = async (...args) => {
+      const restore = h.assisted.recovery['restore'].bind(h.assisted.recovery)
+      h.assisted.recovery['restore'] = async (...args) => {
         const result = await restore(...args)
         await writeFile(
           join(repository.path, '.gitattributes'),
@@ -2236,12 +2204,12 @@ describe('assisted run hostile review regressions', () => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
     const entered = deferred<void>()
     const finish = deferred<void>()
-    const loadDiff = h.appStore['updateChangesWorkingDirectoryDiffCore'].bind(
-      h.appStore
+    const loadDiff = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
     )
-    let owned: ReturnType<typeof h.appStore['assistedCommitRuns']['get']>
+    let owned: ReturnType<typeof h.assisted.state['runs']['get']>
     let paused = false
-    h.appStore['updateChangesWorkingDirectoryDiffCore'] = async repo => {
+    h.assisted.readers['updateDiffCore'] = async repo => {
       if (!paused && owned !== undefined && owned.lease === undefined) {
         paused = true
         entered.resolve()
@@ -2251,7 +2219,7 @@ describe('assisted run hostile review regressions', () => {
     }
     let reader: Promise<unknown> | undefined
     h.propose.mock.mockImplementation(async (_account, analysis) => {
-      owned = h.appStore['assistedCommitRuns'].get(repository.id)
+      owned = h.assisted.state['runs'].get(repository.id)
       reader = h.appStore._loadStatus(repository)
       h.cancel(repository)
       return wholeSelectionResponse(analysis)
@@ -2358,7 +2326,7 @@ describe('assisted run hostile review regressions', () => {
     const gitStore = h.appStore['gitStoreCache'].get(repository)
     const load = gitStore.loadStatus.bind(gitStore)
     const failure = new Error('Synthetic released status failure')
-    let owned: ReturnType<typeof h.appStore['assistedCommitRuns']['get']>
+    let owned: ReturnType<typeof h.assisted.state['runs']['get']>
     gitStore.loadStatus = async (...args) => {
       if (owned !== undefined && owned.lease === undefined) {
         throw failure
@@ -2367,7 +2335,7 @@ describe('assisted run hostile review regressions', () => {
     }
     let reader: Promise<unknown> | undefined
     h.propose.mock.mockImplementation(async (_account, analysis) => {
-      owned = h.appStore['assistedCommitRuns'].get(repository.id)
+      owned = h.assisted.state['runs'].get(repository.id)
       reader = h.appStore._loadStatus(repository).catch(error => error)
       h.cancel(repository)
       return wholeSelectionResponse(analysis)
@@ -2412,9 +2380,9 @@ describe('assisted run hostile review regressions', () => {
     h.propose.mock.mockImplementation(async (_account, analysis) =>
       splitResponse(analysis)
     )
-    const progress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
+    const progress = h.assisted.context['progress'].bind(h.assisted.context)
     let revoked = false
-    h.appStore['onAssistedCommitProgress'] = async (run, step) => {
+    h.assisted.context['progress'] = async (run, step) => {
       progress(run, step)
       if (step.kind === 'committing' && step.index === 1) {
         assert.strictEqual(await count(repository), 2)
@@ -2454,10 +2422,7 @@ describe('assisted run hostile review regressions', () => {
       ).kind,
       'cancelled'
     )
-    assert.strictEqual(
-      h.appStore['assistedCommitRuns'].has(repository.id),
-      false
-    )
+    assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
     const next = [...current]
     next[1] = 'new earlier unselected\n'
     await writeFile(join(repository.path, 'file'), next.join(''))
@@ -2492,12 +2457,10 @@ describe('assisted run hostile review regressions', () => {
     const parent = await h.register(parentSource)
     const entered = deferred<void>()
     const finish = deferred<void>()
-    const load = h.appStore['updateChangesWorkingDirectoryDiffCore'].bind(
-      h.appStore
-    )
-    let owned: ReturnType<typeof h.appStore['assistedCommitRuns']['get']>
+    const load = h.assisted.readers['updateDiffCore'].bind(h.assisted.readers)
+    let owned: ReturnType<typeof h.assisted.state['runs']['get']>
     let paused = false
-    h.appStore['updateChangesWorkingDirectoryDiffCore'] = async repo => {
+    h.assisted.readers['updateDiffCore'] = async repo => {
       if (
         repo.id === child.id &&
         !paused &&
@@ -2511,7 +2474,7 @@ describe('assisted run hostile review regressions', () => {
       return load(repo)
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
-      owned = h.appStore['assistedCommitRuns'].get(child.id)
+      owned = h.assisted.state['runs'].get(child.id)
       return wholeSelectionResponse(analysis)
     })
     let discarded = false
@@ -2567,7 +2530,7 @@ describe('assisted run hostile review regressions', () => {
       h.request(repository)
     )
     await entered.promise
-    const owned = h.appStore['assistedCommitRuns'].get(repository.id)
+    const owned = h.assisted.state['runs'].get(repository.id)
     assert.ok(owned)
     let threw = false
     const subscription = h.appStore.onDidUpdate(() => {
@@ -2607,7 +2570,7 @@ describe('assisted run hostile review regressions', () => {
       .catch(error => error)
     assert.strictEqual(h.state(repository).isCommitting, false)
     assert.strictEqual(
-      h.appStore['assistedCommitRuns'].get(repository.id)?.finished,
+      h.assisted.state['runs'].get(repository.id)?.finished,
       true
     )
     assert.strictEqual(h.propose.mock.callCount(), 0)
@@ -2618,10 +2581,8 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    const restore = h.appStore['restoreAssistedCommitSelection'].bind(
-      h.appStore
-    )
-    h.appStore['restoreAssistedCommitSelection'] = async () => {
+    const restore = h.assisted.recovery['restore'].bind(h.assisted.recovery)
+    h.assisted.recovery['restore'] = async () => {
       throw new Error('Synthetic refresh failure')
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -2634,7 +2595,7 @@ describe('assisted run hostile review regressions', () => {
     )
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error' && state.retry === 'refresh')
-    h.appStore['restoreAssistedCommitSelection'] = restore
+    h.assisted.recovery['restore'] = restore
     let threw = false
     const subscription = h.appStore.onDidUpdate(() => {
       if (
@@ -2650,7 +2611,7 @@ describe('assisted run hostile review regressions', () => {
       .catch(error => error)
     subscription.dispose()
     assert.strictEqual(
-      h.appStore['assistedCommitRuns'].get(repository.id)?.finished,
+      h.assisted.state['runs'].get(repository.id)?.finished,
       true
     )
     assert.strictEqual(h.state(repository).isCommitting, false)
@@ -2673,12 +2634,12 @@ describe('assisted run hostile review regressions', () => {
     const finishFence = deferred<void>()
     const readerEntered = deferred<void>()
     const finishReader = deferred<void>()
-    const verify = h.appStore['assistedCommitSelection']['verifyFence'].bind(
-      h.appStore['assistedCommitSelection']
+    const verify = h.assisted.selections['verifyFence'].bind(
+      h.assisted.selections
     )
     let paused = false
-    h.appStore['assistedCommitSelection']['verifyFence'] = async run => {
-      const owner = h.appStore['assistedCommitRuns'].get(run.repository.id)
+    h.assisted.selections['verifyFence'] = async run => {
+      const owner = h.assisted.state['runs'].get(run.repository.id)
       if (
         !paused &&
         owner?.lease === undefined &&
@@ -2744,11 +2705,11 @@ describe('assisted run hostile review regressions', () => {
       repository,
       h.request(repository)
     )
-    const owned = h.appStore['assistedCommitRuns'].get(repository.id)
+    const owned = h.assisted.state['runs'].get(repository.id)
     assert.ok(owned)
     const reader = new Error('Synthetic repeated reader failure')
-    h.appStore['invalidateAssistedCommitSelection'](repository, owned, reader)
-    h.appStore['invalidateAssistedCommitSelection'](repository, owned, reader)
+    h.assisted.readers['invalidate'](repository, owned, reader)
+    h.assisted.readers['invalidate'](repository, owned, reader)
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error')
     assert.ok(assistedCommitErrorCauses(state.error).includes(original))
@@ -2760,7 +2721,7 @@ describe('assisted run hostile review regressions', () => {
     await writeFile(join(source.path, 'file'), 'selected\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     h.appStore['uncommittedChangesStrategy'] =
       UncommittedChangesStrategy.MoveToNewBranch
     const gitStore = h.appStore['gitStoreCache'].get(repository)
@@ -2868,27 +2829,22 @@ describe('assisted run hostile review regressions', () => {
     })
     t.after(() => subscription.dispose())
     h.propose.mock.mockImplementation(async () => {
-      h.appStore['deferredAssistedCommitRefreshes'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredRefreshes'].set(repository.id, repository)
       throw new Error('Synthetic planner failure')
     })
     await h.dispatcher
       .createCopilotAssistedCommits(repository, h.request(repository))
       .catch(error => error)
     assert.strictEqual(h.state(repository).isCommitting, false)
-    const run = h.appStore['assistedCommitRuns'].get(repository.id)
+    const run = h.assisted.state['runs'].get(repository.id)
     assert.ok(run?.finished && run.lease === undefined)
     assert.strictEqual(await count(repository), 1)
   })
 
   it('keeps fresh status rows discovered during refresh-only restoration', async t => {
     const { h, repository } = await partialSelectionFixture(t)
-    const restore = h.appStore['restoreAssistedCommitSelection'].bind(
-      h.appStore
-    )
-    h.appStore['restoreAssistedCommitSelection'] = async () => {
+    const restore = h.assisted.recovery['restore'].bind(h.assisted.recovery)
+    h.assisted.recovery['restore'] = async () => {
       throw new Error('Initial refresh failure')
     }
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -2901,14 +2857,12 @@ describe('assisted run hostile review regressions', () => {
     )
     const state = h.state(repository).changesState.assistedCommit
     assert.ok(state.kind === 'error' && state.retry === 'refresh')
-    h.appStore['restoreAssistedCommitSelection'] = restore
-    const getDiff = h.appStore['assistedCommitSelection'][
-      'getRecoveryDiff'
-    ].bind(h.appStore['assistedCommitSelection'])
+    h.assisted.recovery['restore'] = restore
+    const getDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
     let injected = false
-    h.appStore['assistedCommitSelection']['getRecoveryDiff'] = async (
-      ...args
-    ) => {
+    h.assisted.selections['getRecoveryDiff'] = async (...args) => {
       const diff = await getDiff(...args)
       if (!injected) {
         injected = true
@@ -2983,10 +2937,7 @@ describe('assisted run hostile review regressions', () => {
       return refresh(repo)
     }
     h.propose.mock.mockImplementation(async () => {
-      h.appStore['deferredAssistedCommitRefreshes'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredRefreshes'].set(repository.id, repository)
       throw original
     })
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -3218,9 +3169,7 @@ describe('assisted run hostile review regressions', () => {
     }
     assert.strictEqual(await count(repository), 1)
     assert.strictEqual(h.commits.mock.callCount(), 0)
-    assert.ok(
-      h.appStore['assistedCommitSelection']['restored'].has(selected.selection)
-    )
+    assert.ok(h.assisted.selections['restored'].has(selected.selection))
   })
 
   it('rejects captured Manual masks invalidated while resource admission awaits', async t => {
@@ -3305,12 +3254,12 @@ describe('assisted run hostile review regressions', () => {
       h.request(repository)
     )
     h.dispatcher.setCommitMode(repository, 'manual')
-    const certify = h.appStore['assistedCommitSelection']['verifyManual'].bind(
-      h.appStore['assistedCommitSelection']
+    const certify = h.assisted.selections['verifyManual'].bind(
+      h.assisted.selections
     )
     const changed = [...current]
     changed[25] = 'NEW unauthorized after certification\n'
-    h.appStore['assistedCommitSelection']['verifyManual'] = async (...args) => {
+    h.assisted.selections['verifyManual'] = async (...args) => {
       const result = await certify(...args)
       await writeFile(join(repository.path, 'file'), changed.join(''))
       return result
@@ -3385,7 +3334,7 @@ describe('assisted run hostile review regressions', () => {
       }
       const selected = h.request(repository)
       assert.strictEqual(selected.files.length, 2)
-      h.appStore['assistedCommitDisclaimerLastSeen'] = null
+      h.assisted.dialogs['lastConsent'] = null
       const shown = deferred<void>()
       const subscription = h.appStore.onDidUpdate(() => {
         if (
@@ -3433,10 +3382,7 @@ describe('assisted run hostile review regressions', () => {
     const repository = await h.register(source)
     const sha = await rawGit(repository, ['rev-parse', 'HEAD'])
     h.dispatcher.changeCommitSelection(repository, [sha], true)
-    h.appStore['deferredAssistedCommitHistorySelections'].set(
-      repository.id,
-      repository
-    )
+    h.assisted.readers['deferredHistory'].set(repository.id, repository)
     const protection = protectAssistedCommitResources(repository.path)
     t.after(() => protection.release())
     const load = t.mock.method(
@@ -3444,14 +3390,14 @@ describe('assisted run hostile review regressions', () => {
       '_loadChangedFilesForCurrentSelection',
       h.appStore._loadChangedFilesForCurrentSelection.bind(h.appStore)
     )
-    await h.appStore['resumeDeferredAssistedCommitHistory'](repository)
+    await h.assisted.readers['resumeHistory'](repository)
     assert.strictEqual(load.mock.callCount(), 1)
     assert.strictEqual(
       h.state(repository).commitSelection.changesetData.files.length,
       1
     )
     assert.strictEqual(
-      h.appStore['deferredAssistedCommitHistorySelections'].has(repository.id),
+      h.assisted.readers['deferredHistory'].has(repository.id),
       false
     )
   })
@@ -3460,10 +3406,7 @@ describe('assisted run hostile review regressions', () => {
     const source = await seed(t, { file: 'before\n' })
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.appStore['deferredAssistedCommitHistorySelections'].set(
-      repository.id,
-      repository
-    )
+    h.assisted.readers['deferredHistory'].set(repository.id, repository)
     t.mock.method(
       h.appStore,
       '_loadChangedFilesForCurrentSelection',
@@ -3471,9 +3414,9 @@ describe('assisted run hostile review regressions', () => {
         throw new Error('Synthetic History read failure')
       }
     )
-    await h.appStore['resumeDeferredAssistedCommitHistory'](repository)
+    await h.assisted.readers['resumeHistory'](repository)
     assert.strictEqual(
-      h.appStore['deferredAssistedCommitHistorySelections'].has(repository.id),
+      h.assisted.readers['deferredHistory'].has(repository.id),
       true
     )
   })
@@ -3484,10 +3427,7 @@ describe('assisted run hostile review regressions', () => {
     const repository = await h.register(source)
     const sha = await rawGit(repository, ['rev-parse', 'HEAD'])
     h.dispatcher.changeCommitSelection(repository, [sha], true)
-    h.appStore['deferredAssistedCommitHistorySelections'].set(
-      repository.id,
-      repository
-    )
+    h.assisted.readers['deferredHistory'].set(repository.id, repository)
     const original = h.appStore._loadChangedFilesForCurrentSelection.bind(
       h.appStore
     )
@@ -3495,11 +3435,11 @@ describe('assisted run hostile review regressions', () => {
     h.appStore._loadChangedFilesForCurrentSelection = async repo => {
       loaded++
       if (loaded === 1) {
-        await h.appStore['resumeDeferredAssistedCommitHistory'](repo)
+        await h.assisted.readers['resumeHistory'](repo)
       }
       return original(repo)
     }
-    await h.appStore['resumeDeferredAssistedCommitHistory'](repository)
+    await h.assisted.readers['resumeHistory'](repository)
     assert.strictEqual(loaded, 1)
   })
 
@@ -3520,14 +3460,9 @@ describe('assisted run hostile review regressions', () => {
       h.request(repository)
     )
     await entered.promise
-    h.appStore['deferredAssistedCommitHistorySelections'].set(
-      repository.id,
-      repository
-    )
+    h.assisted.readers['deferredHistory'].set(repository.id, repository)
     let resumed = false
-    const history = h.appStore['resumeDeferredAssistedCommitHistory'](
-      repository
-    ).then(() => {
+    const history = h.assisted.readers['resumeHistory'](repository).then(() => {
       resumed = true
     })
     try {
@@ -3557,10 +3492,7 @@ describe('assisted run hostile review regressions', () => {
       }
     )
     h.propose.mock.mockImplementation(async (_account, analysis) => {
-      h.appStore['deferredAssistedCommitHistorySelections'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredHistory'].set(repository.id, repository)
       return wholeSelectionResponse(analysis)
     })
     const subscription = h.appStore.onDidError(() => {
@@ -3784,7 +3716,7 @@ describe('assisted run hostile review regressions', () => {
       h.request(repository)
     )
     h.dispatcher.setCommitMode(repository, 'manual')
-    h.appStore['updateChangesWorkingDirectoryDiffCore'] = async () => {
+    h.assisted.readers['updateDiffCore'] = async () => {
       throw new Error('Ordinary manual diff failure')
     }
     await h.appStore['updateChangesWorkingDirectoryDiff'](repository).catch(
@@ -3829,7 +3761,7 @@ describe('assisted run hostile review regressions', () => {
       let threw = false
       const subscription = h.appStore.onDidUpdate(() => {
         const state = h.state(repository)
-        const run = h.appStore['assistedCommitRuns'].get(repository.id)
+        const run = h.assisted.state['runs'].get(repository.id)
         if (
           !threw &&
           state.changesState.assistedCommit.kind === 'idle' &&
@@ -3864,10 +3796,7 @@ describe('assisted run hostile review regressions', () => {
         )
         const deferHistory = () => {
           if (notification === 'history') {
-            h.appStore['deferredAssistedCommitHistorySelections'].set(
-              repository.id,
-              repository
-            )
+            h.assisted.readers['deferredHistory'].set(repository.id, repository)
           }
         }
         if (notification === 'history') {
@@ -3885,17 +3814,15 @@ describe('assisted run hostile review regressions', () => {
               return load(repo)
             }
           )
-          const finish = h.appStore['finishAssistedCommitSelectionReads'].bind(
-            h.appStore
-          )
-          h.appStore['finishAssistedCommitSelectionReads'] = async run => {
+          const finish = h.assisted.readers['finish'].bind(h.assisted.readers)
+          h.assisted.readers['finish'] = async run => {
             await finish(run)
             settledReaders = true
             deferHistory()
           }
         }
         if (exit === 'decline') {
-          h.appStore['assistedCommitDisclaimerLastSeen'] = null
+          h.assisted.dialogs['lastConsent'] = null
         }
         h.propose.mock.mockImplementation(async (_account, analysis) => {
           if (exit === 'error') {
@@ -3913,7 +3840,7 @@ describe('assisted run hostile review regressions', () => {
               })
             : h.appStore.onDidUpdate(() => {
                 const state = h.state(repository)
-                const run = h.appStore['assistedCommitRuns'].get(repository.id)
+                const run = h.assisted.state['runs'].get(repository.id)
                 if (
                   !threw &&
                   !state.isCommitting &&
@@ -3959,10 +3886,7 @@ describe('assisted run hostile review regressions', () => {
           assert.ok(causes.includes(originalFailure))
           assert.ok(causes.includes(notificationFailure))
         } else {
-          assert.strictEqual(
-            h.appStore['assistedCommitRuns'].has(repository.id),
-            false
-          )
+          assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
         }
         assert.strictEqual(await count(repository), 1)
         assert.strictEqual(h.commits.mock.callCount(), 0)
@@ -3978,7 +3902,7 @@ describe('assisted run hostile review regressions', () => {
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
       if (exit === 'decline') {
-        h.appStore['assistedCommitDisclaimerLastSeen'] = null
+        h.assisted.dialogs['lastConsent'] = null
       }
       h.propose.mock.mockImplementation(async (_account, analysis) => {
         h.cancel(repository)
@@ -4022,10 +3946,7 @@ describe('assisted run hostile review regressions', () => {
         exit === 'cancel' ? 'cancelled' : 'declined'
       )
       assert.strictEqual(h.state(repository).isCommitting, false)
-      assert.strictEqual(
-        h.appStore['assistedCommitRuns'].has(repository.id),
-        false
-      )
+      assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
       assert.strictEqual(await count(repository), 1)
       assert.strictEqual(h.commits.mock.callCount(), 0)
     })
@@ -4038,11 +3959,9 @@ describe('assisted run hostile review regressions', () => {
     const repository = await h.register(source)
     const sealed = deferred<void>()
     const finish = deferred<void>()
-    const settle = h.appStore['finishAssistedCommitSelectionReads'].bind(
-      h.appStore
-    )
+    const settle = h.assisted.readers['finish'].bind(h.assisted.readers)
     let paused = false
-    h.appStore['finishAssistedCommitSelectionReads'] = async run => {
+    h.assisted.readers['finish'] = async run => {
       await settle(run)
       if (!paused && run.finalized) {
         paused = true
@@ -4070,10 +3989,7 @@ describe('assisted run hostile review regressions', () => {
       introduced.selection.getSelectionType(),
       DiffSelectionType.None
     )
-    assert.strictEqual(
-      h.appStore['assistedCommitRuns'].has(repository.id),
-      false
-    )
+    assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
     await writeFile(join(repository.path, 'later'), 'ordinary later edit\n')
     await h.appStore._loadStatus(repository)
     const later = h
@@ -4091,11 +4007,9 @@ describe('assisted run hostile review regressions', () => {
     const { h, repository } = await partialSelectionFixture(t)
     const sealed = deferred<void>()
     const finish = deferred<void>()
-    const settle = h.appStore['finishAssistedCommitSelectionReads'].bind(
-      h.appStore
-    )
+    const settle = h.assisted.readers['finish'].bind(h.assisted.readers)
     let paused = false
-    h.appStore['finishAssistedCommitSelectionReads'] = async run => {
+    h.assisted.readers['finish'] = async run => {
       await settle(run)
       if (!paused && run.finalized) {
         paused = true

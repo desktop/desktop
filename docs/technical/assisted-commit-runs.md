@@ -8,7 +8,7 @@ their separate paths.
 ## Ownership and UI
 
 `ChangesSidebar -> FilterChangesList -> CommitMessage -> Dispatcher ->
-AppStore._createCopilotAssistedCommits` is the request path. Dispatching the
+AppStore._createCopilotAssistedCommits -> AssistedCommitCoordinator` is the request path. Dispatching the
 callback is not success. The returned `AssistedCommitRunOutcome` distinguishes
 `local-ready`, cancellation, declined consent, busy admission, and error.
 Only a verified executor result can reach local acceptance.
@@ -16,10 +16,40 @@ Only a verified executor result can reach local acceptance.
 `IChangesState.assistedCommit` is a discriminated state: idle, consent,
 preparation/capture, analysis/whole-selection summarization, validation,
 committing (zero-based index, total, title), finishing, rollback, or error.
-AppStore owns the run ID, AbortController, original repository/account intent,
+The feature coordinator owns the run ID, AbortController, original repository/account intent,
 immutable request/options, snapshot, checked plan, result, and retained recovery
 capability. Components own only presentation. Switching tabs/repositories or
 unmounting the form does not cancel or orphan a run.
+
+The implementation lives in `lib/assisted-commit/`, with distinct owners rather
+than additional feature machinery inside AppStore:
+
+| Module | Responsibility |
+| --- | --- |
+| `coordinator.ts` | First-click preparation, one awaited request, synchronous local acceptance boundary |
+| `state.ts` | Exact run identities, UI/error publication, reader obligations and resource admission |
+| `context.ts` | Issuing account/model/provider intent, freshness and authorization continuity |
+| `execution.ts` | Consent-to-snapshot preparation, complete plan validation, native execution and accepted-plan statistics |
+| `selection.ts` | Weak selection certificates, original diff lineage and current-content reconciliation |
+| `selection-display.ts` | Verified display-diff installation without broadening selection |
+| `readers.ts` | Associated status/diff readers, manual consumption, deferred refresh/history and settlement |
+| `dialogs.ts` | Assisted consent and the shared owner-aware native hook-failure queue |
+| `recovery.ts` | Composed recovery functions over those owners; no second run or capability registry |
+
+AppStore retains existing repository cache publication, conflict/menu updates,
+ordinary operations and Dispatcher entrypoints. Its repository port supplies
+only existing refresh, full refresh, History loading and commit-stat recording
+operations. A current configuration reader, the shared model resolver and
+synchronous change/error notifications complete the integration. No owner
+receives AppStore or accesses its private members. Native engine capabilities
+remain the same objects throughout execution, cleanup and retry; extracting
+ownership does not serialize, copy or reconstruct them.
+
+The local acceptance method finalizes the verified native result synchronously
+after the last cancellation/authorization check. A continuation such as push
+belongs after that boundary, not inside selection reconciliation or error
+recovery. Accepted bookkeeping and optional presentation still settle through
+the feature owner even when an observer throws.
 
 RepositoryStateCache reconciles assisted state by database ID, independently of
 the repository's metadata hash. An alias or refreshed GitHub metadata must not
@@ -70,7 +100,7 @@ execution. Desktop first prepares an opaque, weakly owned first-click intent
 with immutable request, repository/HEAD, account/model and file versions.
 Warning continuations keep immutable file/line selections,
 trailers, and options; a stale continuation cannot silently use a broader set.
-AppStore also checks selection, branch intent, mode, amend/conflict state,
+The feature context also checks selection, branch intent, mode, amend/conflict state,
 options, and account intent after awaited preflight steps.
 Account intent is bound to its issuing credential session, not an access-token
 string. Renewal within that session remains valid; replacement sign-in retires
@@ -163,7 +193,7 @@ old path without querying vanished Git metadata, then guards the chosen path.
 operations plus their Git subprocesses. Acquisition blocks new writers, then
 drains already-admitted work before capture. It never kills a status reader or
 reads around an in-flight index mutation.
-AppStore rejects already-admitted mutations before registering an assisted run.
+The coordinator rejects already-admitted mutations before registering an assisted run.
 This keeps ordinary compound operations intact, rather than letting a new
 preparing/consent owner interrupt their later checkout. Low-level acquisition
 still drains complete admitted readers; new mutations never queue behind a run.
@@ -256,7 +286,7 @@ automatically selected for the next assisted action.
 
 ## Cancellation, hooks, and recovery
 
-Cancellation is cooperative: AppStore aborts its controller and settles only
+Cancellation is cooperative: the run owner aborts its controller and settles only
 its owned consent/hook popup. Native hook interception can stop a running hook;
 Desktop still awaits the actual Git outcome before rollback. Ignore continues
 the current ignorable hook failure, not a run-wide hook bypass. Later planned
@@ -273,7 +303,7 @@ Error cause traversal retains domain, SDK, billing, aggregate, cleanup, and
 recovery identities, including wrapped cancellation and 402 display metadata.
 
 The executor's `committed` progress is not completion. Even after successful
-execution, AppStore retains the result's original-index backup through awaited
+execution, the run owner retains the result's original-index backup through awaited
 reconciliation and calls `verifyAssistedCommitTransaction` to recheck selected
 content, full HEAD identity, and installed index. Cancel or selected-content
 mutation here rolls back the successful result before acceptance.
@@ -322,7 +352,7 @@ Ownerless refresh and commit admission certify every retained restored selection
 including nondisplayed files. Refresh-only restoration likewise merges checked
 selections into current rows/status rather than reinstalling a captured list.
 
-Interfered or failed recovery retains its real engine capability in AppStore,
+Interfered or failed recovery retains its real engine capability in the feature owner,
 the original cause and recovery metadata in state, and an explicit retry action.
 Retry performs recovery/reconciliation only: no new planner, commits, or push.
 External ref/index changes are never overwritten to manufacture ready state.
