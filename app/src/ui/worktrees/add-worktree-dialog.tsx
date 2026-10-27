@@ -98,18 +98,14 @@ export class AddWorktreeDialog extends React.Component<
         : branch !== undefined
         ? { commitish: branch.name }
         : { createBranch: effectiveBranchName }
-    try {
-      if (
-        await this.props.dispatcher.addWorktreeAndSwitch(
-          this.props.repository,
-          fullPath,
-          options
-        )
-      ) {
-        this.props.onDismissed()
-      }
-    } finally {
-      this.setState({ creating: false })
+    const created = await this.props.dispatcher.addWorktreeAndSwitch(
+      this.props.repository,
+      fullPath,
+      options
+    )
+    this.setState({ creating: false })
+    if (created) {
+      this.props.onDismissed()
     }
   }
 
