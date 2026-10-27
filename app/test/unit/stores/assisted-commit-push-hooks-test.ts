@@ -152,7 +152,7 @@ describe('assisted push with native hook interception', () => {
         false
       )
       assert.strictEqual(
-        h.appStore['assistedCommitRuns'].get(repository.id)?.recoveryCapability,
+        h.assisted.state['runs'].get(repository.id)?.recoveryCapability,
         undefined
       )
     })

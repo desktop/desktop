@@ -80,6 +80,11 @@ describe('standalone assisted coordinator', () => {
         },
       }))
       const host: IAssistedCommitRepository = {
+        push: async () => {
+          throw new Error('Local-only coordinator test must not push')
+        },
+        recordPush: () =>
+          assert.fail('Local-only coordinator test must not record a push'),
         refresh: async (_repository, clearPartialState) => {
           await synchronizeHead()
           if (clearPartialState && !held) {
@@ -121,7 +126,14 @@ describe('standalone assisted coordinator', () => {
       }
       const prepared = await coordinator.prepare(repository, request)
       const operation = coordinator.create(repository, prepared)
-      await finalRefresh.promise
+      await Promise.race([
+        finalRefresh.promise,
+        operation.then(outcome => {
+          throw new Error(`Run settled before final refresh: ${outcome.kind}`, {
+            cause: outcome.kind === 'error' ? outcome.error : undefined,
+          })
+        }),
+      ])
       assert.strictEqual(await count(repository), 2)
       assert.strictEqual(
         (await coordinator.create(repository, prepared)).kind,

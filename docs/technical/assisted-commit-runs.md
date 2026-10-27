@@ -38,6 +38,8 @@ than additional feature machinery inside AppStore:
 | `readers.ts` | Associated status/diff readers, manual consumption, deferred refresh/history and settlement |
 | `dialogs.ts` | Assisted consent and the shared owner-aware native hook-failure queue |
 | `recovery.ts` | Composed recovery functions over those owners; no second run or capability registry |
+| `push.ts` | Frozen destination, native push continuation, publication and push-only retry |
+| `push-ownership.ts` | Original-owner and alias fences shared by accepted readers and recovery |
 
 ```mermaid
 flowchart TB
@@ -75,18 +77,21 @@ import graph. Dashed links represent shared lifecycle services.
 
 AppStore retains existing repository cache publication, conflict/menu updates,
 ordinary operations and Dispatcher entrypoints. Its repository port supplies
-only existing refresh, full refresh, History loading and commit-stat recording
-operations. A current configuration reader, the shared model resolver and
+only existing refresh, full refresh, History loading, commit/push-stat recording
+and the shared native push pipeline. A current configuration reader, the shared model resolver and
 synchronous change/error notifications complete the integration. No owner
 receives AppStore or accesses its private members. Native engine capabilities
 remain the same objects throughout execution, cleanup and retry; extracting
 ownership does not serialize, copy or reconstruct them.
 
-The local acceptance method finalizes the verified native result synchronously
-after the last cancellation/authorization check. A continuation such as push
-belongs after that boundary, not inside selection reconciliation or error
-recovery. Accepted bookkeeping and optional presentation still settle through
-the feature owner even when an observer throws.
+Local-only acceptance finalizes the verified native result synchronously
+after the last cancellation/authorization check. Optional push keeps that result
+reversible throughout preparation and finalizes it only inside the synchronous
+native before-mutation fence, immediately before the remote attempt. It never
+accepts merely because the executor returned. Accepted bookkeeping clears full
+rollback and cleanup-only authority together; push-only retry cannot regain
+either capability. Refresh, associated readers and presentation still settle
+through their feature owners even when an observer throws.
 
 RepositoryStateCache reconciles assisted state by database ID, independently of
 the repository's metadata hash. An alias or refreshed GitHub metadata must not

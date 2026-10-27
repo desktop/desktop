@@ -99,7 +99,7 @@ describe('AppStore assisted push with real local remotes', () => {
         }
       )
       t.after(async () => {
-        const run = h.appStore['assistedCommitRuns'].get(repository.id)
+        const run = h.assisted.state['runs'].get(repository.id)
         run?.lease?.release()
         run?.resourceProtection?.release()
         if (directory !== '') {
@@ -111,7 +111,7 @@ describe('AppStore assisted push with real local remotes', () => {
         h.request(repository)
       )
       assert.ok(outcome.kind === 'error')
-      const run = h.appStore['assistedCommitRuns'].get(repository.id)
+      const run = h.assisted.state['runs'].get(repository.id)
       assert.ok(run)
       assert.strictEqual(run.snapshot, undefined)
       assert.strictEqual(run.result, undefined)
@@ -187,9 +187,9 @@ describe('AppStore assisted push with real local remotes', () => {
       h.propose.mock.mockImplementation(async (_account, analysis) =>
         splitResponse(analysis)
       )
-      const progress = h.appStore['onAssistedCommitProgress'].bind(h.appStore)
+      const progress = h.assisted.context['progress'].bind(h.assisted.context)
       let changed = false
-      h.appStore['onAssistedCommitProgress'] = async (run, value) => {
+      h.assisted.context['progress'] = async (run, value) => {
         progress(run, value)
         if (value.kind === 'committing' && value.index === 1) {
           assert.strictEqual(await count(source), 2)
@@ -1364,7 +1364,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await h.dispatcher.changeIncludeAllFiles(repository, false)
     h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
     h.dispatcher.setPushAfterAssistedCommit(repository, true)
-    h.appStore['assistedCommitDisclaimerLastSeen'] = null
+    h.assisted.dialogs['lastConsent'] = null
     const draft = {
       ...DefaultCommitMessage,
       summary: 'Manual title',
@@ -1600,7 +1600,7 @@ describe('AppStore assisted push with real local remotes', () => {
     assert.ok(state.kind === 'error')
     assert.strictEqual(state.retry, 'refresh')
     assert.strictEqual(
-      h.appStore['assistedCommitRuns'].get(repository.id)?.recoveryCapability,
+      h.assisted.state['runs'].get(repository.id)?.recoveryCapability,
       undefined
     )
     assert.strictEqual(

@@ -2021,7 +2021,7 @@ describe('assisted native push boundary', () => {
     assert.ok(state.kind === 'error')
     assert.strictEqual(state.retry, 'refresh')
     assert.strictEqual(
-      h.appStore['assistedCommitRuns'].get(repository.id)?.lease,
+      h.assisted.state['runs'].get(repository.id)?.lease,
       undefined
     )
     assert.strictEqual((await FileSystem.lstat(lock)).isFile(), true)
@@ -2580,10 +2580,8 @@ describe('assisted native push boundary', () => {
       }
       emit()
     }
-    const finish = h.appStore['finishAssistedCommitSelectionReads'].bind(
-      h.appStore
-    )
-    h.appStore['finishAssistedCommitSelectionReads'] = async run => {
+    const finish = h.assisted.readers['finish'].bind(h.assisted.readers)
+    h.assisted.readers['finish'] = async run => {
       if (run.pushSucceeded && !injected) {
         injected = true
         beforeImageRead = async () => {
@@ -2793,7 +2791,7 @@ describe('assisted native push boundary', () => {
         assert.strictEqual(pushArguments.length, 1)
         assert.strictEqual(h.propose.mock.callCount(), 1)
         assert.strictEqual(
-          h.appStore['assistedCommitSelectionReaders'].has(repository.id),
+          h.assisted.state['selectionReaders'].has(repository.id),
           false
         )
       } finally {
@@ -2841,10 +2839,7 @@ describe('assisted native push boundary', () => {
     const parked = `${source.path}-original`
     let moved = false
     const subscription = h.appStore.onDidUpdate(() => {
-      if (
-        !moved &&
-        h.appStore['assistedCommitSelectionReaders'].has(repository.id)
-      ) {
+      if (!moved && h.assisted.state['selectionReaders'].has(repository.id)) {
         FileSystemSync.renameSync(source.path, parked)
         FileSystemSync.symlinkSync(foreign.path, source.path, 'junction')
         moved = true
@@ -2873,7 +2868,7 @@ describe('assisted native push boundary', () => {
         'Registered reader waited on foreign lease'
       )
       assert.strictEqual(
-        h.appStore['assistedCommitSelectionReaders'].has(repository.id),
+        h.assisted.state['selectionReaders'].has(repository.id),
         false
       )
       assert.strictEqual(await remote.tip(), outcome.result.head.sha)
@@ -3013,10 +3008,7 @@ describe('assisted native push boundary', () => {
       )
       const accepted = await fixtures.tip(source)
       h.dispatcher.changeCommitSelection(repository, [accepted], true)
-      h.appStore['deferredAssistedCommitHistorySelections'].set(
-        repository.id,
-        repository
-      )
+      h.assisted.readers['deferredHistory'].set(repository.id, repository)
       await FileSystem.unlink(alias)
       await FileSystem.symlink(replacement.path, alias, 'junction')
       retargetedAt = allExecutions.length
@@ -3040,7 +3032,7 @@ describe('assisted native push boundary', () => {
       false
     )
     assert.strictEqual(
-      h.appStore['deferredAssistedCommitHistorySelections'].has(repository.id),
+      h.assisted.readers['deferredHistory'].has(repository.id),
       false
     )
     assert.strictEqual(await remote.tip(), outcome.result.head.sha)
@@ -3064,12 +3056,12 @@ describe('assisted native push boundary', () => {
       })
       let injected = false
       if (phase === 'deferred refresh') {
-        const update = h.appStore['setAssistedCommitRunState'].bind(h.appStore)
-        h.appStore['setAssistedCommitRunState'] = (run, state) => {
+        const update = h.assisted.state['set'].bind(h.assisted.state)
+        h.assisted.state['set'] = (run, state) => {
           update(run, state)
           if (run.pushSucceeded && state.kind === 'idle' && !injected) {
             injected = true
-            h.appStore['deferredAssistedCommitRefreshes'].set(
+            h.assisted.readers['deferredRefreshes'].set(
               repository.id,
               repository
             )
@@ -3077,18 +3069,12 @@ describe('assisted native push boundary', () => {
           }
         }
       } else {
-        const finish = h.appStore['finishAssistedCommitSelectionReads'].bind(
-          h.appStore
-        )
-        h.appStore['finishAssistedCommitSelectionReads'] = async run => {
+        const finish = h.assisted.readers['finish'].bind(h.assisted.readers)
+        h.assisted.readers['finish'] = async run => {
           await finish(run)
           if (run.pushSucceeded && !injected) {
             injected = true
-            h.appStore['invalidateAssistedCommitSelection'](
-              repository,
-              run,
-              failure
-            )
+            h.assisted.readers['invalidate'](repository, run, failure)
           }
         }
       }
@@ -3151,18 +3137,15 @@ describe('assisted native push boundary', () => {
         { code: 'EIO' }
       )
       let queued = false
-      const update = h.appStore['setAssistedCommitRunState'].bind(h.appStore)
-      h.appStore['setAssistedCommitRunState'] = (run, state) => {
+      const update = h.assisted.state['set'].bind(h.assisted.state)
+      h.assisted.state['set'] = (run, state) => {
         update(run, state)
         if (run.pushSucceeded && state.kind === 'idle' && !queued) {
           queued = true
           const sha = run.result?.head.sha
           assert.ok(sha !== undefined && sha !== null)
           h.dispatcher.changeCommitSelection(repository, [sha], true)
-          h.appStore['deferredAssistedCommitHistorySelections'].set(
-            repository.id,
-            repository
-          )
+          h.assisted.readers['deferredHistory'].set(repository.id, repository)
           historyFailure = failure
         }
       }
@@ -3224,8 +3207,8 @@ describe('assisted native push boundary', () => {
     let before = h.state(repository).commitSelection.changesetData
     let retargeted = false
     let queued = false
-    const update = h.appStore['setAssistedCommitRunState'].bind(h.appStore)
-    h.appStore['setAssistedCommitRunState'] = (run, state) => {
+    const update = h.assisted.state['set'].bind(h.assisted.state)
+    h.assisted.state['set'] = (run, state) => {
       update(run, state)
       if (run.pushSucceeded && state.kind === 'idle' && !queued) {
         queued = true
@@ -3233,10 +3216,7 @@ describe('assisted native push boundary', () => {
         assert.ok(sha !== undefined && sha !== null)
         h.dispatcher.changeCommitSelection(repository, [sha], true)
         before = h.state(repository).commitSelection.changesetData
-        h.appStore['deferredAssistedCommitHistorySelections'].set(
-          repository.id,
-          repository
-        )
+        h.assisted.readers['deferredHistory'].set(repository.id, repository)
         afterHistoryRead = async () => {
           afterHistoryRead = undefined
           await FileSystem.unlink(alias)
@@ -3345,10 +3325,7 @@ describe('assisted native push boundary', () => {
     assert.ok(state.kind === 'push-error')
     afterPush = async () => {
       afterPush = undefined
-      h.appStore['deferredAssistedCommitRefreshes'].set(
-        repository.id,
-        requested
-      )
+      h.assisted.readers['deferredRefreshes'].set(repository.id, requested)
       await FileSystem.unlink(alias)
       await FileSystem.symlink(replacement.path, alias, 'junction')
     }
