@@ -12,6 +12,7 @@ import {
 import { AssistedCommitSelection } from './selection'
 import { AssistedCommitState } from './state'
 import { IAssistedCommitRun } from './types'
+import { verifyRepositoryGitSpawnFence } from '../git/repository-operation'
 
 /** Result of verifying and installing the current display diff. */
 export type SelectionDisplayResult =
@@ -232,6 +233,7 @@ export async function updateWorkingDirectorySelectionDiff(
 
   const newSelection =
     currentlySelectedFile.selection.withSelectableLines(selectableLines)
+  verifyRepositoryGitSpawnFence()
   selections.inheritDisplaySelection(newSelection, basis, retainedBasis)
   cache.updateChangesState(repository, latest => {
     const unchanged = {

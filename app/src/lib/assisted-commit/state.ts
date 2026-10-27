@@ -1,3 +1,4 @@
+import { AssistedCommitPushError } from '../git/assisted-commit-push'
 import {
   AssistedCommitRunState,
   isAssistedCommitRepositoryLocked,
@@ -83,6 +84,14 @@ export class AssistedCommitState {
     notify: boolean = true
   ): ErrorWithMetadata {
     const existing = this.cache.get(run.repository).changesState.assistedCommit
+    if (existing.kind === 'push-error' && run.finalized) {
+      return this.failPush(
+        run,
+        new Error(existing.error.message, {
+          cause: new AggregateError([existing.error, error]),
+        })
+      )
+    }
     const preserved =
       existing.kind !== 'error'
         ? error
@@ -109,7 +118,16 @@ export class AssistedCommitState {
       runId: run.id,
       error: metadata,
       recovery: run.recovery,
-      retry,
+      pushed: run.pushSucceeded === true,
+      retry: run.pushPublicationPending
+        ? 'refresh'
+        : run.finalized &&
+          assistedCommitErrorCauses(error).some(
+            cause =>
+              cause instanceof AssistedCommitPushError && cause.publicationStale
+          )
+        ? null
+        : retry,
       selectionNeedsReview,
       settling: !run.finished,
     }
@@ -127,7 +145,11 @@ export class AssistedCommitState {
   public updateErrorSettlement(repository: Repository): void {
     const run = this.runs.get(repository.id)
     const state = this.cache.get(repository).changesState.assistedCommit
-    if (run !== undefined && state.kind === 'error' && state.runId === run.id) {
+    if (
+      run !== undefined &&
+      (state.kind === 'error' || state.kind === 'push-error') &&
+      state.runId === run.id
+    ) {
       this.cache.updateChangesState(repository, () => ({
         assistedCommit: {
           ...state,
@@ -156,10 +178,19 @@ export class AssistedCommitState {
 
   /** Extend physical protection without a gap between old and new dependencies. */
   public protect(run: IAssistedCommitRun, paths: ReadonlyArray<string>): void {
-    run.protectedPaths = [...new Set([...(run.protectedPaths ?? []), ...paths])]
+    run.protectedPaths = [
+      ...new Set([
+        ...(run.protectedPaths ?? []),
+        ...paths,
+        ...(run.pushDestination?.kind === 'configured'
+          ? run.pushDestination.admissionPaths
+          : []),
+      ]),
+    ]
     const protection = protectAssistedCommitResources(
       run.repository.path,
-      run.protectedPaths
+      run.protectedPaths,
+      run.originalResourceProtection
     )
     run.resourceProtection?.release()
     run.resourceProtection = protection
@@ -237,6 +268,8 @@ export class AssistedCommitState {
       run.finalized ||
       state.kind === 'idle' ||
       state.kind === 'error' ||
+      state.kind === 'push-error' ||
+      state.kind === 'pushing' ||
       state.kind === 'rolling-back' ||
       state.kind === 'refreshing' ||
       state.kind === 'closing' ||
@@ -267,5 +300,58 @@ export class AssistedCommitState {
         }
       }
     }
+  }
+  /** Preserve actual push errors without converting accepted history into rollback. */
+  public failPush(run: IAssistedCommitRun, error: unknown): ErrorWithMetadata {
+    const existing = this.cache.get(run.repository).changesState.assistedCommit
+    const cause =
+      existing.kind === 'push-error' &&
+      !assistedCommitErrorCauses(error).includes(existing.error)
+        ? new AggregateError([existing.error, error])
+        : error
+    const failure =
+      cause === error && error instanceof Error
+        ? error
+        : new Error(error instanceof Error ? error.message : 'Push failed', {
+            cause,
+          })
+    const metadata = new ErrorWithMetadata(failure, {
+      repository: run.repository,
+    })
+    log.error('Assisted commit push failed; local commits were kept', metadata)
+    this.cache.updateChangesState(run.repository, () => ({
+      assistedCommit: {
+        kind: 'push-error',
+        runId: run.id,
+        error: metadata,
+        attempted: run.pushAttempted === true,
+        settling: !run.finished,
+      },
+    }))
+    this.events.changed()
+    return metadata
+  }
+  /** Retire reversible capabilities synchronously at verified acceptance. */
+  public accept(
+    run: IAssistedCommitRun,
+    assistedCommit: AssistedCommitRunState
+  ): void {
+    run.finalized = true
+    run.recoveryCapability = undefined
+    run.recovery = undefined
+    run.cleanupPending = false
+    run.cleanupToken = undefined
+    this.cache.update(run.repository, state => ({
+      ...state,
+      allowEmptyCommit: false,
+      changesState: {
+        ...state.changesState,
+        assistedCommit,
+        fileListFilter: {
+          ...state.changesState.fileListFilter,
+          filterText: '',
+        },
+      },
+    }))
   }
 }

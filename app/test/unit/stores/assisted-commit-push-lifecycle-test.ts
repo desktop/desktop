@@ -417,10 +417,7 @@ describe('assisted push lifecycle ownership', () => {
       h.state(repository).changesState.assistedCommit.kind,
       'idle'
     )
-    assert.strictEqual(
-      h.appStore['assistedCommitRuns'].has(repository.id),
-      false
-    )
+    assert.strictEqual(h.assisted.state['runs'].has(repository.id), false)
     assert.strictEqual(await count(repository), 2)
     assert.strictEqual(h.propose.mock.callCount(), 1)
   })
