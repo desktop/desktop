@@ -180,6 +180,11 @@ including Windows drive roots, while retaining canonical case normalization.
 Clone operations reserve their destination before preparatory Git/auth/progress
 work and retain canonical protection through recursive checkout. Clone dialogs
 disable affected destinations and revalidate after remote-info waits.
+Local-path and `file://` clone sources also retain read operations through the
+complete clone, including their physical aliases, shared metadata and peer
+worktrees. They wait for an assisted source run to settle rather than copying
+transient commits that may be rolled back. Network and scp transports retain
+Git's existing transport selection.
 Native clone subprocess ownership derives from its explicit destination, not
 the application's execution cwd. Relative destinations follow native cwd
 resolution, and unrelated clones remain independent of an assisted checkout

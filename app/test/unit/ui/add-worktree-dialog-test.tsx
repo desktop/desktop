@@ -32,7 +32,9 @@ describe('add worktree dialog settlement', () => {
         initialWorktreeName="new-worktree"
         allBranches={[]}
         onDismissed={() => {
-          creatingAtDismiss = component.state.creating
+          const current = ref.current
+          assert.ok(current)
+          creatingAtDismiss = current.state.creating
           view.unmount()
           updatesAtUnmount = updates.mock.callCount()
         }}
