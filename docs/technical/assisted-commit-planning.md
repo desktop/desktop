@@ -1,9 +1,11 @@
 # Assisted commit planning
 
-This is the third backend layer of plan-first assisted commits. The sidebar's
-execution gate remains dormant. There is no assisted UI execution callback,
-commit-message draft update, commit, push, consent UI or run lifecycle here.
-Ordinary message generation keeps its existing prompt and behavior.
+The assisted commit planner consumes frozen selected-only analysis, proposes
+commit groups and messages, and validates the complete plan before execution.
+The [AppStore run integration](assisted-commit-runs.md) owns the application
+workflow, consent and optional push; the
+[transaction engine](assisted-commit-transactions.md) owns Git execution and
+recovery. Ordinary message generation uses a separate prompt and request path.
 
 ## Public contracts
 
@@ -55,9 +57,9 @@ only necessary linked grouping, not collapse of every independent feature
 because it shares a path. It cannot change snapshot granularity or divide IDs.
 One commit remains correct for a single purpose or unavoidable indivisibility.
 Whole-selection fallback omits partitioning reasons and still requires one
-fresh message covering all selected units. Schema, ownership and validation
-rules are unchanged. Synthetic tests verify this prompt contract and complete
-input preservation, not measured model grouping quality.
+fresh message covering all selected units. Both modes enforce the same schema,
+ownership and validation rules. Synthetic tests verify this prompt contract and
+complete input preservation, not measured model grouping quality.
 
 ## Outcomes and the only fallback
 
@@ -182,15 +184,16 @@ defaults. The planner omits the obsolete `remoteSession` option: SDK 1.0.18
 documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
 exposes that option. No replacement remote/export policy is emulated.
 
-Callers reuse the existing commit-message feature's account selection,
-organization entitlement gate, consent and model preference. No new picker or
-persisted preference is added. Explicit built-in model IDs remain unchanged
-when metadata is unavailable; planning borrows already cached metadata and never
-starts an unowned shared-cache fetch. Built-in models, including `auto`, leave
+Callers share the commit-message feature's account selection, organization
+entitlement gate and model preference; AppStore owns assisted consent.
+Model selection uses the same picker and persisted preference.
+Explicit built-in model IDs are retained when metadata is unavailable; planning
+borrows already cached metadata and never starts an unowned shared-cache fetch.
+Built-in models, including `auto`, leave
 reasoning effort undefined so the SDK/model default applies, rather than selecting
 the lowest supported effort. BYOK model, provider and explicit effort pass through
 unchanged; an absent BYOK effort also retains the SDK/provider default. Ordinary
-commit-message generation keeps its existing lowest-effort behavior.
+commit-message generation uses the lowest supported effort.
 Configured timeouts must be finite, positive and within the runtime timer range,
 otherwise they fail explicitly.
 
@@ -231,7 +234,7 @@ directory to clean up. Any client/session cleanup failure stays visible.
 The caller must keep using `withAssistedCommitSnapshot` for snapshot resource
 cleanup. The planner never assumes ownership of it.
 
-## Layer 4 integration
+## Run orchestration
 
 Apply existing account eligibility and consent **before** capture or any model
 request, resolve the existing commit-message model selection, and pause
@@ -270,7 +273,7 @@ const result = await withAssistedCommitSnapshot(
             options
           )
 
-    // Only the later execution/integration layer may call this.
+    // The execution owner consumes the checked plan inside the snapshot scope.
     return executeAssistedCommitPlan(snapshot, checked, options)
   },
   options
@@ -285,7 +288,9 @@ if (options.signal?.aborted) {
 
 Allow-empty must bypass **all model analysis** with an explicit caller title.
 Non-empty planner invocation rejects empty analysis even if an integration
-accidentally calls it. Keep commit-progress/hook controls, selected-content
-checks, visible errors, cancellation, result finalization/rollback and eventual
-push/retry in their owning layers. Do not turn a checked plan into a JSON
-capability or execute it outside the active snapshot scope.
+accidentally calls it. The [transaction engine](assisted-commit-transactions.md)
+owns commit progress, hook callbacks and selected-content checks.
+[AppStore](assisted-commit-runs.md) coordinates their UI controls, visible errors,
+cancellation, result acceptance/rollback and optional push/retry.
+Do not turn a checked plan into a JSON capability or execute it outside the
+active snapshot scope.

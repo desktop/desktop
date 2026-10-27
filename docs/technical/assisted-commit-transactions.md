@@ -1,10 +1,10 @@
 # Assisted commit transactions
 
-This is the backend engine for plan-first assisted commits. It does not itself
-invoke Copilot, wire a UI callback, or push. The
-[AppStore run integration](assisted-commit-runs.md) owns the real Changes action,
-consent, Git reader coordination, cancellation and local acceptance.
-Manual commits keep their existing behavior.
+The transaction engine captures selected content, validates plans, executes
+local commits and recovers owned history, index and temporary resources.
+The [AppStore run integration](assisted-commit-runs.md) owns the Changes action,
+consent, Git reader coordination, cancellation, local acceptance and optional
+push. Manual commits use a separate execution path.
 The separate [assisted commit planner](assisted-commit-planning.md) proposes
 snapshot-only messages and groups, and returns this engine's checked capability
 after full validation. It does not execute the capability.
@@ -90,7 +90,8 @@ intent and never uses a recovery token.
 
 Execution consumes the accepted snapshot and removes its private files. The
 opaque result retains an in-memory original-index backup for cancellation after
-the last local commit but before a future push. `rollbackAssistedCommitTransaction`
+the last local commit but before local acceptance or native push entry.
+`rollbackAssistedCommitTransaction`
 rechecks ownership and restores only this run. `verifyAssistedCommitTransaction`
 rechecks retained success after caller-owned awaited steps, including selected
 bytes and the installed index. `finalizeAssistedCommitTransaction`
