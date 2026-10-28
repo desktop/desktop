@@ -393,6 +393,11 @@ External ref/index changes are never overwritten to manufacture ready state.
 If rollback succeeded but status/selection reconciliation failed, the error
 instead offers Retry refresh and retains the original cause; cancellation cannot
 suppress that independent failure.
+After verified rollback and cleanup, Retry refresh reconciles against the current
+HEAD, not a requirement to return to the original branch. If the branch or commit
+has changed, original selections remain unchecked and require review. HEAD must
+remain stable throughout reconciliation. Unresolved native recovery still retains
+its original history fence and capability.
 Unreconciled refresh errors still lock new commits and cannot be dismissed to
 reuse stale selections. Metadata-hash transfers redirect old and current cache
 representations to reconciled content while preserving draft inputs.
