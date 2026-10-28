@@ -121,7 +121,14 @@ export function createAssistedCommitRecovery(
     error: unknown
   ): Promise<boolean> {
     await recovery.refresh(run.repository, false)
-    return selections.restore(run)
+    const rollbackComplete =
+      run.recovery !== undefined &&
+      run.recovery.history !== 'interfered' &&
+      run.recovery.index !== 'interfered' &&
+      run.recovery.errors.length === 0 &&
+      run.recoveryCapability === undefined &&
+      !run.cleanupPending
+    return selections.restore(run, rollbackComplete ? 'current' : 'original')
   }
 
   /** Retry full recovery before cleanup-only capabilities, preserving original causes. */

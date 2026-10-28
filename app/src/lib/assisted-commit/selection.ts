@@ -379,12 +379,16 @@ export class AssistedCommitSelection {
   }
 
   /** Reconcile original selected changes against verified current files and history. */
-  public async restore(run: IAssistedCommitSelectionSource): Promise<boolean> {
+  public async restore(
+    run: IAssistedCommitSelectionSource,
+    history: 'original' | 'current' = 'original'
+  ): Promise<boolean> {
     const current = this.cache.get(run.repository)
     const tip = current.branchesState.tip
     const snapshot = run.snapshotAuthorized === true ? run.snapshot : undefined
     const currentHead =
-      run.recovery === undefined && run.result === undefined
+      history === 'current' ||
+      (run.recovery === undefined && run.result === undefined)
         ? await readAssistedCommitHead(run.repository)
         : undefined
     const sameHead =

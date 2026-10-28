@@ -50,6 +50,7 @@ import { UncommittedChangesStrategy } from '../../../src/models/uncommitted-chan
 import { clone } from '../../../src/lib/git/clone'
 import { StatsStore } from '../../../src/lib/stats'
 import { isolateGitConfig } from '../../helpers/git-config'
+import { AssistedCommitError } from '../../../src/lib/git/assisted-commit'
 
 async function partialSelectionFixture(
   t: TestContext,
@@ -98,7 +99,148 @@ async function configurePrefixTextconv(t: TestContext, repository: Repository) {
   await writeFile(join(repository.path, '.gitattributes'), 'file diff=prefix\n')
 }
 
+async function rolledBackRefreshFixture(t: TestContext) {
+  const { h, repository } = await partialSelectionFixture(t)
+  const originalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
+  const originalIndex = await optionalBytes(await indexPath(repository))
+  const refresh = h.assisted.recovery.refresh.bind(h.assisted.recovery)
+  let failedRefresh = false
+  t.mock.method(
+    h.assisted.recovery,
+    'refresh',
+    async (...args: Parameters<typeof refresh>) => {
+      const [repo, afterSuccess] = args
+      if (afterSuccess) {
+        h.cancel(repository)
+        throw new AssistedCommitError(
+          'cancelled',
+          'Cancelled before acceptance'
+        )
+      }
+      if (!failedRefresh) {
+        failedRefresh = true
+        throw new Error('Transient post-rollback status failure')
+      }
+      return refresh(repo, afterSuccess)
+    }
+  )
+  await h.dispatcher.createCopilotAssistedCommits(
+    repository,
+    h.request(repository)
+  )
+  const state = h.state(repository).changesState.assistedCommit
+  assert.ok(state.kind === 'error' && state.retry === 'refresh')
+  const run = h.assisted.state.runs.get(repository.id)
+  assert.ok(run?.finished && run.result !== undefined)
+  assert.strictEqual(run.recovery?.history, 'restored')
+  assert.strictEqual(run.recovery?.index, 'restored')
+  assert.strictEqual(run.recoveryCapability, undefined)
+  assert.strictEqual(run.cleanupPending, false)
+  assert.strictEqual(run.lease, undefined)
+  assert.strictEqual(
+    await rawGit(repository, ['rev-parse', 'HEAD']),
+    originalHead
+  )
+  assert.deepStrictEqual(
+    await optionalBytes(await indexPath(repository)),
+    originalIndex
+  )
+  return { h, repository, state, run }
+}
+
 describe('assisted run hostile review regressions', () => {
+  for (const change of ['branch', 'commit'] as const) {
+    it(`settles refresh-only recovery after completed rollback and an external ${change}`, async t => {
+      const { h, repository, state, run } = await rolledBackRefreshFixture(t)
+      const workingBytes = await optionalBytes(join(repository.path, 'file'))
+      if (change === 'branch') {
+        await rawGit(repository, ['switch', '-c', 'external-branch'])
+      } else {
+        await rawGit(repository, [
+          'commit',
+          '--allow-empty',
+          '-m',
+          'External commit',
+        ])
+      }
+      const externalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
+      await h.dispatcher.retryCopilotAssistedCommitRecovery(
+        repository,
+        state.runId
+      )
+      const settled = h.state(repository).changesState.assistedCommit
+      assert.ok(settled.kind === 'error' && settled.retry === null)
+      assert.strictEqual(settled.selectionNeedsReview, true)
+      assert.strictEqual(run.resourceProtection, undefined)
+      assert.doesNotThrow(() => h.assisted.state.assertAvailable(repository))
+      assert.ok(
+        h
+          .state(repository)
+          .changesState.workingDirectory.files.every(
+            file => file.selection.getSelectionType() === DiffSelectionType.None
+          )
+      )
+      assert.strictEqual(
+        await rawGit(repository, ['rev-parse', 'HEAD']),
+        externalHead
+      )
+      assert.deepStrictEqual(
+        await optionalBytes(join(repository.path, 'file')),
+        workingBytes
+      )
+      assert.strictEqual(h.propose.mock.callCount(), 1)
+      assert.strictEqual(h.commits.mock.callCount(), 0)
+      h.dispatcher.dismissCopilotAssistedCommitError(repository, state.runId)
+      assert.strictEqual(
+        h.state(repository).changesState.assistedCommit.kind,
+        'idle'
+      )
+    })
+  }
+
+  it('still rejects HEAD changing during refresh-only reconciliation after rollback', async t => {
+    const { h, repository, state, run } = await rolledBackRefreshFixture(t)
+    const getDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let changed = false
+    t.mock.method(
+      h.assisted.selections,
+      'getRecoveryDiff',
+      async (...args: Parameters<typeof getDiff>) => {
+        const diff = await getDiff(...args)
+        if (!changed) {
+          changed = true
+          await rawGit(repository, ['switch', '-c', 'during-reconciliation'])
+        }
+        return diff
+      }
+    )
+    await h.dispatcher.retryCopilotAssistedCommitRecovery(
+      repository,
+      state.runId
+    )
+    const failed = h.state(repository).changesState.assistedCommit
+    assert.ok(failed.kind === 'error' && failed.retry === 'refresh')
+    assert.ok(
+      assistedCommitErrorCauses(failed.error).some(
+        error =>
+          error instanceof AssistedCommitError &&
+          error.code === 'repository-changed'
+      )
+    )
+    assert.ok(run.resourceProtection !== undefined)
+    assert.throws(() => h.assisted.state.assertAvailable(repository))
+    await h.dispatcher.retryCopilotAssistedCommitRecovery(
+      repository,
+      state.runId
+    )
+    const settled = h.state(repository).changesState.assistedCommit
+    assert.ok(settled.kind === 'error' && settled.retry === null)
+    assert.strictEqual(settled.selectionNeedsReview, true)
+    assert.strictEqual(run.resourceProtection, undefined)
+  })
+
   it('rejects an initial partial mask whose new middle hunk predates the first assisted click', async t => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
     const changed = [...current]
