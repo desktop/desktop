@@ -63,6 +63,39 @@ describe('RepositoryListItem', () => {
     assert.equal(aheadBehind?.querySelectorAll('svg').length, 2)
   })
 
+  it('updates the changes indicator when the number of changed files changes', () => {
+    const repository = createRepository()
+    const view = render(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+      />
+    )
+
+    assert.equal(
+      view.container.querySelector('.change-indicator-wrapper'),
+      null
+    )
+
+    view.rerender(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={1}
+      />
+    )
+
+    assert.notEqual(
+      view.container.querySelector('.change-indicator-wrapper'),
+      null
+    )
+  })
+
   it('renders owner prefix and alias when disambiguation is required', () => {
     const repository = createRepository('desktop-app')
     const view = render(
