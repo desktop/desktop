@@ -2,6 +2,11 @@
 
 This repository contains GitHub Desktop, an open-source Electron-based GitHub application written in TypeScript and React.
 
+## Agent workflow
+
+Also follow the root [AGENTS.md](../AGENTS.md), including the shared
+PR-preparation skill.
+
 ## Technology Stack
 
 - **Language**: TypeScript (strict mode enabled)
