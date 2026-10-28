@@ -1,3 +1,4 @@
+import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
 import { afterEach, beforeEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
@@ -11,7 +12,7 @@ import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { isGitError } from '../../../src/lib/git/core'
-import { mkdir, realpath, symlink, writeFile } from 'fs/promises'
+import { mkdir, realpath, symlink, writeFile, unlink } from 'fs/promises'
 import {
   acquireAssistedCommitGitLease,
   getAssistedCommitProtectedPaths,
@@ -23,8 +24,19 @@ import {
 } from '../../../src/lib/git/repository-operation'
 import { rollbackAssistedCommitTransaction } from '../../../src/lib/git/assisted-commit'
 import { Repository } from '../../../src/models/repository'
-import { rawGit, request, single, tip } from '../../helpers/assisted-commit'
-import { deferred } from '../../helpers/copilot-assisted-commit'
+import {
+  rawGit,
+  request,
+  single,
+  tip,
+  seed,
+  optionalBytes,
+  count,
+} from '../../helpers/assisted-commit'
+import {
+  deferred,
+  wholeSelectionResponse,
+} from '../../helpers/copilot-assisted-commit'
 
 async function createEmptyBareRepository(
   t: import('node:test').TestContext
@@ -716,5 +728,72 @@ describe('git/clone', () => {
         return true
       }
     )
+  })
+})
+
+describe('clone destination admission during assisted runs', () => {
+  it('rejects native clone checkout into protected selected working files', async t => {
+    const source = await seed(t, { file: 'Clone replacement\n' })
+    const target = await seed(t, { 'nested/file': 'Selected deletion\n' })
+    await unlink(path.join(target.path, 'nested/file'))
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(target)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      entered.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await entered.promise
+    try {
+      await assert.rejects(
+        clone(source.path, path.join(repository.path, 'nested'), {
+          defaultBranch: 'main',
+        }),
+        /assisted commit run/
+      )
+    } finally {
+      h.cancel(repository)
+      finish.resolve()
+      await operation
+    }
+    assert.strictEqual(
+      await optionalBytes(path.join(repository.path, 'nested/file')),
+      null
+    )
+    assert.strictEqual(await count(repository), 1)
+  })
+
+  it('reserves clone destinations before native checkout for reciprocal assisted admission', async t => {
+    const source = await seed(t, { file: 'Clone replacement\n' })
+    const target = await seed(t, { 'nested/file': 'Selected deletion\n' })
+    await unlink(path.join(target.path, 'nested/file'))
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(target)
+    let attempted:
+      | ReturnType<typeof h.dispatcher.createCopilotAssistedCommits>
+      | undefined
+    await clone(
+      source.path,
+      path.join(repository.path, 'nested'),
+      { defaultBranch: 'main' },
+      progress => {
+        if (progress.value === 0 && attempted === undefined) {
+          attempted = h.dispatcher.createCopilotAssistedCommits(
+            repository,
+            h.request(repository)
+          )
+        }
+      }
+    )
+    assert.ok(attempted !== undefined)
+    assert.strictEqual((await attempted).kind, 'busy')
+    assert.strictEqual(h.propose.mock.callCount(), 0)
+    assert.strictEqual(await count(repository), 1)
   })
 })

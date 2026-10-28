@@ -1,3 +1,4 @@
+import { writeFile } from 'fs/promises'
 import assert from 'node:assert'
 import { before, describe, it, mock } from 'node:test'
 import * as FileSystem from 'fs/promises'
@@ -373,5 +374,104 @@ describe('AppStore assisted runs with real hook interception', () => {
     assert.deepStrictEqual(errors, [])
     assert.strictEqual(await fixtures.count(repository), 2)
     assert.strictEqual(h.commits.mock.callCount(), 1)
+  })
+})
+
+describe('assisted and ordinary hook prompt ownership', () => {
+  it('queues ordinary hook failures behind an assisted prompt without losing their resolver', async t => {
+    const source = await fixtures.seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'after\n')
+    const h = await harness.createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const analyzing = models.deferred<void>()
+    const finish = models.deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return models.wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await analyzing.promise
+    try {
+      const run = h.assisted.state['runs'].get(repository.id)
+      assert.ok(run)
+      const assisted = h.assisted.dialogs['requestHookFailure'](
+        run,
+        'assisted-hook',
+        'output'
+      )
+      const ordinary = h.appStore['onHookFailure'](() => {})(
+        'ordinary-hook',
+        'output'
+      )
+      const first = h.appStore['popupManager'].currentPopup
+      assert.ok(first?.type === popupTypes.PopupType.HookFailed)
+      first.resolve('ignore')
+      assert.strictEqual(await assisted, 'ignore')
+      const second = h.appStore['popupManager'].currentPopup
+      assert.ok(
+        second?.type === popupTypes.PopupType.HookFailed &&
+          second.hookName === 'ordinary-hook'
+      )
+      second.resolve('abort')
+      assert.strictEqual(await ordinary, 'abort')
+    } finally {
+      h.cancel(repository)
+      finish.resolve()
+      await operation
+    }
+  })
+
+  it('makes stale hook resolver settlement idempotent without consuming a later prompt', async t => {
+    const source = await fixtures.seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await harness.createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const analyzing = models.deferred<void>()
+    const finish = models.deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return models.wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await analyzing.promise
+    try {
+      const run = h.assisted.state['runs'].get(repository.id)
+      assert.ok(run)
+      const first = h.assisted.dialogs['requestHookFailure'](
+        run,
+        'first',
+        'output'
+      )
+      const popup = h.appStore['popupManager'].currentPopup
+      assert.ok(popup?.type === popupTypes.PopupType.HookFailed)
+      const stale = popup.resolve
+      stale('ignore')
+      assert.strictEqual(await first, 'ignore')
+      const next = h.assisted.dialogs['requestHookFailure'](
+        run,
+        'next',
+        'output'
+      )
+      stale('abort')
+      const current = h.appStore['popupManager'].currentPopup
+      assert.ok(
+        current?.type === popupTypes.PopupType.HookFailed &&
+          current.hookName === 'next'
+      )
+      current.resolve('abort')
+      assert.strictEqual(await next, 'abort')
+    } finally {
+      h.cancel(repository)
+      finish.resolve()
+      await operation
+    }
   })
 })

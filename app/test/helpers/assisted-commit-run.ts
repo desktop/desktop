@@ -1,3 +1,7 @@
+import { seed } from './assisted-commit'
+import { writeFile } from 'fs/promises'
+import { getWorkingDirectoryDiff } from '../../src/lib/git/diff'
+import assert from 'node:assert'
 import { TestContext } from 'node:test'
 import { join } from 'path'
 import { ipcRenderer } from 'electron'
@@ -10,7 +14,7 @@ import { Dispatcher } from '../../src/ui/dispatcher'
 import { StatsStore } from '../../src/lib/stats'
 import { Repository } from '../../src/models/repository'
 import { ICopilotAssistedCommitRequest } from '../../src/models/copilot-assisted-commit'
-import { DiffSelectionType } from '../../src/models/diff'
+import { DiffSelectionType, DiffType } from '../../src/models/diff'
 import { createTestStores } from './app-store-test-harness'
 import { TestStatsDatabase } from './databases/test-stats-database'
 import { TestActivityMonitor } from './test-activity-monitor'
@@ -173,4 +177,38 @@ export async function createAssistedCommitRunHarness(
     state,
     cancel,
   }
+}
+
+/** Create a real two-hunk change with only one hunk selected. */
+export async function partialSelectionFixture(
+  t: TestContext,
+  selectedHunk = 0,
+  whitespaceSuffix = false
+) {
+  const base = Array.from({ length: 60 }, (_, index) => `line ${index + 1}\n`)
+  const source = await seed(t, { file: base.join('') })
+  const current = [...base]
+  current[3] = 'selected prefix\n'
+  current[49] = whitespaceSuffix ? 'line 50    \n' : 'selected suffix\n'
+  await writeFile(join(source.path, 'file'), current.join(''))
+  const h = await createAssistedCommitRunHarness(t)
+  const repository = await h.register(source)
+  const file = h.request(repository).files[0]
+  const diff = await getWorkingDirectoryDiff(repository, file)
+  assert.ok(diff.kind === DiffType.Text && diff.hunks.length === 2)
+  let selection = file.selection
+  for (const [hunkIndex, hunk] of diff.hunks.entries()) {
+    if (hunkIndex !== selectedHunk) {
+      for (const [index, line] of hunk.lines.entries()) {
+        if (line.isIncludeableLine()) {
+          selection = selection.withLineSelection(
+            hunk.unifiedDiffStart + index,
+            false
+          )
+        }
+      }
+    }
+  }
+  await h.dispatcher.changeFileLineSelection(repository, file, selection)
+  return { h, repository, current }
 }
