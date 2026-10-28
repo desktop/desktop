@@ -401,6 +401,9 @@ its original history fence and capability.
 Unreconciled refresh errors still lock new commits and cannot be dismissed to
 reuse stale selections. Metadata-hash transfers redirect old and current cache
 representations to reconciled content while preserving draft inputs.
+Pull request preview is disabled while an assisted run or recovery locks the
+repository. Stale preview requests and file-selection reads are ignored before
+querying Git, including when a physical lease protects an otherwise idle view.
 Restored selections carry a full-HEAD/file-version fence through deferred reads.
 Every pre-capture exit, including Cancel and declined consent, independently
 checks first-click freshness. Settled failures resume ordinary diff readers;
