@@ -4215,7 +4215,7 @@ export class Dispatcher {
   }
 
   public startPullRequest(repository: Repository) {
-    this.appStore._startPullRequest(repository)
+    return this.appStore._startPullRequest(repository)
   }
 
   /**

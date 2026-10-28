@@ -414,6 +414,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       'show-worktrees-list',
       'create-worktree',
       'show-repository-settings',
+      'preview-pull-request',
     ]
     for (const id of disabledIds) {
       menuStateBuilder.disable(id)

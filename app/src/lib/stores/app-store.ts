@@ -106,7 +106,10 @@ import {
   ICommitMessage,
 } from '../../models/commit-message'
 import { CommitMode } from '../../models/commit-mode'
-import { AssistedCommitRunOutcome } from '../../models/assisted-commit-run'
+import {
+  AssistedCommitRunOutcome,
+  isAssistedCommitRepositoryLocked,
+} from '../../models/assisted-commit-run'
 import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
 import {
   assertRepositoryGitAvailable,
@@ -10935,7 +10938,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const currentBranch = tip.branch
-    this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
+    return this._initializePullRequestPreview(
+      repository,
+      defaultBranch,
+      currentBranch
+    )
+  }
+
+  private isPullRequestPreviewBlocked(repository: Repository): boolean {
+    if (
+      isAssistedCommitRepositoryLocked(
+        this.repositoryStateCache.get(repository).changesState.assistedCommit
+      ) ||
+      isRepositoryAffectedByAssistedCommit(repository.path)
+    ) {
+      log.info(
+        'Ignoring pull request preview while an assisted commit run protects the repository'
+      )
+      return true
+    }
+    return false
   }
 
   private async _initializePullRequestPreview(
@@ -10943,6 +10965,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     baseBranch: Branch | null,
     currentBranch: Branch
   ) {
+    if (this.isPullRequestPreviewBlocked(repository)) {
+      return
+    }
     if (baseBranch === null) {
       this.showPullRequestPopupNoBaseBranch(repository, currentBranch)
       return
@@ -11088,6 +11113,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     file: CommittedFileChange
   ): Promise<void> {
+    if (this.isPullRequestPreviewBlocked(repository)) {
+      return
+    }
     const { branchesState, pullRequestState } =
       this.repositoryStateCache.get(repository)
 
