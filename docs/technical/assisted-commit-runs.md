@@ -36,6 +36,40 @@ than additional feature machinery inside AppStore:
 | `dialogs.ts` | Assisted consent and the shared owner-aware native hook-failure queue |
 | `recovery.ts` | Composed recovery functions over those owners; no second run or capability registry |
 
+```mermaid
+flowchart TB
+  App["AppStore<br/>Dispatcher entrypoints, repository cache and UI integration"]
+  C["coordinator.ts<br/>Prepare request, await run, accept local result"]
+
+  App -->|"Delegates assisted operations"| C
+  C -->|"Execute validated plan"| E["execution.ts<br/>Capture, plan, validate and create commits"]
+  C -->|"Reconcile, recover and settle"| R["recovery.ts<br/>Rollback, cleanup and retry"]
+
+  subgraph Services["Feature-owned services"]
+    direction TB
+    S["state.ts<br/>Run identity, UI state and resource ownership"]
+    X["context.ts<br/>Account/model intent, freshness and authorization"]
+    D["dialogs.ts<br/>Consent and native hook-failure queue"]
+    Readers["readers.ts<br/>Status/diff lifetimes and deferred refresh/history"]
+    Selection["selection.ts<br/>Selection certificates and reconciliation"]
+    Display["selection-display.ts<br/>Verified selection display"]
+
+    Readers -->|"Certify and reconcile selections"| Selection
+    Readers -->|"Install verified display diffs"| Display
+  end
+
+  C -.->|"Composes shared owners"| Services
+  E -.->|"Uses shared owners"| Services
+  R -.->|"Uses same owners and capabilities"| Services
+
+  E --> Planner["Constrained Copilot planner"]
+  E --> Git["Native Git transaction engine"]
+  R -->|"Rollback or retry cleanup"| Git
+```
+
+This diagram shows module responsibilities and collaboration, not an exhaustive
+import graph. Dashed links represent shared lifecycle services.
+
 AppStore retains existing repository cache publication, conflict/menu updates,
 ordinary operations and Dispatcher entrypoints. Its repository port supplies
 only existing refresh, full refresh, History loading and commit-stat recording
