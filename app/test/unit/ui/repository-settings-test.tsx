@@ -1,3 +1,4 @@
+import { deferred } from '../../helpers/copilot-assisted-commit'
 import assert from 'node:assert/strict'
 import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
@@ -182,5 +183,45 @@ describe('repository settings Git identity refresh', () => {
     assert.equal(h.dismissed.mock.callCount(), 1)
     assert.equal(h.update.mock.callCount(), 0)
     assert.equal(h.refresh.mock.callCount(), 0)
+  })
+})
+
+describe('repository identity update admission', () => {
+  it('keeps the local identity pair covered until both real config writes finish', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const update = h.appStore['updateRepositoryCommitterValue'].bind(h.appStore)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    h.appStore['updateRepositoryCommitterValue'] = async (...args) => {
+      await update(...args)
+      if (args[1] === 'user.name') {
+        entered.resolve()
+        await finish.promise
+      }
+    }
+    const operation = h.dispatcher.updateRepositoryCommitter(
+      repository,
+      'New local name',
+      'new@example.invalid'
+    )
+    await entered.promise
+    const assisted = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository, { allowEmptyCommit: true })
+    )
+    finish.resolve()
+    await operation
+    assert.strictEqual(assisted.kind, 'busy')
+    assert.strictEqual(
+      await rawGit(repository, ['config', '--local', '--get', 'user.name']),
+      'New local name'
+    )
+    assert.strictEqual(
+      await rawGit(repository, ['config', '--local', '--get', 'user.email']),
+      'new@example.invalid'
+    )
+    assert.strictEqual(h.propose.mock.callCount(), 0)
   })
 })

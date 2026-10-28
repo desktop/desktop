@@ -1,3 +1,5 @@
+import { getCopilotAccountCacheKey } from '../../../src/lib/stores/copilot-store'
+import { TokenStore } from '../../../src/lib/stores/token-store'
 import assert from 'node:assert/strict'
 import { describe, it, TestContext } from 'node:test'
 import { access, readFile, writeFile } from 'fs/promises'
@@ -8,11 +10,18 @@ import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 import { isRepositoryGitMutationInProgress } from '../../../src/lib/git/repository-operation'
 import { TipState } from '../../../src/models/tip'
 import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
-import { count, rawGit, seed } from '../../helpers/assisted-commit'
+import {
+  count,
+  rawGit,
+  seed,
+  optionalBytes,
+  indexPath,
+} from '../../helpers/assisted-commit'
 import {
   deferred,
   splitResponse,
   wholeSelectionResponse,
+  makeCopilotAccount,
 } from '../../helpers/copilot-assisted-commit'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 import { createTempDirectory } from '../../helpers/temp'
@@ -270,5 +279,181 @@ describe('assisted runs on upstream credential and worktree APIs', () => {
       )
     )
     assert.equal(isRepositoryGitMutationInProgress(repository.path), false)
+  })
+})
+
+describe('assisted run account and BYOK authorization', () => {
+  it('expected cancellation does not throw out of account reconciliation', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'after\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await analyzing.promise
+    h.cancel(repository)
+    try {
+      assert.doesNotThrow(() => h.assisted.context['abortUnauthorized']())
+    } finally {
+      finish.resolve()
+      await operation
+    }
+  })
+
+  for (const change of ['deleted', 'changed'] as const) {
+    it(`rejects a prepared BYOK definition that was ${change}, never switching to default`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const provider = {
+        id: 'synthetic-provider',
+        name: 'Synthetic',
+        type: 'openai' as const,
+        baseUrl: 'http://127.0.0.1:1',
+        authKind: 'none' as const,
+        models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+      }
+      h.appStore['byokProviders'] = [provider]
+      h.appStore['selectedCopilotModelsByAccount'] = new Map([
+        [
+          getCopilotAccountCacheKey(makeCopilotAccount()),
+          {
+            'commit-message-generation':
+              'byok:synthetic-provider:synthetic-model',
+          },
+        ],
+      ])
+      const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      h.appStore['byokProviders'] =
+        change === 'deleted'
+          ? []
+          : [{ ...provider, baseUrl: 'http://127.0.0.1:2' }]
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        request
+      )
+      assert.strictEqual(outcome.kind, 'error')
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+      assert.strictEqual(await count(repository), 1)
+    })
+  }
+
+  for (const change of ['definition', 'credential'] as const) {
+    it(`revokes active BYOK analysis after its ${change} changes, without accepting commits`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const provider = {
+        id: 'synthetic-provider',
+        name: 'Synthetic',
+        type: 'openai' as const,
+        baseUrl: 'http://127.0.0.1:1',
+        authKind: 'apiKey' as const,
+        models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+      }
+      t.mock.method(TokenStore, 'getItem', async () => 'synthetic-key')
+      t.mock.method(TokenStore, 'deleteItem', async () => true)
+      h.appStore['byokProviders'] = [provider]
+      h.appStore['selectedCopilotModelsByAccount'] = new Map([
+        [
+          getCopilotAccountCacheKey(makeCopilotAccount()),
+          {
+            'commit-message-generation':
+              'byok:synthetic-provider:synthetic-model',
+          },
+        ],
+      ])
+      const entered = deferred<void>()
+      const finish = deferred<void>()
+      h.propose.mock.mockImplementation(async (_account, analysis) => {
+        entered.resolve()
+        await finish.promise
+        return wholeSelectionResponse(analysis)
+      })
+      const operation = h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      await entered.promise
+      await h.appStore._updateCopilotBYOKProvider(
+        change === 'definition'
+          ? { ...provider, baseUrl: 'http://127.0.0.1:2' }
+          : provider,
+        change === 'credential' ? null : undefined
+      )
+      finish.resolve()
+      const outcome = await operation
+      assert.strictEqual(outcome.kind, 'error')
+      assert.strictEqual(await count(repository), 1)
+    })
+  }
+
+  it('rolls back earlier local commits when their frozen BYOK provider is revoked', async t => {
+    const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+    await writeFile(join(source.path, 'one'), 'selected one\n')
+    await writeFile(join(source.path, 'two'), 'selected two\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const index = await optionalBytes(await indexPath(repository))
+    const provider = {
+      id: 'synthetic-provider',
+      name: 'Synthetic',
+      type: 'openai' as const,
+      baseUrl: 'http://127.0.0.1:1',
+      authKind: 'none' as const,
+      models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+    }
+    h.appStore['byokProviders'] = [provider]
+    h.appStore['selectedCopilotModelsByAccount'] = new Map([
+      [
+        getCopilotAccountCacheKey(makeCopilotAccount()),
+        {
+          'commit-message-generation':
+            'byok:synthetic-provider:synthetic-model',
+        },
+      ],
+    ])
+    h.propose.mock.mockImplementation(async (_account, analysis) =>
+      splitResponse(analysis)
+    )
+    const progress = h.assisted.context['progress'].bind(h.assisted.context)
+    let revoked = false
+    h.assisted.context['progress'] = async (run, step) => {
+      progress(run, step)
+      if (step.kind === 'committing' && step.index === 1) {
+        assert.strictEqual(await count(repository), 2)
+        revoked = true
+        await h.appStore._updateCopilotBYOKProvider(
+          { ...provider, baseUrl: 'http://127.0.0.1:2' },
+          undefined
+        )
+      }
+    }
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(revoked, true)
+    assert.strictEqual(outcome.kind, 'error')
+    assert.strictEqual(await count(repository), 1)
+    assert.deepStrictEqual(
+      await optionalBytes(await indexPath(repository)),
+      index
+    )
+    assert.strictEqual(h.commits.mock.callCount(), 0)
   })
 })

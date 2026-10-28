@@ -1,7 +1,16 @@
+import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
+import {
+  WorkingDirectoryFileChange,
+  AppFileStatusKind,
+} from '../../../src/models/status'
+import { DiffSelection, DiffSelectionType } from '../../../src/models/diff'
+import { TipState } from '../../../src/models/tip'
+import { ipcRenderer } from 'electron'
+import { UncommittedChangesStrategy } from '../../../src/models/uncommitted-changes-strategy'
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
-import { realpath, symlink } from 'fs/promises'
-import { join, parse, resolve } from 'path'
+import { realpath, symlink, writeFile, mkdir, rename } from 'fs/promises'
+import { join, parse, resolve, relative } from 'path'
 import { git } from '../../../src/lib/git/core'
 import {
   acquireAssistedCommitGitLease,
@@ -18,10 +27,20 @@ import {
   withoutRepositoryGitAccess,
   withRepositoryGitDestruction,
   withRepositoryGitOperation,
+  hasRepositoryGitOperationAccess,
 } from '../../../src/lib/git/repository-operation'
 import { AssistedCommitError } from '../../../src/lib/git/assisted-commit'
-import { optionalBytes, rawGit, seed, tip } from '../../helpers/assisted-commit'
-import { deferred } from '../../helpers/copilot-assisted-commit'
+import {
+  optionalBytes,
+  rawGit,
+  seed,
+  tip,
+  count,
+} from '../../helpers/assisted-commit'
+import {
+  deferred,
+  wholeSelectionResponse,
+} from '../../helpers/copilot-assisted-commit'
 import { createTempDirectory } from '../../helpers/temp'
 import { Repository } from '../../../src/models/repository'
 
@@ -398,5 +417,495 @@ describe('assisted repository Git coordination', () => {
         directory
       )
     }
+  })
+})
+
+describe('AppStore assisted repository operation admission', () => {
+  it('terminal chunks, GitStore updates and AppStore errors never grant observer mutation access', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const lease = await acquireAssistedCommitGitLease(repository.path)
+    t.after(() => lease.release())
+    const access: boolean[] = []
+    const gitStore = h.appStore['gitStoreCache'].get(repository)
+    const update = gitStore.onDidUpdate(() =>
+      access.push(hasRepositoryGitOperationAccess(repository.path))
+    )
+    const error = h.appStore.onDidError(() =>
+      access.push(hasRepositoryGitOperationAccess(repository.path))
+    )
+    t.after(() => {
+      update.dispose()
+      error.dispose()
+    })
+    await lease.run(async () => {
+      await git(['rev-parse', 'HEAD'], repository.path, 'terminal-observer', {
+        onTerminalOutputAvailable: subscribe => {
+          subscribe(() =>
+            access.push(hasRepositoryGitOperationAccess(repository.path))
+          )
+        },
+      })
+      gitStore['emitUpdate']()
+      h.appStore['emitError'](new Error('Synthetic observer error'))
+    })
+    assert.ok(access.length >= 3)
+    assert.ok(
+      access.every(value => value === false),
+      JSON.stringify(access)
+    )
+  })
+
+  for (const operation of ['delete', 'move'] as const) {
+    it(`guards the ${operation} target worktree even when invoked through another repository`, async t => {
+      const source = await seed(t, { file: 'source\n' })
+      const target = await seed(t, { file: 'target\n' })
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const lease = await acquireAssistedCommitGitLease(target.path)
+      t.after(() => lease.release())
+      let entered = false
+      h.appStore['deleteWorktreeCore'] = async () => {
+        entered = true
+      }
+      h.appStore['moveWorktreeCore'] = async () => {
+        entered = true
+      }
+      await assert.rejects(
+        operation === 'delete'
+          ? h.appStore._deleteWorktree(repository, target.path, { force: true })
+          : h.appStore._moveWorktree(
+              repository,
+              target.path,
+              `${target.path}-moved`
+            ),
+        /assisted commit run/
+      )
+      assert.strictEqual(entered, false)
+    })
+  }
+
+  it('cannot remove shared main Git metadata while a linked worktree run owns it', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const linked = await createTempDirectory(t)
+    await rawGit(source, ['worktree', 'add', '-b', 'linked', linked])
+    await writeFile(join(linked, 'file'), 'linked selection\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const main = await h.register(source)
+    const target = await h.register(new Repository(linked, -1, null, false))
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      target,
+      h.request(target)
+    )
+    await analyzing.promise
+    let removed = false
+    h.appStore['removeRepositoryCore'] = async () => {
+      removed = true
+    }
+    try {
+      await assert.rejects(
+        h.appStore._removeRepository(main, true),
+        /assisted commit run/
+      )
+      assert.strictEqual(removed, false)
+    } finally {
+      h.cancel(target)
+      finish.resolve()
+      await operation
+    }
+  })
+
+  for (const mutation of ['delete', 'move', 'discard'] as const) {
+    it(`rejects ${mutation} of an ancestor containing a protected active descendant`, async t => {
+      const main = await seed(t, { file: 'main\n' })
+      const ancestor = join(main.path, 'nested')
+      await mkdir(ancestor)
+      const child = await seed(t, { file: 'child\n' })
+      const childPath = join(ancestor, 'nested-repository')
+      await rename(child.path, childPath)
+      await mkdir(child.path)
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(main)
+      const protectedPaths = [childPath]
+      const lease = await acquireAssistedCommitGitLease(
+        childPath,
+        protectedPaths
+      )
+      t.after(() => lease.release())
+      let entered = false
+      h.appStore['deleteWorktreeCore'] = async () => {
+        entered = true
+      }
+      h.appStore['moveWorktreeCore'] = async () => {
+        entered = true
+      }
+      h.appStore['discardChangesCore'] = async () => {
+        entered = true
+      }
+      const targetRelative = relative(repository.path, ancestor)
+      const operation =
+        mutation === 'delete'
+          ? h.appStore._deleteWorktree(repository, ancestor, { force: true })
+          : mutation === 'move'
+          ? h.appStore._moveWorktree(repository, ancestor, `${ancestor}-moved`)
+          : h.appStore._discardChanges(
+              repository,
+              [
+                new WorkingDirectoryFileChange(
+                  targetRelative,
+                  { kind: AppFileStatusKind.Untracked },
+                  DiffSelection.fromInitialSelection(DiffSelectionType.All)
+                ),
+              ],
+              true
+            )
+      await assert.rejects(operation, /assisted commit run/)
+      assert.strictEqual(entered, false)
+    })
+  }
+
+  it('guards a file inside a protected working directory, not only its ancestor root', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const nested = await seed(t, { file: 'nested\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const lease = await acquireAssistedCommitGitLease(nested.path)
+    t.after(() => lease.release())
+    let entered = false
+    h.appStore['discardChangesCore'] = async () => {
+      entered = true
+    }
+    const file = new WorkingDirectoryFileChange(
+      relative(repository.path, join(nested.path, 'file')),
+      { kind: AppFileStatusKind.Modified },
+      DiffSelection.fromInitialSelection(DiffSelectionType.All)
+    )
+    await assert.rejects(
+      h.appStore._discardChanges(repository, [file], false),
+      /assisted commit run/
+    )
+    assert.strictEqual(entered, false)
+  })
+
+  it('blocks parent checkout while a descendant repository owns selected working bytes', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const nested = join(source.path, 'nested')
+    await mkdir(nested)
+    const lease = await acquireAssistedCommitGitLease(nested)
+    t.after(() => lease.release())
+    const branch = h.state(repository).branchesState.tip
+    assert.ok(branch.kind === TipState.Valid)
+    let entered = false
+    h.appStore['checkoutBranchCore'] = async () => {
+      entered = true
+      return repository
+    }
+    await assert.rejects(
+      h.appStore._checkoutBranch(repository, branch.branch),
+      /assisted commit run/
+    )
+    assert.strictEqual(entered, false)
+  })
+
+  it('blocks active branch rename through a peer linked worktree with the same common metadata', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'run-branch', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'peer-branch', cPath])
+    await writeFile(join(bPath, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(b, h.request(b))
+    await analyzing.promise
+    const tip = h.state(b).branchesState.tip
+    assert.ok(tip.kind === TipState.Valid)
+    let entered = false
+    h.appStore['renameBranchCore'] = async () => {
+      entered = true
+    }
+    try {
+      await assert.rejects(
+        h.appStore._renameBranch(c, tip.branch, 'renamed-run'),
+        /assisted commit run/
+      )
+      assert.strictEqual(entered, false)
+    } finally {
+      h.cancel(b)
+      finish.resolve()
+      await operation
+    }
+  })
+
+  it('does not retain mutation protection for a settled nonretry planning error', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async () => {
+      throw new Error('Settled planning failure')
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    h.dispatcher.setCommitMode(repository, 'manual')
+    let entered = false
+    h.appStore['discardChangesCore'] = async () => {
+      entered = true
+    }
+    await h.appStore._discardChanges(
+      repository,
+      h.request(repository).files,
+      false
+    )
+    assert.strictEqual(entered, true)
+  })
+
+  it('allows ordinary compound create-and-checkout in a linked worktree', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const linked = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'linked', linked])
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(new Repository(linked, -1, null, false))
+    await h.appStore._createBranch(repository, 'created-in-linked', 'HEAD')
+    assert.strictEqual(
+      await rawGit(repository, ['symbolic-ref', '--short', 'HEAD']),
+      'created-in-linked'
+    )
+  })
+
+  it('opens Locate for a vanished repository without querying the missing Git directory', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const moved = join(await createTempDirectory(t), 'moved')
+    await rename(repository.path, moved)
+    const dialog = t.mock.method(ipcRenderer, 'invoke', async () => null)
+    try {
+      await h.appStore._relocateRepository(repository)
+      assert.strictEqual(dialog.mock.callCount(), 1)
+      assert.strictEqual(dialog.mock.calls[0].arguments[0], 'show-open-dialog')
+    } finally {
+      await rename(moved, repository.path)
+    }
+  })
+
+  it('never interrupts an earlier native create-and-checkout with preparing admission', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.assisted.dialogs['lastConsent'] = null
+    h.appStore['uncommittedChangesStrategy'] =
+      UncommittedChangesStrategy.MoveToNewBranch
+    const gitStore = h.appStore['gitStoreCache'].get(repository)
+    const create = gitStore.createBranch.bind(gitStore)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    gitStore.createBranch = async (...args) => {
+      const result = await create(...args)
+      entered.resolve()
+      await finish.promise
+      return result
+    }
+    const ordinary = h.appStore
+      ._createBranch(repository, 'earlier-branch', 'HEAD')
+      .then(
+        result => ({ result }),
+        error => ({ error })
+      )
+    await entered.promise
+    const assisted = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await new Promise(resolve => setTimeout(resolve, 150))
+    finish.resolve()
+    const ordinaryOutcome = await ordinary
+    h.cancel(repository)
+    const assistedOutcome = await assisted
+    assert.ok('result' in ordinaryOutcome)
+    assert.strictEqual(
+      await rawGit(repository, ['symbolic-ref', '--short', 'HEAD']),
+      'earlier-branch'
+    )
+    assert.strictEqual(assistedOutcome.kind, 'busy')
+    assert.strictEqual(h.propose.mock.callCount(), 0)
+  })
+
+  it('allows ordinary manual commits during a background fetch reservation when no assisted run exists', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.dispatcher.setCommitMode(repository, 'manual')
+    const refresh = h.appStore['_refreshRepositoryAfterCommit'].bind(h.appStore)
+    let refreshed: Promise<void> | undefined
+    h.appStore['_refreshRepositoryAfterCommit'] = (...args) => {
+      refreshed = refresh(...args)
+      return refreshed
+    }
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const fetch = h.appStore['withPushPullFetch'](repository, async () => {
+      entered.resolve()
+      await finish.promise
+    })
+    await entered.promise
+    let result: boolean | undefined
+    let failure: unknown
+    try {
+      result = await h.appStore._commitIncludedChanges(repository, {
+        summary: 'Ordinary manual commit',
+        description: '',
+        trailers: [],
+      })
+    } catch (error) {
+      failure = error
+    } finally {
+      finish.resolve()
+      await fetch
+      await refreshed
+    }
+    assert.strictEqual(failure, undefined)
+    assert.strictEqual(result, true)
+    assert.strictEqual(await count(repository), 2)
+  })
+
+  it('rejects a worktree move destination inside protected selected working files', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const other = await seed(t, { file: 'other\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(other)
+    const lease = await acquireAssistedCommitGitLease(source.path)
+    t.after(() => lease.release())
+    let entered = false
+    h.appStore['moveWorktreeCore'] = async () => {
+      entered = true
+    }
+    await assert.rejects(
+      h.appStore._moveWorktree(
+        repository,
+        other.path,
+        join(source.path, 'new-destination')
+      ),
+      /assisted commit/i
+    )
+    assert.strictEqual(entered, false)
+  })
+
+  it('rejects creating a worktree inside protected selected working files before native add', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const other = await seed(t, { file: 'other\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(other)
+    const lease = await acquireAssistedCommitGitLease(source.path)
+    t.after(() => lease.release())
+    await assert.rejects(
+      h.appStore._addWorktreeAndSwitch(
+        repository,
+        join(source.path, 'new-destination'),
+        { createBranch: 'must-not-exist' }
+      ),
+      /assisted commit/i
+    )
+    assert.strictEqual(
+      await rawGit(repository, ['branch', '--list', 'must-not-exist']),
+      ''
+    )
+  })
+
+  it('keeps add/read/switch worktree covered by one admission lifetime', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    t.mock.method(h.appStore, '_selectRepository', async () => {})
+    const target = join(await createTempDirectory(t), 'linked')
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const switchCore = h.appStore['switchWorktreeCore'].bind(h.appStore)
+    h.appStore['switchWorktreeCore'] = async (...args) => {
+      entered.resolve()
+      await finish.promise
+      return switchCore(...args)
+    }
+    const operation = h.appStore._addWorktreeAndSwitch(repository, target, {
+      createBranch: 'whole-operation',
+    })
+    await entered.promise
+    const assisted = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository, { allowEmptyCommit: true })
+    )
+    finish.resolve()
+    await operation
+    assert.strictEqual(assisted.kind, 'busy')
+    assert.strictEqual(h.propose.mock.callCount(), 0)
+    const targetRepo = new Repository(target, -1, null, false)
+    assert.strictEqual(
+      await rawGit(targetRepo, ['symbolic-ref', '--short', 'HEAD']),
+      'whole-operation'
+    )
+  })
+
+  it('reserves parent-overlapping physical bytes before the first preparing publication', async t => {
+    const parentSource = await seed(t, { parent: 'parent\n' })
+    const childSource = await seed(t, { file: 'before\n' })
+    const childPath = join(parentSource.path, 'nested')
+    await rename(childSource.path, childPath)
+    await mkdir(childSource.path)
+    await writeFile(join(childPath, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const child = await h.register(new Repository(childPath, -1, null, false))
+    const parent = await h.register(parentSource)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    let observed = false
+    let protectedAtPublication = false
+    const subscription = h.appStore.onDidUpdate(() => {
+      if (
+        !observed &&
+        h.state(child).changesState.assistedCommit.kind === 'preparing'
+      ) {
+        observed = true
+        protectedAtPublication = isRepositoryAffectedByAssistedCommit(
+          parent.path
+        )
+      }
+    })
+    t.after(() => subscription.dispose())
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      entered.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      child,
+      h.request(child)
+    )
+    await entered.promise
+    h.cancel(child)
+    finish.resolve()
+    await operation
+    assert.strictEqual(protectedAtPublication, true)
   })
 })
