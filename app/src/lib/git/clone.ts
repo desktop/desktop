@@ -20,26 +20,46 @@ import {
 
 const unsupportedCloneProtocols: ReadonlyArray<string> = ['ext', 'ext.exe']
 
-function getLocalCloneSourcePath(url: string): string | null {
+/** Resolve the filesystem source read by Git's local and file transports. */
+export function getLocalCloneSourcePath(
+  url: string,
+  platform: 'posix' | 'win32' = __WIN32__ ? 'win32' : 'posix',
+  cwd: string = __dirname
+): string | null {
+  const paths = platform === 'win32' ? Path.win32 : Path.posix
   if (url.startsWith('file://')) {
-    const start = url.indexOf('/', 'file://'.length)
+    // Git decodes before parsing; unlike a browser URL, #, ? and + stay in the path.
+    const source = decodeFilePath(url.slice('file://'.length))
+    if (platform === 'win32') {
+      if (/^[a-z]:/i.test(source)) {
+        return paths.resolve(cwd, source)
+      }
+      if (!source.startsWith('/') && /[\\/]/.test(source)) {
+        // Git for Windows retains authorities (including localhost) as UNC servers.
+        return paths.resolve(cwd, `//${source}`)
+      }
+    }
+    const start = source.indexOf('/')
     if (start === -1) {
       return null
     }
-    // Git ignores file URL authorities and decodes paths without stripping # or ?.
-    const path = decodeFilePath(url.slice(start))
-    return __WIN32__ && /^\/[a-z]:/i.test(path) ? path.slice(1) : path
+    // POSIX Git ignores authorities; a Windows /C:/ root denotes the local drive.
+    const path = source.slice(start)
+    return paths.resolve(
+      cwd,
+      platform === 'win32' && /^\/[a-z]:/i.test(path) ? path.slice(1) : path
+    )
   }
   const colon = url.indexOf(':')
   const slash = url.indexOf('/')
   if (
     colon !== -1 &&
     (slash === -1 || colon < slash) &&
-    !(__WIN32__ && /^[a-z]:/i.test(url))
+    !(platform === 'win32' && /^[a-z]:/i.test(url))
   ) {
     return null
   }
-  return Path.resolve(__dirname, url)
+  return paths.resolve(cwd, url)
 }
 
 async function withLocalCloneSourceRead(
