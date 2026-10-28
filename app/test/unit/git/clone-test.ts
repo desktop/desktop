@@ -4,14 +4,14 @@ import * as path from 'path'
 import { existsSync } from 'fs'
 import { pathToFileURL } from 'url'
 
-import { clone } from '../../../src/lib/git/clone'
+import { clone, getLocalCloneSourcePath } from '../../../src/lib/git/clone'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { isGitError } from '../../../src/lib/git/core'
-import { realpath, symlink, writeFile } from 'fs/promises'
+import { mkdir, realpath, symlink, writeFile } from 'fs/promises'
 import {
   acquireAssistedCommitGitLease,
   getAssistedCommitProtectedPaths,
@@ -19,6 +19,7 @@ import {
   IAssistedCommitGitLease,
   protectAssistedCommitResources,
   withoutRepositoryGitAccess,
+  withRepositoryGitOperation,
 } from '../../../src/lib/git/repository-operation'
 import { rollbackAssistedCommitTransaction } from '../../../src/lib/git/assisted-commit'
 import { Repository } from '../../../src/models/repository'
@@ -35,6 +36,136 @@ async function createEmptyBareRepository(
 }
 
 describe('git/clone', () => {
+  describe('local source path mapping', () => {
+    const cwd = 'C:\\desktop\\app\\src\\lib\\git'
+    for (const [url, expected] of [
+      ['file://clone-local/share/project', '\\\\clone-local\\share\\project'],
+      [
+        'file://clone-local/C:/Users/demo/project',
+        '\\\\clone-local\\C:\\Users\\demo\\project',
+      ],
+      ['file://localhost/share/project', '\\\\localhost\\share\\project'],
+      [
+        'file://localhost/C:/Users/demo/project',
+        '\\\\localhost\\C:\\Users\\demo\\project',
+      ],
+      ['file:////clone-local/share/project', '\\\\clone-local\\share\\project'],
+      ['file://C:/Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file://D:/Users/demo/project', 'D:\\Users\\demo\\project'],
+      ['file://D:\\Users\\demo\\project', 'D:\\Users\\demo\\project'],
+      ['file:///C:/Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file:///Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file://C:relative', 'C:\\desktop\\app\\src\\lib\\git\\relative'],
+      ['file://C%3A%2FUsers%2Fdemo%2Fproject', 'C:\\Users\\demo\\project'],
+      [
+        'file://clone%2Dlocal/share/space%20%23question%3Fpercent%25+plus',
+        '\\\\clone-local\\share\\space #question?percent%+plus',
+      ],
+      ['file://clone-local\\share\\project', '\\\\clone-local\\share\\project'],
+      ['file://C:/Users/space #raw%+plus', 'C:\\Users\\space #raw%+plus'],
+      ['file://clone-local', null],
+      ['file://', null],
+    ] as const) {
+      it(`matches Git for Windows filesystem mapping for ${url}`, () => {
+        assert.strictEqual(getLocalCloneSourcePath(url, 'win32', cwd), expected)
+      })
+    }
+
+    for (const [url, expected] of [
+      ['file://clone-local/repositories/project', '/repositories/project'],
+      ['file://localhost/repositories/project', '/repositories/project'],
+      ['file:///repositories/project', '/repositories/project'],
+      ['file://C:/repositories/project', '/repositories/project'],
+      ['file:////repositories/project', '/repositories/project'],
+      [
+        'file://clone-local/space%20%23question%3Fpercent%25+plus',
+        '/space #question?percent%+plus',
+      ],
+      ['file://clone-local/space #raw%+plus', '/space #raw%+plus'],
+      ['file://clone-local', null],
+      ['file://', null],
+    ] as const) {
+      it(`preserves POSIX Git filesystem mapping for ${url}`, () => {
+        assert.strictEqual(
+          getLocalCloneSourcePath(url, 'posix', '/desktop/app/src/lib/git'),
+          expected
+        )
+      })
+    }
+
+    for (const platform of ['posix', 'win32'] as const) {
+      for (const url of [
+        'https://example.com/owner/project.git',
+        'ssh://git@example.com/owner/project.git',
+        'git@example.com:owner/project.git',
+        'git://example.com/owner/project.git',
+        'desktop-test-helper::project',
+      ]) {
+        it(`does not classify ${url} as local on ${platform}`, () => {
+          assert.strictEqual(getLocalCloneSourcePath(url, platform), null)
+        })
+      }
+    }
+
+    for (const [url, platform, sourceCwd, expected] of [
+      ['../project%20#raw', 'posix', '/desktop/app', '/desktop/project%20#raw'],
+      [
+        '..\\project%20#raw',
+        'win32',
+        'C:\\desktop\\app',
+        'C:\\desktop\\project%20#raw',
+      ],
+      ['D:\\project%20#raw', 'win32', cwd, 'D:\\project%20#raw'],
+      [
+        '\\\\clone-local\\share\\project',
+        'win32',
+        cwd,
+        '\\\\clone-local\\share\\project',
+      ],
+    ] as const) {
+      it(`preserves native non-URL path bytes for ${url} on ${platform}`, () => {
+        assert.strictEqual(
+          getLocalCloneSourcePath(url, platform, sourceCwd),
+          expected
+        )
+      })
+    }
+
+    it('decodes the native file source before admitting a read', async t => {
+      const expected = path.join(
+        await createTempDirectory(t),
+        'source space#percent%~'
+      )
+      await mkdir(expected)
+      const lease = await acquireAssistedCommitGitLease(expected)
+      t.after(() => lease.release())
+      const source = getLocalCloneSourcePath(
+        `file://${encodeURIComponent(
+          decodeURIComponent(
+            pathToFileURL(expected).href.slice('file://'.length)
+          )
+        )}`
+      )
+      assert.ok(source !== null)
+      let entered = false
+      const reading = withRepositoryGitOperation(source, 'read', async () => {
+        entered = true
+      })
+      try {
+        await new Promise(resolve => setTimeout(resolve, 50))
+        assert.strictEqual(
+          entered,
+          false,
+          'A file URL must wait for the decoded source that native Git reads'
+        )
+      } finally {
+        lease.release()
+        await reading
+      }
+      assert.strictEqual(entered, true)
+    })
+  })
+
   describe('transport policy', () => {
     const savedEnvironment: NodeJS.ProcessEnv = {}
 
@@ -288,7 +419,8 @@ describe('git/clone', () => {
       'git-suffix',
       'colon-path',
       'file-url',
-      'file-url-authority',
+      __WIN32__ ? 'file-url-drive' : 'file-url-authority',
+      'file-url-encoded-path',
       'file-url-literal',
       'shared-peer-path',
       'shared-peer-file-url',
@@ -330,6 +462,13 @@ describe('git/clone', () => {
           url = pathToFileURL(url).href
           if (kind === 'file-url-authority') {
             url = url.replace('file:///', 'file://clone-local/')
+          } else if (kind === 'file-url-drive') {
+            // Windows retains authorities as UNC; use Git's supported file://C:/ form.
+            url = url.replace('file:///', 'file://')
+          } else if (kind === 'file-url-encoded-path') {
+            url = `file://${encodeURIComponent(
+              decodeURIComponent(url.slice('file://'.length))
+            )}`
           } else if (kind === 'file-url-literal') {
             url = url
               .replaceAll('%20', ' ')

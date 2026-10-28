@@ -249,6 +249,12 @@ complete clone, including their physical aliases, shared metadata and peer
 worktrees. They wait for an assisted source run to settle rather than copying
 transient commits that may be rolled back. Network and scp transports retain
 Git's existing transport selection.
+File URL mapping follows native Git rather than browser URL normalization:
+Windows preserves authorities (including `localhost`) as UNC servers and accepts
+local drive forms such as `file://C:/repo`; POSIX Git ignores authorities.
+Percent decoding precedes path parsing, while literal `#`, `?` and `+` remain
+path characters. Source coordination protects that native path without rewriting
+the URL passed to Git.
 Native clone subprocess ownership derives from its explicit destination, not
 the application's execution cwd. Relative destinations follow native cwd
 resolution, and unrelated clones remain independent of an assisted checkout
