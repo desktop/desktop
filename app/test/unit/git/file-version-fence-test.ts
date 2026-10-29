@@ -1,6 +1,14 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
-import { link, mkdir, readFile, rename, symlink, writeFile } from 'fs/promises'
+import {
+  link,
+  mkdir,
+  readFile,
+  rename,
+  symlink,
+  unlink,
+  writeFile,
+} from 'fs/promises'
 import { join } from 'path'
 import {
   captureFileVersionFence,
@@ -11,6 +19,88 @@ import {
 import { createTempDirectory } from '../../helpers/temp'
 
 describe('push backing file version fence', () => {
+  for (const nested of [false, true]) {
+    it(`accepts exactly 4096 object entries and rejects growth to 4097, nested=${nested}`, async t => {
+      const root = await createTempDirectory(t)
+      const objects = join(root, 'objects')
+      const directory = nested ? join(objects, 'ab', 'nested') : objects
+      await mkdir(directory, { recursive: true })
+      const files = 4096 - (nested ? 3 : 1)
+      for (let offset = 0; offset < files; offset += 256) {
+        await Promise.all(
+          Array.from({ length: Math.min(256, files - offset) }, (_, index) =>
+            writeFile(
+              join(directory, `${offset + index}`),
+              'Immutable object\n'
+            )
+          )
+        )
+      }
+      const verify = await captureObjectDirectoryRoutingFence([
+        objects,
+        objects,
+      ])
+      verify()
+      verify()
+      const extra = join(directory, 'extra')
+      await writeFile(extra, 'One entry beyond the budget\n')
+      assert.throws(
+        verify,
+        error =>
+          error instanceof Error &&
+          error.cause instanceof Error &&
+          error.cause.message.includes('4096-entry certification budget')
+      )
+      await assert.rejects(
+        captureObjectDirectoryRoutingFence([objects]),
+        error =>
+          error instanceof Error &&
+          error.cause instanceof Error &&
+          error.cause.message.includes('4096-entry certification budget')
+      )
+      await unlink(extra)
+      verify()
+      verify()
+    })
+  }
+
+  it('shares the 4096-entry object budget across distinct deduplicated roots', async t => {
+    const root = await createTempDirectory(t)
+    const objects = [join(root, 'primary'), join(root, 'alternate')]
+    for (const path of objects) {
+      await mkdir(path)
+      for (let offset = 0; offset < 2047; offset += 256) {
+        await Promise.all(
+          Array.from({ length: Math.min(256, 2047 - offset) }, (_, index) =>
+            writeFile(join(path, `${offset + index}`), 'Immutable object\n')
+          )
+        )
+      }
+    }
+    const roots = [objects[0], objects[1], objects[0], objects[1]]
+    const verify = await captureObjectDirectoryRoutingFence(roots)
+    verify()
+    verify()
+    const extra = join(objects[0], 'extra')
+    await writeFile(extra, 'Shared budget exceeded\n')
+    assert.throws(
+      verify,
+      error =>
+        error instanceof Error &&
+        error.cause instanceof Error &&
+        error.cause.message.includes('4096-entry certification budget')
+    )
+    await assert.rejects(
+      captureObjectDirectoryRoutingFence(roots),
+      error =>
+        error instanceof Error &&
+        error.cause instanceof Error &&
+        error.cause.message.includes('4096-entry certification budget')
+    )
+    await unlink(extra)
+    verify()
+  })
+
   it('refuses object routing beyond 4096 entries instead of synchronously scanning an unbounded store', async t => {
     const root = await createTempDirectory(t)
     const objects = join(root, 'objects')
