@@ -6,7 +6,7 @@ import {
 } from '../../models/worktree'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { SectionFilterList } from '../lib/section-filter-list'
-import { WorktreeListItem } from './worktree-list-item'
+import { WorktreeListItem, renderWorktreeTooltip } from './worktree-list-item'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
 import { ClickSource } from '../lib/list'
@@ -102,6 +102,9 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
   private getItemAriaLabel = (item: IWorktreeListItem) =>
     getWorktreeAriaLabel(item.worktree)
 
+  private renderRowFocusTooltip = (item: IWorktreeListItem) =>
+    renderWorktreeTooltip(item.worktree, true)
+
   private renderGroupHeader = (identifier: WorktreeGroupIdentifier) => {
     return (
       <div className="filter-list-group-header">
@@ -156,6 +159,7 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         getItemAriaLabel={this.getItemAriaLabel}
+        renderRowFocusTooltip={this.renderRowFocusTooltip}
         getGroupAriaLabel={this.getGroupAriaLabel}
         onItemClick={this.onItemClick}
         groups={groups}

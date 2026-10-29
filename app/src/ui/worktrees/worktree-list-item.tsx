@@ -12,6 +12,35 @@ import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 
+/**
+ * Tooltip content naming a worktree and its full path, so that worktrees
+ * sharing a folder name can be told apart. Pass `includeBranch` where the
+ * branch's own tooltip isn't available.
+ */
+export function renderWorktreeTooltip(
+  worktree: WorktreeEntry,
+  includeBranch = false
+) {
+  return (
+    <div className="list-item-tooltip">
+      <div>
+        <div className="label">Full Name: </div>
+        {getWorktreeDisplayName(worktree)}
+      </div>
+      <div>
+        <div className="label">Path: </div>
+        {worktree.path}
+      </div>
+      {includeBranch && worktree.branch !== null && (
+        <div>
+          <div className="label">Branch: </div>
+          {getWorktreeDescription(worktree)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface IWorktreeListItemProps {
   readonly worktree: WorktreeEntry
   readonly isCurrentWorktree: boolean
@@ -39,7 +68,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         <Octicon className="icon" symbol={icon} />
         <TooltippedContent
           className="name"
-          tooltip={worktree.path}
+          tooltip={renderWorktreeTooltip(worktree)}
           tagName="div"
           disabled={enableAccessibleListToolTips()}
         >
@@ -48,7 +77,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         {isMissing && <div className="missing-indicator">(missing)</div>}
         <TooltippedContent
           className="description"
-          tooltip={worktree.branch ?? worktree.head}
+          tooltip={description}
           onlyWhenOverflowed={true}
           tagName="div"
           disabled={enableAccessibleListToolTips()}

@@ -7,6 +7,7 @@ import { ToolbarDropdown, DropdownState } from './dropdown'
 import { FoldoutType, IConstrainedValue } from '../../lib/app-state'
 import { WorktreeEntry } from '../../models/worktree'
 import { WorktreeList } from '../worktrees/worktree-list'
+import { renderWorktreeTooltip } from '../worktrees/worktree-list-item'
 import { showContextualMenu, IMenuItem } from '../../lib/menu-item'
 import { generateWorktreeContextMenuItems } from '../worktrees/worktree-list-item-context-menu'
 import { PopupType } from '../../models/popup'
@@ -157,6 +158,9 @@ export class WorktreeDropdown extends React.Component<
       ? Path.basename(currentWorktree.path)
       : this.props.repository.name
     const description = __DARWIN__ ? 'Current Worktree' : 'Current worktree'
+    const tooltip = currentWorktree
+      ? renderWorktreeTooltip(currentWorktree)
+      : `Current worktree is ${title}`
 
     const toolbarDropdown = (
       <ToolbarDropdown
@@ -164,11 +168,7 @@ export class WorktreeDropdown extends React.Component<
         icon={octicons.fileDirectory}
         title={title}
         description={description}
-        tooltip={
-          isOpen
-            ? undefined
-            : `Current worktree is ${currentWorktree?.path ?? title}`
-        }
+        tooltip={isOpen ? undefined : tooltip}
         onDropdownStateChanged={this.props.onDropDownStateChanged}
         onContextMenu={this.onContextMenu}
         dropdownContentRenderer={this.renderWorktreeFoldout}
