@@ -108,6 +108,9 @@ interface IListRowProps {
    */
   readonly ariaLabel?: string
 
+  /** aria-expanded value for rows that can be expanded or collapsed */
+  readonly ariaExpanded?: boolean
+
   /** Optional role setting.
    *
    * By default our lists use the `listbox` role paired with list items of role
@@ -281,7 +284,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       <div
         id={id}
         role={
-          sectionHasHeader && rowIndex.row === 0
+          sectionHasHeader && rowIndex.row === 0 && !selectable
             ? 'presentation'
             : role ?? 'option'
         }
@@ -289,6 +292,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         aria-posinset={ariaPosInSet}
         aria-selected={selectable ? selected : undefined}
         aria-label={this.props.ariaLabel}
+        aria-expanded={this.props.ariaExpanded}
         className={rowClassName}
         tabIndex={tabIndex}
         ref={this.onRowRef}

@@ -272,4 +272,21 @@ describe('repository list grouping', () => {
       ['Alpha', 'zeta']
     )
   })
+
+  it('marks groups collapsed from the stored group keys', () => {
+    const grouped = groupRepositories(
+      repositories,
+      cache,
+      [],
+      new Set(['3:other'])
+    )
+    assert.deepEqual(
+      grouped.map(g => [g.identifier.kind, g.collapsed]),
+      [
+        ['dotcom', false],
+        ['enterprise', false],
+        ['other', true],
+      ]
+    )
+  })
 })

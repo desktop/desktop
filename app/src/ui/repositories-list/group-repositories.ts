@@ -104,7 +104,8 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  collapsedGroupKeys: ReadonlySet<string> = new Set()
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -131,8 +132,9 @@ export function groupRepositories(
 
   return Array.from(groups)
     .sort(([xKey], [yKey]) => compare(xKey, yKey))
-    .map(([, { group, repos }]) => ({
+    .map(([key, { group, repos }]) => ({
       identifier: group,
+      collapsed: collapsedGroupKeys.has(key),
       items: toSortedListItems(
         group,
         repos,

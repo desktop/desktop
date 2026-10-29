@@ -28,6 +28,9 @@ import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import { getStringArray, setStringArray } from '../../lib/local-storage'
+
+const CollapsedGroupsKey = 'repository-list-collapsed-groups'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -81,9 +84,21 @@ interface IRepositoriesListProps {
 interface IRepositoriesListState {
   readonly newRepositoryMenuExpanded: boolean
   readonly selectedItem: IRepositoryListItem | null
+  /** The keys (see getGroupKey) of the collapsed groups */
+  readonly collapsedGroups: ReadonlySet<string>
 }
 
 const RowHeight = 29
+/**
+ * Group header rows are as tall as repository rows plus the gap above each
+ * section (var(--spacing), see .list-item:has(.filter-list-group-header))
+ */
+const GroupHeaderRowHeight = RowHeight + 10
+const getRowHeight = ({
+  item,
+}: {
+  readonly item: IRepositoryListItem | null
+}) => (item === null ? GroupHeaderRowHeight : RowHeight)
 
 /**
  * Iterate over all groups until a list item is found that matches
@@ -123,14 +138,16 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      collapsedGroups: ReadonlySet<string>
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            collapsedGroups
           )
   )
 
@@ -153,6 +170,7 @@ export class RepositoriesList extends React.Component<
     this.state = {
       newRepositoryMenuExpanded: false,
       selectedItem: null,
+      collapsedGroups: new Set(getStringArray(CollapsedGroupsKey)),
     }
   }
 
@@ -260,7 +278,10 @@ export class RepositoriesList extends React.Component<
     }
   }
 
-  private renderGroupHeader = (group: RepositoryListGroup) => {
+  private renderGroupHeader = (
+    group: RepositoryListGroup,
+    collapsed: boolean
+  ) => {
     const label = this.getGroupLabel(group)
 
     return (
@@ -271,9 +292,27 @@ export class RepositoriesList extends React.Component<
         onlyWhenOverflowed={true}
         tagName="div"
       >
+        <Octicon
+          className="group-collapse-chevron"
+          symbol={collapsed ? octicons.chevronRight : octicons.chevronDown}
+        />
         {label}
       </TooltippedContent>
     )
+  }
+
+  private onGroupCollapsedChanged = (
+    group: RepositoryListGroup,
+    collapsed: boolean
+  ) => {
+    const collapsedGroups = new Set(this.state.collapsedGroups)
+    if (collapsed) {
+      collapsedGroups.add(getGroupKey(group))
+    } else {
+      collapsedGroups.delete(getGroupKey(group))
+    }
+    setStringArray(CollapsedGroupsKey, [...collapsedGroups])
+    this.setState({ collapsedGroups })
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
@@ -335,7 +374,8 @@ export class RepositoriesList extends React.Component<
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.recentRepositories,
+      this.state.collapsedGroups
     )
 
     // So there's two types of selection at play here. There's the repository
@@ -350,13 +390,14 @@ export class RepositoriesList extends React.Component<
     return (
       <div className="repository-list">
         <SectionFilterList<IRepositoryListItem, RepositoryListGroup>
-          rowHeight={RowHeight}
+          rowHeight={getRowHeight}
           selectedItem={selectedItem}
           filterText={this.props.filterText}
           onFilterTextChanged={this.props.onFilterTextChanged}
           renderItem={this.renderItem}
           renderRowFocusTooltip={this.renderRowFocusTooltip}
           renderGroupHeader={this.renderGroupHeader}
+          onGroupCollapsedChanged={this.onGroupCollapsedChanged}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
           renderNoItems={this.renderNoItems}
@@ -364,6 +405,7 @@ export class RepositoriesList extends React.Component<
           invalidationProps={{
             repositories: this.props.repositories,
             filterText: this.props.filterText,
+            collapsedGroups: this.state.collapsedGroups,
           }}
           onItemContextMenu={this.onItemContextMenu}
           getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
