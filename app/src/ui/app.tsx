@@ -2747,6 +2747,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <AppError
             error={popup.error}
+            showCauses={popup.showCauses}
             onDismissed={onPopupDismissedFn}
             onShowPopup={this.showPopup}
             onRetryAction={this.onRetryAction}

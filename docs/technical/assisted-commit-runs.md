@@ -571,10 +571,21 @@ fetch or refresh. There is no token bypass or unlocked live-tip push.
 
 Internal outcomes distinguish actual native success, hook abort, preparation/push
 failure and post-success refresh failure. A resolved `Promise<void>` from a
-fallible wrapper is not success evidence. Original causes stay inline; failures
+fallible wrapper is not success evidence. Original causes remain available in Details; failures
 do not launch generic Push retries or contradictory background toast actions.
 Final deferred-refresh, selection-reader and History failures are included in
 `refreshError` on both initial completion and push-only retry.
+
+The compact panel shows one rounded total native push percentage, using Git's
+existing weighted compression/write/remote-resolution estimate rather than each
+step's percentage or stderr. Values stay bounded and do not decrease within a
+push attempt; LFS/context events cannot reset the estimate. This is push progress,
+not an invented total for planning, commits and refresh. After acknowledgement,
+the panel switches to **Refreshing pushed commits** without a stale percentage.
+Errors show a short summary and the appropriate retry controls. **Details** opens
+Desktop's standard error dialog with the full error and retained causes; raw
+multiline diagnostics no longer fill the compact panel. The inline summary is
+announced once as an alert, not repeated in the polite progress live region.
 
 `_retryCopilotAssistedCommitPush` retains the in-memory intent/result and shares
 one in-flight retry promise. It rechecks the exact run, physical owner, branch,

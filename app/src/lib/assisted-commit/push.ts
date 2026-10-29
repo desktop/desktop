@@ -98,6 +98,7 @@ export class AssistedCommitPush {
       this.context.check(run)
     }
     let outcome: AssistedCommitPushOutcome
+    let pushProgress = 0
     try {
       const destination = run.pushDestination
       if (destination === undefined) {
@@ -224,9 +225,15 @@ export class AssistedCommitPush {
                 const state = this.state.cache.get(run.repository).changesState
                   .assistedCommit
                 if (state.kind === 'pushing' && state.runId === run.id) {
+                  if (Number.isFinite(progress.value)) {
+                    pushProgress = Math.max(
+                      pushProgress,
+                      Math.min(1, Math.max(0, progress.value))
+                    )
+                  }
                   this.state.set(run, {
                     ...state,
-                    progress,
+                    progress: { ...progress, value: pushProgress },
                   })
                 }
               },

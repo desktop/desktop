@@ -222,7 +222,6 @@ export class CopilotCommitPanel extends React.Component<
       return (
         <div className="assisted-commit-error" role="alert">
           <div className="title">Push stopped</div>
-          <div className="description">{state.error.message}</div>
           <div className="description">
             All commits from this run were kept locally.
           </div>
@@ -256,8 +255,18 @@ export class CopilotCommitPanel extends React.Component<
     if (state?.kind === 'error') {
       return (
         <div className="assisted-commit-error" role="alert">
-          <div className="title">Commit run stopped</div>
-          <div className="description">{state.error.message}</div>
+          <div className="title">
+            {state.pushed ? 'Commits pushed' : 'Commit run stopped'}
+          </div>
+          <div className="description">
+            {state.pushed
+              ? 'Your commits were pushed, but Desktop could not finish refreshing.'
+              : state.retry === 'recovery'
+              ? 'Recovery needs attention before you can continue.'
+              : state.retry === 'refresh'
+              ? 'Refresh the repository before continuing.'
+              : 'Open Details for more information.'}
+          </div>
           {state.settling && (
             <div className="description">Finishing repository refresh…</div>
           )}
@@ -299,10 +308,19 @@ export class CopilotCommitPanel extends React.Component<
           {state.kind === 'committing' && (
             <div className="description commit-title">{state.title}</div>
           )}
-          {state.kind === 'pushing' && (
+          {state.kind === 'pushing' && state.phase === 'push' && (
             <div className="description">
-              {state.progress?.description ??
-                'Local commits will be kept, even if pushing stops.'}
+              {Math.round(
+                clamp(
+                  state.progress !== null &&
+                    Number.isFinite(state.progress.value)
+                    ? state.progress.value
+                    : 0,
+                  0,
+                  1
+                ) * 100
+              )}
+              %
             </div>
           )}
           {this.props.onCancel !== undefined &&

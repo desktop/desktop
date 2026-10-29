@@ -450,6 +450,8 @@ export type PopupDetail =
   | {
       type: PopupType.Error
       error: Error
+      /** Include retained causes when explicitly inspecting assisted-run details. */
+      showCauses?: boolean
     }
   | {
       type: PopupType.InstallingUpdate

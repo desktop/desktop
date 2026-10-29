@@ -23,6 +23,8 @@ import { coerceToString } from '../lib/git/coerce-to-string'
 interface IAppErrorProps {
   /** The error to be displayed  */
   readonly error: Error
+  /** Show retained nested failures only for an explicit details request. */
+  readonly showCauses?: boolean
 
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
@@ -311,6 +313,19 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         <DialogContent onRef={this.onDialogContentRef}>
           <div id="app-error-description">
             {this.renderErrorMessage(error)}
+            {this.props.showCauses &&
+              getErrorCauses(error)
+                .filter(
+                  (cause): cause is Error =>
+                    cause instanceof Error &&
+                    !(cause instanceof ErrorWithMetadata) &&
+                    cause !== getUnderlyingError(error)
+                )
+                .map((cause, index) => (
+                  <React.Fragment key={index}>
+                    {this.renderErrorMessage(cause)}
+                  </React.Fragment>
+                ))}
             {this.renderContentAfterErrorMessage(error)}
           </div>
         </DialogContent>
