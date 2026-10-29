@@ -229,6 +229,30 @@ describe('repository list grouping', () => {
       )
     })
 
+    it('orders custom sections by the stored order, then alphabetically', () => {
+      const repos = [
+        grouped('a', 1, null, 'aaa'),
+        grouped('b', 2, 'Zeta'),
+        grouped('c', 3, 'alpha'),
+        grouped('d', 4, 'Beta'),
+        grouped('e', 5, 'Gamma'),
+        grouped('f', 6, 'delta'),
+        ...[7, 8].map(id => grouped(`r${id}`, id, null)),
+      ]
+
+      const groups = groupRepositories(repos, cache, [4], new Set(), [
+        'gamma',
+        'missing',
+        'zeta',
+      ])
+      assert.deepEqual(
+        groups.map(g =>
+          g.identifier.kind === 'custom' ? g.identifier.name : g.identifier.kind
+        ),
+        ['recent', 'Gamma', 'Zeta', 'alpha', 'Beta', 'delta', 'dotcom', 'other']
+      )
+    })
+
     it('disambiguates duplicate names within a custom group', () => {
       const groups = groupRepositories(
         [

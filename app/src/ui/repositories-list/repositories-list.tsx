@@ -31,6 +31,7 @@ import { IAheadBehind } from '../../models/branch'
 import { getStringArray, setStringArray } from '../../lib/local-storage'
 
 const CollapsedGroupsKey = 'repository-list-collapsed-groups'
+const GroupOrderKey = 'repository-list-group-order'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -86,6 +87,8 @@ interface IRepositoriesListState {
   readonly selectedItem: IRepositoryListItem | null
   /** The keys (see getGroupKey) of the collapsed groups */
   readonly collapsedGroups: ReadonlySet<string>
+  /** Lowercase custom group names in the order the user arranged them */
+  readonly groupOrder: ReadonlyArray<string>
 }
 
 const RowHeight = 29
@@ -139,7 +142,8 @@ export class RepositoriesList extends React.Component<
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
       recentRepositories: ReadonlyArray<number>,
-      collapsedGroups: ReadonlySet<string>
+      collapsedGroups: ReadonlySet<string>,
+      groupOrder: ReadonlyArray<string>
     ) =>
       repositories === null
         ? []
@@ -147,7 +151,8 @@ export class RepositoriesList extends React.Component<
             repositories,
             localRepositoryStateLookup,
             recentRepositories,
-            collapsedGroups
+            collapsedGroups,
+            groupOrder
           )
   )
 
@@ -171,8 +176,18 @@ export class RepositoriesList extends React.Component<
       newRepositoryMenuExpanded: false,
       selectedItem: null,
       collapsedGroups: new Set(getStringArray(CollapsedGroupsKey)),
+      groupOrder: getStringArray(GroupOrderKey),
     }
   }
+
+  private getGroups = () =>
+    this.getRepositoryGroups(
+      this.props.repositories,
+      this.props.localRepositoryStateLookup,
+      this.props.recentRepositories,
+      this.state.collapsedGroups,
+      this.state.groupOrder
+    )
 
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
@@ -298,6 +313,17 @@ export class RepositoriesList extends React.Component<
     this.setState({ collapsedGroups })
   }
 
+  private onMoveGroup = (
+    displayedOrder: ReadonlyArray<string>,
+    from: number,
+    to: number
+  ) => {
+    const groupOrder = [...displayedOrder]
+    groupOrder.splice(to, 0, ...groupOrder.splice(from, 1))
+    setStringArray(GroupOrderKey, groupOrder)
+    this.setState({ groupOrder })
+  }
+
   private onGroupContextMenu = (
     group: RepositoryListGroup,
     event: React.MouseEvent<HTMLDivElement>,
@@ -327,6 +353,10 @@ export class RepositoriesList extends React.Component<
       }
     } else if (group.kind === 'custom') {
       const { name } = group
+      const displayedOrder = this.getGroups().flatMap(({ identifier: g }) =>
+        g.kind === 'custom' ? [g.name.toLowerCase()] : []
+      )
+      const index = displayedOrder.indexOf(name.toLowerCase())
       items.push(
         {
           label: __DARWIN__ ? 'Rename Group…' : 'Rename group…',
@@ -339,6 +369,17 @@ export class RepositoriesList extends React.Component<
         {
           label: __DARWIN__ ? 'Ungroup All' : 'Ungroup all',
           action: () => dispatcher.renameRepositoryGroup(name, null),
+        },
+        { type: 'separator' },
+        {
+          label: __DARWIN__ ? 'Move Up' : 'Move up',
+          enabled: index > 0,
+          action: () => this.onMoveGroup(displayedOrder, index, index - 1),
+        },
+        {
+          label: __DARWIN__ ? 'Move Down' : 'Move down',
+          enabled: index < displayedOrder.length - 1,
+          action: () => this.onMoveGroup(displayedOrder, index, index + 1),
         }
       )
     }
@@ -413,12 +454,7 @@ export class RepositoriesList extends React.Component<
       getGroupLabel(groups[group].identifier)
 
   public render() {
-    const groups = this.getRepositoryGroups(
-      this.props.repositories,
-      this.props.localRepositoryStateLookup,
-      this.props.recentRepositories,
-      this.state.collapsedGroups
-    )
+    const groups = this.getGroups()
 
     // So there's two types of selection at play here. There's the repository
     // selection for the whole app and then there's the keyboard selection in
@@ -449,6 +485,7 @@ export class RepositoriesList extends React.Component<
             repositories: this.props.repositories,
             filterText: this.props.filterText,
             collapsedGroups: this.state.collapsedGroups,
+            groupOrder: this.state.groupOrder,
           }}
           onItemContextMenu={this.onItemContextMenu}
           getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}

@@ -77,6 +77,15 @@ describe('SectionFilterList createStateUpdate', () => {
     ])
   })
 
+  it('keeps the selected header selected when groups are reordered', () => {
+    const state = { ...update(groups), selectedRow: { section: 1, row: 0 } }
+    const next = createStateUpdate<Item, string>(
+      props([...groups].reverse(), {}),
+      state
+    )
+    assert.deepEqual(next.selectedRow, { section: 0, row: 0 })
+  })
+
   it('keeps a selected header selected across updates', () => {
     const state = { ...update(groups), selectedRow: { section: 1, row: 0 } }
     const next = createStateUpdate<Item, string>(

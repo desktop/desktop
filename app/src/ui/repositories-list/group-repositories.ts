@@ -127,7 +127,9 @@ export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
   recentRepositories: ReadonlyArray<number>,
-  collapsedGroupKeys: ReadonlySet<string> = new Set()
+  collapsedGroupKeys: ReadonlySet<string> = new Set(),
+  /** Lowercase custom group names in the order the user arranged them */
+  customGroupOrder: ReadonlyArray<string> = []
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -152,8 +154,19 @@ export function groupRepositories(
     addToGroup(getGroupForRepository(repo), repo)
   }
 
+  // Groups missing from the stored order go after the ordered ones
+  const customRank = (name: string) => {
+    const index = customGroupOrder.indexOf(name.toLowerCase())
+    return index === -1 ? customGroupOrder.length : index
+  }
+
   return Array.from(groups)
-    .sort(([xKey], [yKey]) => compare(xKey, yKey))
+    .sort(
+      ([xKey, x], [yKey, y]) =>
+        (x.group.kind === 'custom' && y.group.kind === 'custom'
+          ? compare(customRank(x.group.name), customRank(y.group.name))
+          : 0) || compare(xKey, yKey)
+    )
     .map(([key, { group, repos }]) => ({
       identifier: group,
       collapsed: collapsedGroupKeys.has(key),

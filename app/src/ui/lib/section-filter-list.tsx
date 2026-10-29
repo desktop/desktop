@@ -1,5 +1,7 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import classnames from 'classnames'
+import isEqual from 'lodash/isEqual'
 
 import { SectionList, ClickSource } from '../lib/list/section-list'
 import {
@@ -265,6 +267,21 @@ export class SectionFilterList<
     prevProps: ISectionFilterListProps<T, GroupIdentifier>,
     prevState: IFilterListState<T, GroupIdentifier>
   ) {
+    // Keep keyboard focus on a selected group header that moved (e.g. when
+    // groups are reordered)
+    const { selectedRow } = this.state
+    if (
+      !rowIndexPathEquals(prevState.selectedRow, selectedRow) &&
+      prevState.rows[prevState.selectedRow.section]?.[prevState.selectedRow.row]
+        ?.kind === 'group' &&
+      this.state.rows[selectedRow.section]?.[selectedRow.row]?.kind ===
+        'group' &&
+      this.list !== null &&
+      ReactDOM.findDOMNode(this.list)?.contains(document.activeElement)
+    ) {
+      this.list.focus()
+    }
+
     if (this.props.onSelectionChanged) {
       const oldSelectedItemId = getItemIdFromRowIndex(
         prevState.rows,
@@ -793,12 +810,14 @@ export function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
   const selectedItem = props.selectedItem
   const groupIndices = []
 
-  // A selected group header stays selected (e.g. while it's being toggled)
+  // A selected group header stays selected (e.g. while it's being toggled or
+  // moved), falling back to its position when its identifier changed
   const prevRow =
     state?.rows[state.selectedRow.section]?.[state.selectedRow.row]
   const selectedGroupIndex =
     prevRow?.kind === 'group' ? state?.groups[state.selectedRow.section] : -1
   let selectedHeaderRow: RowIndexPath | null = null
+  let selectedHeaderFound = false
 
   for (const [idx, group] of props.groups.entries()) {
     const groupRows = new Array<IFilterListRow<T, GroupIdentifier>>()
@@ -822,10 +841,16 @@ export function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
       showHeader && !filter && !group.items.some(i => i.id === selectedItem?.id)
     const collapsed = canCollapse && group.collapsed === true
 
-    if (showHeader) {
-      if (idx === selectedGroupIndex) {
+    if (showHeader && prevRow?.kind === 'group') {
+      if (isEqual(group.identifier, prevRow.identifier)) {
+        selectedHeaderRow = { section, row: 0 }
+        selectedHeaderFound = true
+      } else if (idx === selectedGroupIndex && !selectedHeaderFound) {
         selectedHeaderRow = { section, row: 0 }
       }
+    }
+
+    if (showHeader) {
       groupRows.push({
         kind: 'group',
         identifier: group.identifier,
