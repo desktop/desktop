@@ -12,6 +12,7 @@ let id_counter = 0
  */
 interface IGitHubRepoFixtureOptions {
   owner: string
+  ownerAlias?: string
   name: string
   parent?: GitHubRepository
   /** defaults to 'master' */
@@ -35,6 +36,7 @@ interface IGitHubRepoFixtureOptions {
  */
 export function gitHubRepoFixture({
   owner,
+  ownerAlias,
   name,
   parent,
   endpoint,
@@ -48,7 +50,9 @@ export function gitHubRepoFixture({
     new Owner(
       owner,
       endpoint !== undefined ? endpoint : getDotComAPIEndpoint(),
-      id_counter++
+      id_counter++,
+      undefined,
+      ownerAlias ?? null
     ),
     id_counter++,
     isPrivate !== undefined ? isPrivate : null,

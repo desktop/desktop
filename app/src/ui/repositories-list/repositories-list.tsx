@@ -8,6 +8,7 @@ import {
   RepositoryListGroup,
   getGroupKey,
   getRepositoryGroupNames,
+  getGroupLabel,
 } from './group-repositories'
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -26,7 +27,6 @@ import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
 import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
-import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
 import { getStringArray, setStringArray } from '../../lib/local-storage'
 
@@ -261,28 +261,11 @@ export class RepositoriesList extends React.Component<
     )
   }
 
-  private getGroupLabel(group: RepositoryListGroup) {
-    const { kind } = group
-    if (kind === 'enterprise') {
-      return group.host
-    } else if (kind === 'other') {
-      return 'Other'
-    } else if (kind === 'dotcom') {
-      return group.owner.login
-    } else if (kind === 'recent') {
-      return 'Recent'
-    } else if (kind === 'custom') {
-      return group.name
-    } else {
-      assertNever(kind, `Unknown repository group kind ${kind}`)
-    }
-  }
-
   private renderGroupHeader = (
     group: RepositoryListGroup,
     collapsed: boolean
   ) => {
-    const label = this.getGroupLabel(group)
+    const label = getGroupLabel(group)
 
     return (
       <TooltippedContent
@@ -313,6 +296,65 @@ export class RepositoriesList extends React.Component<
     }
     setStringArray(CollapsedGroupsKey, [...collapsedGroups])
     this.setState({ collapsedGroups })
+  }
+
+  private onGroupContextMenu = (
+    group: RepositoryListGroup,
+    event: React.MouseEvent<HTMLDivElement>,
+    collapsed: boolean,
+    canCollapse: boolean
+  ) => {
+    event.preventDefault()
+
+    const { dispatcher } = this.props
+    const items: IMenuItem[] = []
+
+    if (group.kind === 'dotcom') {
+      const { owner } = group
+      items.push({
+        label: __DARWIN__ ? 'Rename Section…' : 'Rename section…',
+        action: () =>
+          dispatcher.showPopup({
+            type: PopupType.RenameRepositorySection,
+            target: { kind: 'owner', owner },
+          }),
+      })
+      if (owner.alias) {
+        items.push({
+          label: __DARWIN__ ? 'Reset Name' : 'Reset name',
+          action: () => dispatcher.changeOwnerAlias(owner, null),
+        })
+      }
+    } else if (group.kind === 'custom') {
+      const { name } = group
+      items.push(
+        {
+          label: __DARWIN__ ? 'Rename Group…' : 'Rename group…',
+          action: () =>
+            dispatcher.showPopup({
+              type: PopupType.RenameRepositorySection,
+              target: { kind: 'group', name },
+            }),
+        },
+        {
+          label: __DARWIN__ ? 'Ungroup All' : 'Ungroup all',
+          action: () => dispatcher.renameRepositoryGroup(name, null),
+        }
+      )
+    }
+
+    if (items.length > 0) {
+      items.push({ type: 'separator' })
+    }
+
+    items.push({
+      label: collapsed ? 'Expand' : 'Collapse',
+      // A group holding the selected repository or filter matches stays open
+      enabled: collapsed || canCollapse,
+      action: () => this.onGroupCollapsedChanged(group, !collapsed),
+    })
+
+    showContextualMenu(items)
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
@@ -368,7 +410,7 @@ export class RepositoriesList extends React.Component<
       >
     ) =>
     (group: number) =>
-      this.getGroupLabel(groups[group].identifier)
+      getGroupLabel(groups[group].identifier)
 
   public render() {
     const groups = this.getRepositoryGroups(
@@ -398,6 +440,7 @@ export class RepositoriesList extends React.Component<
           renderRowFocusTooltip={this.renderRowFocusTooltip}
           renderGroupHeader={this.renderGroupHeader}
           onGroupCollapsedChanged={this.onGroupCollapsedChanged}
+          onGroupContextMenu={this.onGroupContextMenu}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
           renderNoItems={this.renderNoItems}

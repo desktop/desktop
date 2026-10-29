@@ -54,6 +54,28 @@ export const getGroupKey = (group: RepositoryListGroup) => {
       assertNever(group, `Unknown repository group kind ${kind}`)
   }
 }
+
+/** Returns the user-facing label for a repository list group. */
+export function getGroupLabel(group: RepositoryListGroup) {
+  const { kind } = group
+  switch (kind) {
+    case 'recent':
+      return 'Recent'
+    case 'custom':
+      return group.name
+    case 'dotcom':
+      return group.owner.alias
+        ? `${group.owner.alias} (${group.owner.login})`
+        : group.owner.login
+    case 'enterprise':
+      return group.host
+    case 'other':
+      return 'Other'
+    default:
+      assertNever(group, `Unknown repository group kind ${kind}`)
+  }
+}
+
 export type Repositoryish = Repository | CloningRepository
 
 export interface IRepositoryListItem extends IFilterListItem {

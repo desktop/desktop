@@ -20,6 +20,7 @@ import { ICommitMessage } from './commit-message'
 import { Author, UnknownAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
+import { Owner } from './owner'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
 import { IAPIComment } from '../lib/api'
@@ -81,6 +82,7 @@ export enum PopupType {
   MoveToApplicationsFolder = 'MoveToApplicationsFolder',
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
   ChangeRepositoryGroup = 'ChangeRepositoryGroup',
+  RenameRepositorySection = 'RenameRepositorySection',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -133,6 +135,11 @@ interface IBasePopup {
    */
   readonly id?: number
 }
+
+/** The repository list section renamed by the RenameRepositorySection popup */
+export type RepositorySectionRenameTarget =
+  | { readonly kind: 'owner'; readonly owner: Owner }
+  | { readonly kind: 'group'; readonly name: string }
 
 export type PopupDetail =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
@@ -347,6 +354,10 @@ export type PopupDetail =
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
   | { type: PopupType.ChangeRepositoryGroup; repository: Repository }
+  | {
+      type: PopupType.RenameRepositorySection
+      target: RepositorySectionRenameTarget
+    }
   | {
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>

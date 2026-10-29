@@ -73,6 +73,7 @@ import {
   GitHubRepository,
   hasWritePermission,
 } from '../../models/github-repository'
+import { Owner } from '../../models/owner'
 import {
   defaultPullRequestSuggestedNextAction,
   PullRequest,
@@ -5034,9 +5035,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameRepositoryGroup(
     oldName: string,
-    newName: string
+    newName: string | null
   ): Promise<void> {
     return this.repositoriesStore.renameRepositoryGroup(oldName, newName)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeOwnerAlias(
+    owner: Owner,
+    alias: string | null
+  ): Promise<void> {
+    return this.repositoriesStore.updateOwnerAlias(owner, alias)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

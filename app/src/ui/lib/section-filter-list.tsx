@@ -205,6 +205,21 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
     item: T,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /**
+   * A handler called whenever a context menu event is received on a group
+   * header. Headers can only be reached with the keyboard when
+   * `onGroupCollapsedChanged` is provided.
+   *
+   * @param collapsed   Whether the group is currently shown collapsed
+   * @param canCollapse False when the group is held open (see IFlattenedGroup)
+   */
+  readonly onGroupContextMenu?: (
+    identifier: GroupIdentifier,
+    event: React.MouseEvent<HTMLDivElement>,
+    collapsed: boolean,
+    canCollapse: boolean
+  ) => void
 }
 
 interface IFilterListState<T extends IFilterListItem, GroupIdentifier> {
@@ -588,17 +603,18 @@ export class SectionFilterList<
     index: RowIndexPath,
     source: React.MouseEvent<HTMLDivElement>
   ) => {
-    if (!this.props.onItemContextMenu) {
-      return
-    }
-
     const row = this.state.rows[index.section][index.row]
 
-    if (row.kind !== 'item') {
-      return
+    if (row.kind === 'group') {
+      this.props.onGroupContextMenu?.(
+        row.identifier,
+        source,
+        row.collapsed,
+        row.canCollapse
+      )
+    } else {
+      this.props.onItemContextMenu?.(row.item, source)
     }
-
-    this.props.onItemContextMenu(row.item, source)
   }
 
   private onRowKeyDown = (

@@ -3,6 +3,7 @@ import assert from 'node:assert'
 import {
   groupRepositories,
   getRepositoryGroupNames,
+  getGroupLabel,
 } from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
@@ -288,5 +289,37 @@ describe('repository list grouping', () => {
         ['other', true],
       ]
     )
+  })
+
+  describe('owner aliases', () => {
+    const repo = (id: number, owner: string, ownerAlias?: string) =>
+      new Repository(
+        `r${id}`,
+        id,
+        gitHubRepoFixture({ owner, ownerAlias, name: `r${id}` }),
+        false
+      )
+
+    it('labels owner sections with the alias and login', () => {
+      const [aliased, plain] = groupRepositories(
+        [repo(1, 'acme', 'Acme Corp'), repo(2, 'zeta')],
+        cache,
+        []
+      )
+      assert.equal(getGroupLabel(aliased.identifier), 'Acme Corp (acme)')
+      assert.equal(getGroupLabel(plain.identifier), 'zeta')
+    })
+
+    it('sorts owner sections by login, not alias', () => {
+      const grouped = groupRepositories(
+        [repo(1, 'bbb', 'Aaa'), repo(2, 'aaa', 'Zzz')],
+        cache,
+        []
+      )
+      assert.deepEqual(
+        grouped.map(g => getGroupLabel(g.identifier)),
+        ['Zzz (aaa)', 'Aaa (bbb)']
+      )
+    })
   })
 })

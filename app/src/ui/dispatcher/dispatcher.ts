@@ -71,6 +71,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
+import { Owner } from '../../models/owner'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
 import {
@@ -884,12 +885,20 @@ export class Dispatcher {
     return this.appStore._changeRepositoryGroup(repository, group)
   }
 
-  /** Renames a repository group across all repositories in it. */
+  /**
+   * Renames a repository group across all repositories in it, or ungroups
+   * them all when the new name is null.
+   */
   public renameRepositoryGroup(
     oldName: string,
-    newName: string
+    newName: string | null
   ): Promise<void> {
     return this.appStore._renameRepositoryGroup(oldName, newName)
+  }
+
+  /** Changes the display name of an owner's repository list section. */
+  public changeOwnerAlias(owner: Owner, alias: string | null): Promise<void> {
+    return this.appStore._changeOwnerAlias(owner, alias)
   }
 
   /** Rename the branch to a new name. */

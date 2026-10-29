@@ -116,6 +116,40 @@ describe('RepositoriesStore', () => {
         secondRepo.gitHubRepository.dbID
       )
     })
+
+    it('keeps the owner alias when the owner is rewritten', async () => {
+      const repo = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository('/a', '/a/.git'),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+      await repositoriesStore.updateOwnerAlias(
+        repo.gitHubRepository.owner,
+        '  Me  '
+      )
+
+      const renamedOwner = { ...apiRepo.owner, login: 'My-User' }
+      const upserted = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        { ...apiRepo, owner: { ...renamedOwner, type: 'Organization' } }
+      )
+      assert.equal(upserted.owner.login, 'My-User')
+      assert.equal(upserted.owner.alias, 'Me')
+
+      const [stored] = await repositoriesStore.getAll()
+      assertIsRepositoryWithGitHubRepository(stored)
+      assert.equal(stored.gitHubRepository.owner.alias, 'Me')
+
+      await repositoriesStore.updateOwnerAlias(upserted.owner, '   ')
+      const [reset] = await repositoriesStore.getAll()
+      assertIsRepositoryWithGitHubRepository(reset)
+      assert.strictEqual(reset.gitHubRepository.owner.alias, null)
+
+      await repositoriesStore.updateOwnerAlias(upserted.owner, 'Me')
+      await repositoriesStore.updateOwnerAlias(upserted.owner, 'my-user')
+      const [unchanged] = await repositoriesStore.getAll()
+      assertIsRepositoryWithGitHubRepository(unchanged)
+      assert.strictEqual(unchanged.gitHubRepository.owner.alias, null)
+    })
   })
 
   describe('switching worktrees', () => {
@@ -287,6 +321,22 @@ describe('RepositoriesStore', () => {
       assert.deepEqual(await groupsByPath(), {
         '/a': 'Other',
         '/b': 'Other',
+        '/c': 'Other',
+      })
+    })
+
+    it('ungroups every repository in a group', async () => {
+      const a = await add('/a')
+      const b = await add('/b')
+      const c = await add('/c')
+      await repositoriesStore.updateRepositoryGroup(a, 'Work')
+      await repositoriesStore.updateRepositoryGroup(b, 'Work')
+      await repositoriesStore.updateRepositoryGroup(c, 'Other')
+
+      await repositoriesStore.renameRepositoryGroup('work', null)
+      assert.deepEqual(await groupsByPath(), {
+        '/a': null,
+        '/b': null,
         '/c': 'Other',
       })
     })
