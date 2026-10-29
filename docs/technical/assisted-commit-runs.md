@@ -1,6 +1,6 @@
 # Assisted commit runs
 
-The Changes action now connects the repository-owned assisted mode to a real,
+The Changes action connects the repository-owned assisted mode to an
 awaited local transaction, optionally followed by a repository-authorized push.
 Ordinary commits,
 amend/squash forms, tutorials, and standalone commit-message generation keep
@@ -136,10 +136,11 @@ cleared by assisted success, failure, cancellation, or an empty commit.
 
 ## Admission, consent, and frozen inputs
 
-Both UI and backend require the preview gate, an authenticated Desktop-enabled
-eligible account, SDK permission, and the packaged runtime. The existing
+Execution preconditions checked by both UI and backend include an authenticated
+Desktop-enabled eligible account, SDK permission, and the packaged runtime. The
 commit-message model preference resolves to `CopilotModelRequest`, including
-BYOK credentials. There is no new picker or hardcoded model/effort.
+BYOK credentials. Assisted commits share that picker and preference rather than
+hardcoding a model or effort.
 
 Unknown co-author and filtered-hidden-selection confirmations remain ahead of
 execution. Desktop first prepares an opaque, weakly owned first-click intent
@@ -183,7 +184,8 @@ selected bytes, identities, line selections, HEAD, and original index. Only
 snapshots matching the original preflight versions and complete intended HEAD
 can proceed to planning; an internally consistent newer capture is not authorization.
 Only
-`snapshot.analysis` crosses the planner boundary. The layer-three planner
+`snapshot.analysis` crosses the planner boundary. The
+[assisted commit planner](assisted-commit-planning.md)
 validates the entire plan and every cumulative tree before execution. Its
 uncertainty/valid-unsafe-split fallback requests a fresh whole-selection message;
 invalid output, quota/auth failures, stale content, or observer errors never
@@ -461,7 +463,7 @@ reader/resource settlement, through guarded final delivery.
 Successful retry publishes idle only through this settled delivery path, after
 exact-owner deregistration and mandatory cleanup.
 
-## Local acceptance and the later push boundary
+## Local acceptance boundary
 
 `acceptVerifiedAssistedCommitTransaction` is the explicit local acceptance fence.
 It holds parent-owned HEAD, full branch-ref and real index locks while completing
