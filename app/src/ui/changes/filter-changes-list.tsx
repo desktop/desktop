@@ -13,6 +13,8 @@ import {
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
+import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
 import {
   isRepositoryWithGitHubRepository,
   Repository,
@@ -174,6 +176,15 @@ interface IFilterChangesListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
+  readonly commitMode: CommitMode
+
+  /** Provided only when a real Desktop-owned assisted commit executor is available. */
+  readonly onCreateCopilotAssistedCommits?: (
+    request: ICopilotAssistedCommitRequest
+  ) => void
+
+  /** Assisted operation progress, separate from manual message generation. */
+  readonly isCreatingCopilotAssistedCommits?: boolean
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -968,6 +979,8 @@ export class FilterChangesList extends React.Component<
         repository={repository}
         repositoryAccount={repositoryAccount}
         commitMessage={this.props.commitMessage}
+        commitMode={this.props.commitMode}
+        onCommitModeChanged={this.onCommitModeChanged}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
@@ -1017,6 +1030,12 @@ export class FilterChangesList extends React.Component<
         allowEmptyCommit={this.props.allowEmptyCommit}
         showAllowEmptyCommitOption={true}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onCreateCopilotAssistedCommits={
+          this.props.onCreateCopilotAssistedCommits
+        }
+        isCreatingCopilotAssistedCommits={
+          this.props.isCreatingCopilotAssistedCommits
+        }
       />
     )
   }
@@ -1049,6 +1068,9 @@ export class FilterChangesList extends React.Component<
 
   private onPersistCommitMessage = (message: ICommitMessage) =>
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
+
+  private onCommitModeChanged = (commitMode: CommitMode) =>
+    this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
 
   private onGenerateCommitMessage = (
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,

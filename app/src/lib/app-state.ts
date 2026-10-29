@@ -32,6 +32,7 @@ import {
 import { Author } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
+import { CommitMode } from '../models/commit-mode'
 import {
   IRevertProgress,
   Progress,
@@ -818,6 +819,9 @@ export interface IChangesState {
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage
+
+  /** The repository's preferred commit mode, even when assisted commits are unavailable. */
+  readonly commitMode: CommitMode
 
   /**
    * Whether or not to show a field for adding co-authors to
