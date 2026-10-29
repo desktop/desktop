@@ -1167,13 +1167,12 @@ export class FilterChangesList extends React.Component<
 
   private onAssistedCommitErrorDetails = () => {
     const state = this.props.assistedCommitState
-    if (state?.kind === 'push-error') {
+    if (state?.kind === 'push-error' || state?.kind === 'error') {
       this.props.dispatcher.showPopup({
         type: PopupType.Error,
         error: state.error,
+        showCauses: true,
       })
-    } else if (state?.kind === 'error') {
-      this.props.dispatcher.postError(state.error)
     }
   }
 

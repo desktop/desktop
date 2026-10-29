@@ -2165,7 +2165,10 @@ describe('CommitMessage', () => {
         onCreateCopilotAssistedCommits: () => generated++,
       })
       assert.ok(screen.getByRole('alert'))
-      assert.ok(screen.getByText('Actual push rejection'))
+      assert.strictEqual(screen.queryByText('Actual push rejection'), null)
+      assert.ok(
+        screen.getByText('All commits from this run were kept locally.')
+      )
       fireEvent.click(screen.getByRole('button', { name: 'Retry push' }))
       assert.strictEqual(retried, 1)
       assert.strictEqual(generated, 0)
@@ -2203,7 +2206,11 @@ describe('CommitMessage', () => {
         onAssistedCommitErrorDetails: () => details++,
       })
       assert.ok(screen.getByRole('alert'))
-      assert.ok(screen.getByText('Actual stale refresh refusal'))
+      assert.strictEqual(
+        screen.queryByText('Actual stale refresh refusal'),
+        null
+      )
+      assert.ok(screen.getByText('Commits pushed'))
       fireEvent.click(screen.getByRole('button', { name: 'Details' }))
       fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
       assert.strictEqual(details, 1)

@@ -40,8 +40,84 @@ import { promises as FileSystem } from 'fs'
 import { getAssistedCommitCleanupToken } from '../../../src/lib/assisted-commit-run'
 import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
+import { PushProgressParser } from '../../../src/lib/progress'
+import { GitLFSProgressParser } from '../../../src/lib/progress/lfs'
 
 describe('AppStore assisted push with real local remotes', () => {
+  it('keeps weighted push progress finite, bounded and nondecreasing across native context and LFS events', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await addBareRemote(t, source)
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
+    const observed: number[] = []
+    const parser = new PushProgressParser()
+    const lfs = new GitLFSProgressParser()
+    const host = h.assisted.push['repository']
+    t.mock.method(
+      host,
+      'push',
+      async (
+        ...args: Parameters<typeof host.push>
+      ): ReturnType<typeof host.push> => {
+        const [, , , options, observer] = args
+        assert.ok(options?.assistedCommit && observer)
+        const enter = await options.assistedCommit.prepareForSpawn()
+        enter()
+        for (const [progress, expected] of [
+          [parser.parse('Compressing objects: 100% (10/10), done.'), 0.2],
+          [parser.parse('Writing objects: 50% (5/10)'), 0.55],
+          [
+            parser.parse('remote: diagnostic, not another progress phase'),
+            0.55,
+          ],
+          [lfs.parse('upload 1/1 10/10 path.bin'), 0.55],
+        ] as const) {
+          observer.onProgress({
+            kind: 'push',
+            title: 'Push',
+            value: progress.percent,
+            remote: 'origin',
+            branch: 'main',
+          })
+          const state = h.state(repository).changesState.assistedCommit
+          assert.ok(state.kind === 'pushing' && state.progress !== null)
+          assert.ok(Math.abs(state.progress.value - expected) < 0.00001)
+          observed.push(state.progress.value)
+        }
+        for (const [value, expected] of [
+          [NaN, 0.55],
+          [Infinity, 0.55],
+          [-0.5, 0.55],
+          [1.5, 1],
+        ] as const) {
+          observer.onProgress({
+            kind: 'push',
+            title: 'Push',
+            value,
+            remote: 'origin',
+            branch: 'main',
+          })
+          const state = h.state(repository).changesState.assistedCommit
+          assert.ok(state.kind === 'pushing' && state.progress !== null)
+          assert.ok(Math.abs(state.progress.value - expected) < 0.00001)
+        }
+        observer.onPushed()
+        const refreshed = h.state(repository).changesState.assistedCommit
+        assert.ok(refreshed.kind === 'pushing' && refreshed.phase === 'refresh')
+        assert.strictEqual(refreshed.progress, null)
+        return { kind: 'pushed' }
+      }
+    )
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'pushed')
+    assert.strictEqual(observed.length, 4)
+  })
+
   for (const empty of [false, true]) {
     it(`retries pre-callback temporary cleanup without model, commits or push despite opt-in, empty ${empty}`, async t => {
       const source = await seed(t, { file: 'before\n' })
