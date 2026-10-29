@@ -7,6 +7,7 @@ import {
   Repositoryish,
   RepositoryListGroup,
   getGroupKey,
+  getRepositoryGroupNames,
 } from './group-repositories'
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -133,6 +134,8 @@ export class RepositoriesList extends React.Component<
           )
   )
 
+  private getRepositoryGroupNames = memoizeOne(getRepositoryGroupNames)
+
   /**
    * A memoized function for finding the selected list item based
    * on an IAPIRepository instance. The selected item will not be
@@ -250,6 +253,8 @@ export class RepositoriesList extends React.Component<
       return group.owner.login
     } else if (kind === 'recent') {
       return 'Recent'
+    } else if (kind === 'custom') {
+      return group.name
     } else {
       assertNever(kind, `Unknown repository group kind ${kind}`)
     }
@@ -297,6 +302,11 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
+      repositoryGroupNames: this.getRepositoryGroupNames(
+        this.props.repositories
+      ),
+      onChangeRepositoryGroup: this.onChangeRepositoryGroup,
+      onNewRepositoryGroup: this.onNewRepositoryGroup,
       onViewOnGitHub: this.props.onViewOnGitHub,
       onCreateWorktree: enableWorktreeSupport()
         ? this.onCreateWorktree
@@ -462,6 +472,20 @@ export class RepositoriesList extends React.Component<
 
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
+  }
+
+  private onChangeRepositoryGroup = (
+    repository: Repository,
+    group: string | null
+  ) => {
+    this.props.dispatcher.changeRepositoryGroup(repository, group)
+  }
+
+  private onNewRepositoryGroup = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ChangeRepositoryGroup,
+      repository,
+    })
   }
 
   private onCreateWorktree = (repository: Repository) => {

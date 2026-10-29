@@ -225,4 +225,70 @@ describe('RepositoriesStore', () => {
       assert.equal(reloaded.mainWorktreePath, undefined)
     })
   })
+
+  describe('repository groups', () => {
+    const add = (path: string) =>
+      repositoriesStore.addRepository(path, join(path, '.git'))
+    const groupsByPath = async () =>
+      Object.fromEntries(
+        (await repositoriesStore.getAll()).map(r => [r.path, r.group])
+      )
+
+    it('reads a missing group as null', async () => {
+      await repoDb.repositories.add({
+        path: '/old',
+        gitHubRepositoryID: null,
+        alias: null,
+        missing: false,
+      })
+
+      const [repository] = await repositoriesStore.getAll()
+      assert.strictEqual(repository.group, null)
+    })
+
+    it('persists, normalizes and clears the group', async () => {
+      const a = await add('/a')
+      const b = await add('/b')
+
+      await repositoriesStore.updateRepositoryGroup(a, '  Work  ')
+      await repositoriesStore.updateRepositoryGroup(b, 'work')
+      assert.deepEqual(await groupsByPath(), { '/a': 'Work', '/b': 'Work' })
+
+      await repositoriesStore.updateRepositoryGroup(b, '   ')
+      assert.deepEqual(await groupsByPath(), { '/a': 'Work', '/b': 'Work' })
+
+      await repositoriesStore.updateRepositoryGroup(a, null)
+      assert.deepEqual(await groupsByPath(), { '/a': null, '/b': 'Work' })
+    })
+
+    it('renames a group across repositories', async () => {
+      const a = await add('/a')
+      const b = await add('/b')
+      const c = await add('/c')
+      await repositoriesStore.updateRepositoryGroup(a, 'Work')
+      await repositoriesStore.updateRepositoryGroup(b, 'Work')
+      await repositoriesStore.updateRepositoryGroup(c, 'Other')
+
+      await repositoriesStore.renameRepositoryGroup('work', ' Job ')
+      assert.deepEqual(await groupsByPath(), {
+        '/a': 'Job',
+        '/b': 'Job',
+        '/c': 'Other',
+      })
+
+      await repositoriesStore.renameRepositoryGroup('Job', 'job')
+      assert.deepEqual(await groupsByPath(), {
+        '/a': 'job',
+        '/b': 'job',
+        '/c': 'Other',
+      })
+
+      await repositoriesStore.renameRepositoryGroup('job', 'OTHER')
+      assert.deepEqual(await groupsByPath(), {
+        '/a': 'Other',
+        '/b': 'Other',
+        '/c': 'Other',
+      })
+    })
+  })
 })

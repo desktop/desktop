@@ -146,6 +146,7 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import { ChangeRepositoryGroup } from './change-repository-group/change-repository-group-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -2380,6 +2381,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.ChangeRepositoryAlias: {
         return (
           <ChangeRepositoryAlias
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ChangeRepositoryGroup: {
+        return (
+          <ChangeRepositoryGroup
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             onDismissed={onPopupDismissedFn}

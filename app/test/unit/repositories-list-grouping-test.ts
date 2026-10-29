@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
+import {
+  groupRepositories,
+  getRepositoryGroupNames,
+} from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
@@ -152,5 +155,121 @@ describe('repository list grouping', () => {
 
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
+  })
+
+  describe('custom groups', () => {
+    const grouped = (
+      path: string,
+      id: number,
+      group: string | null,
+      owner?: string
+    ) =>
+      new Repository(
+        path,
+        id,
+        owner ? gitHubRepoFixture({ owner, name: path }) : null,
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        group
+      )
+
+    it('moves a grouped repository out of its owner section', () => {
+      const repoA = grouped('a', 1, 'Work', 'me')
+      const repoB = grouped('b', 2, null, 'me')
+
+      const groups = groupRepositories([repoA, repoB], cache, [])
+      assert.deepEqual(groups[0].identifier, { kind: 'custom', name: 'Work' })
+      assert.equal(groups[1].identifier.kind, 'dotcom')
+      assert.deepEqual(
+        groups.map(g => g.items.map(i => i.repository.id)),
+        [[1], [2]]
+      )
+    })
+
+    it('keeps grouped repositories in the Recent section', () => {
+      const repos = [1, 2, 3, 4, 5, 6, 7, 8].map(id =>
+        grouped(`r${id}`, id, id === 1 ? 'Work' : null)
+      )
+
+      const groups = groupRepositories(repos, cache, [1])
+      assert.deepEqual(
+        groups.map(g => g.identifier.kind),
+        ['recent', 'custom', 'other']
+      )
+      assert.deepEqual(
+        groups[0].items.map(i => i.repository.id),
+        [1]
+      )
+      assert.deepEqual(
+        groups[1].items.map(i => i.repository.id),
+        [1]
+      )
+    })
+
+    it('sorts custom sections after Recent and before owners, alphabetically', () => {
+      const repos = [
+        grouped('a', 1, null, 'aaa'),
+        grouped('b', 2, 'zeta'),
+        grouped('c', 3, 'Alpha'),
+        grouped('d', 4, null),
+        ...[5, 6, 7, 8].map(id => grouped(`r${id}`, id, null)),
+      ]
+
+      const groups = groupRepositories(repos, cache, [4])
+      assert.deepEqual(
+        groups.map(g =>
+          g.identifier.kind === 'custom' ? g.identifier.name : g.identifier.kind
+        ),
+        ['recent', 'Alpha', 'zeta', 'dotcom', 'other']
+      )
+    })
+
+    it('disambiguates duplicate names within a custom group', () => {
+      const groups = groupRepositories(
+        [
+          grouped('API', 1, 'Work', 'one'),
+          grouped('API', 2, 'Work', 'two'),
+          grouped('APP', 3, 'Work', 'one'),
+        ],
+        cache,
+        []
+      )
+
+      assert.deepEqual(
+        groups[0].items.map(i => i.needsDisambiguation),
+        [true, true, false]
+      )
+    })
+  })
+
+  it('lists distinct group names alphabetically', () => {
+    const withGroup = (id: number, group: string | null) =>
+      new Repository(
+        `r${id}`,
+        id,
+        null,
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        group
+      )
+
+    assert.deepEqual(
+      getRepositoryGroupNames([
+        withGroup(1, 'zeta'),
+        withGroup(2, null),
+        withGroup(3, 'Alpha'),
+        withGroup(4, 'alpha'),
+        new CloningRepository('c', 'https://example.com/c.git'),
+      ]),
+      ['Alpha', 'zeta']
+    )
   })
 })

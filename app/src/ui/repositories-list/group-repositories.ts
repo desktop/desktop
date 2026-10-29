@@ -26,6 +26,10 @@ export type RepositoryListGroup =
       kind: 'enterprise'
       host: string
     }
+  | {
+      kind: 'custom'
+      name: string
+    }
 
 /**
  * Returns a unique grouping key (string) for a repository group. Doubles as a
@@ -37,6 +41,9 @@ export const getGroupKey = (group: RepositoryListGroup) => {
   switch (kind) {
     case 'recent':
       return `0:recent`
+    case 'custom':
+      // '~' sorts after ':' so custom groups follow Recent and precede owners
+      return `0~custom:${group.name.toLowerCase()}`
     case 'dotcom':
       return `1:dotcom:${group.owner.login}`
     case 'enterprise':
@@ -64,12 +71,32 @@ const getHostForRepository = (repo: RepositoryWithGitHubRepository) =>
   new URL(getHTMLURL(repo.gitHubRepository.endpoint)).host
 
 const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
+  if (repo instanceof Repository && repo.group) {
+    return { kind: 'custom', name: repo.group }
+  }
   if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
     return isDotCom(repo.gitHubRepository.endpoint)
       ? { kind: 'dotcom', owner: repo.gitHubRepository.owner }
       : { kind: 'enterprise', host: getHostForRepository(repo) }
   }
   return { kind: 'other' }
+}
+
+/**
+ * Returns the distinct (case-insensitive) user-defined group names of the
+ * given repositories, sorted alphabetically.
+ */
+export function getRepositoryGroupNames(
+  repositories: ReadonlyArray<Repositoryish>
+): ReadonlyArray<string> {
+  const names = new Map<string, string>()
+  for (const repo of repositories) {
+    const group = repo instanceof Repository ? repo.group : null
+    if (group && !names.has(group.toLowerCase())) {
+      names.set(group.toLowerCase(), group)
+    }
+  }
+  return [...names.values()].sort(caseInsensitiveCompare)
 }
 
 type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
@@ -154,13 +181,14 @@ const toSortedListItems = (
         id: r.id.toString(),
         repository: r,
         needsDisambiguation:
-          // If the repository is in the enterprise group and has a duplicate
-          // name in the group, we need to disambiguate it. We don't have to
-          // disambiguate repositories in the 'dotcom' group because they are
-          // already grouped by owner. If the repository is in the 'recent'
-          // group and has a duplicate name in any group, we need to
+          // If the repository is in an enterprise or custom group and has a
+          // duplicate name in the group, we need to disambiguate it. We don't
+          // have to disambiguate repositories in the 'dotcom' group because
+          // they are already grouped by owner. If the repository is in the
+          // 'recent' group and has a duplicate name in any group, we need to
           // disambiguate it.
-          ((groupNames.get(title) ?? 0) > 1 && group.kind === 'enterprise') ||
+          ((groupNames.get(title) ?? 0) > 1 &&
+            (group.kind === 'enterprise' || group.kind === 'custom')) ||
           ((allNames.get(title) ?? 0) > 1 && group.kind === 'recent'),
         aheadBehind: repoState?.aheadBehind ?? null,
         changedFilesCount: repoState?.changedFilesCount ?? 0,

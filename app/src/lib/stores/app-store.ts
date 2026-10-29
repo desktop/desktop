@@ -5024,6 +5024,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeRepositoryGroup(
+    repository: Repository,
+    group: string | null
+  ): Promise<void> {
+    return this.repositoriesStore.updateRepositoryGroup(repository, group)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _renameRepositoryGroup(
+    oldName: string,
+    newName: string
+  ): Promise<void> {
+    return this.repositoriesStore.renameRepositoryGroup(oldName, newName)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(
     repository: Repository,
     branch: Branch,

@@ -65,7 +65,9 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    /** The name of the user-defined repository list group, if any. */
+    public readonly group: string | null = null
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +78,8 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.group
     )
   }
 

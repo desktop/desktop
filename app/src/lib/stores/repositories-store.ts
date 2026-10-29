@@ -154,7 +154,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.group ?? null
     )
   }
 
@@ -295,7 +296,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.group
     )
   }
 
@@ -317,7 +319,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.group
     )
   }
 
@@ -332,6 +335,69 @@ export class RepositoriesStore extends TypedBaseStore<
     alias: string | null
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { alias })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Returns the trimmed group name, spelled like an existing group (other than
+   * `except`) when one matches case-insensitively.
+   */
+  private async normalizeGroupName(name: string, except?: string) {
+    const trimmed = name.trim()
+    const lower = trimmed.toLowerCase()
+    const exceptLower = except?.toLowerCase()
+    const existing = await this.db.repositories
+      .filter(r => {
+        const group = r.group?.toLowerCase()
+        return group === lower && group !== exceptLower
+      })
+      .first()
+
+    return existing?.group ?? trimmed
+  }
+
+  /**
+   * Update the user-defined group for the specified repository.
+   *
+   * @param repository  The repository to update.
+   * @param group       The group name, or null to remove it from its group.
+   *                    Blank names are ignored.
+   */
+  public async updateRepositoryGroup(
+    repository: Repository,
+    group: string | null
+  ): Promise<void> {
+    const name = group === null ? null : await this.normalizeGroupName(group)
+    if (name === '') {
+      return
+    }
+
+    await this.db.repositories.update(repository.id, { group: name })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Rename a user-defined group across all repositories in it. Renaming onto
+   * an existing group's name merges the two. Blank names are ignored.
+   */
+  public async renameRepositoryGroup(
+    oldName: string,
+    newName: string
+  ): Promise<void> {
+    const oldLower = oldName.toLowerCase()
+
+    await this.db.transaction('rw', this.db.repositories, async () => {
+      const name = await this.normalizeGroupName(newName, oldName)
+      if (name === '') {
+        return
+      }
+
+      await this.db.repositories
+        .filter(r => r.group?.toLowerCase() === oldLower)
+        .modify({ group: name })
+    })
 
     this.emitUpdatedRepositories()
   }
@@ -383,7 +449,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      mainWorktreePath
+      mainWorktreePath,
+      repository.group
     )
   }
 
@@ -436,7 +503,8 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.workflowPreferences,
         repository.isTutorialRepository,
         gitDir,
-        mainWorktreePath
+        mainWorktreePath,
+        repository.group
       ),
       existingRepository: false,
     }
@@ -586,7 +654,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.group
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)
