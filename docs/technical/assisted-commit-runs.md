@@ -740,8 +740,9 @@ diagnostic and valid local commits. An ignored route cannot activate later outsi
 the frozen graph. Garbage-entry warnings do not indicate omitted routes and keep
 their existing behavior, as do ordinary local operations. Object-route inspection
 uses bounded iteration and a shared **4096-entry budget** across admitted roots:
-initial excess preserves local completion; later growth stops follow-up without
-revoking acknowledged success.
+each distinct root and each discovered file or subdirectory counts once per
+verification. Initial excess preserves local completion; later growth stops
+follow-up without revoking acknowledged success.
 
 ### Publish upstream metadata atomically after ACK
 

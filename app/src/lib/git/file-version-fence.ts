@@ -220,13 +220,15 @@ async function captureTreeRoutingFence(
         })
       }
     }
+    for (const path of pending) {
+      checkBudget(path)
+    }
     while (pending.length > 0) {
       const path = pending.pop()
       if (path === undefined) {
         break
       }
       try {
-        checkBudget(path)
         // eslint-disable-next-line no-sync
         const stat = lstatSync(path, { bigint: true })
         if (
