@@ -1,0 +1,291 @@
+# Assisted commit planning
+
+This is the third backend layer of plan-first assisted commits. The sidebar's
+execution gate remains dormant. There is no assisted UI execution callback,
+commit-message draft update, commit, push, consent UI or run lifecycle here.
+Ordinary message generation keeps its existing prompt and behavior.
+
+## Public contracts
+
+`CopilotStore.proposeAssistedCommitPlan(account, analysis, repositoryPath, options)`
+accepts **only** `IAssistedCommitAnalysis` as change content. Its options carry
+the existing `CopilotModelRequest`, repository message rules, an `AbortSignal`
+and `mode: 'plan' | 'single-commit'`. It returns a parsed
+`CopilotAssistedCommitResponse`, not an executor capability. Neither the snapshot's
+private handles nor a live file list can be serialized through this API.
+
+`parseCopilotAssistedCommitResponse(analysis, content, mode)` accepts bare JSON.
+`validateCopilotAssistedCommitResponse(analysis, unknownResponse, mode)` provides
+the same wire checks for other backends. Both reject unknown fields, executable
+properties, malformed/truncated responses, wrong snapshots, invalid titles,
+non-string descriptions, unknown IDs, duplicate/missing units and empty groups.
+They return immutable data, never paths, patches, blobs or staging operations.
+Paths and `oldPath` in analysis are descriptive only.
+
+`planAssistedCommits(snapshot, propose, options)` is backend independent. It
+borrows the caller's snapshot and passes only `snapshot.analysis` to `propose`.
+It returns the canonical `IValidatedAssistedCommitPlan` capability from
+`validateAssistedCommitPlan`. All cumulative trees, exact-once ownership,
+selected-file identity, original HEAD and original index are checked before
+integration can stage or create any real commit. This helper neither disposes
+the snapshot nor executes the returned plan.
+
+Analysis progress is an awaited `onPlanningProgress` observer with
+`kind: 'planning' | 'summarizing-selection'` and the number of selected units.
+The existing awaited `onProgress` observer receives canonical validation
+progress. Model output and these callbacks never imply committed history.
+Observer failures stop the operation, including errors whose code happens to
+be `unsafe-plan`.
+
+## Grouping guidance and unit limits
+
+Normal planning enumerates reasons selected units belong together: one feature
+or user-facing capability, one bug/root cause, a cohesive module/subsystem concern,
+a shared prerequisite, meaningful ordered steps of a complex change, or a
+coordinated contract/migration/rename/interface change. Related implementation,
+UI, tests, docs, styles and config follow their purpose when the units permit.
+Common folders or a shared app are evidence, not reasons to merge unrelated
+features. Dependency ordering can yield separate coherent commits; it does not
+require one large commit. There is no minimum count or per-file/folder/step quota.
+
+Every supplied ID remains indivisible, including a whole-file addition hunk
+or a shared README/UI/style unit spanning multiple features. Such a unit is
+assigned once and may prevent an ideal per-feature split. The prompt asks for
+only necessary linked grouping, not collapse of every independent feature
+because it shares a path. It cannot change snapshot granularity or divide IDs.
+One commit remains correct for a single purpose or unavoidable indivisibility.
+Whole-selection fallback omits partitioning reasons and still requires one
+fresh message covering all selected units. Schema, ownership and validation
+rules are unchanged. Synthetic tests verify this prompt contract and complete
+input preservation, not measured model grouping quality.
+
+## Outcomes and the only fallback
+
+The wire protocol has three exact shapes:
+
+```json
+{
+  "kind": "plan",
+  "snapshotId": "opaque-snapshot",
+  "commits": [
+    {
+      "title": "Describe only this group's selected changes",
+      "description": "Optional body following applicable instructions",
+      "changeIds": ["opaque-change"]
+    }
+  ]
+}
+```
+
+```json
+{
+  "kind": "uncertain-boundaries",
+  "snapshotId": "opaque-snapshot",
+  "title": "Describe the entire selected changeset",
+  "description": "Optional whole-selection body"
+}
+```
+
+```json
+{
+  "kind": "unsafe",
+  "snapshotId": "opaque-snapshot",
+  "reason": "Why this selection cannot be described safely"
+}
+```
+
+Explicit uncertainty becomes a `createSingleAssistedCommitPlan` request with
+reason `uncertain-boundaries`, followed by normal full-plan validation.
+Explicit unsafe becomes a visible `CopilotAssistedCommitError` with code `unsafe`.
+There are no agent-initiated questions.
+
+Only `unsafe-plan` from **canonical cumulative-tree validation of an otherwise
+valid multi-commit proposal** permits one additional model turn. That turn gets
+all of the original analysis in a new session with `mode: 'single-commit'`.
+It must supply a fresh accurate whole-selection message. No first split message,
+untrusted previous output or Git error text is inserted into the new prompt.
+The helper explicitly creates a single plan with reason `unsafe-split`, then
+validates it again. Failure of that validation remains an error; there is no
+third turn. Invalid output, auth/quota/timeout errors, cancellation, stale
+selection/index/history, disposal and observer errors never trigger fallback.
+
+## Instructions, model selection and authority
+
+The distinct planner prompt does not inherit ordinary generation's 50-character
+title preference, optional lockfile exclusion or generic body convention.
+Applicable global and repository Copilot instructions control content, language,
+message structure and requested trailers. The SDK owns instruction loading,
+precedence and applicability; Desktop does not implement those policies. Beyond the wire
+schema, the required message invariant is a nonblank single-line title without
+NUL. Bodies are optional strings without NUL. Copilot attribution is omitted by
+default unless applicable instructions explicitly request it.
+
+The planner relies on normal SDK loading of global, repository and scoped
+custom instructions. It retains `systemMessage.mode: 'append'`,
+`skipCustomInstructions: false`, and the repository cwd, without overriding
+`configDirectory`. Desktop does not discover instruction paths, read or copy
+instruction files, create a private instruction directory, fetch instruction
+source bodies through RPCs or reinsert them into the user prompt. SDK changes
+to discovery, precedence or applicability therefore do not require a parallel
+Desktop implementation.
+
+Because an explicit SDK environment replaces the inherited environment,
+the planner preserves home/Copilot/config directory variables and OS paths,
+without forwarding ambient SDK runtime or tool overrides. Tests launch the
+shipped SDK 1.0.18/runtime 1.0.94 with a separately configured Copilot home,
+synthetic instructions and a completely local fake model. They prove global
+and repository root bodies reach the model before the appended planner prompt.
+The runtime advertises scoped instruction files in its native instruction table,
+but does not inline their bodies in this no-tools session. Desktop leaves that
+behavior to the SDK rather than reading/reinjecting those bodies or enabling
+file tools. These tests establish prompt inclusion and tool policy, not semantic
+adherence to message instructions.
+
+Configured MCP processes can start under normal SDK behavior even with zero
+exposed model tools, an empty `mcpServers` object and config discovery disabled.
+The runtime fixture explicitly observes a configured MCP startup sentinel,
+while file-hook sentinels remain absent and tool metadata/model requests expose
+no tools. Tool filtering and permission rejection do not promise to prevent
+configured processes from starting. The SDK's per-session `disabledMcpServers`
+accepts exact known names, not a documented disable-all wildcard. The planner
+supplies no servers of its own and does not inventory, parse, copy or mutate
+user/repository MCP configuration to manufacture such a list.
+
+Client creation uses the account's current session-bound token getter, not an
+access token copied from an account snapshot. Planner sessions go through the
+same credential-aware SDK session factory as ordinary generation: refreshable
+GitHub credentials supply a rotating token provider, while legacy and explicit
+BYOK sessions omit that provider. The bound provider rejects retired sign-ins
+even if a replacement sign-in reuses the token. Cancellation abandons only the
+planner's waiter, not shared renewal; late-created clients remain owned and
+are stopped.
+
+Repository message-rule descriptions reuse existing enforced/bypass filtering,
+control-character sanitation and deduplication. Those rules and the complete
+analysis are user-channel **data**, surrounded by fresh cryptographically random
+per-request tags. Neither diff/rule text nor model/error text enters the trusted
+system channel. Custom instructions and rule constraints cannot override the
+schema, title invariant or Desktop's authority.
+
+Every session has an empty tool allowlist plus exclusions for all built-in,
+MCP and custom tools. Permission requests always reject. Supported SDK controls
+disable config discovery, filesystem hooks, host Git context/status, skills,
+explicit plugin/agent routes, extensions, canvases, interactive input, schedules,
+memory, embeddings retrieval and cross-session storage.
+SDK-added coauthors are disabled with `coauthorEnabled: false`. Instructions
+use the established SDK mechanism, not model file tools. Configured MCP startup
+is separate from model tool access. This is a constrained SDK configuration,
+not an OS sandbox; Desktop's own Git engine remains the canonical safety authority.
+
+Session configuration follows supported SDK options and normal local-session
+defaults. The planner omits the obsolete `remoteSession` option: SDK 1.0.18
+documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
+exposes that option. No replacement remote/export policy is emulated.
+
+Callers reuse the existing commit-message feature's account selection,
+organization entitlement gate, consent and model preference. No new picker or
+persisted preference is added. Explicit built-in model IDs remain unchanged
+when metadata is unavailable; planning borrows already cached metadata and never
+starts an unowned shared-cache fetch. Built-in models, including `auto`, leave
+reasoning effort undefined so the SDK/model default applies, rather than selecting
+the lowest supported effort. BYOK model, provider and explicit effort pass through
+unchanged; an absent BYOK effort also retains the SDK/provider default. Ordinary
+commit-message generation keeps its existing lowest-effort behavior.
+Configured timeouts must be finite, positive and within the runtime timer range,
+otherwise they fail explicitly.
+
+## Limits, errors and lifecycle
+
+The complete serialized user prompt has an inclusive 4 MiB UTF-8 protocol limit,
+including rules and delimiters. Responses have an inclusive 1 MiB UTF-8 limit.
+These are transport/structural bounds, not title style rules or a promise that
+every model's context window can fit that input. Nothing is truncated or batched;
+smaller model context limits remain observable SDK errors. Automatic compaction
+and infinite-session workspaces are disabled.
+
+`CopilotAssistedCommitError` carries `code`, `cause` and `cleanupErrors`.
+Codes include `invalid-response`, `unsafe`, `empty-selection`, `prompt-too-large`,
+`invalid-request`, `cancelled`, `timed-out` and `cleanup-failed`.
+Canonical engine errors retain their original types/codes. Transport/auth
+failures propagate unchanged; the existing SDK session-error adapter preserves
+402 quota/billing metadata as `CopilotError`. Cleanup failure is not success:
+it preserves any earlier request error in `cause` plus the cleanup errors.
+Integration should inspect that cause when presenting actionable billing data.
+
+The request deadline covers client setup, SDK session creation (including its
+instruction loading) and model response. Cached model metadata is synchronous;
+every SDK setup await is cancellable. Cancellation and
+timeout force-stop the owned ephemeral runtime; late-created clients/sessions
+are disposed. Late cleanup failures are logged because cancellation has already
+been delivered.
+Response waiting uses Desktop-owned send/events and the enclosing deadline,
+not SDK `sendAndWait`'s independent timer; all response/idle/error/abort listeners
+are removed on completion or cancellation. Successful/error cleanup disconnects the session and awaits
+client shutdown, bounded to one second before force-stop and an explicit
+cleanup failure. Cancellation during cleanup cannot return a successful plan.
+Every owned in-memory filesystem is cleared and rejects late reads/writes.
+SDK session journals use that filesystem; no per-session content is written to
+disk or the shared session store. There is no Desktop-owned instruction config
+directory to clean up. Any client/session cleanup failure stays visible.
+
+The caller must keep using `withAssistedCommitSnapshot` for snapshot resource
+cleanup. The planner never assumes ownership of it.
+
+## Layer 4 integration
+
+Apply existing account eligibility and consent **before** capture or any model
+request, resolve the existing commit-message model selection, and pause
+index-refreshing status requests while the snapshot is active.
+The execution owner can then compose the backend contracts:
+
+```ts
+const result = await withAssistedCommitSnapshot(
+  repository,
+  request,
+  async snapshot => {
+    const checked =
+      snapshot.analysis.changes.length === 0
+        ? await validateAssistedCommitPlan(
+            snapshot,
+            createSingleAssistedCommitPlan(snapshot, {
+              reason: 'empty-selection',
+              title: callerProvidedEmptyCommitTitle,
+            }),
+            options
+          )
+        : await planAssistedCommits(
+            snapshot,
+            (analysis, mode, signal) =>
+              copilotStore.proposeAssistedCommitPlan(
+                account,
+                analysis,
+                snapshot.repositoryPath,
+                {
+                  request: selectedCommitMessageModel,
+                  commitMessageRules,
+                  mode,
+                  signal,
+                }
+              ),
+            options
+          )
+
+    // Only the later execution/integration layer may call this.
+    return executeAssistedCommitPlan(snapshot, checked, options)
+  },
+  options
+)
+
+if (options.signal?.aborted) {
+  await rollbackAssistedCommitTransaction(result, options)
+} else {
+  finalizeAssistedCommitTransaction(result)
+}
+```
+
+Allow-empty must bypass **all model analysis** with an explicit caller title.
+Non-empty planner invocation rejects empty analysis even if an integration
+accidentally calls it. Keep commit-progress/hook controls, selected-content
+checks, visible errors, cancellation, result finalization/rollback and eventual
+push/retry in their owning layers. Do not turn a checked plan into a JSON
+capability or execute it outside the active snapshot scope.
