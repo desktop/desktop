@@ -1,16 +1,42 @@
-import { afterEach, beforeEach, describe, it } from 'node:test'
+import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
+import { afterEach, beforeEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
 import { existsSync } from 'fs'
 import { pathToFileURL } from 'url'
 
-import { clone } from '../../../src/lib/git/clone'
+import { clone, getLocalCloneSourcePath } from '../../../src/lib/git/clone'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { createTempDirectory } from '../../helpers/temp'
 import { exec } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { isGitError } from '../../../src/lib/git/core'
+import { mkdir, realpath, symlink, writeFile, unlink } from 'fs/promises'
+import {
+  acquireAssistedCommitGitLease,
+  getAssistedCommitProtectedPaths,
+  hasRepositoryGitOperationAccess,
+  IAssistedCommitGitLease,
+  protectAssistedCommitResources,
+  withoutRepositoryGitAccess,
+  withRepositoryGitOperation,
+} from '../../../src/lib/git/repository-operation'
+import { rollbackAssistedCommitTransaction } from '../../../src/lib/git/assisted-commit'
+import { Repository } from '../../../src/models/repository'
+import {
+  rawGit,
+  request,
+  single,
+  tip,
+  seed,
+  optionalBytes,
+  count,
+} from '../../helpers/assisted-commit'
+import {
+  deferred,
+  wholeSelectionResponse,
+} from '../../helpers/copilot-assisted-commit'
 
 async function createEmptyBareRepository(
   t: import('node:test').TestContext
@@ -22,6 +48,136 @@ async function createEmptyBareRepository(
 }
 
 describe('git/clone', () => {
+  describe('local source path mapping', () => {
+    const cwd = 'C:\\desktop\\app\\src\\lib\\git'
+    for (const [url, expected] of [
+      ['file://clone-local/share/project', '\\\\clone-local\\share\\project'],
+      [
+        'file://clone-local/C:/Users/demo/project',
+        '\\\\clone-local\\C:\\Users\\demo\\project',
+      ],
+      ['file://localhost/share/project', '\\\\localhost\\share\\project'],
+      [
+        'file://localhost/C:/Users/demo/project',
+        '\\\\localhost\\C:\\Users\\demo\\project',
+      ],
+      ['file:////clone-local/share/project', '\\\\clone-local\\share\\project'],
+      ['file://C:/Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file://D:/Users/demo/project', 'D:\\Users\\demo\\project'],
+      ['file://D:\\Users\\demo\\project', 'D:\\Users\\demo\\project'],
+      ['file:///C:/Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file:///Users/demo/project', 'C:\\Users\\demo\\project'],
+      ['file://C:relative', 'C:\\desktop\\app\\src\\lib\\git\\relative'],
+      ['file://C%3A%2FUsers%2Fdemo%2Fproject', 'C:\\Users\\demo\\project'],
+      [
+        'file://clone%2Dlocal/share/space%20%23question%3Fpercent%25+plus',
+        '\\\\clone-local\\share\\space #question?percent%+plus',
+      ],
+      ['file://clone-local\\share\\project', '\\\\clone-local\\share\\project'],
+      ['file://C:/Users/space #raw%+plus', 'C:\\Users\\space #raw%+plus'],
+      ['file://clone-local', null],
+      ['file://', null],
+    ] as const) {
+      it(`matches Git for Windows filesystem mapping for ${url}`, () => {
+        assert.strictEqual(getLocalCloneSourcePath(url, 'win32', cwd), expected)
+      })
+    }
+
+    for (const [url, expected] of [
+      ['file://clone-local/repositories/project', '/repositories/project'],
+      ['file://localhost/repositories/project', '/repositories/project'],
+      ['file:///repositories/project', '/repositories/project'],
+      ['file://C:/repositories/project', '/repositories/project'],
+      ['file:////repositories/project', '/repositories/project'],
+      [
+        'file://clone-local/space%20%23question%3Fpercent%25+plus',
+        '/space #question?percent%+plus',
+      ],
+      ['file://clone-local/space #raw%+plus', '/space #raw%+plus'],
+      ['file://clone-local', null],
+      ['file://', null],
+    ] as const) {
+      it(`preserves POSIX Git filesystem mapping for ${url}`, () => {
+        assert.strictEqual(
+          getLocalCloneSourcePath(url, 'posix', '/desktop/app/src/lib/git'),
+          expected
+        )
+      })
+    }
+
+    for (const platform of ['posix', 'win32'] as const) {
+      for (const url of [
+        'https://example.com/owner/project.git',
+        'ssh://git@example.com/owner/project.git',
+        'git@example.com:owner/project.git',
+        'git://example.com/owner/project.git',
+        'desktop-test-helper::project',
+      ]) {
+        it(`does not classify ${url} as local on ${platform}`, () => {
+          assert.strictEqual(getLocalCloneSourcePath(url, platform), null)
+        })
+      }
+    }
+
+    for (const [url, platform, sourceCwd, expected] of [
+      ['../project%20#raw', 'posix', '/desktop/app', '/desktop/project%20#raw'],
+      [
+        '..\\project%20#raw',
+        'win32',
+        'C:\\desktop\\app',
+        'C:\\desktop\\project%20#raw',
+      ],
+      ['D:\\project%20#raw', 'win32', cwd, 'D:\\project%20#raw'],
+      [
+        '\\\\clone-local\\share\\project',
+        'win32',
+        cwd,
+        '\\\\clone-local\\share\\project',
+      ],
+    ] as const) {
+      it(`preserves native non-URL path bytes for ${url} on ${platform}`, () => {
+        assert.strictEqual(
+          getLocalCloneSourcePath(url, platform, sourceCwd),
+          expected
+        )
+      })
+    }
+
+    it('decodes the native file source before admitting a read', async t => {
+      const expected = path.join(
+        await createTempDirectory(t),
+        'source space#percent%~'
+      )
+      await mkdir(expected)
+      const lease = await acquireAssistedCommitGitLease(expected)
+      t.after(() => lease.release())
+      const source = getLocalCloneSourcePath(
+        `file://${encodeURIComponent(
+          decodeURIComponent(
+            pathToFileURL(expected).href.slice('file://'.length)
+          )
+        )}`
+      )
+      assert.ok(source !== null)
+      let entered = false
+      const reading = withRepositoryGitOperation(source, 'read', async () => {
+        entered = true
+      })
+      try {
+        await new Promise(resolve => setTimeout(resolve, 50))
+        assert.strictEqual(
+          entered,
+          false,
+          'A file URL must wait for the decoded source that native Git reads'
+        )
+      } finally {
+        lease.release()
+        await reading
+      }
+      assert.strictEqual(entered, true)
+    })
+  })
+
   describe('transport policy', () => {
     const savedEnvironment: NodeJS.ProcessEnv = {}
 
@@ -223,6 +379,234 @@ describe('git/clone', () => {
     assert.equal(existsSync(path.join(clonePath, 'README.md')), true)
   })
 
+  it('allows an independent clone while the application execution directory is protected', async t => {
+    const source = await setupEmptyRepository(t)
+    await makeCommit(source, {
+      entries: [{ path: 'README.md', contents: 'Synthetic clone contents' }],
+    })
+    const destination = path.join(await createTempDirectory(t), 'independent')
+    const applicationDirectory = path.resolve(__dirname, '../../../src/lib/git')
+    const protection = protectAssistedCommitResources(applicationDirectory, [
+      applicationDirectory,
+      await realpath(applicationDirectory),
+    ])
+    t.after(() => protection.release())
+    const lease = await acquireAssistedCommitGitLease(applicationDirectory)
+    t.after(() => lease.release())
+    await clone(source.path, destination, {})
+    assert.strictEqual(existsSync(path.join(destination, 'README.md')), true)
+    assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+  })
+
+  describe('local source coordination', () => {
+    async function sourceFixture(t: TestContext, sharedPeer = false) {
+      const source = await setupEmptyRepository(t)
+      await makeCommit(source, {
+        entries: [{ path: 'file.txt', contents: 'before\n' }],
+      })
+      const original = await tip(source)
+      const parent = await createTempDirectory(t)
+      const destination = path.join(parent, 'clone')
+      let active = source
+      if (sharedPeer) {
+        const peer = path.join(parent, 'active-peer')
+        await rawGit(source, [
+          'worktree',
+          'add',
+          '-b',
+          'active-peer',
+          '--',
+          peer,
+        ])
+        active = new Repository(peer, -1, null, false)
+      }
+      return { source, active, original, parent, destination }
+    }
+
+    for (const kind of [
+      'path',
+      'relative-path',
+      'symlink-path',
+      'git-directory',
+      'git-suffix',
+      'colon-path',
+      'file-url',
+      __WIN32__ ? 'file-url-drive' : 'file-url-authority',
+      'file-url-encoded-path',
+      'file-url-literal',
+      'shared-peer-path',
+      'shared-peer-file-url',
+    ] as const) {
+      it(`waits for local source recovery rather than copying transient commits (${kind})`, async t => {
+        const sharedPeer = kind.startsWith('shared-peer')
+        const { source, active, original, parent, destination } =
+          await sourceFixture(t, sharedPeer)
+        let url = source.path
+        if (
+          kind === 'symlink-path' ||
+          kind.startsWith('file-url') ||
+          kind === 'colon-path'
+        ) {
+          const alias = path.join(
+            parent,
+            kind === 'colon-path' && !__WIN32__
+              ? 'source:local'
+              : 'source space#percent%'
+          )
+          await symlink(source.path, alias, __WIN32__ ? 'junction' : 'dir')
+          url = alias
+        }
+        if (kind === 'relative-path') {
+          url = path.relative(
+            path.resolve(__dirname, '../../../src/lib/git'),
+            source.path
+          )
+        } else if (kind === 'git-directory') {
+          url = path.join(source.path, '.git')
+        } else if (kind === 'git-suffix') {
+          url = path.join(parent, 'source-with-suffix')
+          await symlink(
+            source.path,
+            `${url}.git`,
+            __WIN32__ ? 'junction' : 'dir'
+          )
+        } else if (kind.includes('file-url')) {
+          url = pathToFileURL(url).href
+          if (kind === 'file-url-authority') {
+            url = url.replace('file:///', 'file://clone-local/')
+          } else if (kind === 'file-url-drive') {
+            // Windows retains authorities as UNC; use Git's supported file://C:/ form.
+            url = url.replace('file:///', 'file://')
+          } else if (kind === 'file-url-encoded-path') {
+            url = `file://${encodeURIComponent(
+              decodeURIComponent(url.slice('file://'.length))
+            )}`
+          } else if (kind === 'file-url-literal') {
+            url = url
+              .replaceAll('%20', ' ')
+              .replaceAll('%23', '#')
+              .replaceAll('%25', '%')
+          }
+        }
+        await writeFile(
+          path.join(active.path, 'file.txt'),
+          'transient selected content\n'
+        )
+        const lease = await acquireAssistedCommitGitLease(
+          active.path,
+          await getAssistedCommitProtectedPaths(active.path)
+        )
+        t.after(() => lease.release())
+        const result = await lease.run(async () =>
+          single(active, await request(active))
+        )
+        assert.notStrictEqual(await tip(active), original)
+        const entered = deferred<void>()
+        const cloning = clone(url, destination, {}, () => entered.resolve())
+        let timeout: ReturnType<typeof setTimeout> | undefined
+        const beganBeforeRecovery = await Promise.race([
+          entered.promise.then(() => true),
+          new Promise<false>(resolve => {
+            timeout = setTimeout(() => resolve(false), 200)
+          }),
+        ])
+        if (timeout !== undefined) {
+          clearTimeout(timeout)
+        }
+        try {
+          await lease.run(() => rollbackAssistedCommitTransaction(result))
+        } finally {
+          lease.release()
+          await cloning
+        }
+        assert.strictEqual(
+          beganBeforeRecovery,
+          false,
+          'Clone must not begin reading an active assisted source'
+        )
+        assert.strictEqual(await tip(active), original)
+        const cloned = new Repository(destination, -1, null, false)
+        assert.strictEqual(await tip(cloned), original)
+        if (sharedPeer) {
+          assert.strictEqual(
+            await rawGit(cloned, [
+              'rev-parse',
+              'refs/remotes/origin/active-peer',
+            ]),
+            original
+          )
+        }
+      })
+    }
+
+    for (const sharedPeer of [false, true]) {
+      it(`retains its source read through native clone completion (shared peer=${sharedPeer})`, async t => {
+        const { source, active, destination } = await sourceFixture(
+          t,
+          sharedPeer
+        )
+        const protectedPaths = await getAssistedCommitProtectedPaths(
+          active.path
+        )
+        let acquiring: Promise<IAssistedCommitGitLease> | undefined
+        let acquired = false
+        const observations: boolean[] = []
+        await clone(pathToFileURL(source.path).href, destination, {}, () => {
+          if (acquiring === undefined) {
+            acquiring = withoutRepositoryGitAccess(() =>
+              acquireAssistedCommitGitLease(active.path, protectedPaths)
+            ).then(lease => {
+              acquired = true
+              return lease
+            })
+          }
+          observations.push(acquired)
+        })
+        assert.ok(acquiring)
+        const lease = await acquiring
+        lease.release()
+        assert.ok(
+          observations.length > 1,
+          'Real file transport must report native progress'
+        )
+        assert.ok(
+          observations.every(value => value === false),
+          'A later lease must drain the complete clone, not just source metadata probes'
+        )
+        assert.strictEqual(existsSync(path.join(destination, 'file.txt')), true)
+      })
+    }
+
+    it('does not lend the source read to progress observers', async t => {
+      const { source, destination } = await sourceFixture(t)
+      const access: boolean[] = []
+      await clone(source.path, destination, {}, () => {
+        access.push(hasRepositoryGitOperationAccess(source.path))
+      })
+      assert.ok(access.length > 0)
+      assert.ok(access.every(value => value === false))
+    })
+
+    it('keeps the destination reserved while waiting for an active source', async t => {
+      const { source, destination } = await sourceFixture(t)
+      const lease = await acquireAssistedCommitGitLease(source.path)
+      t.after(() => lease.release())
+      const cloning = clone(source.path, destination, {})
+      try {
+        await new Promise(resolve => setTimeout(resolve, 200))
+        assert.strictEqual(existsSync(destination), false)
+        await assert.rejects(
+          acquireAssistedCommitGitLease(destination),
+          /being removed/
+        )
+      } finally {
+        lease.release()
+        await cloning
+      }
+      assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+    })
+  })
+
   it('clones with a specific branch', async t => {
     const source = await setupEmptyRepository(t)
     await makeCommit(source, {
@@ -344,5 +728,72 @@ describe('git/clone', () => {
         return true
       }
     )
+  })
+})
+
+describe('clone destination admission during assisted runs', () => {
+  it('rejects native clone checkout into protected selected working files', async t => {
+    const source = await seed(t, { file: 'Clone replacement\n' })
+    const target = await seed(t, { 'nested/file': 'Selected deletion\n' })
+    await unlink(path.join(target.path, 'nested/file'))
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(target)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      entered.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await entered.promise
+    try {
+      await assert.rejects(
+        clone(source.path, path.join(repository.path, 'nested'), {
+          defaultBranch: 'main',
+        }),
+        /assisted commit run/
+      )
+    } finally {
+      h.cancel(repository)
+      finish.resolve()
+      await operation
+    }
+    assert.strictEqual(
+      await optionalBytes(path.join(repository.path, 'nested/file')),
+      null
+    )
+    assert.strictEqual(await count(repository), 1)
+  })
+
+  it('reserves clone destinations before native checkout for reciprocal assisted admission', async t => {
+    const source = await seed(t, { file: 'Clone replacement\n' })
+    const target = await seed(t, { 'nested/file': 'Selected deletion\n' })
+    await unlink(path.join(target.path, 'nested/file'))
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(target)
+    let attempted:
+      | ReturnType<typeof h.dispatcher.createCopilotAssistedCommits>
+      | undefined
+    await clone(
+      source.path,
+      path.join(repository.path, 'nested'),
+      { defaultBranch: 'main' },
+      progress => {
+        if (progress.value === 0 && attempted === undefined) {
+          attempted = h.dispatcher.createCopilotAssistedCommits(
+            repository,
+            h.request(repository)
+          )
+        }
+      }
+    )
+    assert.ok(attempted !== undefined)
+    assert.strictEqual((await attempted).kind, 'busy')
+    assert.strictEqual(h.propose.mock.callCount(), 0)
+    assert.strictEqual(await count(repository), 1)
   })
 })

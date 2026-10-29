@@ -37,6 +37,28 @@ export class ErrorWithMetadata extends Error {
   }
 }
 
+/** Preserve nested transport, domain, aggregate, and cleanup failures without losing their identity. */
+export function getErrorCauses(error: unknown): ReadonlyArray<unknown> {
+  const causes: unknown[] = []
+  const visit = (value: unknown) => {
+    if (causes.includes(value)) {
+      return
+    }
+    causes.push(value)
+    if (value instanceof ErrorWithMetadata) {
+      visit(value.underlyingError)
+    }
+    if (value instanceof Error && value.cause !== undefined) {
+      visit(value.cause)
+    }
+    if (value instanceof AggregateError) {
+      value.errors.forEach(visit)
+    }
+  }
+  visit(error)
+  return causes
+}
+
 /**
  * An error thrown when a failure occurs while checking out a branch.
  * Technically just a convience class on top of ErrorWithMetadata
