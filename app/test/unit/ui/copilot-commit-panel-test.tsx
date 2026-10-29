@@ -5,8 +5,325 @@ import { CopilotCommitPanel } from '../../../src/ui/changes/copilot-commit-panel
 import { AssistedCommitRunState } from '../../../src/models/assisted-commit-run'
 import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
+import { PushProgressParser } from '../../../src/lib/progress'
 
 describe('Copilot commit run panel', () => {
+  it('shows total weighted push percentage, not stage percentages or raw output, and clears it after ACK', async () => {
+    const parser = new PushProgressParser()
+    const view = render(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'pushing',
+          runId: 'run',
+          phase: 'push',
+          progress: null,
+        }}
+      />
+    )
+    assert.ok(screen.getByText('0%'))
+    for (const [line, expected] of [
+      ['Compressing objects: 100% (10/10), done.', '20%'],
+      ['Writing objects: 50% (5/10)', '55%'],
+      ['remote: Long contextual diagnostic, not progress', '55%'],
+      ['remote: Resolving deltas: 100% (10/10), done.', '100%'],
+    ]) {
+      const progress = parser.parse(line)
+      const state: AssistedCommitRunState = {
+        kind: 'pushing',
+        runId: 'run',
+        phase: 'push',
+        progress: {
+          kind: 'push',
+          title: 'Push',
+          remote: 'origin',
+          branch: 'main',
+          value: progress.percent,
+          description: line,
+        },
+      }
+      view.rerender(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={true}
+          runState={state}
+        />
+      )
+      assert.ok(screen.getByText(expected))
+      assert.strictEqual(screen.queryByText(line), null)
+    }
+    view.rerender(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'pushing',
+          runId: 'run',
+          phase: 'refresh',
+          progress: null,
+        }}
+      />
+    )
+    assert.ok(
+      screen.getByText('Refreshing pushed commits…', { selector: '.title' })
+    )
+    assert.strictEqual(screen.queryByText(/\d+%/), null)
+  })
+
+  for (const kind of ['push-error', 'error'] as const) {
+    it(`keeps multiline ${kind} diagnostics out of the compact alert while Details stays keyboard reachable`, async () => {
+      const diagnostic =
+        'Long native failure\nremote: rejected\n' +
+        'Extra diagnostic '.repeat(60)
+      const state: AssistedCommitRunState =
+        kind === 'push-error'
+          ? {
+              kind,
+              runId: 'run',
+              attempted: true,
+              settling: false,
+              error: new ErrorWithMetadata(new Error(diagnostic), {}),
+            }
+          : {
+              kind,
+              runId: 'run',
+              retry: 'recovery',
+              settling: false,
+              selectionNeedsReview: false,
+              error: new ErrorWithMetadata(new Error(diagnostic), {}),
+            }
+      let details = 0
+      const view = render(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={false}
+          runState={state}
+          onErrorDetails={() => details++}
+          onRetryPush={() => {}}
+          onRetryRecovery={() => {}}
+        />
+      )
+      assert.strictEqual(
+        view.container.textContent?.includes(diagnostic),
+        false
+      )
+      assert.strictEqual(screen.getAllByRole('alert').length, 1)
+      assert.strictEqual(
+        view.container.querySelector('[aria-live="polite"]')?.textContent,
+        ''
+      )
+      const button = screen.getByRole('button', { name: 'Details' })
+      button.focus()
+      assert.strictEqual(document.activeElement, button)
+      fireEvent.click(button)
+      assert.strictEqual(details, 1)
+    })
+  }
+
+  it('formats finite push values as bounded whole percentages', () => {
+    const view = render(
+      <CopilotCommitPanel filesSelectedCount={0} isWorking={true} />
+    )
+    for (const [value, expected] of [
+      [-1, '0%'],
+      [NaN, '0%'],
+      [Infinity, '0%'],
+      [0.556, '56%'],
+      [2, '100%'],
+    ] as const) {
+      view.rerender(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={true}
+          runState={{
+            kind: 'pushing',
+            runId: 'run',
+            phase: 'push',
+            progress: {
+              kind: 'push',
+              title: 'Push',
+              value,
+              remote: 'origin',
+              branch: 'main',
+            },
+          }}
+        />
+      )
+      assert.ok(screen.getByText(expected))
+    }
+  })
+
+  it('keeps acknowledged push success explicit when only refresh needs retry', () => {
+    render(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={false}
+        runState={{
+          kind: 'error',
+          runId: 'run',
+          pushed: true,
+          retry: 'refresh',
+          settling: false,
+          selectionNeedsReview: false,
+          error: new ErrorWithMetadata(
+            new Error('Long refresh diagnostics'),
+            {}
+          ),
+        }}
+        onRetryRecovery={() => {}}
+        onErrorDetails={() => {}}
+      />
+    )
+    assert.ok(screen.getByText('Commits pushed'))
+    assert.ok(screen.getByRole('button', { name: 'Retry refresh' }))
+    assert.strictEqual(
+      screen.queryByRole('button', { name: 'Retry push' }),
+      null
+    )
+    assert.strictEqual(screen.queryByText('Long refresh diagnostics'), null)
+  })
+
+  for (const settling of [false, true]) {
+    it(`announces push errors only through their alert while settling=${settling}`, async () => {
+      const view = render(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={true}
+          runState={{
+            kind: 'pushing',
+            runId: 'run',
+            phase: 'push',
+            progress: null,
+          }}
+        />
+      )
+      const live = view.container.querySelector('[aria-live="polite"]')
+      assert.ok(live)
+      assert.match(live.textContent ?? '', /Pushing commits/)
+      view.rerender(
+        <CopilotCommitPanel
+          filesSelectedCount={0}
+          isWorking={false}
+          runState={{
+            kind: 'push-error',
+            runId: 'run',
+            attempted: true,
+            settling,
+            error: new ErrorWithMetadata(new Error('Actual push error'), {}),
+          }}
+          onRetryPush={() => {}}
+          onDismissError={() => {}}
+          onErrorDetails={() => {}}
+        />
+      )
+      assert.strictEqual(screen.getAllByRole('alert').length, 1)
+      assert.match(screen.getByRole('alert').textContent ?? '', /Push stopped/)
+      assert.strictEqual(live.textContent, '')
+      assert.ok(screen.getByRole('button', { name: 'Retry push' }))
+    })
+  }
+
+  it('announces real push progress and removes rollback Cancel at native push entry', async () => {
+    const view = render(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'preparing-push',
+          runId: 'run',
+          cancelRequested: false,
+          canCancel: true,
+        }}
+        onCancel={() => {}}
+      />
+    )
+    assert.ok(screen.getByRole('button', { name: 'Cancel' }))
+    view.rerender(
+      <CopilotCommitPanel
+        filesSelectedCount={0}
+        isWorking={true}
+        runState={{
+          kind: 'pushing',
+          runId: 'run',
+          phase: 'push',
+          progress: {
+            kind: 'push',
+            title: 'Pushing to origin',
+            value: 0.5,
+            remote: 'origin',
+            branch: 'master',
+            description: 'Writing objects: 50%',
+          },
+        }}
+        onCancel={() => {}}
+      />
+    )
+    assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
+    assert.ok(screen.getByText('50%'))
+    assert.strictEqual(screen.queryByText('Writing objects: 50%'), null)
+    assert.match(
+      view.container.querySelector('[aria-live="polite"]')?.textContent ?? '',
+      /Pushing commits/
+    )
+    assert.ok(view.container.querySelector('.copilot-commit-panel.working'))
+  })
+
+  it('keeps push-only Retry reachable with no Changes selection and never exposes destructive recovery', async () => {
+    let pushed = 0
+    let rolledBack = 0
+    let dismissed = 0
+    const props = {
+      filesSelectedCount: 0,
+      isWorking: false,
+      onRetryPush: () => pushed++,
+      onRetryRecovery: () => rolledBack++,
+      onDismissError: () => dismissed++,
+      onCancel: () => rolledBack++,
+    }
+    const state: AssistedCommitRunState = {
+      kind: 'push-error',
+      runId: 'run',
+      error: new ErrorWithMetadata(new Error('Native pre-push failure'), {}),
+      attempted: true,
+      settling: false,
+    }
+    const view = render(<CopilotCommitPanel {...props} runState={state} />)
+    assert.ok(screen.getByRole('alert'))
+    assert.strictEqual(screen.queryByText('Native pre-push failure'), null)
+    assert.ok(screen.getByText('All commits from this run were kept locally.'))
+    const retry = screen.getByRole('button', { name: 'Retry push' })
+    retry.focus()
+    assert.strictEqual(document.activeElement, retry)
+    fireEvent.click(retry)
+    assert.strictEqual(pushed, 1)
+    assert.strictEqual(rolledBack, 0)
+    assert.strictEqual(
+      screen.queryByRole('button', { name: /Retry rollback|Cancel/ }),
+      null
+    )
+    view.rerender(
+      <CopilotCommitPanel {...props} runState={{ ...state, settling: true }} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Retry push' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    assert.strictEqual(pushed, 1)
+    assert.strictEqual(dismissed, 0)
+    view.rerender(
+      <CopilotCommitPanel
+        {...props}
+        isWorking={true}
+        runState={{
+          kind: 'preparing-push',
+          runId: 'run',
+          cancelRequested: false,
+          canCancel: false,
+        }}
+      />
+    )
+    assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
+  })
+
   for (const [kind, caption] of [
     ['preparing', 'Preparing selected changes'],
     ['capturing', 'Freezing selected changes'],
@@ -119,7 +436,7 @@ describe('Copilot commit run panel', () => {
       />
     )
     assert.ok(screen.getByRole('alert'))
-    assert.ok(screen.getByText('External HEAD changed'))
+    assert.strictEqual(screen.queryByText('External HEAD changed'), null)
     assert.ok(screen.getByText(/Review and reselect/))
     assert.strictEqual(screen.queryByRole('button', { name: 'Dismiss' }), null)
     assert.strictEqual(
@@ -207,7 +524,7 @@ describe('Copilot commit run panel', () => {
         assert.strictEqual(screen.getAllByRole('alert').length, 1)
         assert.match(
           screen.getByRole('alert').textContent ?? '',
-          /Current failure details/
+          /Commit run stopped/
         )
         assert.strictEqual(live.textContent, '')
       })

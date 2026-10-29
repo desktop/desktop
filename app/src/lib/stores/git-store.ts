@@ -1123,11 +1123,13 @@ export class GitStore extends BaseStore {
    * @param backgroundTask   - Was the fetch done as part of a background task?
    * @param progressCallback - A function that's called with information about
    *                           the overall fetch progress.
+   * @param recurseSubmodules - Whether to fetch populated submodules on demand.
    */
   public async fetchRemotes(
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
-    progressCallback?: (fetchProgress: IFetchProgress) => void
+    progressCallback?: (fetchProgress: IFetchProgress) => void,
+    recurseSubmodules = true
   ): Promise<void> {
     if (!remotes.length) {
       return
@@ -1139,14 +1141,19 @@ export class GitStore extends BaseStore {
       const remote = remotes[i]
       const startProgressValue = i * weight
 
-      await this.fetchRemote(remote, backgroundTask, progress => {
-        if (progress && progressCallback) {
-          progressCallback({
-            ...progress,
-            value: startProgressValue + progress.value * weight,
-          })
-        }
-      })
+      await this.fetchRemote(
+        remote,
+        backgroundTask,
+        progress => {
+          if (progress && progressCallback) {
+            progressCallback({
+              ...progress,
+              value: startProgressValue + progress.value * weight,
+            })
+          }
+        },
+        recurseSubmodules
+      )
     }
   }
 
@@ -1158,11 +1165,13 @@ export class GitStore extends BaseStore {
    * @param backgroundTask   - Was the fetch done as part of a background task?
    * @param progressCallback - A function that's called with information about
    *                           the overall fetch progress.
+   * @param recurseSubmodules - Whether to fetch populated submodules on demand.
    */
   public async fetchRemote(
     remote: IRemote,
     backgroundTask: boolean,
-    progressCallback?: (fetchProgress: IFetchProgress) => void
+    progressCallback?: (fetchProgress: IFetchProgress) => void,
+    recurseSubmodules = true
   ): Promise<void> {
     const repo = this.repository
     const retryAction: RetryAction = {
@@ -1171,7 +1180,13 @@ export class GitStore extends BaseStore {
     }
     const fetchSucceeded = await this.performFailableOperation(
       async () => {
-        await fetchRepo(repo, remote, progressCallback, backgroundTask)
+        await fetchRepo(
+          repo,
+          remote,
+          progressCallback,
+          backgroundTask,
+          recurseSubmodules
+        )
         return true
       },
       { backgroundTask, retryAction }

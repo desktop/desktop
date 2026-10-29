@@ -189,6 +189,8 @@ export class AssistedCommitContext {
       state.multiCommitOperationState !== null ||
       state.changesState.conflictState !== null ||
       !assistedCommitRequestsEqual(run.request, currentRequest) ||
+      state.changesState.pushAfterAssistedCommit !==
+        run.pushAfterAssistedCommit ||
       JSON.stringify(state.changesState.coAuthors) !==
         JSON.stringify(run.initialState.changesState.coAuthors) ||
       state.changesState.showCoAuthoredBy !==

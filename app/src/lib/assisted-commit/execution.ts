@@ -30,6 +30,8 @@ import { AssistedCommitDialogs } from './dialogs'
 import { AssistedCommitReaders } from './readers'
 import { AssistedCommitSelection } from './selection'
 import { AssistedCommitState } from './state'
+import { AssistedCommitPush } from './push'
+import { verifyAcceptedOwner } from './push-ownership'
 import {
   IAssistedCommitPreparedIntent,
   IAssistedCommitRepository,
@@ -43,6 +45,7 @@ export interface IAssistedCommitExecution {
   readonly dialogs: AssistedCommitDialogs
   readonly readers: AssistedCommitReaders
   readonly selections: AssistedCommitSelection
+  readonly push: AssistedCommitPush
 }
 
 /** Plan the complete frozen selection before Desktop creates any commit. */
@@ -52,7 +55,7 @@ export async function executeAssistedCommitRun(
   prepared: IAssistedCommitPreparedIntent | undefined,
   services: IAssistedCommitExecution
 ): Promise<IAssistedCommitResult> {
-  const { state, context, dialogs, readers, selections } = services
+  const { state, context, dialogs, readers, selections, push } = services
   const repository = run.repository
   state.runs.set(repository.id, run)
   run.resourceProtection = protectAssistedCommitResources(repository.path)
@@ -83,9 +86,16 @@ export async function executeAssistedCommitRun(
   }
   context.assertInputs(run)
   state.protect(run, await getAssistedCommitProtectedPaths(repository.path))
-  const verifiedVersions = await readers.read(repository, run, () =>
-    selections.verifyRequested(repository, run.request.files)
-  )
+  run.originalResourceProtection = run.resourceProtection
+  const verifiedVersions = await readers.read(repository, run, async () => {
+    if (run.pushAfterAssistedCommit && run.pushDestination === undefined) {
+      run.pushDestination = await push.readDestination(
+        repository,
+        run.initialState
+      )
+    }
+    return selections.verifyRequested(repository, run.request.files)
+  })
   if (run.inputVersions === undefined) {
     run.inputVersions = verifiedVersions
   } else {
@@ -129,7 +139,8 @@ export async function executeAssistedCommitRun(
   context.check(run)
   run.lease = await acquireAssistedCommitGitLease(
     repository.path,
-    run.protectedPaths
+    run.protectedPaths,
+    () => verifyAcceptedOwner(run)
   )
   await context.assertFreshInputs(run)
   await run.lease.run(

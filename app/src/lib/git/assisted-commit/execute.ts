@@ -1,4 +1,5 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from 'fs/promises'
+import { lstatSync } from 'fs'
 import { CommitIdentity } from '../../../models/commit-identity'
 import { join } from 'path'
 import {
@@ -7,10 +8,12 @@ import {
   IValidatedAssistedCommitPlan,
 } from '../../../models/assisted-commit'
 import { formatCommitMessage } from '../../format-commit-message'
+import { isErrnoException } from '../../errno-exception'
 import { HookCallbackOptions } from '../core'
 import { getAuthorIdentity, getCommitterIdentity } from '../var'
 import { updateRefWithVerification, withRefLock } from '../update-ref'
 import { IOwnedFileLease, releaseOwnedFileLock } from '../owned-file-lock'
+import { captureFileVersionFence } from '../file-version-fence'
 import {
   AssistedCommitError,
   checkAssistedCommitCancellation,
@@ -19,6 +22,7 @@ import {
 } from './error'
 import {
   ensureNoRepositoryOperation,
+  gitPath,
   indexStatesEqual,
   installIndex,
   IOwnedIndexLock,
@@ -32,6 +36,7 @@ import {
   verifyHead,
   verifyIndex,
   verifySelectedFiles,
+  verifySelectedFileVersionsSync,
 } from './git'
 import { IAssistedCommitOperationOptions } from './progress'
 import { disposeAssistedCommitSnapshot } from './snapshot'
@@ -1014,6 +1019,165 @@ export async function acceptVerifiedAssistedCommitTransaction(
           { cause: error }
         )
       }
+    }
+  }
+}
+
+/**
+ * Prepare push entry without accepting history or holding native locks over the network.
+ *
+ * Local and destination verification run under the real HEAD/ref/index fences.
+ * Cleanup must succeed before the one-shot, non-yielding spawn callback can
+ * finalize the retained backup. Cancellation through preparation stays reversible.
+ */
+export async function prepareAssistedCommitTransactionForPush(
+  result: IAssistedCommitResult,
+  verifyDestination: () => Promise<() => void>,
+  options: IAssistedCommitOperationOptions = {}
+): Promise<() => void> {
+  const transaction = completedTransactions.get(result)
+  if (transaction === undefined || transaction.recovering) {
+    throw new AssistedCommitError(
+      'disposed',
+      'Assisted commit result is unavailable for push acceptance'
+    )
+  }
+  let indexLock: IOwnedIndexLock | undefined
+  let verifyBacking: (() => void) | undefined
+  let verifyRemote: (() => void) | undefined
+  let failed = false
+  let failure: unknown
+  try {
+    checkAssistedCommitCancellation(options.signal)
+    indexLock = await lockIndex(transaction.data, owned =>
+      transaction.ownedLocks.push(owned)
+    )
+    await withRefLock(
+      transaction.data.repository,
+      result.head.ref ?? 'HEAD',
+      transaction.expectedTip ?? transaction.data.zeroId,
+      async guard => {
+        const data = transaction.data
+        const refPath = await gitPath(
+          data.repository,
+          result.head.ref ?? 'HEAD'
+        )
+        const packedRefs = await gitPath(data.repository, 'packed-refs')
+        verifyBacking = await captureFileVersionFence([
+          data.repository.path,
+          join(data.repository.path, '.git'),
+          data.gitDirectory,
+          join(data.gitDirectory, 'HEAD'),
+          join(data.gitDirectory, 'commondir'),
+          join(data.gitDirectory, 'gitdir'),
+          refPath,
+          packedRefs,
+          data.indexPath,
+        ])
+        verifyRemote = await verifyDestination()
+        await ensureNoRepositoryOperation(data.repository)
+        await verifyHead(data, transaction.expectedTip)
+        await verifyIndex(data, transaction.installedIndex)
+        await verifySelectedFiles(data)
+        checkAssistedCommitCancellation(options.signal)
+        guard.assertHeld()
+        try {
+          verifyBacking()
+        } catch (error) {
+          throw new AssistedCommitError(
+            'repository-changed',
+            'Repository changed during pre-push verification',
+            { cause: error }
+          )
+        }
+        verifyRemote()
+      },
+      owned => transaction.ownedLocks.push(owned)
+    )
+    await releaseIndexLock(indexLock)
+    indexLock = undefined
+  } catch (error) {
+    failed = true
+    failure = error
+    throw error
+  } finally {
+    if (indexLock !== undefined) {
+      try {
+        await releaseIndexLock(indexLock)
+      } catch (error) {
+        throw new AssistedCommitError(
+          'cleanup-failed',
+          'Could not release the pre-push index fence',
+          { cause: failed ? new AggregateError([failure, error]) : error }
+        )
+      }
+    }
+  }
+  const backing = verifyBacking
+  const remote = verifyRemote
+  if (backing === undefined || remote === undefined) {
+    throw new AssistedCommitError(
+      'disposed',
+      'Push verification did not finish'
+    )
+  }
+  let entered = false
+  return function acceptPushEntrySync() {
+    if (
+      entered ||
+      completedTransactions.get(result) !== transaction ||
+      transaction.recovering
+    ) {
+      throw new AssistedCommitError(
+        'disposed',
+        'Push acceptance is no longer owned'
+      )
+    }
+    checkAssistedCommitCancellation(options.signal)
+    try {
+      backing()
+    } catch (error) {
+      throw new AssistedCommitError(
+        'repository-changed',
+        'Repository changed before push entry',
+        { cause: error }
+      )
+    }
+    verifyAssistedPushParentsSync(transaction.data)
+    verifySelectedFileVersionsSync(transaction.data)
+    remote()
+    finalizeAssistedCommitTransaction(result)
+    entered = true
+  }
+}
+
+/** A matching leaf inode cannot authorize a newly substituted symlink ancestor. */
+function verifyAssistedPushParentsSync(data: IAssistedCommitData): void {
+  const parents = new Set(
+    data.files.flatMap(({ file }) => {
+      const parts = file.path.split('/')
+      return parts
+        .slice(0, -1)
+        .map((_, index) =>
+          join(data.snapshot.repositoryPath, ...parts.slice(0, index + 1))
+        )
+    })
+  )
+  for (const path of parents) {
+    try {
+      // eslint-disable-next-line no-sync
+      const stat = lstatSync(path)
+      if (!stat.isDirectory() || stat.isSymbolicLink()) {
+        throw new AssistedCommitError(
+          'unsafe-selection',
+          `Selected path has an unsafe ancestor at push entry: ${path}`
+        )
+      }
+    } catch (error) {
+      if (isErrnoException(error) && error.code === 'ENOENT') {
+        continue
+      }
+      throw error
     }
   }
 }

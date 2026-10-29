@@ -1,7 +1,8 @@
 # Assisted commit runs
 
 The Changes action now connects the repository-owned assisted mode to a real,
-awaited local transaction. This layer does **not** push. Ordinary commits,
+awaited local transaction, optionally followed by a repository-authorized push.
+Ordinary commits,
 amend/squash forms, tutorials, and standalone commit-message generation keep
 their separate paths.
 
@@ -10,12 +11,14 @@ their separate paths.
 `ChangesSidebar -> FilterChangesList -> CommitMessage -> Dispatcher ->
 AppStore._createCopilotAssistedCommits -> AssistedCommitCoordinator` is the request path. Dispatching the
 callback is not success. The returned `AssistedCommitRunOutcome` distinguishes
-`local-ready`, cancellation, declined consent, busy admission, and error.
+`local-ready`, `pushed`, `push-error`, cancellation, declined consent, busy
+admission, and local transaction errors.
 Only a verified executor result can reach local acceptance.
 
 `IChangesState.assistedCommit` is a discriminated state: idle, consent,
 preparation/capture, analysis/whole-selection summarization, validation,
-committing (zero-based index, total, title), finishing, rollback, or error.
+committing (zero-based index, total, title), finishing, push preparation,
+pushing/refreshing pushed commits, rollback, or error.
 The feature coordinator owns the run ID, AbortController, original repository/account intent,
 immutable request/options, snapshot, checked plan, result, and retained recovery
 capability. Components own only presentation. Switching tabs/repositories or
@@ -35,6 +38,8 @@ than additional feature machinery inside AppStore:
 | `readers.ts` | Associated status/diff readers, manual consumption, deferred refresh/history and settlement |
 | `dialogs.ts` | Assisted consent and the shared owner-aware native hook-failure queue |
 | `recovery.ts` | Composed recovery functions over those owners; no second run or capability registry |
+| `push.ts` | Frozen destination, native push continuation, publication and push-only retry |
+| `push-ownership.ts` | Original-owner and alias fences shared by accepted readers and recovery |
 
 ```mermaid
 flowchart TB
@@ -72,24 +77,28 @@ import graph. Dashed links represent shared lifecycle services.
 
 AppStore retains existing repository cache publication, conflict/menu updates,
 ordinary operations and Dispatcher entrypoints. Its repository port supplies
-only existing refresh, full refresh, History loading and commit-stat recording
-operations. A current configuration reader, the shared model resolver and
+only existing refresh, full refresh, History loading, commit/push-stat recording
+and the shared native push pipeline. A current configuration reader, the shared model resolver and
 synchronous change/error notifications complete the integration. No owner
 receives AppStore or accesses its private members. Native engine capabilities
 remain the same objects throughout execution, cleanup and retry; extracting
 ownership does not serialize, copy or reconstruct them.
 
-The local acceptance method finalizes the verified native result synchronously
-after the last cancellation/authorization check. A continuation such as push
-belongs after that boundary, not inside selection reconciliation or error
-recovery. Accepted bookkeeping and optional presentation still settle through
-the feature owner even when an observer throws.
+Local-only acceptance finalizes the verified native result synchronously
+after the last cancellation/authorization check. Optional push keeps that result
+reversible throughout preparation and finalizes it only inside the synchronous
+native before-mutation fence, immediately before the remote attempt. It never
+accepts merely because the executor returned. Accepted bookkeeping clears full
+rollback and cleanup-only authority together; push-only retry cannot regain
+either capability. Refresh, associated readers and presentation still settle
+through their feature owners even when an observer throws.
 
 RepositoryStateCache reconciles assisted state by database ID, independently of
 the repository's metadata hash. An alias or refreshed GitHub metadata must not
 hide progress, permit a duplicate run, or disconnect Cancel. Distinct repository
 IDs retain independent preferences, progress, and errors. The existing
-per-repository commit-mode storage supplies restart persistence; active runs and
+per-repository commit-mode and assisted-push storage supply restart persistence;
+active runs and
 recovery capabilities are not reconstructed after process death.
 Native GitStore publication has one authoritative store per repository ID/path;
 obsolete metadata-hash emissions cannot replace a newer tip or local-commit list.
@@ -104,6 +113,9 @@ the same transition/inert wrapper as progress and recovery. The run's busy guard
 still disables options without hiding Cancel or replacing error/retry controls.
 Manual mode keeps its separate action-bar control and draft focus behavior.
 Cancel remains reachable until acceptance and is disabled during recovery.
+Push preparation remains reversible; native push entry removes rollback Cancel.
+Push failures keep their own inline error and Retry push, even with no selected
+Changes or no current Copilot eligibility.
 Settled errors are inline, with details using existing error presentation;
 unresolved recovery offers Retry rollback, not a dismiss-to-ready escape.
 That existing retry also retains a temporary-cleanup capability when capture
@@ -471,7 +483,339 @@ after finalisation.
 Ordinary Manual completion also treats a failed statistics write as nonfatal,
 logging it without skipping draft/options/status/history success bookkeeping.
 
-Layer five can extend this boundary immediately before an explicitly opted-in
-push, retaining cancellation/rollback ownership until then. A push retry must
-use truthful push outcome reporting, never rerun planning or local commits.
-This layer intentionally adds neither a push toggle nor a user-commit push.
+## Optional push and retry
+
+### Opt in once per repository
+
+**Push after committing** lives in the assisted options menu beside co-authors,
+sign-off, bypass commit hooks and allow-empty. It defaults off and never affects
+Manual commits. AppStore/Dispatcher save only a boolean under
+`assisted-commit-push-<repository ID>`; missing or invalid values mean off.
+Aliases, metadata refreshes, path moves and rebuilt caches retain that ID's
+choice. Other repository IDs keep their own choice; no global/manual setting
+is migrated.
+
+The first confirmed action freezes this choice separately from snapshot options.
+It also freezes the original branch, upstream/default remote, single push URL,
+effective configuration and physical working/Git/common/object directories.
+Changing options during a warning cannot silently add a push, and switching the
+visible repository cannot redirect the run.
+
+### Follow the commits through the run
+
+This diagram focuses on what happens to local commits and what each retry does.
+The configuration and filesystem safeguards behind these decisions follow below.
+
+```mermaid
+flowchart TD
+  Start["Complete and validate local commits"] --> Enabled{"Push after committing?"}
+
+  Enabled -->|No| Local["Keep local commits<br/>Ready for normal Push"]
+  Enabled -->|Yes| Prepare["Prepare push<br/>Check original branch, exact commit,<br/>destination and repository ownership"]
+
+  Prepare -->|Destination unavailable or unsupported| Setup["Keep local commits<br/>Explain how to use normal Push / Publish"]
+  Prepare -->|Cancelled before native push entry| Rollback["Roll back this run's commits<br/>Preserve current working changes"]
+  Prepare -->|Checks pass| Boundary["Accept local commits<br/>Enter native Git push"]
+
+  Boundary --> Rule["From here onward:<br/>never roll back accepted local commits"]
+  Rule --> Push{"Push acknowledged as successful?"}
+
+  Push -->|No| Failure["Keep local commits<br/>Show push error"]
+  Failure --> Retry{"Retry push"}
+  Retry -->|Original branch, tip or destination changed| Refuse["Refuse retry<br/>Preserve current repository"]
+  Retry -->|Still matches| Boundary
+
+  Push -->|Yes| Refresh["Refresh repository<br/>Fetch, update status and History"]
+  Refresh -->|Success| Done["Ready<br/>Commits pushed"]
+  Refresh -->|Failure| RefreshError["Push succeeded<br/>Show refresh error"]
+  RefreshError -->|"Retry refresh — no new push"| Refresh
+```
+
+The first push's normal follow-up includes fetch, branch fast-forwarding,
+protection refresh and status/History delivery. The diagram's **Retry refresh**
+arrow means finishing retained publication and local reconciliation/readers,
+not replaying that whole network sequence. Neither retry contacts Copilot or
+creates commits.
+
+Only a completely successful local transaction reaches `preparing-push`.
+`prepareAssistedCommitTransactionForPush` keeps its rollback backup while checking
+selected content, installed index, full HEAD/ref, cancellation and destination
+under parent-owned real HEAD/ref/index locks. Those locks must close and clean up
+before spawn. Final backing-file/config/environment, authorization and signal
+checks run without yielding immediately before native `git push`; backup
+finalization and the irreversible `pushing` transition happen at that boundary.
+
+Before native entry, cancellation rolls back only this run's commits, subject to
+the transaction's interference checks: external history/index changes are never
+overwritten, and incomplete recovery remains explicit. Rollback
+restores index bytes, mode **and original timestamp**: assigning a newer epoch to
+old stat-cache entries could falsely mark selected working bytes clean on Git
+builds with second-resolution timestamps. Unchanged working changes and their
+verified selections must remain recoverable after late Cancel.
+
+After any remote attempt starts, cancellation, sign-out, hook decline,
+network/auth failure, rejection or an unknown remote response cannot roll back
+accepted commits. The Desktop lease and physical resource protection cover the
+whole operation, but native ref/index locks do not span credentials, hooks,
+fetch or refresh. There is no token bypass or unlocked live-tip push.
+
+### Distinguish outcomes and retries
+
+| Outcome | Local history and next action |
+| --- | --- |
+| Push disabled | Accept local commits; normal Push remains available. |
+| Optional destination unavailable, unsupported or changed | Keep valid local commits, including `Empty commit`; explain normal Push/Publish setup without creating or publishing a repository automatically. |
+| Push failed or remote result unknown | Keep every accepted commit and show the actual push error with **Retry push**. |
+| Push acknowledged; follow-up failed | Return `pushed` with `refreshError`; offer **Retry refresh**, never rollback or Retry push. |
+| Push and follow-up complete | Return ready with commits pushed. |
+
+Internal outcomes distinguish actual native success, hook abort, preparation/push
+failure and post-success refresh failure. A resolved `Promise<void>` from a
+fallible wrapper is not success evidence. Original causes remain available in Details; failures
+do not launch generic Push retries or contradictory background toast actions.
+Final deferred-refresh, selection-reader and History failures are included in
+`refreshError` on both initial completion and push-only retry.
+
+The compact panel shows one rounded total native push percentage, using Git's
+existing weighted compression/write/remote-resolution estimate rather than each
+step's percentage or stderr. Values stay bounded and do not decrease within a
+push attempt; LFS/context events cannot reset the estimate. This is push progress,
+not an invented total for planning, commits and refresh. After acknowledgement,
+the panel switches to **Refreshing pushed commits** without a stale percentage.
+Errors show a short summary and the appropriate retry controls. **Details** opens
+Desktop's standard error dialog with the full error and retained causes; raw
+multiline diagnostics no longer fill the compact panel. The inline summary is
+announced once as an alert, not repeated in the polite progress live region.
+
+`_retryCopilotAssistedCommitPush` retains the in-memory intent/result and shares
+one in-flight retry promise. It rechecks the exact run, physical owner, branch,
+full completed tip and destination. Changed HEAD/ref, replaced directories or
+changed remotes refuse retry rather than publishing different commits or deleting
+external history; equivalent physical aliases remain valid. Retry does not
+capture, analyze, commit, reset options/drafts or count local commits again.
+It stays reachable across repository switches without requiring AI eligibility.
+Early refusals notify subscribers so the current refusal replaces an old error.
+
+Acknowledged-success errors retain Details/Dismiss even after setup expires,
+Manual becomes the preferred mode or AI eligibility ends. The success marker
+does not change that saved mode: new assisted execution waits for dismissal,
+then the preferred mode resumes. Accepted-commit and verified-push statistics keep
+their existing schemas; secondary statistics/notification failures preserve the
+primary push error and its retry.
+
+### Use the normal native push pipeline, with a pinned destination
+
+Authentication, proxies, credential trampoline, terminal output, LFS progress and
+pre-push interception use Desktop's shared pipeline. The non-force refspec sends
+the certified **full commit ID** to the original canonical `refs/heads/...`,
+including preexisting local ancestry, not a later live tip. Native pre-push input
+uses Git's full-SHA source-ref form with the configured remote, destination and
+exact object IDs. Commit-hook bypass never disables push hooks; Ignore resumes
+only the current intercepted push, while decline/abort keeps accepted commits.
+
+Command-local parameters pin the raw URL in its original collection: explicit
+`pushurl` or fetch `url` fallback. That distinction preserves native
+`pushInsteadOf` semantics, which ignore rewrites for explicit push URLs.
+The resolved destination is rechecked with those same parameters; rewriting
+applies once, and proxies/credentials use the resolved push URL. Neither URL
+enters command or performance arguments.
+
+Mirror, force, follow-tags and recursive submodule push behavior are disabled.
+Pending tags remain for an explicit normal Push. Assisted follow-up fetches,
+including local branch fast-forward fetches, also disable submodule recursion:
+a main-repository run has not admitted populated submodules as writable resources.
+Ordinary manual fetch/push keep their existing recursion behavior.
+
+### Keep every native operation within the original owner
+
+The following checks protect more than a pathname string. They distinguish
+physical resource equivalence from unresolved routes used to reach those resources.
+
+**Admission before discovery.** Requested aliases are certified filesystem-only
+before native queries; queries and accepted refresh use the frozen canonical
+checkout. Both the requested alias and exact execution path are synchronously
+checked, including configuration symlink targets and the alias's current canonical
+target. Awaited capture cannot adopt a replacement checkout as its new baseline.
+
+The negative owner certificate is checked before/after awaited pathname resolution
+and after lease waits, then retained for later native spawns. This prevents a
+substituted checkout from even registering work behind another owner's recovery
+lease. Push-retry discovery, lease-free refresh recovery, deferred reads and
+selection-reader settlement keep that check; nested scopes cannot drop outer
+alias fences. Cross-retargeted aliases cannot query through each other's leases.
+Ordinary Push/Pull likewise enter whole-operation admission before metadata or
+credentials, rather than queuing a mutation behind an assisted run/retry.
+
+**Resource and route coverage.** Working/Git/common/object identities are frozen
+together with linked-worktree `commondir`/`gitdir`, unresolved `GIT_DIR`,
+`GIT_COMMON_DIR`, `GIT_WORK_TREE` and `core.worktree` paths and their targets.
+Configuration/metadata targets and their exact lock paths undergo foreign-lease
+admission before retaining intent and again before acquiring the run lease.
+Explicit index/configuration targets reserve their resources and locks, not whole
+parent directories. Another owner's external config cannot be borrowed to publish
+upstream metadata; valid local commits finish with setup guidance instead.
+
+**Checks through final publication.** Every post-ACK fetch, fast-forward and
+refresh spawn rechecks original physical/routing ownership, even after an earlier
+follow-up command completed. Deferred refresh from initial completion, push retry
+or refresh recovery uses that same frozen owner and independently checks supplied
+same-ID aliases. Retargeting stops follow-up with a refresh error, not rollback.
+
+Deferred History retains its accepted owner even after the run leaves the active
+map; execution path, deferred alias, native reads and final changeset/diff
+publication stay certified. Proven stale requests expire instead of later running
+without their owner. Unexpected read failures remain inline and retryable without
+duplicate background prompts. Accepted Changes readers also recheck before
+diff/selection publication and after filesystem work, including untracked images;
+foreign bytes must not appear transiently before a later error clears them.
+
+### Certify configuration without changing Git's meaning
+
+Preparation captures backing versions, then re-reads the complete effective graph
+and compares entries, origins and include directives. New dependencies reject
+certification, rather than mixing a new parent version with an old target list.
+Publication repeats this check before deciding which tracking keys are missing.
+Empty/missing includes are dependencies too: adding a rewrite to an empty include
+must not change the accepted destination.
+
+Native `git var GIT_CONFIG_SYSTEM` / `GIT_CONFIG_GLOBAL` enumerate defaults and
+overrides independently of emitted entries. Thus empty/missing system/global files
+are fenced. Overrides retain literal pathnames, including embedded newlines.
+Ambiguous default-global enumeration, drive-relative spelling, runtime-prefix
+includes (`%(prefix)/...`), invalid/multiple upstream values, multiple push URLs,
+missing remotes and unsupported lookups such as global/system-only remotes make
+optional push unavailable, not valid local execution.
+
+Native path resolution preserves unresolved `..` traversal across symlinks instead
+of lexically collapsing it. Environment comparison respects Windows
+case-insensitive names, including indexed config overrides, and POSIX
+case-sensitive names. Entry and follow-up proofs retain `LOCAL_GIT_DIRECTORY`,
+which selects Dugite and its default system config. Assisted config queries and
+remote enumeration clear command-only `GIT_CONFIG`, so they see the same effective
+configuration as status/Push rather than a config-query-only shadow file.
+Ordinary callers keep their existing lookup environment.
+
+Configuration reads use nonblocking regular-file descriptors, verify target/handle
+identity after reading and apply the same rule in the final synchronous check.
+A FIFO substituted for an ignored conditional include cannot block the renderer.
+Nonregular inputs, regular-file ancestors, symlink loops and proven dangling
+inputs (including inactive includes) retain their original causes as unsupported
+setup. Initially they preserve valid selected/Empty local completion without a
+push attempt; after ACK, stale setup expires **after owned cleanup**. Native
+not-a-repository results and unsupported remote scopes/include expansions follow
+that rule. Unknown command failures and unexpected I/O, including transient `EIO`,
+remain explicit retryable refresh errors, never absence or stale-success fallbacks.
+Asynchronous capture and final synchronous checks make the same distinction.
+
+### Protect mutable Git metadata and the object graph
+
+Mutable routes are certified separately from contents. Private/common ref and
+reflog trees, index, `FETCH_HEAD`, `packed-refs`, native shallow files and
+`GIT_SHALLOW_FILE` allow legitimate regular-file creation/content changes and
+atomic replacement, but reject symbolic directory redirection, symbolic/shared
+hard-link leaves and changed parent routes before native work. Index environment
+and exact shallow path/lock admission remain frozen; private/common shallow
+aliases are independent. Existing symbolic shallow routes and missing optional
+shallow parents require normal Push, without preventing valid local commits.
+
+`info/grafts` / `GIT_GRAFT_FILE` retain original versions and parent routes.
+Introduced grafts, loose/packed replacement refs or replacement/namespace
+environment changes stop retained native work. Custom replacement prefixes and
+namespaces require normal Push review; missing optional graft parents disable
+automatic push only. These rules preserve the local transaction's no-grafts
+restriction without undoing acknowledged commits.
+
+The original symbolic `HEAD` must directly name the frozen branch and remains
+certified for `includeIf.onbranch`. The branch must stay nonsymbolic even when its
+value initially came from packed refs. Initial symbolic branch aliases remain
+unsupported by the local transaction; introducing one or changing HEAD after ACK
+cannot activate different conditional config. External changes and commits remain
+intact while follow-up stops after owned cleanup.
+
+Object checks use the native primary/transitive roots, not an invented common
+`objects` directory. External stores need no unused default directory. Root
+aliases, environment-provided paths and pack/loose/auxiliary subdirectory routes
+cannot redirect fetch writes into unadmitted databases. Ordinary object creation,
+replacement and immutable object hard links remain valid.
+
+Alternate files (including missing/transitive `objects/info/alternates`) keep
+immutable versions from one consistently discovered graph. Raw literal edges and
+`GIT_ALTERNATE_OBJECT_DIRECTORIES` keep their physical targets too; native discovery
+still defines the graph. Versions are captured before edge enumeration and edges
+are re-read under the same file/path fences, catching drift even between aliases
+to the same root. Graph changes stop work rather than widen ownership.
+
+Ignored missing/unresolvable alternate diagnostics, quoted alternate lists and
+non-UTF-8 alternate files make optional push unavailable while preserving the
+diagnostic and valid local commits. An ignored route cannot activate later outside
+the frozen graph. Garbage-entry warnings do not indicate omitted routes and keep
+their existing behavior, as do ordinary local operations. Object-route inspection
+uses bounded iteration and a shared **4096-entry budget** across admitted roots:
+each distinct root and each discovered file or subdirectory counts once per
+verification. Initial excess preserves local completion; later growth stops
+follow-up without revoking acknowledged success.
+
+### Publish upstream metadata atomically after ACK
+
+For a new branch, Desktop sets its original upstream after verified remote success,
+before follow-up fetch. Under the real configuration lock it reads tracking values,
+appends missing keys to original bytes in memory with the transaction engine's
+quoted-value escaping, and asks Git's native parser over stdin to verify each
+exact value. Both keys install by atomic replacement only after validation.
+Comments, formatting and absent final newlines survive; failed validation changes
+neither original value.
+
+After the lock handle closes, synchronous identity/exact-byte checks immediately
+precede installation. The byte-check descriptor opens nonblocking, verifies its
+regular-file type/device/inode against the owned lock and closes in `finally`;
+pathname ownership is rechecked after reading. Original config bytes use the same
+descriptor-validated reader and are recertified before use. Neither a FIFO nor a
+same-byte foreign replacement can be adopted, installed or deleted as our lock.
+
+Publication keeps original working/Git/common/object, route and configuration-owner
+proofs through every await. Empty/missing worktree config is fenced separately
+from common `config.lock`, so staged common keys cannot overwrite a concurrent
+worktree tracking choice. The canonical branch and `packed-refs` are fenced before
+sampling accepted HEAD through installation. The unresolved common `config` alias
+is captured separately from Git's symlink-resolved absolute path; retargeting it
+expires setup instead of installing into a retired target. External writers'
+tracking choices and history are never restored or rewritten.
+
+Only exact bytes installed by the owned transaction advance the retained config
+proof. A hook/external writer changing `core.worktree`, includes, other config
+bytes or routing inputs stops subsequent native reads/mutations, preserving ACK
+and history. Metadata version/routing mismatches have domain identity distinct
+from filesystem failures: even final-check `EIO` retains Retry refresh and the
+publication obligation. Successful cleanup alone cannot turn unproven I/O into
+permission to abandon setup.
+
+### Settle cleanup before releasing ownership
+
+Unfinished tracking metadata and owned locks remain explicit in-memory obligations.
+Retry refresh renews original Git admission and completes only that tracking intent
+and reconciliation, never another push or a different current tracking choice.
+Changed original branch/tracking, removed remote, unsupported symbolic HEAD/refs
+or proven broken routing expire stale setup only after owned cleanup. Protection
+then releases with dismissal/manual setup available; remote success and all
+local history remain. A stale cause never discards a lock whose cleanup failed.
+
+Cleanup admission uses the retained original resources **before current Git
+discovery**. A weakly owned original routing proof can then classify broken or
+substituted owners/aliases as stale; invalid `commondir` must not strand accessible
+original locks. Publication creates no private staging directory, marker or staged
+config file and needs no recursive cleanup. Its only cleanup resources are the
+exclusively created native `config.lock` handle and registered identity, never an
+unrelated folder at a temporary pathname.
+
+Snapshot cleanup is a separate obligation: an opted-in run cannot advance while it
+is pending. Capture can retain a cleanup-only token before a snapshot exists;
+recovery retries only that owned temporary cleanup and reconciles current
+selection, without planning, committing or pushing. Full transaction recovery
+takes priority. Acceptance clears obsolete cleanup and rollback authority
+together; push failure cannot reactivate them after native entry.
+
+### Restart does not resume executable capabilities
+
+Only the repository preference persists. Executable push-retry/rollback
+capabilities, credentials and frozen URLs/config are not saved to localStorage.
+After restart, ordinary Desktop Push remains available for accepted local commits.

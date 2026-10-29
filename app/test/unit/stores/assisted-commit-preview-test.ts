@@ -114,6 +114,31 @@ async function previewFixture(t: TestContext) {
 describe('assisted commit pull request preview admission', () => {
   const states: ReadonlyArray<AssistedCommitRunState> = [
     { kind: 'analyzing', runId: 'fixture', cancelRequested: false },
+    {
+      kind: 'preparing-push',
+      runId: 'fixture',
+      cancelRequested: false,
+      canCancel: true,
+    },
+    {
+      kind: 'pushing',
+      runId: 'fixture',
+      phase: 'push',
+      progress: null,
+    },
+    {
+      kind: 'pushing',
+      runId: 'fixture',
+      phase: 'refresh',
+      progress: null,
+    },
+    {
+      kind: 'push-error',
+      runId: 'fixture',
+      error: new ErrorWithMetadata(new Error('Push settling'), {}),
+      attempted: true,
+      settling: true,
+    },
     ...(['recovery', 'refresh'] as const).map(retry => ({
       kind: 'error' as const,
       runId: 'fixture',
