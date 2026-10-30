@@ -7745,7 +7745,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           try {
             await launchCustomExternalEditor(fullPath, repoCustomEditor)
             return
-          } catch (error) {
+          } catch {
             throw new ExternalEditorError(
               `The custom editor configured for this repository could not be launched. The path '${repoCustomEditor.path}' may no longer be valid.`,
               { openRepositorySettings: true, repository }
