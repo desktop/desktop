@@ -5,6 +5,7 @@ import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
+
 import { IAPIRepository } from '../../lib/api'
 import { CloneableRepositoryFilterList } from './cloneable-repository-filter-list'
 import { ClickSource } from '../lib/list'
@@ -93,6 +94,7 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
         selectedAccount={this.props.account}
         onSelectedAccountChanged={this.props.onSelectedAccountChanged}
         openButtonClassName="dialog-preferred-focus"
+        groupByHost={true}
       />
     )
   }
@@ -100,9 +102,7 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">
-        {this.props.accounts.length > 1 && (
-          <Row className="account-picker-row">{this.renderAccountPicker()}</Row>
-        )}
+        <Row className="account-picker-row">{this.renderAccountPicker()}</Row>
         <Row>
           <CloneableRepositoryFilterList
             account={this.props.account}

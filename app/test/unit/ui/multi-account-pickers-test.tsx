@@ -3,7 +3,8 @@ import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
 
 import { API } from '../../../src/lib/api'
-import { Account } from '../../../src/models/account'
+import { Account, IAccountIdentity } from '../../../src/models/account'
+import { IAccountRepositories } from '../../../src/lib/stores/api-repositories-store'
 import { CloneRepositoryTab } from '../../../src/models/clone-repository-tab'
 import { Repository } from '../../../src/models/repository'
 import { CloneRepository } from '../../../src/ui/clone-repository/clone-repository'
@@ -171,61 +172,246 @@ describe('account pickers with multiple accounts on one endpoint', () => {
       'ghe.example.com'
     )
   })
+})
 
-  it('clones with the selected account', async t => {
-    await setup(t)
-    setDefaultDir(await createTempDirectory(t))
-    const clone = t.mock.fn<Dispatcher['clone']>()
-    const dispatcher: Pick<Dispatcher, 'clone' | 'closeFoldout'> = {
-      clone,
-      closeFoldout: t.mock.fn<Dispatcher['closeFoldout']>(),
+const enterpriseEndpoint = 'https://ghe.example.com/api/v3'
+const enterpriseCarol = new Account(
+  'carol',
+  enterpriseEndpoint,
+  'carol-token',
+  [],
+  '',
+  3,
+  ''
+)
+
+interface ICloneHarnessProps {
+  readonly accounts: ReadonlyArray<Account>
+  readonly apiRepositories: ReadonlyMap<Account, IAccountRepositories>
+  readonly dispatcher: Dispatcher
+  readonly initialAccount?: IAccountIdentity
+}
+
+interface ICloneHarnessState {
+  readonly selectedTab: CloneRepositoryTab
+  readonly selectedAccount: IAccountIdentity | null
+}
+
+/** Keeps the tab and account selection the way AppStore does. */
+class CloneHarness extends React.Component<
+  ICloneHarnessProps,
+  ICloneHarnessState
+> {
+  public constructor(props: ICloneHarnessProps) {
+    super(props)
+    this.state = {
+      selectedTab: CloneRepositoryTab.GitHub,
+      selectedAccount: props.initialAccount ?? null,
     }
-    const repository = createMockAPIRepository({
-      name: 'repo',
-      clone_url: 'https://github.com/bob/repo.git',
-      html_url: 'https://github.com/bob/repo',
-      owner: createMockAPIIdentity({ login: 'bob' }),
-    })
-    const view = render(
+  }
+
+  public render() {
+    const dispatcher = {
+      ...this.props.dispatcher,
+      changeCloneRepositoriesAccount: (account: IAccountIdentity) => {
+        this.props.dispatcher.changeCloneRepositoriesAccount(account)
+        this.setState({ selectedAccount: account })
+      },
+    }
+    return (
       <CloneRepository
         dispatcher={dispatcher as Dispatcher}
-        onDismissed={t.mock.fn()}
-        accounts={[alice, bob]}
+        onDismissed={() => {}}
+        accounts={this.props.accounts}
         initialURL={null}
-        selectedTab={CloneRepositoryTab.DotCom}
-        onTabSelected={t.mock.fn()}
-        apiRepositories={
-          new Map([
-            [alice, { repositories: [], loading: false }],
-            [bob, { repositories: [repository], loading: false }],
-          ])
-        }
-        onRefreshRepositories={t.mock.fn()}
+        selectedTab={this.state.selectedTab}
+        onTabSelected={selectedTab => this.setState({ selectedTab })}
+        selectedAccount={this.state.selectedAccount}
+        apiRepositories={this.props.apiRepositories}
+        onRefreshRepositories={() => {}}
         isTopMost={true}
       />
     )
+  }
+}
 
+async function renderClone(
+  t: TestContext,
+  props: Omit<ICloneHarnessProps, 'dispatcher'>
+) {
+  await setup(t)
+  setDefaultDir(await createTempDirectory(t))
+  const clone = t.mock.fn<Dispatcher['clone']>()
+  const changeCloneRepositoriesAccount =
+    t.mock.fn<Dispatcher['changeCloneRepositoriesAccount']>()
+  const dispatcher: Pick<
+    Dispatcher,
+    'clone' | 'closeFoldout' | 'changeCloneRepositoriesAccount'
+  > = {
+    clone,
+    closeFoldout: t.mock.fn<Dispatcher['closeFoldout']>(),
+    changeCloneRepositoriesAccount,
+  }
+  const view = render(
+    <CloneHarness {...props} dispatcher={dispatcher as Dispatcher} />
+  )
+  return { view, clone, changeCloneRepositoriesAccount }
+}
+
+/** Select a repository the way a mouse does: on mouse down. */
+function clickRepository(item: HTMLElement) {
+  fireEvent.mouseDown(item)
+  fireEvent.mouseUp(item)
+  fireEvent.click(item)
+}
+
+function repositoryFor(owner: string, name: string, host = 'github.com') {
+  return createMockAPIRepository({
+    name,
+    clone_url: `https://${host}/${owner}/${name}.git`,
+    ssh_url: `git@${host}:${owner}/${name}.git`,
+    html_url: `https://${host}/${owner}/${name}`,
+    owner: createMockAPIIdentity({ login: owner }),
+  })
+}
+
+describe('Clone Repository across accounts', () => {
+  it('shows one GitHub tab with an account picker and a URL tab', async t => {
+    const { view } = await renderClone(t, {
+      accounts: [enterpriseCarol, alice],
+      apiRepositories: new Map(),
+    })
+
+    const tabs = screen
+      .getAllByRole('tab', { hidden: true })
+      .map(tab => tab.textContent)
+    assert.deepStrictEqual(tabs, ['GitHub', 'URL'])
+    // GitHub.com accounts come first in the picker, so they're the default.
     assert.strictEqual(selectedLogin(view.container), '@alice')
-    await selectAccount(view.container, bob)
-    const item = await waitFor(() =>
-      screen.getByRole('option', { name: /bob\/repo/, hidden: true })
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Account', hidden: true })
     )
-    fireEvent.click(item)
+    const headers = await waitFor(() => {
+      const headers = [
+        ...document.querySelectorAll('.account-list .filter-list-group-header'),
+      ].map(h => h.textContent)
+      assert.notStrictEqual(headers.length, 0)
+      return headers
+    })
+    assert.deepStrictEqual(headers, ['GitHub.com', 'ghe.example.com'])
+  })
+
+  it('starts out on the account last picked in this session', async t => {
+    const { view } = await renderClone(t, {
+      accounts: [alice, enterpriseCarol],
+      apiRepositories: new Map(),
+      initialAccount: { endpoint: enterpriseEndpoint, login: 'carol' },
+    })
+    assert.strictEqual(selectedLogin(view.container), '@carol')
+  })
+
+  it('falls back to the first account when the picked one signed out', async t => {
+    const { view } = await renderClone(t, {
+      accounts: [alice, enterpriseCarol],
+      apiRepositories: new Map(),
+      initialAccount: { endpoint, login: 'bob' },
+    })
+    assert.strictEqual(selectedLogin(view.container), '@alice')
+  })
+
+  it('offers to sign in when no account is signed in', async t => {
+    const { view } = await renderClone(t, {
+      accounts: [],
+      apiRepositories: new Map(),
+    })
+    assert.strictEqual(view.container.querySelector('.account-picker'), null)
+    screen.getByRole('button', { name: /^Sign in$/i, hidden: true })
+    screen.getByRole('button', {
+      name: /Sign in to GitHub Enterprise/i,
+      hidden: true,
+    })
+  })
+
+  it('lists repositories for the selected account and clones with it over HTTPS', async t => {
+    const aliceRepository = repositoryFor('alice', 'alice-repo')
+    const carolRepository = repositoryFor('carol', 'repo', 'ghe.example.com')
+    const { view, clone, changeCloneRepositoriesAccount } = await renderClone(
+      t,
+      {
+        accounts: [alice, bob, enterpriseCarol],
+        apiRepositories: new Map([
+          [alice, { repositories: [aliceRepository], loading: false }],
+          [bob, { repositories: [], loading: false }],
+          [
+            enterpriseCarol,
+            { repositories: [carolRepository], loading: false },
+          ],
+        ]),
+      }
+    )
+
+    await waitFor(() =>
+      screen.getByRole('option', { name: /alice\/alice-repo/, hidden: true })
+    )
+    await selectAccount(view.container, enterpriseCarol)
+    assert.deepStrictEqual(
+      changeCloneRepositoriesAccount.mock.calls.map(c => c.arguments[0]),
+      [enterpriseCarol]
+    )
+    const item = await waitFor(() =>
+      screen.getByRole('option', { name: /carol\/repo/, hidden: true })
+    )
+    assert.strictEqual(
+      screen.queryByRole('option', { name: /alice-repo/, hidden: true }),
+      null
+    )
+    clickRepository(item)
     const cloneButton = screen.getByRole('button', {
       name: 'Clone',
       hidden: true,
     })
     await waitFor(() =>
-      assert.strictEqual(cloneButton.hasAttribute('disabled'), false)
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), null)
     )
     const form = view.container.querySelector('form')
     assert.ok(form)
     fireEvent.submit(form)
 
     await waitFor(() => assert.strictEqual(clone.mock.callCount(), 1))
-    assert.deepStrictEqual(clone.mock.calls[0].arguments[2], {
+    const [url, , options] = clone.mock.calls[0].arguments
+    assert.strictEqual(url, 'https://ghe.example.com/carol/repo.git')
+    assert.deepStrictEqual(options, {
       defaultBranch: undefined,
-      account: { endpoint, login: 'bob' },
+      account: { endpoint: enterpriseEndpoint, login: 'carol' },
     })
+  })
+
+  it('clears the selected repository when switching accounts', async t => {
+    const aliceRepository = repositoryFor('alice', 'alice-repo')
+    const { view } = await renderClone(t, {
+      accounts: [alice, bob],
+      apiRepositories: new Map([
+        [alice, { repositories: [aliceRepository], loading: false }],
+        [bob, { repositories: [aliceRepository], loading: false }],
+      ]),
+    })
+
+    const item = await waitFor(() =>
+      screen.getByRole('option', { name: /alice\/alice-repo/, hidden: true })
+    )
+    clickRepository(item)
+    const cloneButton = screen.getByRole('button', {
+      name: 'Clone',
+      hidden: true,
+    })
+    await waitFor(() =>
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), null)
+    )
+
+    await selectAccount(view.container, bob)
+    await waitFor(() =>
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), 'true')
+    )
   })
 })

@@ -43,6 +43,7 @@ import type {
 import {
   Account,
   CopilotLicenseTypeNoAccess,
+  IAccountIdentity,
   isDotComAccount,
   isSameAccount,
 } from '../../models/account'
@@ -715,7 +716,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = CloneRepositoryTab.GitHub
+  private selectedCloneAccount: IAccountIdentity | null = null
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
@@ -1363,6 +1365,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
+      selectedCloneAccount: this.selectedCloneAccount,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
@@ -9263,6 +9266,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _changeCloneRepositoriesAccount(account: IAccountIdentity): void {
+    this.selectedCloneAccount = {
+      endpoint: account.endpoint,
+      login: account.login,
+    }
+    this.emitUpdate()
   }
 
   /**

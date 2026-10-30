@@ -91,8 +91,14 @@ signed in. It shouldn't be passed merely because an account is available.
   If none has access, cloning proceeds
   anonymously and the repository remains unassigned. A private clone that
   requires authentication fails normally; sign in with an account that has
-  access before retrying. Cloning from the GitHub.com or GitHub Enterprise tab
-  uses only the account selected in that tab's picker. That account listed the
+  access before retrying. Before cloning from the URL tab, Desktop looks the
+  repository up with each account on the URL's host, preserving the URL's
+  protocol. If none can see it an SSH URL is still cloned as entered, since the
+  user's SSH configuration may grant access, while an HTTPS URL fails with an
+  access error. The clone dialog has a single GitHub tab whose picker lists
+  accounts from every host; it starts out on the account last picked during the
+  session, or the first listed account. Cloning from that tab uses only the
+  selected account. That account listed the
   repository, so Desktop assigns it without probing for access and fetches the
   repository's metadata on the next refresh. Desktop never falls back to
   another account on the same endpoint, so the clone fails, and nothing is
