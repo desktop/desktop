@@ -941,10 +941,23 @@ export class CopilotStore extends BaseStore {
   }
 
   private createSession(client: CopilotClient, config: SessionConfig) {
+    const provider = config.provider
+    // The runtime reserves 'auto' for Copilot routing. Use a session alias
+    // for custom providers where, for whatever reason, the model is named 'auto',
+    // while keeping the provider's actual model name on the wire.
+    const isProviderAuto = provider !== undefined && config.model === 'auto'
+
     return client.createSession({
       ...config,
+      model: isProviderAuto ? 'byok-auto' : config.model,
+      provider: isProviderAuto
+        ? {
+            ...provider,
+            wireModel: provider.wireModel ?? config.model,
+          }
+        : provider,
       gitHubTokenProvider:
-        config.provider === undefined
+        provider === undefined
           ? this.clientTokenProviders.get(client)
           : undefined,
     })
