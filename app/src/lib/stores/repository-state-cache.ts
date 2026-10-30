@@ -22,24 +22,41 @@ import {
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { IStatsStore } from '../stats'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { WorktreeEntry } from '../../models/worktree'
+import { getCommitMode } from './helpers/commit-mode-storage'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
+  private readonly commitModes = new Map<number, CommitMode>()
 
   public constructor(private readonly statsStore: IStatsStore) {}
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
+    const commitMode =
+      this.commitModes.get(repository.id) ?? getCommitMode(repository)
+    this.commitModes.set(repository.id, commitMode)
+
     const existing = this.repositoryState.get(repository.hash)
     if (existing != null) {
-      return existing
+      if (existing.changesState.commitMode === commitMode) {
+        return existing
+      }
+
+      // Aliases and refreshed metadata can revisit an older hash for the same ID.
+      const reconciled = {
+        ...existing,
+        changesState: { ...existing.changesState, commitMode },
+      }
+      this.repositoryState.set(repository.hash, reconciled)
+      return reconciled
     }
 
-    const newItem = getInitialRepositoryState()
+    const newItem = getInitialRepositoryState(commitMode)
     this.repositoryState.set(repository.hash, newItem)
     return newItem
   }
@@ -51,6 +68,7 @@ export class RepositoryStateCache {
     const currentState = this.get(repository)
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
+    this.commitModes.set(repository.id, newState.changesState.commitMode)
 
     const currentTip = currentState.branchesState.tip
     const newTip = newState.branchesState.tip
@@ -358,7 +376,7 @@ export class RepositoryStateCache {
   }
 }
 
-function getInitialRepositoryState(): IRepositoryState {
+function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
   return {
     commitSelection: {
       shas: [],
@@ -378,6 +396,7 @@ function getInitialRepositoryState(): IRepositoryState {
         diff: null,
       },
       commitMessage: DefaultCommitMessage,
+      commitMode,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,
