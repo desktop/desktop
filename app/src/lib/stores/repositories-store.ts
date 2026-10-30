@@ -14,6 +14,7 @@ import {
   Repository,
   RepositoryWithGitHubRepository,
   isRepositoryWithGitHubRepository,
+  getRepositoryAccountIdentity,
 } from '../../models/repository'
 import { fatalError, assertNonNullable, forceUnwrap } from '../fatal-error'
 import {
@@ -27,7 +28,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
-import { Account, IAccountIdentity } from '../../models/account'
+import { Account, IAccountIdentity, isSameAccount } from '../../models/account'
 import { caseInsensitiveEquals } from '../compare'
 
 type AddRepositoryOptions = {
@@ -336,9 +337,7 @@ export class RepositoriesStore extends TypedBaseStore<
       async () => {
         for (const repository of await this.getAll()) {
           if (
-            repository.login !== null &&
-            caseInsensitiveEquals(repository.login, account.login) &&
-            repository.gitHubRepository?.endpoint === account.endpoint
+            isSameAccount(account, getRepositoryAccountIdentity(repository))
           ) {
             await this.updateRepositoryAccount(repository, null)
           }

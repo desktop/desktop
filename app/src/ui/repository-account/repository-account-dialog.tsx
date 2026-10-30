@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { getDotComAPIEndpoint } from '../../lib/api'
-import { caseInsensitiveEquals } from '../../lib/compare'
 import { SignInResult } from '../../lib/stores/sign-in-store'
-import { Account } from '../../models/account'
+import { Account, isSameAccount } from '../../models/account'
 import { PopupType } from '../../models/popup'
-import { RepositoryWithGitHubRepository } from '../../models/repository'
+import {
+  RepositoryWithGitHubRepository,
+  getRepositoryAccountIdentity,
+} from '../../models/repository'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Dispatcher } from '../dispatcher'
@@ -42,14 +44,11 @@ export class RepositoryAccountDialog extends React.Component<
   }
 
   private get requiresSignIn() {
-    const login = this.props.repository.login
+    const identity = getRepositoryAccountIdentity(this.props.repository)
     return (
       !this.state.choosingAnotherAccount &&
-      login !== null &&
-      !this.props.accounts.some(
-        a =>
-          a.endpoint === this.endpoint && caseInsensitiveEquals(a.login, login)
-      )
+      identity !== null &&
+      !this.props.accounts.some(a => isSameAccount(a, identity))
     )
   }
 
@@ -91,9 +90,10 @@ export class RepositoryAccountDialog extends React.Component<
 
     this.props.dispatcher.closePopup(PopupType.SignIn)
     if (
-      result.account.endpoint === this.endpoint &&
-      this.props.repository.login !== null &&
-      caseInsensitiveEquals(result.account.login, this.props.repository.login)
+      isSameAccount(
+        result.account,
+        getRepositoryAccountIdentity(this.props.repository)
+      )
     ) {
       this.complete(result.account)
     }

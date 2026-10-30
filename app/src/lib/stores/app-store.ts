@@ -93,6 +93,7 @@ import {
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
   isForkedRepositoryContributingToParent,
+  getRepositoryAccountIdentity,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -416,7 +417,7 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
-import { caseInsensitiveEquals, compare } from '../compare'
+import { compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import {
@@ -6097,11 +6098,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           // visible to this account, so there's no need to probe for access.
           // If access has since been lost the clone fails and nothing is
           // assigned. Never fall back to another account.
-          const selected = accounts.filter(
-            a =>
-              a.endpoint === account.endpoint &&
-              caseInsensitiveEquals(a.login, account.login)
-          )
+          const selected = accounts.filter(a => isSameAccount(a, account))
           return matchGitHubRepository(selected, url)
         }
         return chooseAccountForRemoteRepository(
@@ -8634,10 +8631,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public async _signOutAccount(account: Account): Promise<void> {
     const repositories = await this.repositoriesStore.getAll()
-    const repositoryCount = repositories.filter(
-      r =>
-        r.gitHubRepository?.endpoint === account.endpoint &&
-        r.login?.toLowerCase() === account.login.toLowerCase()
+    const repositoryCount = repositories.filter(r =>
+      isSameAccount(account, getRepositoryAccountIdentity(r))
     ).length
     if (repositoryCount > 0) {
       const clearAssignments = await new Promise<boolean | undefined>(
@@ -8689,12 +8684,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
         'The repository changed while choosing its account. Please try again.'
       )
     }
+    const { gitHubRepository } = current
     if (
       login !== null &&
       !this.accounts.some(
         a =>
-          a.endpoint === current.gitHubRepository?.endpoint &&
-          a.login.toLowerCase() === login.toLowerCase()
+          gitHubRepository !== null &&
+          isSameAccount(a, { endpoint: gitHubRepository.endpoint, login })
       )
     ) {
       throw new Error('The selected repository account is not signed in.')
@@ -8828,10 +8824,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return undefined
       }
       const accounts = await this.accountsStore.getAll()
-      const signedInAccount = accounts.find(
-        a =>
-          a.endpoint === current.gitHubRepository.endpoint &&
-          a.login.toLowerCase() === selected.login.toLowerCase()
+      const signedInAccount = accounts.find(a =>
+        isSameAccount(a, {
+          endpoint: current.gitHubRepository.endpoint,
+          login: selected.login,
+        })
       )
       if (signedInAccount === undefined) {
         throw new Error(

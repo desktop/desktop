@@ -1,5 +1,5 @@
 import { AccountsStore, RepositoriesStore } from '../stores'
-import { Account } from '../../models/account'
+import { Account, isSameAccount } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { getAccountForRepository } from '../get-account-for-repository'
 import { matchExistingRepository } from '../repository-matching'
@@ -177,10 +177,8 @@ async function getCredential(
     isSameOrigin(credentialUrl, fallbackAccount.endpoint)
   ) {
     // Only signed-in accounts can be used, with their current token.
-    const account = (await store.getAll()).find(
-      a =>
-        a.endpoint === fallbackAccount.endpoint &&
-        a.login.toLowerCase() === fallbackAccount.login.toLowerCase()
+    const account = (await store.getAll()).find(a =>
+      isSameAccount(a, fallbackAccount)
     )
     return account === undefined
       ? undefined
