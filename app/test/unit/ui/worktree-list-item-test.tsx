@@ -8,6 +8,7 @@ import {
   renderWorktreeTooltip,
 } from '../../../src/ui/worktrees/worktree-list-item'
 import { IMatches } from '../../../src/lib/fuzzy-find'
+import { enableAccessibleListToolTips } from '../../../src/lib/feature-flag'
 import { render, fireEvent, screen, waitFor } from '../../helpers/ui/render'
 import {
   advanceTimersBy,
@@ -85,24 +86,30 @@ describe('WorktreeListItem', () => {
       resetTestTimers()
     })
 
-    it('shows the full name and path when hovering the name', async () => {
-      renderItem(worktree())
+    // Accessible list tooltips (e.g. GITHUB_DESKTOP_PREVIEW_FEATURES=1) disable
+    // the name tooltip, and waitFor would then wait on the mocked timers forever.
+    it(
+      'shows the full name and path when hovering the name',
+      { skip: enableAccessibleListToolTips() },
+      async () => {
+        renderItem(worktree())
 
-      const name = screen.getByText('repo-feature').closest('.name')
+        const name = screen.getByText('repo-feature').closest('.name')
 
-      if (name === null) {
-        throw new Error('Expected the name element to be rendered')
+        if (name === null) {
+          throw new Error('Expected the name element to be rendered')
+        }
+
+        fireEvent.mouseEnter(name, { clientX: 20, clientY: 20 })
+        fireEvent.mouseMove(name, { clientX: 20, clientY: 20 })
+        advanceTimersBy(400)
+
+        await waitFor(() => {
+          assert.ok(screen.getByText('Full Name:'))
+          assert.ok(screen.getByText('/repo-feature'))
+        })
       }
-
-      fireEvent.mouseEnter(name, { clientX: 20, clientY: 20 })
-      fireEvent.mouseMove(name, { clientX: 20, clientY: 20 })
-      advanceTimersBy(400)
-
-      await waitFor(() => {
-        assert.ok(screen.getByText('Full Name:'))
-        assert.ok(screen.getByText('/repo-feature'))
-      })
-    })
+    )
   })
 
   describe('renderWorktreeTooltip', () => {
@@ -121,15 +128,13 @@ describe('WorktreeListItem', () => {
       assert.equal(screen.queryByText('refs/heads/feature'), null)
     })
 
-    it('leaves out the branch when HEAD is detached', () => {
-      render(
-        renderWorktreeTooltip(
-          worktree({ branch: null, isDetached: true }),
-          true
-        )
-      )
+    it('shows the full commit instead when HEAD is detached', () => {
+      const detached = worktree({ branch: null, isDetached: true })
+      render(renderWorktreeTooltip(detached, true))
 
       assert.equal(screen.queryByText('Branch:'), null)
+      assert.ok(screen.getByText('Commit:'))
+      assert.ok(screen.getByText(detached.head))
     })
   })
 })

@@ -12,6 +12,11 @@ import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 
+/** The worktree's branch name, or its full commit SHA when HEAD is detached. */
+function getBranchOrCommit(worktree: WorktreeEntry) {
+  return worktree.branch ? getWorktreeDescription(worktree) : worktree.head
+}
+
 /**
  * Tooltip content naming a worktree and its full path, so that worktrees
  * sharing a folder name can be told apart. Pass `includeBranch` where the
@@ -31,10 +36,12 @@ export function renderWorktreeTooltip(
         <div className="label">Path: </div>
         {worktree.path}
       </div>
-      {includeBranch && worktree.branch !== null && (
+      {includeBranch && (
         <div>
-          <div className="label">Branch: </div>
-          {getWorktreeDescription(worktree)}
+          <div className="label">
+            {worktree.branch ? 'Branch: ' : 'Commit: '}
+          </div>
+          {getBranchOrCommit(worktree)}
         </div>
       )}
     </div>
@@ -77,7 +84,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         {isMissing && <div className="missing-indicator">(missing)</div>}
         <TooltippedContent
           className="description"
-          tooltip={description}
+          tooltip={getBranchOrCommit(worktree)}
           onlyWhenOverflowed={true}
           tagName="div"
           disabled={enableAccessibleListToolTips()}
