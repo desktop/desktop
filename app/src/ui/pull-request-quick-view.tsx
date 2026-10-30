@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { clamp } from '../lib/clamp'
 import { PullRequest } from '../models/pull-request'
+import { Repository } from '../models/repository'
 import { PullRequestBadge } from './branches'
 import { Dispatcher } from './dispatcher'
 import { Button } from './lib/button'
@@ -24,6 +25,7 @@ const heightPRListItem = 47
 interface IPullRequestQuickViewProps {
   readonly dispatcher: Dispatcher
   readonly pullRequest: PullRequest
+  readonly localRepository: Repository
 
   readonly pullRequestItemTop: number
 
@@ -209,6 +211,7 @@ export class PullRequestQuickView extends React.Component<
             number={pullRequestNumber}
             dispatcher={this.props.dispatcher}
             repository={base.gitHubRepository}
+            localRepository={this.props.localRepository}
           />
         </div>
         <SandboxedMarkdown

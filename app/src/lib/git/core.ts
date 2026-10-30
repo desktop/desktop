@@ -17,6 +17,7 @@ import { kStringMaxLength } from 'buffer'
 import { withHooksEnv } from '../hooks/with-hooks-env'
 import { coerceToString } from './coerce-to-string'
 import { pushTerminalChunk } from './push-terminal-chunk'
+import { IAccountIdentity } from '../../models/account'
 
 export const isMaxBufferExceededError = (
   error: unknown
@@ -85,6 +86,23 @@ export interface IGitExecutionOptions
    * This affects error handling and UI such as credential prompts.
    */
   readonly isBackgroundTask?: boolean
+
+  /**
+   * The account to authenticate with when the credential helper can't resolve
+   * an account from the repository at the operation's path. This is only
+   * meant for edge cases where the repository hasn't been added to Desktop
+   * yet, such as when cloning or pushing a newly created tutorial repository.
+   *
+   * Don't provide this merely because an account is available. Operations on
+   * repositories known to Desktop must use the repository's assigned account,
+   * which the credential helper always prefers over this one.
+   *
+   * The account is only used when its endpoint matches the endpoint Git is
+   * requesting credentials for, and only while it's still signed in. It's
+   * identified by endpoint and login rather than an `Account` so that no
+   * token is carried along; the signed-in account's current token is used.
+   */
+  readonly fallbackAccount?: IAccountIdentity
 
   readonly interceptHooks?: string[]
 }
@@ -379,7 +397,8 @@ export async function git(
         },
         path,
         options?.isBackgroundTask ?? false,
-        hooksEnv
+        hooksEnv,
+        options?.fallbackAccount
       ),
     path,
     options

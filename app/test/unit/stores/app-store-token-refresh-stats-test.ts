@@ -85,7 +85,8 @@ describe('AppStore token refresh usage stats wiring', () => {
       accountsStore,
       new AliveStore(accountsStore),
       coordinator,
-      statsStore
+      statsStore,
+      stores.repositoriesStore
     )
     appStore = new AppStore(
       stores.gitHubUserStore,

@@ -7,6 +7,11 @@ import { delimiter, join } from 'path'
 import { exec, spawn } from 'dugite'
 import { git } from '../../../src/lib/git'
 import { Account } from '../../../src/models/account'
+import { Repository } from '../../../src/models/repository'
+import { GitHubRepository } from '../../../src/models/github-repository'
+import { Owner } from '../../../src/models/owner'
+import { RepositoriesStore } from '../../../src/lib/stores/repositories-store'
+import { TestRepositoriesDatabase } from '../../helpers/databases'
 import { AccountsStore } from '../../../src/lib/stores/accounts-store'
 import { IOAuthToken } from '../../../src/lib/oauth-token'
 import { trampolineServer } from '../../../src/lib/trampoline/trampoline-server'
@@ -167,9 +172,28 @@ describe('Refreshable credentials in Git', () => {
       // Just outside the renewal window when Git asks for it.
       expiresAt: clock + 11 * 60 * 1000,
     })
+    const repository = await setupEmptyRepository(t)
+    const repositories = new RepositoriesStore(new TestRepositoriesDatabase())
+    const assigned = new Repository(
+      repository.path,
+      1,
+      new GitHubRepository(
+        'remote',
+        new Owner('owner', account.endpoint, 1),
+        1
+      ),
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      account.login
+    )
+    t.mock.method(repositories, 'getAll', async () => [assigned])
     trampolineServer.registerCommandHandler(
       TrampolineCommandIdentifier.CredentialHelper,
-      createCredentialHelperTrampolineHandler(store)
+      createCredentialHelperTrampolineHandler(store, repositories)
     )
 
     let otherConsumer: Promise<Account> | undefined
@@ -188,7 +212,6 @@ describe('Refreshable credentials in Git', () => {
       }
     )
 
-    const repository = await setupEmptyRepository(t)
     await makeCommit(repository, {
       entries: [{ path: 'README.md', contents: 'hello' }],
       commitMessage: 'initial commit',

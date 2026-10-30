@@ -5,6 +5,7 @@ import {
   Account,
   isDotComAccount,
   isEnterpriseAccount,
+  isSameAccount,
 } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { Dialog, DialogFooter, DialogContent, DialogError } from '../dialog'
@@ -40,6 +41,8 @@ interface IDotcomTabState {
    * related to the current step.
    */
   readonly error: Error | null
+
+  readonly selectedAccount: Account | null
 }
 
 interface IEnterpriseTabState {
@@ -82,6 +85,24 @@ interface IPublishState {
 }
 
 /**
+ * The signed-in account assigned to the repository, if any.
+ *
+ * A repository whose remote has been removed keeps its account assignment, so
+ * publishing it again starts out with that account selected.
+ */
+function getAssignedAccount(
+  repository: Repository,
+  accounts: ReadonlyArray<Account>
+): Account | null {
+  const { gitHubRepository, login } = repository
+  if (gitHubRepository === null || login === null) {
+    return null
+  }
+  const assigned = { endpoint: gitHubRepository.endpoint, login }
+  return accounts.find(a => isSameAccount(a, assigned)) ?? null
+}
+
+/**
  * The Publish component.
  */
 export class Publish extends React.Component<IPublishProps, IPublishState> {
@@ -97,10 +118,15 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
     const hasDotComAccount = props.accounts.some(isDotComAccount)
     const hasEnterpriseAccount = props.accounts.some(isEnterpriseAccount)
-    let startingTab = PublishTab.DotCom
-    if (!hasDotComAccount && hasEnterpriseAccount) {
-      startingTab = PublishTab.Enterprise
-    }
+    const assignedAccount = getAssignedAccount(props.repository, props.accounts)
+    const startingTab =
+      assignedAccount !== null
+        ? isDotComAccount(assignedAccount)
+          ? PublishTab.DotCom
+          : PublishTab.Enterprise
+        : !hasDotComAccount && hasEnterpriseAccount
+        ? PublishTab.Enterprise
+        : PublishTab.DotCom
 
     const publicationSettings = {
       name: props.repository.name,
@@ -116,6 +142,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         org: null,
       },
       error: null,
+      selectedAccount:
+        startingTab === PublishTab.DotCom ? assignedAccount : null,
     }
 
     const enterpriseTabState: IEnterpriseTabState = {
@@ -126,7 +154,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         org: null,
       },
       error: null,
-      selectedAccount: null,
+      selectedAccount:
+        startingTab === PublishTab.Enterprise ? assignedAccount : null,
     }
 
     this.state = {
@@ -194,10 +223,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const tab = this.state.currentTab
     const currentTabState = this.getCurrentTabState()
     const accounts = this.getAccountsForTab(tab, this.props.accounts)
-    const account =
-      (currentTabState.kind === 'enterprise'
-        ? currentTabState.selectedAccount
-        : undefined) ?? accounts.at(0)
+    const account = this.getAccountForTab(tab)
 
     if (account) {
       return (
@@ -215,32 +241,24 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   }
 
   private onSelectedAccountChanged = (account: Account | null) => {
-    const tabState = this.getCurrentTabState()
-    if (tabState.kind === 'enterprise') {
-      const enterpriseTabState = {
-        ...this.state.enterpriseTabState,
-        selectedAccount: account,
-      }
-      this.setTabState(enterpriseTabState)
-    }
+    this.setTabState({ ...this.getCurrentTabState(), selectedAccount: account })
   }
 
   private onSettingsChanged = (settings: RepositoryPublicationSettings) => {
-    const current = this.getCurrentTabState()
     let tabState: TabState
     if (settings.kind === PublishSettingsType.enterprise) {
       tabState = {
         kind: 'enterprise',
         settings: settings,
         error: this.state.enterpriseTabState.error,
-        selectedAccount:
-          current.kind === 'enterprise' ? current.selectedAccount : null,
+        selectedAccount: this.state.enterpriseTabState.selectedAccount,
       }
     } else {
       tabState = {
         kind: 'dotcom',
         settings: settings,
         error: this.state.dotcomTabState.error,
+        selectedAccount: this.state.dotcomTabState.selectedAccount,
       }
     }
 
@@ -261,11 +279,8 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     const tabState = this.getTabState(tab)
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
     const selectedAccount =
-      (tabState.kind === 'enterprise'
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
-          )
-        : undefined) ?? tabAccounts.at(0)
+      tabAccounts.find(a => isSameAccount(a, tabState.selectedAccount)) ??
+      tabAccounts.at(0)
 
     return selectedAccount ?? null
   }

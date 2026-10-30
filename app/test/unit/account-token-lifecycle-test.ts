@@ -976,7 +976,7 @@ describe('Coordinated account token renewal', () => {
     }
   })
 
-  it('loading duplicate entries for an endpoint keeps only the last session live', async () => {
+  it('loading multiple accounts for an endpoint keeps a session for each', async () => {
     const { data, secure } = setup()
     const other = new Account(
       'other',
@@ -1009,21 +1009,43 @@ describe('Coordinated account token renewal', () => {
       async () => true
     )
 
-    await assert.rejects(
-      store.resolveToken(account.endpoint, account.token),
-      AccountRequiresSignInError
+    assert.equal(
+      await store.resolveToken(account.endpoint, account.token),
+      renewed.accessToken
     )
     assert.equal(
       await store.resolveToken(other.endpoint, other.token),
       other.token
     )
-    assert.equal(renewals, 0)
-    assert.deepEqual(await store.getAll(), [other])
+    assert.equal(renewals, 1)
+    assert.deepEqual(await store.getAll(), [
+      account.withToken(renewed.accessToken),
+      other,
+    ])
     assert.deepEqual(await store.removeAccount(other), other)
+    assert.deepEqual(await store.getAll(), [
+      account.withToken(renewed.accessToken),
+    ])
+  })
+
+  it('loading duplicate entries for an account keeps only the last session live', async () => {
+    const { data, secure } = setup()
+    data.setItem(
+      'users',
+      JSON.stringify([account.withToken(''), account.withToken('')])
+    )
+    await secure.setItem(getKeyForAccount(account), account.login, 'stored')
+    const store = new AccountsStore(data, secure)
+
+    assert.deepEqual(await store.getAll(), [account.withToken('stored')])
+    assert.deepEqual(
+      await store.removeAccount(account),
+      account.withToken('stored')
+    )
     assert.deepEqual(await store.getAll(), [])
   })
 
-  it('replacing an account never redirects stale clients to another identity', async () => {
+  it('signing in to another account on the endpoint keeps the first account', async () => {
     const { store } = setup()
     await store.addAccount(account, rotating)
     const other = new Account(
@@ -1036,9 +1058,10 @@ describe('Coordinated account token renewal', () => {
       'Other'
     )
     await store.addAccount(other)
-    await assert.rejects(
-      store.resolveToken(account.endpoint, account.token),
-      AccountRequiresSignInError
+    assert.deepEqual(await store.getAll(), [account, other])
+    assert.equal(
+      await store.resolveToken(account.endpoint, account.token),
+      renewed.accessToken
     )
     assert.equal(
       await store.resolveToken(other.endpoint, other.token),

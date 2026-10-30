@@ -18,7 +18,7 @@ const memoizedGetGenericPassword = memoizeOne(
 )
 
 export async function findGitHubTrampolineAccount(
-  accountsStore: AccountsStore,
+  accountsStore: Pick<AccountsStore, 'getAll'>,
   remoteUrl: string
 ): Promise<Account | undefined> {
   const accounts = await accountsStore.getAll()
