@@ -14,6 +14,8 @@ export interface IDatabaseOwner {
   readonly login: string
   readonly endpoint: string
   readonly type?: GitHubAccountType
+  /** A display name for the owner's repository list section, if any. */
+  readonly alias?: string | null
 }
 
 export interface IDatabaseGitHubRepository {
@@ -52,6 +54,9 @@ export interface IDatabaseRepository {
   readonly path: string
   readonly alias: string | null
   readonly missing: boolean
+
+  /** The name of the user-defined repository list group, if any. */
+  readonly group?: string | null
 
   /** The path to the .git directory for this repository */
   readonly gitDir?: string

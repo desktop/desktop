@@ -7,6 +7,8 @@ import {
   Repositoryish,
   RepositoryListGroup,
   getGroupKey,
+  getRepositoryGroupNames,
+  getGroupLabel,
 } from './group-repositories'
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -25,8 +27,11 @@ import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
 import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
-import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import { getStringArray, setStringArray } from '../../lib/local-storage'
+
+const CollapsedGroupsKey = 'repository-list-collapsed-groups'
+const GroupOrderKey = 'repository-list-group-order'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -80,9 +85,23 @@ interface IRepositoriesListProps {
 interface IRepositoriesListState {
   readonly newRepositoryMenuExpanded: boolean
   readonly selectedItem: IRepositoryListItem | null
+  /** The keys (see getGroupKey) of the collapsed groups */
+  readonly collapsedGroups: ReadonlySet<string>
+  /** Lowercase custom group names in the order the user arranged them */
+  readonly groupOrder: ReadonlyArray<string>
 }
 
 const RowHeight = 29
+/**
+ * Group header rows are as tall as repository rows plus the gap above each
+ * section (var(--spacing), see .list-item:has(.filter-list-group-header))
+ */
+const GroupHeaderRowHeight = RowHeight + 10
+const getRowHeight = ({
+  item,
+}: {
+  readonly item: IRepositoryListItem | null
+}) => (item === null ? GroupHeaderRowHeight : RowHeight)
 
 /**
  * Iterate over all groups until a list item is found that matches
@@ -122,16 +141,22 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      collapsedGroups: ReadonlySet<string>,
+      groupOrder: ReadonlyArray<string>
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            collapsedGroups,
+            groupOrder
           )
   )
+
+  private getRepositoryGroupNames = memoizeOne(getRepositoryGroupNames)
 
   /**
    * A memoized function for finding the selected list item based
@@ -150,8 +175,19 @@ export class RepositoriesList extends React.Component<
     this.state = {
       newRepositoryMenuExpanded: false,
       selectedItem: null,
+      collapsedGroups: new Set(getStringArray(CollapsedGroupsKey)),
+      groupOrder: getStringArray(GroupOrderKey),
     }
   }
+
+  private getGroups = () =>
+    this.getRepositoryGroups(
+      this.props.repositories,
+      this.props.localRepositoryStateLookup,
+      this.props.recentRepositories,
+      this.state.collapsedGroups,
+      this.state.groupOrder
+    )
 
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
@@ -240,23 +276,11 @@ export class RepositoriesList extends React.Component<
     )
   }
 
-  private getGroupLabel(group: RepositoryListGroup) {
-    const { kind } = group
-    if (kind === 'enterprise') {
-      return group.host
-    } else if (kind === 'other') {
-      return 'Other'
-    } else if (kind === 'dotcom') {
-      return group.owner.login
-    } else if (kind === 'recent') {
-      return 'Recent'
-    } else {
-      assertNever(kind, `Unknown repository group kind ${kind}`)
-    }
-  }
-
-  private renderGroupHeader = (group: RepositoryListGroup) => {
-    const label = this.getGroupLabel(group)
+  private renderGroupHeader = (
+    group: RepositoryListGroup,
+    collapsed: boolean
+  ) => {
+    const label = getGroupLabel(group)
 
     return (
       <TooltippedContent
@@ -266,9 +290,112 @@ export class RepositoriesList extends React.Component<
         onlyWhenOverflowed={true}
         tagName="div"
       >
+        <Octicon
+          className="group-collapse-chevron"
+          symbol={collapsed ? octicons.chevronRight : octicons.chevronDown}
+        />
         {label}
       </TooltippedContent>
     )
+  }
+
+  private onGroupCollapsedChanged = (
+    group: RepositoryListGroup,
+    collapsed: boolean
+  ) => {
+    const collapsedGroups = new Set(this.state.collapsedGroups)
+    if (collapsed) {
+      collapsedGroups.add(getGroupKey(group))
+    } else {
+      collapsedGroups.delete(getGroupKey(group))
+    }
+    setStringArray(CollapsedGroupsKey, [...collapsedGroups])
+    this.setState({ collapsedGroups })
+  }
+
+  private onMoveGroup = (
+    displayedOrder: ReadonlyArray<string>,
+    from: number,
+    to: number
+  ) => {
+    const groupOrder = [...displayedOrder]
+    groupOrder.splice(to, 0, ...groupOrder.splice(from, 1))
+    setStringArray(GroupOrderKey, groupOrder)
+    this.setState({ groupOrder })
+  }
+
+  private onGroupContextMenu = (
+    group: RepositoryListGroup,
+    event: React.MouseEvent<HTMLDivElement>,
+    collapsed: boolean,
+    canCollapse: boolean
+  ) => {
+    event.preventDefault()
+
+    const { dispatcher } = this.props
+    const items: IMenuItem[] = []
+
+    if (group.kind === 'dotcom') {
+      const { owner } = group
+      items.push({
+        label: __DARWIN__ ? 'Rename Section…' : 'Rename section…',
+        action: () =>
+          dispatcher.showPopup({
+            type: PopupType.RenameRepositorySection,
+            target: { kind: 'owner', owner },
+          }),
+      })
+      if (owner.alias) {
+        items.push({
+          label: __DARWIN__ ? 'Reset Name' : 'Reset name',
+          action: () => dispatcher.changeOwnerAlias(owner, null),
+        })
+      }
+    } else if (group.kind === 'custom') {
+      const { name } = group
+      const displayedOrder = this.getGroups().flatMap(({ identifier: g }) =>
+        g.kind === 'custom' ? [g.name.toLowerCase()] : []
+      )
+      const index = displayedOrder.indexOf(name.toLowerCase())
+      items.push(
+        {
+          label: __DARWIN__ ? 'Rename Group…' : 'Rename group…',
+          action: () =>
+            dispatcher.showPopup({
+              type: PopupType.RenameRepositorySection,
+              target: { kind: 'group', name },
+            }),
+        },
+        {
+          label: __DARWIN__ ? 'Ungroup All' : 'Ungroup all',
+          action: () => dispatcher.renameRepositoryGroup(name, null),
+        },
+        { type: 'separator' },
+        {
+          label: __DARWIN__ ? 'Move Up' : 'Move up',
+          enabled: index > 0,
+          action: () => this.onMoveGroup(displayedOrder, index, index - 1),
+        },
+        {
+          label: __DARWIN__ ? 'Move Down' : 'Move down',
+          enabled: index < displayedOrder.length - 1,
+          action: () => this.onMoveGroup(displayedOrder, index, index + 1),
+        }
+      )
+    }
+
+    if (items.length > 0) {
+      items.push({ type: 'separator' })
+    }
+
+    items.push({
+      label: collapsed ? 'Expand' : 'Collapse',
+      // A group holding the selected repository or filter matches stays open
+      enabled: collapsed || canCollapse,
+      action: () => this.onGroupCollapsedChanged(group, !collapsed),
+    })
+
+    showContextualMenu(items)
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
@@ -297,6 +424,11 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
+      repositoryGroupNames: this.getRepositoryGroupNames(
+        this.props.repositories
+      ),
+      onChangeRepositoryGroup: this.onChangeRepositoryGroup,
+      onNewRepositoryGroup: this.onNewRepositoryGroup,
       onViewOnGitHub: this.props.onViewOnGitHub,
       onCreateWorktree: enableWorktreeSupport()
         ? this.onCreateWorktree
@@ -319,14 +451,10 @@ export class RepositoriesList extends React.Component<
       >
     ) =>
     (group: number) =>
-      this.getGroupLabel(groups[group].identifier)
+      getGroupLabel(groups[group].identifier)
 
   public render() {
-    const groups = this.getRepositoryGroups(
-      this.props.repositories,
-      this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
-    )
+    const groups = this.getGroups()
 
     // So there's two types of selection at play here. There's the repository
     // selection for the whole app and then there's the keyboard selection in
@@ -340,13 +468,15 @@ export class RepositoriesList extends React.Component<
     return (
       <div className="repository-list">
         <SectionFilterList<IRepositoryListItem, RepositoryListGroup>
-          rowHeight={RowHeight}
+          rowHeight={getRowHeight}
           selectedItem={selectedItem}
           filterText={this.props.filterText}
           onFilterTextChanged={this.props.onFilterTextChanged}
           renderItem={this.renderItem}
           renderRowFocusTooltip={this.renderRowFocusTooltip}
           renderGroupHeader={this.renderGroupHeader}
+          onGroupCollapsedChanged={this.onGroupCollapsedChanged}
+          onGroupContextMenu={this.onGroupContextMenu}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
           renderNoItems={this.renderNoItems}
@@ -354,6 +484,8 @@ export class RepositoriesList extends React.Component<
           invalidationProps={{
             repositories: this.props.repositories,
             filterText: this.props.filterText,
+            collapsedGroups: this.state.collapsedGroups,
+            groupOrder: this.state.groupOrder,
           }}
           onItemContextMenu={this.onItemContextMenu}
           getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
@@ -462,6 +594,20 @@ export class RepositoriesList extends React.Component<
 
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
+  }
+
+  private onChangeRepositoryGroup = (
+    repository: Repository,
+    group: string | null
+  ) => {
+    this.props.dispatcher.changeRepositoryGroup(repository, group)
+  }
+
+  private onNewRepositoryGroup = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ChangeRepositoryGroup,
+      repository,
+    })
   }
 
   private onCreateWorktree = (repository: Repository) => {

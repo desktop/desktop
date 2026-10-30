@@ -9,6 +9,8 @@ export class Owner {
     public readonly login: string,
     public readonly endpoint: string,
     public readonly id: number,
-    public readonly type?: GitHubAccountType
+    public readonly type?: GitHubAccountType,
+    /** A display name for the owner's repository list section, if any. */
+    public readonly alias?: string | null
   ) {}
 }

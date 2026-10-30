@@ -22,6 +22,13 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepositoryAlias: (repository: Repository) => void
   onCreateWorktree?: (repository: Repository) => void
   onShowWorktrees?: (repository: Repository) => void
+  /** Existing group names offered in the "Move to Group" submenu. */
+  repositoryGroupNames?: ReadonlyArray<string>
+  onChangeRepositoryGroup?: (
+    repository: Repository,
+    group: string | null
+  ) => void
+  onNewRepositoryGroup?: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -40,6 +47,7 @@ export const generateRepositoryListContextMenu = (
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
+    ...buildGroupMenuItems(config),
     ...buildWorktreeMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
@@ -101,6 +109,54 @@ const buildAliasMenuItems = (
     items.push({
       label: __DARWIN__ ? 'Remove Alias' : 'Remove alias',
       action: () => config.onRemoveRepositoryAlias(repository),
+    })
+  }
+
+  return items
+}
+
+const buildGroupMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository, onChangeRepositoryGroup, onNewRepositoryGroup } = config
+
+  if (
+    !(repository instanceof Repository) ||
+    onChangeRepositoryGroup === undefined ||
+    onNewRepositoryGroup === undefined
+  ) {
+    return []
+  }
+
+  const current = repository.group?.toLowerCase()
+  const groupItems: ReadonlyArray<IMenuItem> = (
+    config.repositoryGroupNames ?? []
+  ).map(name => ({
+    label: name,
+    type: 'checkbox',
+    checked: name.toLowerCase() === current,
+    enabled: name.toLowerCase() !== current,
+    action: () => onChangeRepositoryGroup(repository, name),
+  }))
+
+  const items: Array<IMenuItem> = [
+    {
+      label: __DARWIN__ ? 'Move to Group' : 'Move to group',
+      submenu: [
+        ...groupItems,
+        ...(groupItems.length > 0 ? [{ type: 'separator' as const }] : []),
+        {
+          label: __DARWIN__ ? 'New Group…' : 'New group…',
+          action: () => onNewRepositoryGroup(repository),
+        },
+      ],
+    },
+  ]
+
+  if (repository.group !== null) {
+    items.push({
+      label: __DARWIN__ ? 'Remove from Group' : 'Remove from group',
+      action: () => onChangeRepositoryGroup(repository, null),
     })
   }
 

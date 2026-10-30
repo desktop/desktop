@@ -1,5 +1,7 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import classnames from 'classnames'
+import isEqual from 'lodash/isEqual'
 
 import { SectionList, ClickSource } from '../lib/list/section-list'
 import {
@@ -26,6 +28,13 @@ import * as octicons from '../octicons/octicons.generated'
 interface IFlattenedGroup<T> {
   readonly kind: 'group'
   readonly identifier: T
+  /** Whether the group's items are hidden */
+  readonly collapsed: boolean
+  /**
+   * False when the group is held open because it contains the selected item
+   * or the list is filtered
+   */
+  readonly canCollapse: boolean
 }
 
 interface IFlattenedItem<T extends IFilterListItem> {
@@ -79,8 +88,19 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
 
   /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader?: (
-    identifier: GroupIdentifier
+    identifier: GroupIdentifier,
+    collapsed: boolean
   ) => JSX.Element | null
+
+  /**
+   * Called when the user collapses or expands a group. When provided, group
+   * headers can be focused and toggled by clicking them, pressing Enter or
+   * Space, or with the Left and Right arrow keys.
+   */
+  readonly onGroupCollapsedChanged?: (
+    identifier: GroupIdentifier,
+    collapsed: boolean
+  ) => void
 
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
@@ -187,6 +207,21 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
     item: T,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /**
+   * A handler called whenever a context menu event is received on a group
+   * header. Headers can only be reached with the keyboard when
+   * `onGroupCollapsedChanged` is provided.
+   *
+   * @param collapsed   Whether the group is currently shown collapsed
+   * @param canCollapse False when the group is held open (see IFlattenedGroup)
+   */
+  readonly onGroupContextMenu?: (
+    identifier: GroupIdentifier,
+    event: React.MouseEvent<HTMLDivElement>,
+    collapsed: boolean,
+    canCollapse: boolean
+  ) => void
 }
 
 interface IFilterListState<T extends IFilterListItem, GroupIdentifier> {
@@ -224,13 +259,29 @@ export class SectionFilterList<
   public componentWillReceiveProps(
     nextProps: ISectionFilterListProps<T, GroupIdentifier>
   ) {
-    this.setState(createStateUpdate(nextProps, this.state))
+    // Use the pending state so a just-selected group header stays selected
+    this.setState(prevState => createStateUpdate(nextProps, prevState))
   }
 
   public componentDidUpdate(
     prevProps: ISectionFilterListProps<T, GroupIdentifier>,
     prevState: IFilterListState<T, GroupIdentifier>
   ) {
+    // Keep keyboard focus on a selected group header that moved (e.g. when
+    // groups are reordered)
+    const { selectedRow } = this.state
+    if (
+      !rowIndexPathEquals(prevState.selectedRow, selectedRow) &&
+      prevState.rows[prevState.selectedRow.section]?.[prevState.selectedRow.row]
+        ?.kind === 'group' &&
+      this.state.rows[selectedRow.section]?.[selectedRow.row]?.kind ===
+        'group' &&
+      this.list !== null &&
+      ReactDOM.findDOMNode(this.list)?.contains(document.activeElement)
+    ) {
+      this.list.focus()
+    }
+
     if (this.props.onSelectionChanged) {
       const oldSelectedItemId = getItemIdFromRowIndex(
         prevState.rows,
@@ -391,6 +442,7 @@ export class SectionFilterList<
           renderRowFocusTooltip={this.renderRowFocusTooltip}
           sectionHasHeader={this.sectionHasHeader}
           getRowAriaLabel={this.getRowAriaLabel}
+          getRowAriaExpanded={this.getRowAriaExpanded}
           getSectionAriaLabel={this.getSectionAriaLabel}
           rowHeight={this.getRowHeight}
           selectedRows={
@@ -452,6 +504,13 @@ export class SectionFilterList<
       : itemAriaLabel
   }
 
+  private getRowAriaExpanded = (index: RowIndexPath) => {
+    const row = this.state.rows[index.section][index.row]
+    return row.kind === 'group' && this.props.onGroupCollapsedChanged
+      ? !row.collapsed
+      : undefined
+  }
+
   private getSectionAriaLabel = (section: number) => {
     const groupAriaLabel = this.props.getGroupAriaLabel?.(
       this.state.groups[section]
@@ -465,7 +524,7 @@ export class SectionFilterList<
     if (row.kind === 'item') {
       return this.props.renderItem(row.item, row.matches)
     } else if (this.props.renderGroupHeader) {
-      return this.props.renderGroupHeader(row.identifier)
+      return this.props.renderGroupHeader(row.identifier, row.collapsed)
     } else {
       return null
     }
@@ -514,9 +573,11 @@ export class SectionFilterList<
 
     if (this.props.onSelectionChanged) {
       const row = this.state.rows[index.section][index.row]
-      if (row.kind === 'item') {
-        this.props.onSelectionChanged(row.item, source)
-      }
+      // Group headers are only selectable when groups can be collapsed
+      this.props.onSelectionChanged(
+        row.kind === 'item' ? row.item : null,
+        source
+      )
     }
   }
 
@@ -526,16 +587,32 @@ export class SectionFilterList<
     }
 
     const row = this.state.rows[index.section][index.row]
-    return row.kind === 'item'
+    return (
+      row.kind === 'item' || this.props.onGroupCollapsedChanged !== undefined
+    )
   }
 
-  private onRowClick = (index: RowIndexPath, source: ClickSource) => {
-    if (this.props.onItemClick) {
-      const row = this.state.rows[index.section][index.row]
+  private canSelectItemRow = (index: RowIndexPath) =>
+    this.state.rows[index.section][index.row].kind === 'item' &&
+    this.canSelectRow(index)
 
-      if (row.kind === 'item') {
-        this.props.onItemClick(row.item, source)
-      }
+  private onRowClick = (index: RowIndexPath, source: ClickSource) => {
+    const row = this.state.rows[index.section][index.row]
+
+    if (row.kind === 'group') {
+      this.setGroupCollapsed(row, !row.collapsed)
+    } else if (this.props.onItemClick) {
+      this.props.onItemClick(row.item, source)
+    }
+  }
+
+  private setGroupCollapsed(
+    row: IFlattenedGroup<GroupIdentifier>,
+    collapsed: boolean
+  ) {
+    // Collapsing a group that's held open would have no visible effect
+    if (!collapsed || row.canCollapse) {
+      this.props.onGroupCollapsedChanged?.(row.identifier, collapsed)
     }
   }
 
@@ -543,17 +620,18 @@ export class SectionFilterList<
     index: RowIndexPath,
     source: React.MouseEvent<HTMLDivElement>
   ) => {
-    if (!this.props.onItemContextMenu) {
-      return
-    }
-
     const row = this.state.rows[index.section][index.row]
 
-    if (row.kind !== 'item') {
-      return
+    if (row.kind === 'group') {
+      this.props.onGroupContextMenu?.(
+        row.identifier,
+        source,
+        row.collapsed,
+        row.canCollapse
+      )
+    } else {
+      this.props.onItemContextMenu?.(row.item, source)
     }
-
-    this.props.onItemContextMenu(row.item, source)
   }
 
   private onRowKeyDown = (
@@ -562,6 +640,16 @@ export class SectionFilterList<
   ) => {
     const list = this.list
     if (!list) {
+      return
+    }
+
+    const row = this.state.rows[indexPath.section][indexPath.row]
+    if (
+      row.kind === 'group' &&
+      (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+    ) {
+      this.setGroupCollapsed(row, event.key === 'ArrowLeft')
+      event.preventDefault()
       return
     }
 
@@ -633,7 +721,7 @@ export class SectionFilterList<
         const selectedRow = findNextSelectableRow(
           rowCount,
           { direction: 'down', row: InvalidRowIndexPath },
-          this.canSelectRow
+          this.canSelectItemRow
         )
         if (selectedRow != null) {
           this.setState({ selectedRow }, () => {
@@ -679,7 +767,7 @@ export class SectionFilterList<
       const row = findNextSelectableRow(
         rowCount,
         { direction: 'down', row: InvalidRowIndexPath },
-        this.canSelectRow
+        this.canSelectItemRow
       )
 
       if (row != null) {
@@ -711,7 +799,7 @@ function getFirstVisibleRow<T extends IFilterListItem, GroupIdentifier>(
   return InvalidRowIndexPath
 }
 
-function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
+export function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
   props: ISectionFilterListProps<T, GroupIdentifier>,
   state: IFilterListState<T, GroupIdentifier> | null
 ) {
@@ -721,6 +809,15 @@ function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
   let section = 0
   const selectedItem = props.selectedItem
   const groupIndices = []
+
+  // A selected group header stays selected (e.g. while it's being toggled or
+  // moved), falling back to its position when its identifier changed
+  const prevRow =
+    state?.rows[state.selectedRow.section]?.[state.selectedRow.row]
+  const selectedGroupIndex =
+    prevRow?.kind === 'group' ? state?.groups[state.selectedRow.section] : -1
+  let selectedHeaderRow: RowIndexPath | null = null
+  let selectedHeaderFound = false
 
   for (const [idx, group] of props.groups.entries()) {
     const groupRows = new Array<IFilterListRow<T, GroupIdentifier>>()
@@ -738,11 +835,31 @@ function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
 
     groupIndices.push(idx)
 
-    if (props.renderGroupHeader && group.showHeader !== false) {
-      groupRows.push({ kind: 'group', identifier: group.identifier })
+    const showHeader = !!props.renderGroupHeader && group.showHeader !== false
+    // Never hide filter matches or the selected item
+    const canCollapse =
+      showHeader && !filter && !group.items.some(i => i.id === selectedItem?.id)
+    const collapsed = canCollapse && group.collapsed === true
+
+    if (showHeader && prevRow?.kind === 'group') {
+      if (isEqual(group.identifier, prevRow.identifier)) {
+        selectedHeaderRow = { section, row: 0 }
+        selectedHeaderFound = true
+      } else if (idx === selectedGroupIndex && !selectedHeaderFound) {
+        selectedHeaderRow = { section, row: 0 }
+      }
     }
 
-    for (const { item, matches } of items) {
+    if (showHeader) {
+      groupRows.push({
+        kind: 'group',
+        identifier: group.identifier,
+        collapsed,
+        canCollapse,
+      })
+    }
+
+    for (const { item, matches } of collapsed ? [] : items) {
       if (selectedItem && item.id === selectedItem.id) {
         selectedRow = {
           section,
@@ -756,6 +873,8 @@ function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
     rows.push(groupRows)
     section++
   }
+
+  selectedRow = selectedHeaderRow ?? selectedRow
 
   if (selectedRow.row < 0 && filter.length) {
     // If the selected item isn't in the list (e.g., filtered out), then

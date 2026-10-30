@@ -26,6 +26,10 @@ export type RepositoryListGroup =
       kind: 'enterprise'
       host: string
     }
+  | {
+      kind: 'custom'
+      name: string
+    }
 
 /**
  * Returns a unique grouping key (string) for a repository group. Doubles as a
@@ -37,6 +41,9 @@ export const getGroupKey = (group: RepositoryListGroup) => {
   switch (kind) {
     case 'recent':
       return `0:recent`
+    case 'custom':
+      // '~' sorts after ':' so custom groups follow Recent and precede owners
+      return `0~custom:${group.name.toLowerCase()}`
     case 'dotcom':
       return `1:dotcom:${group.owner.login}`
     case 'enterprise':
@@ -47,6 +54,28 @@ export const getGroupKey = (group: RepositoryListGroup) => {
       assertNever(group, `Unknown repository group kind ${kind}`)
   }
 }
+
+/** Returns the user-facing label for a repository list group. */
+export function getGroupLabel(group: RepositoryListGroup) {
+  const { kind } = group
+  switch (kind) {
+    case 'recent':
+      return 'Recent'
+    case 'custom':
+      return group.name
+    case 'dotcom':
+      return group.owner.alias
+        ? `${group.owner.alias} (${group.owner.login})`
+        : group.owner.login
+    case 'enterprise':
+      return group.host
+    case 'other':
+      return 'Other'
+    default:
+      assertNever(group, `Unknown repository group kind ${kind}`)
+  }
+}
+
 export type Repositoryish = Repository | CloningRepository
 
 export interface IRepositoryListItem extends IFilterListItem {
@@ -64,6 +93,9 @@ const getHostForRepository = (repo: RepositoryWithGitHubRepository) =>
   new URL(getHTMLURL(repo.gitHubRepository.endpoint)).host
 
 const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
+  if (repo instanceof Repository && repo.group) {
+    return { kind: 'custom', name: repo.group }
+  }
   if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
     return isDotCom(repo.gitHubRepository.endpoint)
       ? { kind: 'dotcom', owner: repo.gitHubRepository.owner }
@@ -72,12 +104,32 @@ const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
   return { kind: 'other' }
 }
 
+/**
+ * Returns the distinct (case-insensitive) user-defined group names of the
+ * given repositories, sorted alphabetically.
+ */
+export function getRepositoryGroupNames(
+  repositories: ReadonlyArray<Repositoryish>
+): ReadonlyArray<string> {
+  const names = new Map<string, string>()
+  for (const repo of repositories) {
+    const group = repo instanceof Repository ? repo.group : null
+    if (group && !names.has(group.toLowerCase())) {
+      names.set(group.toLowerCase(), group)
+    }
+  }
+  return [...names.values()].sort(caseInsensitiveCompare)
+}
+
 type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  collapsedGroupKeys: ReadonlySet<string> = new Set(),
+  /** Lowercase custom group names in the order the user arranged them */
+  customGroupOrder: ReadonlyArray<string> = []
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -102,10 +154,22 @@ export function groupRepositories(
     addToGroup(getGroupForRepository(repo), repo)
   }
 
+  // Groups missing from the stored order go after the ordered ones
+  const customRank = (name: string) => {
+    const index = customGroupOrder.indexOf(name.toLowerCase())
+    return index === -1 ? customGroupOrder.length : index
+  }
+
   return Array.from(groups)
-    .sort(([xKey], [yKey]) => compare(xKey, yKey))
-    .map(([, { group, repos }]) => ({
+    .sort(
+      ([xKey, x], [yKey, y]) =>
+        (x.group.kind === 'custom' && y.group.kind === 'custom'
+          ? compare(customRank(x.group.name), customRank(y.group.name))
+          : 0) || compare(xKey, yKey)
+    )
+    .map(([key, { group, repos }]) => ({
       identifier: group,
+      collapsed: collapsedGroupKeys.has(key),
       items: toSortedListItems(
         group,
         repos,
@@ -154,13 +218,14 @@ const toSortedListItems = (
         id: r.id.toString(),
         repository: r,
         needsDisambiguation:
-          // If the repository is in the enterprise group and has a duplicate
-          // name in the group, we need to disambiguate it. We don't have to
-          // disambiguate repositories in the 'dotcom' group because they are
-          // already grouped by owner. If the repository is in the 'recent'
-          // group and has a duplicate name in any group, we need to
+          // If the repository is in an enterprise or custom group and has a
+          // duplicate name in the group, we need to disambiguate it. We don't
+          // have to disambiguate repositories in the 'dotcom' group because
+          // they are already grouped by owner. If the repository is in the
+          // 'recent' group and has a duplicate name in any group, we need to
           // disambiguate it.
-          ((groupNames.get(title) ?? 0) > 1 && group.kind === 'enterprise') ||
+          ((groupNames.get(title) ?? 0) > 1 &&
+            (group.kind === 'enterprise' || group.kind === 'custom')) ||
           ((allNames.get(title) ?? 0) > 1 && group.kind === 'recent'),
         aheadBehind: repoState?.aheadBehind ?? null,
         changedFilesCount: repoState?.changedFilesCount ?? 0,

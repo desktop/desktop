@@ -67,11 +67,22 @@
     }
   }
 
-  .filter-list-group-header {
+  // Header rows can be hovered and selected, so the gap above each section
+  // is padding on the row that the highlight doesn't cover.
+  .list-item:has(.filter-list-group-header) {
     padding-top: var(--spacing);
+    background-clip: content-box;
+  }
+
+  .filter-list-group-header {
     text-overflow: ellipsis;
     overflow-x: hidden;
     white-space: nowrap;
+
+    .group-collapse-chevron {
+      margin-right: var(--spacing-half);
+      vertical-align: middle;
+    }
   }
 
   .new-repository-button {

@@ -6,6 +6,7 @@ import {
   getOwnerKey,
 } from '../databases/repositories-database'
 import { Owner } from '../../models/owner'
+import { caseInsensitiveEquals } from '../compare'
 import {
   GitHubRepository,
   GitHubRepositoryPermission,
@@ -119,7 +120,8 @@ export class RepositoriesStore extends TypedBaseStore<
         dbOwner.login,
         dbOwner.endpoint,
         dbOwner.id!,
-        dbOwner.type
+        dbOwner.type,
+        dbOwner.alias ?? null
       )
     }
 
@@ -154,7 +156,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.group ?? null
     )
   }
 
@@ -295,7 +298,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.group
     )
   }
 
@@ -317,7 +321,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.group
     )
   }
 
@@ -332,6 +337,95 @@ export class RepositoriesStore extends TypedBaseStore<
     alias: string | null
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { alias })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Returns the trimmed group name, spelled like an existing group (other than
+   * `except`) when one matches case-insensitively.
+   */
+  private async normalizeGroupName(name: string, except?: string) {
+    const trimmed = name.trim()
+    const lower = trimmed.toLowerCase()
+    const exceptLower = except?.toLowerCase()
+    const existing = await this.db.repositories
+      .filter(r => {
+        const group = r.group?.toLowerCase()
+        return group === lower && group !== exceptLower
+      })
+      .first()
+
+    return existing?.group ?? trimmed
+  }
+
+  /**
+   * Update the user-defined group for the specified repository.
+   *
+   * @param repository  The repository to update.
+   * @param group       The group name, or null to remove it from its group.
+   *                    Blank names are ignored.
+   */
+  public async updateRepositoryGroup(
+    repository: Repository,
+    group: string | null
+  ): Promise<void> {
+    const name = group === null ? null : await this.normalizeGroupName(group)
+    if (name === '') {
+      return
+    }
+
+    await this.db.repositories.update(repository.id, { group: name })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Rename a user-defined group across all repositories in it. Renaming onto
+   * an existing group's name merges the two, and a null name ungroups all of
+   * its repositories. Blank names are ignored.
+   */
+  public async renameRepositoryGroup(
+    oldName: string,
+    newName: string | null
+  ): Promise<void> {
+    const oldLower = oldName.toLowerCase()
+
+    await this.db.transaction('rw', this.db.repositories, async () => {
+      const name =
+        newName === null
+          ? null
+          : await this.normalizeGroupName(newName, oldName)
+      if (name === '') {
+        return
+      }
+
+      await this.db.repositories
+        .filter(r => r.group?.toLowerCase() === oldLower)
+        .modify({ group: name })
+    })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Update the display name of an owner's repository list section.
+   *
+   * @param owner  The owner to update.
+   * @param alias  The new alias, or null (or a blank string or the owner's
+   *               login) to remove it.
+   */
+  public async updateOwnerAlias(
+    owner: Owner,
+    alias: string | null
+  ): Promise<void> {
+    const trimmed = alias?.trim()
+    await this.db.owners.update(owner.id, {
+      alias:
+        trimmed && !caseInsensitiveEquals(trimmed, owner.login)
+          ? trimmed
+          : null,
+    })
 
     this.emitUpdatedRepositories()
   }
@@ -383,7 +477,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      mainWorktreePath
+      mainWorktreePath,
+      repository.group
     )
   }
 
@@ -436,7 +531,8 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.workflowPreferences,
         repository.isTutorialRepository,
         gitDir,
-        mainWorktreePath
+        mainWorktreePath,
+        repository.group
       ),
       existingRepository: false,
     }
@@ -519,12 +615,19 @@ export class RepositoriesStore extends TypedBaseStore<
         endpoint,
         login,
         type: ownerType,
+        alias: existingOwner?.alias,
       })
     } else {
       id = forceUnwrap('Missing owner id', existingOwner.id)
     }
 
-    return new Owner(login, endpoint, id, ownerType ?? existingOwner?.type)
+    return new Owner(
+      login,
+      endpoint,
+      id,
+      ownerType ?? existingOwner?.type,
+      existingOwner?.alias ?? null
+    )
   }
 
   public async upsertGitHubRepositoryFromMatch(
@@ -586,7 +689,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.workflowPreferences,
       repo.isTutorialRepository,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.group
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

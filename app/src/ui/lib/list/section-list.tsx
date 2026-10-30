@@ -345,6 +345,9 @@ interface ISectionListProps {
    * elements for this to take precedence.
    */
   readonly getRowAriaLabel?: (indexPath: RowIndexPath) => string | undefined
+
+  /** Optional callback for providing the aria-expanded state of each row. */
+  readonly getRowAriaExpanded?: (indexPath: RowIndexPath) => boolean | undefined
 }
 
 interface ISectionListState {
@@ -1244,6 +1247,7 @@ export class SectionList extends React.Component<
           id={id}
           role="option"
           ariaLabel={ariaLabel}
+          ariaExpanded={this.props.getRowAriaExpanded?.(indexPath)}
           sectionHasHeader={sectionHasHeader}
           onRowRef={this.onRowRef}
           rowCount={this.props.rowCount[indexPath.section]}

@@ -603,7 +603,9 @@ dialog {
   }
 
   &#confirm-remove-repository,
-  &#change-repository-alias {
+  &#change-repository-alias,
+  &#change-repository-group,
+  &#rename-repository-section {
     width: 450px;
 
     .description {
