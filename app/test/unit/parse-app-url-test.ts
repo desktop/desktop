@@ -163,3 +163,14 @@ describe('parseAppURL', () => {
     })
   })
 })
+
+
+describe('openRepo branch validation stability', () => {
+  it('rejects an invalid branch in repeated deep links', () => {
+    const url =
+      'github-mac://openRepo/https://github.com/desktop/desktop?branch=bad%20branch'
+    for (let i = 0; i < 4; i++) {
+      assert.equal(parseAppURL(url).name, 'unknown')
+    }
+  })
+})
