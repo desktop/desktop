@@ -1,11 +1,14 @@
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForAccount } from '../auth'
+import { getKeyForAccount, getKeyForEndpoint } from '../auth'
 import { Account, isDotComAccount } from '../../models/account'
-import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
+import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
-import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
+import {
+  getLegacyGHEEndpoints,
+  getMigratedGHEEndpoint,
+} from '../ghe-endpoint-migration'
 import { Disposable } from 'event-kit'
 import { deleteToken } from '../api'
 import { IOAuthToken, refreshOAuthToken } from '../oauth-token'
@@ -372,27 +375,75 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return current
   }
 
+  /**
+   * Migrate endpoints of `.ghe.com` accounts persisted in a legacy format
+   * (using the `/api/v3` path or a trailing slash) to the canonical format.
+   * See `getMigratedGHEEndpoint`.
+   */
   private getMigratedGHEAccounts(
     accounts: ReadonlyArray<IAccount>
   ): ReadonlyArray<IAccount> | null {
     let migrated = false
     const migratedAccounts = accounts.map(account => {
-      let endpoint = account.endpoint
-      const endpointURL = new URL(endpoint)
-      // Migrate endpoints of subdomains of `.ghe.com` that use the `/api/v3`
-      // path to the correct URL using the `api.` subdomain.
-      if (isGHE(endpoint) && !endpointURL.hostname.startsWith('api.')) {
-        endpoint = getEnterpriseAPIURL(endpoint)
-        migrated = true
+      const endpoint = getMigratedGHEEndpoint(account.endpoint)
+
+      if (endpoint === undefined) {
+        return account
       }
 
-      return {
-        ...account,
-        endpoint,
-      }
+      migrated = true
+      return { ...account, endpoint }
     })
 
     return migrated ? migratedAccounts : null
+  }
+
+  /**
+   * Get the serialized credential for the given account from the secure store.
+   *
+   * For `.ghe.com` accounts whose credential can't be found we'll look for it
+   * under the keys of the legacy endpoint formats (see
+   * `getLegacyGHEEndpoints`) and, if found, move it to the key of the current
+   * endpoint. The stored value is moved as-is so that any refresh token
+   * persisted alongside the access token is preserved.
+   */
+  private async getStoredCredential(account: Account): Promise<string | null> {
+    const key = getKeyForAccount(account)
+    const stored = await this.secureStore.getItem(key, account.login)
+
+    if (stored) {
+      return stored
+    }
+
+    for (const legacyEndpoint of getLegacyGHEEndpoints(account.endpoint)) {
+      const legacyKey = getKeyForEndpoint(legacyEndpoint)
+      const legacyStored = await this.secureStore.getItem(
+        legacyKey,
+        account.login
+      )
+
+      if (!legacyStored) {
+        continue
+      }
+
+      log.info(
+        `Migrating credential for '${account.login}' from '${legacyKey}'`
+      )
+
+      try {
+        await this.secureStore.setItem(key, account.login, legacyStored)
+        await this.secureStore.deleteItem(legacyKey, account.login)
+      } catch {
+        // We'll try again next time the accounts are loaded, the legacy
+        // credential is only deleted once we've successfully stored it under
+        // the new key.
+        log.error(`Unable to migrate credential for '${account.login}'`)
+      }
+
+      return legacyStored
+    }
+
+    return stored
   }
 
   /**
@@ -425,7 +476,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const stored = await this.secureStore.getItem(key, account.login)
+        const stored = await this.getStoredCredential(accountWithoutToken)
         const credential = deserializeAccountCredential(stored)
         if (credential === null && stored !== null) {
           removedInvalidAccounts = true
