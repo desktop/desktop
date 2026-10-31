@@ -1637,8 +1637,11 @@ export class Dispatcher {
   /**
    * Opens a path in the external editor selected by the user.
    */
-  public async openInExternalEditor(fullPath: string): Promise<void> {
-    return this.appStore._openInExternalEditor(fullPath)
+  public async openInExternalEditor(
+    fullPath: string,
+    repository?: Repository
+  ): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath, repository)
   }
 
   /** Open the selected checkout in the GitHub Copilot app. */
@@ -1876,6 +1879,19 @@ export class Dispatcher {
     await this.appStore._updateRepositoryWorkflowPreferences(
       repository,
       workflowPreferences
+    )
+  }
+
+  /** Update the preferred external editor for a repository. */
+  public async updateRepositoryEditorPreference(
+    repository: Repository,
+    preferredExternalEditor: string | null,
+    preferredCustomEditor: ICustomIntegration | null
+  ): Promise<Repository> {
+    return this.appStore._updateRepositoryEditorPreference(
+      repository,
+      preferredExternalEditor,
+      preferredCustomEditor
     )
   }
 
