@@ -180,6 +180,80 @@ describe('Tokenizer', () => {
       assert.equal(results[2].text, ' from desktop/computering-icons-for-all')
     })
 
+    describe('external issue references', () => {
+      const tokenize = (text: string) =>
+        new Tokenizer(emoji, repository).tokenize(text)
+
+      const links = (text: string) =>
+        tokenize(text)
+          .filter(t => t.kind === TokenType.Link)
+          .map(t => [t.text, (t as HyperlinkMatch).url])
+
+      it('links the whole owner/repo#id reference', () => {
+        const results = tokenize('See testorg/testrepo#818 for background')
+        assert.equal(results.length, 3)
+        assert.equal(results[0].text, 'See ')
+        assert.equal(results[1].kind, TokenType.Link)
+        assert.equal(results[1].text, 'testorg/testrepo#818')
+        assert.equal(
+          (results[1] as HyperlinkMatch).url,
+          `${host}/testorg/testrepo/issues/818`
+        )
+        assert.equal(results[2].text, ' for background')
+      })
+
+      it('accepts hyphens and dots in owner and repository names', () => {
+        assert.deepEqual(links('my-org/my.repo-name#7'), [
+          ['my-org/my.repo-name#7', `${host}/my-org/my.repo-name/issues/7`],
+        ])
+      })
+
+      it('handles trailing punctuation', () => {
+        for (const suffix of ['.', ',', ')', '!']) {
+          assert.deepEqual(links(`(a/b#1${suffix}`), [
+            ['a/b#1', `${host}/a/b/issues/1`],
+          ])
+        }
+      })
+
+      it('links multiple references separated by commas', () => {
+        assert.deepEqual(links('first/repo#1,second/repo#2'), [
+          ['first/repo#1', `${host}/first/repo/issues/1`],
+          ['second/repo#2', `${host}/second/repo/issues/2`],
+        ])
+      })
+
+      it('does not link malformed references', () => {
+        assert.deepEqual(links('testorg/testrepo#818abc'), [])
+        assert.deepEqual(links('testorg/testrepo#'), [])
+        assert.deepEqual(links('#123abc'), [])
+      })
+
+      it('does not treat a lone owner as an external reference', () => {
+        // falls back to an ordinary issue link in the current repository
+        assert.deepEqual(links('testorg/#12'), [
+          ['#12', `${repository.gitHubRepository?.htmlURL}/issues/12`],
+        ])
+      })
+
+      it('does not link references in the middle of a path', () => {
+        assert.ok(links('x/a/b#1').every(([text]) => text === '#1'))
+      })
+
+      it('still links plain issues and hyperlinks', () => {
+        assert.deepEqual(links('fixes #12. see https://example.com/a'), [
+          ['#12', `${repository.gitHubRepository?.htmlURL}/issues/12`],
+          ['https://example.com/a', 'https://example.com/a'],
+        ])
+      })
+
+      it('tokenizes long unbroken text in linear time', () => {
+        const start = Date.now()
+        tokenize('a'.repeat(200000) + '/' + 'b'.repeat(200000))
+        assert.ok(Date.now() - start < 2000)
+      })
+    })
+
     it('renders link when squash and merge', () => {
       const id = 5203
       const expectedUri = `${htmlURL}/issues/${id}`
