@@ -12,6 +12,42 @@ import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 
+/** The worktree's branch name, or its full commit SHA when HEAD is detached. */
+function getBranchOrCommit(worktree: WorktreeEntry) {
+  return worktree.branch ? getWorktreeDescription(worktree) : worktree.head
+}
+
+/**
+ * Tooltip content naming a worktree and its full path, so that worktrees
+ * sharing a folder name can be told apart. Pass `includeBranch` where the
+ * branch's own tooltip isn't available.
+ */
+export function renderWorktreeTooltip(
+  worktree: WorktreeEntry,
+  includeBranch = false
+) {
+  return (
+    <div className="list-item-tooltip">
+      <div>
+        <div className="label">Full Name: </div>
+        {getWorktreeDisplayName(worktree)}
+      </div>
+      <div>
+        <div className="label">Path: </div>
+        {worktree.path}
+      </div>
+      {includeBranch && (
+        <div>
+          <div className="label">
+            {worktree.branch ? 'Branch: ' : 'Commit: '}
+          </div>
+          {getBranchOrCommit(worktree)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface IWorktreeListItemProps {
   readonly worktree: WorktreeEntry
   readonly isCurrentWorktree: boolean
@@ -39,8 +75,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         <Octicon className="icon" symbol={icon} />
         <TooltippedContent
           className="name"
-          tooltip={name}
-          onlyWhenOverflowed={true}
+          tooltip={renderWorktreeTooltip(worktree)}
           tagName="div"
           disabled={enableAccessibleListToolTips()}
         >
@@ -49,7 +84,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         {isMissing && <div className="missing-indicator">(missing)</div>}
         <TooltippedContent
           className="description"
-          tooltip={worktree.branch ?? worktree.head}
+          tooltip={getBranchOrCommit(worktree)}
           onlyWhenOverflowed={true}
           tagName="div"
           disabled={enableAccessibleListToolTips()}
