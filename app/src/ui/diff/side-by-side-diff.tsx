@@ -979,6 +979,10 @@ export class SideBySideDiff extends React.Component<
 
   private clearListRowsHeightCache = () => {
     listRowsHeightCache.clearAll()
+    // AutoSizer can commit the new width before invoking onResize. Invalidate
+    // the List's row sizes and positions too, and render again so CellMeasurer
+    // measures wrapped rows at the new width even without another resize.
+    this.virtualListRef.current?.recomputeRowHeights()
   }
 
   private async initDiffSyntaxMode() {
