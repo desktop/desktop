@@ -5,6 +5,7 @@ import { Dispatcher } from '../dispatcher'
 import { CommittedFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { IDiff, ImageDiffType } from '../../models/diff'
+import { getLFSTextDiff } from '../../lib/git'
 import { Resizable } from '../resizable'
 import { StashDiffHeader } from './stash-diff-header'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
@@ -68,6 +69,21 @@ export const StashDiffViewerId = 'stash-diff-viewer'
  * _(Like viewing a selected commit in history but for a stash)_
  */
 export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> {
+  private onLoadLFSDiff = (): Promise<IDiff | null> => {
+    const file = this.props.selectedStashedFile
+    if (file === null) {
+      return Promise.resolve(null)
+    }
+    const commitish = this.props.stashEntry.stashSha
+    return getLFSTextDiff(
+      this.props.repository,
+      file,
+      commitish,
+      commitish,
+      false
+    )
+  }
+
   private onSelectedFileChanged = (file: CommittedFileChange) =>
     this.props.dispatcher.selectStashedFile(this.props.repository, file)
 
@@ -120,6 +136,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
             this.props.onHideWhitespaceInDiffChanged
           }
           onOpenSubmodule={onOpenSubmodule}
+          onLoadLFSDiff={this.onLoadLFSDiff}
         />
       ) : null
 
