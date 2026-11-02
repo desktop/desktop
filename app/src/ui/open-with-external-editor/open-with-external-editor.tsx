@@ -5,6 +5,7 @@ import { Row } from '../lib/row'
 import { Select } from '../lib/select'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { CustomIntegrationForm } from '../preferences/custom-integration-form'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
   ICustomIntegration,
   TargetPathArgument,
@@ -20,6 +21,13 @@ interface IOpenWithExternalEditorProps {
     editor: string | null,
     customEditor: ICustomIntegration | null
   ) => Promise<void>
+  /** Callback to save the editor preference for the repository. Only provided when opened from a repository context. */
+  readonly onSavePreference?: (
+    editor: string | null,
+    customEditor: ICustomIntegration | null
+  ) => Promise<void>
+  /** The name of the repository (for display in checkbox label). */
+  readonly repositoryName?: string
 }
 
 interface IOpenWithExternalEditorState {
@@ -27,6 +35,7 @@ interface IOpenWithExternalEditorState {
   readonly selectedEditor: string | null
   readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration
+  readonly rememberChoice: boolean
 }
 
 export class OpenWithExternalEditor extends React.Component<
@@ -41,6 +50,7 @@ export class OpenWithExternalEditor extends React.Component<
       selectedEditor: null,
       useCustomEditor: false,
       customEditor: { path: '', arguments: TargetPathArgument },
+      rememberChoice: false,
     }
   }
 
@@ -86,17 +96,28 @@ export class OpenWithExternalEditor extends React.Component<
     this.setState({ customEditor })
   }
 
-  private onSubmit = async () => {
-    const { useCustomEditor, selectedEditor, customEditor } = this.state
+  private onRememberChoiceChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.setState({ rememberChoice: event.currentTarget.checked })
+  }
 
-    if (useCustomEditor) {
-      if (!customEditor.path) {
-        return
-      }
-      await this.props.onOpenWithEditor(null, customEditor)
-    } else {
-      await this.props.onOpenWithEditor(selectedEditor, null)
+  private onSubmit = async () => {
+    const { useCustomEditor, selectedEditor, customEditor, rememberChoice } =
+      this.state
+
+    const editorToUse = useCustomEditor ? null : selectedEditor
+    const customEditorToUse = useCustomEditor ? customEditor : null
+
+    if (useCustomEditor && !customEditor.path) {
+      return
     }
+
+    if (rememberChoice && this.props.onSavePreference) {
+      await this.props.onSavePreference(editorToUse, customEditorToUse)
+    }
+
+    await this.props.onOpenWithEditor(editorToUse, customEditorToUse)
     this.props.onDismissed()
   }
 
@@ -163,6 +184,19 @@ export class OpenWithExternalEditor extends React.Component<
         <DialogContent>
           <Row>{this.renderEditorSelect()}</Row>
           {this.renderCustomEditor()}
+          {this.props.onSavePreference && this.props.repositoryName && (
+            <Row>
+              <Checkbox
+                label={`Remember this choice for ${this.props.repositoryName}`}
+                value={
+                  this.state.rememberChoice
+                    ? CheckboxValue.On
+                    : CheckboxValue.Off
+                }
+                onChange={this.onRememberChoiceChanged}
+              />
+            </Row>
+          )}
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup

@@ -1,3 +1,5 @@
+import { Repository } from '../../models/repository'
+
 /**
  * A found external editor on the user's machine
  */
@@ -18,6 +20,12 @@ interface IErrorMetadata {
 
   /** The error dialog should direct the user to open Preferences */
   openPreferences?: boolean
+
+  /** The error dialog should direct the user to open repository settings */
+  openRepositorySettings?: boolean
+
+  /** The repository to open settings for (when openRepositorySettings is true) */
+  repository?: Repository
 }
 
 export class ExternalEditorError extends Error {
