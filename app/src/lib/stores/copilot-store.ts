@@ -940,9 +940,13 @@ export class CopilotStore extends BaseStore {
     return client
   }
 
+  /** Preserve custom instructions without discovering hooks, config, or skills. */
   private createSession(client: CopilotClient, config: SessionConfig) {
     return client.createSession({
       ...config,
+      enableFileHooks: false,
+      enableConfigDiscovery: false,
+      enableSkills: false,
       gitHubTokenProvider:
         config.provider === undefined
           ? this.clientTokenProviders.get(client)
