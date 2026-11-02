@@ -72,6 +72,9 @@
     "windows-argv-parser": "file:../vendor/windows-argv-parser",
     "winston": "^3.6.0"
   },
+  "resolutions": {
+    "@github/copilot-sdk/zod": "4.6.6"
+  },
   "devDependencies": {
     "@testing-library/dom": "8.20.1",
     "@testing-library/react": "12.1.5",
