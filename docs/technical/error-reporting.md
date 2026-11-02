@@ -87,27 +87,3 @@ error, `ErrorWithMetadata` supports providing additional details:
  - a [`IGitErrorContext`](https://github.com/desktop/desktop/blob/c60350c52daeab04fe9e8743c5a5079bc87daa0e/app/src/lib/git-error-context.ts)
   can be set to add custom details about the Git operation that failed, so that
   error handlers have more context to provide the user about how to recover
-
-### Copilot conflict-resolution diagnostics
-
-Non-fatal conflict-resolution reports use `CopilotConflictResolutionError`.
-Its message includes the failure stage, validation-retry state, normalized
-failure reason, explicitly allowlisted HTTP status and error code, and elapsed
-time bucket. Elapsed time covers the resolution flow, from initiating context
-gathering until the failure is reported, including any validation retry.
-Buckets are `[0, 5)`, `[5, 30)`, `[30, 120)`, `[120, 600)`, and `[600, infinity)`
-seconds; missing or invalid durations are `unknown`.
-
-Classification uses structured SDK `session.error` fields and recognized
-transport codes, not message matching. Desktop's own turn timeout and empty
-response errors carry fixed codes. Unknown statuses, codes, and categories
-are not forwarded: their corresponding diagnostic fields become `unknown`.
-The allowlists live in `app/src/lib/copilot-conflict-resolution-error.ts`.
-
-The original error remains available for local logging and user-facing error
-handling, but its message, stack, and arbitrary properties are not included in
-the report message or attached as an error cause. Never add raw provider
-messages, prompts, model output, file contents, repository paths, request IDs,
-or credentials to these diagnostics. Reporting continues to honor the existing
-usage-data opt-out and non-fatal reporting throttle. These diagnostics do not
-change retry behavior.
