@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { sanitizedRefName, testForInvalidChars } from '../../src/lib/sanitize-ref-name'
+import {
+  sanitizedRefName,
+  testForInvalidChars,
+} from '../../src/lib/sanitize-ref-name'
 
 describe('sanitizedBranchName', () => {
   it('leaves a good branch name alone', () => {
@@ -58,10 +61,15 @@ describe('sanitizedBranchName', () => {
   })
 })
 
-
 describe('testForInvalidChars', () => {
   it('rejects invalid names consistently on repeated calls', () => {
-    for (const name of ['bad branch', 'bad~branch', 'bad..branch', 'bad.lock', 'bad/']) {
+    for (const name of [
+      'bad branch',
+      'bad~branch',
+      'bad..branch',
+      'bad.lock',
+      'bad/',
+    ]) {
       for (let i = 0; i < 4; i++) {
         assert.equal(testForInvalidChars(name), true)
       }
