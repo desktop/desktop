@@ -87,3 +87,4 @@ error, `ErrorWithMetadata` supports providing additional details:
  - a [`IGitErrorContext`](https://github.com/desktop/desktop/blob/c60350c52daeab04fe9e8743c5a5079bc87daa0e/app/src/lib/git-error-context.ts)
   can be set to add custom details about the Git operation that failed, so that
   error handlers have more context to provide the user about how to recover
+
