@@ -7223,15 +7223,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         e instanceof CopilotConflictResolutionError
           ? e
           : new CopilotConflictResolutionError(e, 'unknown')
-      sendNonFatalException(
-        'copilotConflictResolution',
-        new CopilotConflictResolutionError(
-          failure,
-          failure.stage,
-          failure.retryState,
-          performance.now() - resolveStartTime
-        )
-      )
+      sendNonFatalException('copilotConflictResolution', failure)
 
       // Surface the error to the user so they understand why they were
       // routed back to manual conflict resolution. Mirrors the pattern

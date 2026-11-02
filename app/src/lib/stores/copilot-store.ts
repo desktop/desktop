@@ -747,7 +747,7 @@ export async function runConflictResolutionTurn(
         finish(() =>
           reject(
             Object.assign(new Error('Copilot conflict resolution timed out'), {
-              code: 'ETIMEDOUT',
+              code: 'COPILOT_TURN_TIMEOUT',
             })
           )
         )

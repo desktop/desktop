@@ -1169,7 +1169,7 @@ describe('runConflictResolutionTurn', () => {
       )
       assert.strictEqual(
         failure.message,
-        'Copilot Conflict Resolution Error: stage=stream-response, retryState=not-retried, reason=rate-limit, status=429, code=user_model_rate_limited, elapsed=unknown'
+        'Copilot Conflict Resolution Error: stage=stream-response, retryState=not-retried, type=rate_limit, status=429, code=user_model_rate_limited'
       )
       assert.strictEqual(
         failure.underlyingError.message,
@@ -1193,8 +1193,7 @@ describe('runConflictResolutionTurn', () => {
           error,
           'stream-response'
         )
-        assert.ok(failure.message.includes('reason=timeout,'))
-        assert.ok(failure.message.includes('code=ETIMEDOUT,'))
+        assert.ok(failure.message.endsWith('code=COPILOT_TURN_TIMEOUT'))
         return true
       }
     )
@@ -1215,7 +1214,7 @@ describe('runConflictResolutionTurn', () => {
         error,
         'stream-response'
       )
-      assert.ok(failure.message.includes('reason=empty-response,'))
+      assert.ok(failure.message.endsWith('code=COPILOT_EMPTY_RESPONSE'))
       assert.strictEqual(
         failure.underlyingError.message,
         'No response from Copilot'
@@ -1226,9 +1225,7 @@ describe('runConflictResolutionTurn', () => {
   })
 
   it('preserves structured errors rejected by send', async () => {
-    const original = Object.assign(new Error('private connection details'), {
-      code: 'ECONNRESET',
-    })
+    const original = new Error('private RPC failure details')
     const fake = createFakeSession(original)
 
     await assert.rejects(
@@ -1238,7 +1235,7 @@ describe('runConflictResolutionTurn', () => {
           error,
           'stream-response'
         )
-        assert.ok(failure.message.includes('reason=connection,'))
+        assert.ok(failure.message.endsWith('code=unknown'))
         assert.strictEqual(failure.underlyingError, original)
         return true
       }
@@ -1362,9 +1359,7 @@ describe('CopilotStore conflict resolution', () => {
 
   it('reports session creation failures without retrying', async () => {
     const store = new CopilotStore(createAccountsStore())
-    const sessionError = Object.assign(new Error('Session transport failed'), {
-      statusCode: 503,
-    })
+    const sessionError = new Error('Session transport failed')
     let createSessionCount = 0
     const client = {
       createSession: async () => {
@@ -1393,7 +1388,9 @@ describe('CopilotStore conflict resolution', () => {
           )
         )
         assert.strictEqual(error.underlyingError, sessionError)
-        assert.ok(error.message.includes('reason=service, status=503,'))
+        assert.ok(
+          error.message.endsWith('type=unknown, status=unknown, code=unknown')
+        )
         return true
       }
     )
