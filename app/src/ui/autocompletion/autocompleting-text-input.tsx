@@ -1,22 +1,22 @@
-import * as React from 'react'
-import {
-  List,
-  SelectionSource,
-  findNextSelectableRow,
-  SelectionDirection,
-} from '../lib/list'
-import { IAutocompletionProvider } from './index'
-import { fatalError } from '../../lib/fatal-error'
 import classNames from 'classnames'
+import * as React from 'react'
 import getCaretCoordinates from 'textarea-caret'
+import { fatalError } from '../../lib/fatal-error'
 import { showContextualMenu } from '../../lib/menu-item'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
+import {
+  findNextSelectableRow,
+  List,
+  SelectionDirection,
+  SelectionSource,
+} from '../lib/list'
 import {
   Popover,
   PopoverAnchorPosition,
   PopoverDecoration,
 } from '../lib/popover'
+import { IAutocompletionProvider } from './index'
 
 interface IRange {
   readonly start: number
