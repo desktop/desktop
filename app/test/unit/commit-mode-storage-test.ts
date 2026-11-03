@@ -86,15 +86,40 @@ describe('repository commit mode storage', () => {
 
   it('retains the mode and draft in the same state when the assigned account changes', () => {
     const alice = new Repository(
-      '/repositories/1', 1, null, false, null, {}, false, undefined, undefined, 'alice'
+      '/repositories/1',
+      1,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'alice'
     )
     const bob = new Repository(
-      alice.path, alice.id, null, false, null, {}, false, undefined, undefined, 'bob'
+      alice.path,
+      alice.id,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'bob'
     )
     const cache = createTestRepositoryStateCache()
     assert.strictEqual(cache.has(alice), false)
-    const draft = { summary: 'Keep my draft', description: 'And body', timestamp: 1 }
-    cache.updateChangesState(alice, () => ({ commitMode: 'copilot', commitMessage: draft }))
+    const draft = {
+      summary: 'Keep my draft',
+      description: 'And body',
+      timestamp: 1,
+    }
+    cache.updateChangesState(alice, () => ({
+      commitMode: 'copilot',
+      commitMessage: draft,
+    }))
     const original = cache.get(alice)
     assert.notStrictEqual(alice.hash, bob.hash)
     assert.strictEqual(cache.has(bob), true)
@@ -113,7 +138,10 @@ describe('repository commit mode storage', () => {
     const cache = createTestRepositoryStateCache()
     const draft = { summary: 'Only main', description: null, timestamp: 1 }
     cache.get(worktree)
-    cache.updateChangesState(main, () => ({ commitMode: 'copilot', commitMessage: draft }))
+    cache.updateChangesState(main, () => ({
+      commitMode: 'copilot',
+      commitMessage: draft,
+    }))
     cache.update(main, () => ({ isCommitting: true }))
     assert.strictEqual(cache.get(worktree).changesState.commitMode, 'copilot')
     assert.notStrictEqual(cache.get(worktree).changesState.commitMessage, draft)
@@ -126,7 +154,13 @@ describe('repository commit mode storage', () => {
 
   it('does not share mode state between unrelated unpersisted repositories', () => {
     const first = new Repository('/placeholder', -1, null, false)
-    const second = new Repository(first.path, -1, null, false, 'Other placeholder')
+    const second = new Repository(
+      first.path,
+      -1,
+      null,
+      false,
+      'Other placeholder'
+    )
     const cache = createTestRepositoryStateCache()
     assert.strictEqual(cache.get(second).changesState.commitMode, 'manual')
     cache.updateChangesState(first, () => ({ commitMode: 'copilot' }))
@@ -138,8 +172,15 @@ describe('repository commit mode storage', () => {
     const source = createRepository(1)
     const target = new Repository('/renamed/repository', source.id, null, false)
     const cache = createTestRepositoryStateCache()
-    const draft = { summary: 'Keep renamed draft', description: null, timestamp: 1 }
-    cache.updateChangesState(source, () => ({ commitMode: 'copilot', commitMessage: draft }))
+    const draft = {
+      summary: 'Keep renamed draft',
+      description: null,
+      timestamp: 1,
+    }
+    cache.updateChangesState(source, () => ({
+      commitMode: 'copilot',
+      commitMessage: draft,
+    }))
     const original = cache.get(source)
     cache.transferState(source, target)
 
