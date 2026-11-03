@@ -191,11 +191,14 @@ async function packageApp() {
   }
 
   const iconPath = getIconDirectory()
+  // Assets.car is a macOS-only asset catalog
   const assetsCarPath = join(iconPath, 'Assets.car')
-  assert(
-    existsSync(assetsCarPath),
-    `Unable to find Assets.car at ${assetsCarPath}`
-  )
+  if (process.platform === 'darwin') {
+    assert(
+      existsSync(assetsCarPath),
+      `Unable to find Assets.car at ${assetsCarPath}`
+    )
+  }
 
   return packager({
     name: getExecutableName(),
@@ -205,11 +208,17 @@ async function packageApp() {
     out: getDistRoot(),
     // Packager probes for a sibling .icon file and requires macOS 26 to compile
     // it. Use a distinct basename so older build hosts use the prebuilt ICNS.
-    icon: join(
-      iconPath,
-      process.platform === 'darwin' ? 'icon-logo-legacy.icns' : 'icon-logo'
-    ),
-    extraResource: [assetsCarPath],
+    icon:
+      process.platform === 'linux'
+        ? // Linux uses a PNG that lives in the platform-specific static dir
+          join(projectRoot, 'app', 'static', 'linux', 'icon-logo.png')
+        : join(
+            iconPath,
+            process.platform === 'darwin'
+              ? 'icon-logo-legacy.icns'
+              : 'icon-logo'
+          ),
+    extraResource: process.platform === 'darwin' ? [assetsCarPath] : [],
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
