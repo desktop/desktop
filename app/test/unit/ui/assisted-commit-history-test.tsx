@@ -213,6 +213,31 @@ const lockedRuns: ReadonlyArray<AssistedCommitRunState> = [
   { kind: 'refreshing', runId: 'history-run' },
   { kind: 'closing', runId: 'history-run' },
   { kind: 'finishing', runId: 'history-run', cancelRequested: false },
+  {
+    kind: 'preparing-push',
+    runId: 'history-run',
+    cancelRequested: false,
+    canCancel: true,
+  },
+  {
+    kind: 'pushing',
+    runId: 'history-run',
+    phase: 'push',
+    progress: null,
+  },
+  {
+    kind: 'pushing',
+    runId: 'history-run',
+    phase: 'refresh',
+    progress: null,
+  },
+  {
+    kind: 'push-error',
+    runId: 'history-run',
+    error: new ErrorWithMetadata(new Error('Native push failed'), {}),
+    attempted: true,
+    settling: true,
+  },
   errorState('recovery'),
   errorState('refresh'),
   errorState(null, true),
@@ -258,6 +283,30 @@ describe('assisted history action locks', () => {
     history.assertActionsLocked(false)
     assert.strictEqual(
       history.sidebar().props.isMultiCommitOperationInProgress,
+      false
+    )
+  })
+
+  it('unlocks settled push-only retry without reporting a multicommit operation', async t => {
+    const history = await renderHistory(t)
+    history.setRun({
+      kind: 'push-error',
+      runId: 'history-run',
+      error: new ErrorWithMetadata(new Error('Native push failed'), {}),
+      attempted: true,
+      settling: false,
+    })
+    history.assertActionsLocked(false)
+    assert.strictEqual(
+      history.sidebar().props.isMultiCommitOperationInProgress,
+      false
+    )
+    assert.strictEqual(
+      history.commitList().props.isMultiCommitOperationInProgress,
+      false
+    )
+    assert.strictEqual(
+      history.commitList().props.isAssistedCommitRepositoryLocked,
       false
     )
   })

@@ -115,16 +115,23 @@ async function disposeAssistedCommitClient(
       AssistedCommitCleanupTimeoutMs
     )
   })
+  let forcing = false
   const cleanup = async () => {
     await session?.disconnect()
+    if (forcing) {
+      return
+    }
     const errors = await client.stop()
     if (errors.length > 0) {
       throw new AggregateError(errors, 'Copilot runtime cleanup failed')
     }
   }
+  const pending = cleanup()
   try {
-    await Promise.race([cleanup(), timeout])
+    await Promise.race([pending, timeout])
   } catch (error) {
+    forcing = true
+    clearTimeout(timer)
     try {
       await client.forceStop()
     } catch (forceStopError) {
@@ -133,7 +140,34 @@ async function disposeAssistedCommitClient(
         'Copilot runtime cleanup and force stop failed'
       )
     }
-    throw error
+    const settled = pending.then(
+      () => undefined,
+      () => undefined
+    )
+    const joinTimeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new Error(
+              'Copilot graceful cleanup did not settle after force stop'
+            )
+          ),
+        AssistedCommitCleanupTimeoutMs
+      )
+    })
+    try {
+      await Promise.race([settled, joinTimeout])
+    } catch (joinError) {
+      throw new AggregateError(
+        [error, joinError],
+        'Copilot runtime stopped, but graceful cleanup is still pending'
+      )
+    }
+    // The owned stdio runtime exited and its graceful continuation settled.
+    // Do not log SDK error text: it can contain request or user-specific data.
+    log.warn(
+      'Copilot assisted commit graceful cleanup required a completed force stop'
+    )
   } finally {
     clearTimeout(timer)
   }

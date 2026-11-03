@@ -22,7 +22,10 @@ import {
   withoutRepositoryGitAccess,
   withRepositoryGitOperation,
 } from '../../../src/lib/git/repository-operation'
-import { rollbackAssistedCommitTransaction } from '../../../src/lib/git/assisted-commit'
+import {
+  AssistedCommitError,
+  rollbackAssistedCommitTransaction,
+} from '../../../src/lib/git/assisted-commit'
 import { Repository } from '../../../src/models/repository'
 import {
   rawGit,
@@ -597,13 +600,16 @@ describe('git/clone', () => {
         assert.strictEqual(existsSync(destination), false)
         await assert.rejects(
           acquireAssistedCommitGitLease(destination),
-          /being removed/
+          (error: unknown) =>
+            error instanceof AssistedCommitError && error.code === 'busy'
         )
       } finally {
         lease.release()
         await cloning
       }
       assert.strictEqual(existsSync(path.join(destination, '.git')), true)
+      const destinationLease = await acquireAssistedCommitGitLease(destination)
+      destinationLease.release()
     })
   })
 
