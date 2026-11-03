@@ -70,6 +70,7 @@ async function setup(t: TestContext) {
       ref={ref}
       repository={repository}
       dispatcher={h.dispatcher}
+      accounts={h.appStore['accounts']}
       remote={null}
       repositoryAccount={null}
       initialSelectedTab={RepositorySettingsTab.GitConfig}

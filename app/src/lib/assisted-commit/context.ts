@@ -1,7 +1,14 @@
-import { Account, CopilotLicenseTypeNoAccess } from '../../models/account'
+import {
+  Account,
+  CopilotLicenseTypeNoAccess,
+  isSameAccount,
+} from '../../models/account'
 import { isAssistedCommitRunBusy } from '../../models/assisted-commit-run'
 import { DiffSelectionType } from '../../models/diff'
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  getRepositoryAccountIdentity,
+} from '../../models/repository'
 import { tipEquals } from '../../models/tip'
 import {
   assistedCommitRequestsEqual,
@@ -44,7 +51,10 @@ export class AssistedCommitContext {
     private readonly accountsStore: AccountsStore,
     public readonly copilot: CopilotStore,
     public readonly configuration: () => IAssistedCommitConfiguration,
-    private readonly resolveModelRequest: AssistedCommitModelResolver
+    private readonly resolveModelRequest: AssistedCommitModelResolver,
+    private readonly getCurrentRepository: (
+      repository: Repository
+    ) => Repository
   ) {}
 
   /** Capture the current account and its existing ordinary-generation model choice. */
@@ -55,7 +65,7 @@ export class AssistedCommitContext {
     const settings = this.configuration()
     const account = getAccountForCommitMessageGeneration(
       settings.accounts,
-      repository
+      this.getCurrentRepository(repository)
     )
     return {
       account,
@@ -89,20 +99,28 @@ export class AssistedCommitContext {
         'Assisted commit run was replaced'
       )
     }
+    const repository = this.getCurrentRepository(run.repository)
+    const originalIdentity = getRepositoryAccountIdentity(run.repository)
+    const currentIdentity = getRepositoryAccountIdentity(repository)
+    const assignmentMatches =
+      originalIdentity === null
+        ? currentIdentity === null
+        : isSameAccount(originalIdentity, currentIdentity)
     const account = getAccountForCommitMessageGeneration(
       this.configuration().accounts,
-      run.repository
+      repository
     )
     let authorizationError: Error | undefined
     if (
       !enableCopilotAssistedCommit() ||
+      !assignmentMatches ||
       account === undefined ||
       run.account === undefined ||
       account.token.length === 0 ||
       !enableCopilotSdkCommitMessageGeneration(account) ||
       account.copilotLicenseType === CopilotLicenseTypeNoAccess ||
       account.id !== run.account.id ||
-      account.endpoint !== run.account.endpoint
+      !isSameAccount(account, run.account)
     ) {
       authorizationError = new Error(
         'Copilot access changed. Sign in to an account with Copilot for Desktop enabled and try again.'

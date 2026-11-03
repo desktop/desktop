@@ -12,6 +12,8 @@ import {
 import { DiffSelection, DiffSelectionType } from '../../../src/models/diff'
 import { createStatus } from '../../helpers/changes-state-helper'
 import { RepositorySectionTab } from '../../../src/lib/app-state'
+import { writeFile } from 'fs/promises'
+import { join } from 'path'
 
 describe('AppStore repository indicators', () => {
   let appStore: AppStore
@@ -141,7 +143,9 @@ describe('AppStore repository indicators', () => {
   })
 
   it('keeps the changes view and repository indicator in sync when switching to Changes', async t => {
-    const repository = new Repository('/repositories/changed', 3, null, false)
+    const { seed } = await import('../../helpers/assisted-commit')
+    const repository = await seed(t, { 'changed.txt': 'before\n' })
+    await writeFile(join(repository.path, 'changed.txt'), 'after\n')
     const gitStore = appStore['gitStoreCache'].get(repository)
     const cache = appStore['repositoryStateCache']
     appStore['selectedRepository'] = repository

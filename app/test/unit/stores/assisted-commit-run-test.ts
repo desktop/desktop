@@ -1247,8 +1247,11 @@ describe('AppStore assisted commit runs', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     const rules = new RepoRulesInfo()
     rules.commitMessagePatterns.push({
@@ -1519,8 +1522,11 @@ describe('AppStore assisted commit first-click and message validation', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     h.dispatcher.updateCommitOptions(repository, { signOffCommits: true })
     const rules = new RepoRulesInfo()
@@ -1590,8 +1596,11 @@ describe('AppStore assisted commit first-click and message validation', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     const rules = new RepoRulesInfo()
     rules.commitMessagePatterns.push({
@@ -1635,8 +1644,11 @@ describe('AppStore assisted commit first-click and message validation', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     h.dispatcher.updateCommitOptions(repository, { signOffCommits: true })
     const rules = new RepoRulesInfo()
@@ -1680,8 +1692,11 @@ describe('AppStore assisted commit first-click and message validation', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     const rules = new RepoRulesInfo()
     rules.committerEmailPatterns.push({

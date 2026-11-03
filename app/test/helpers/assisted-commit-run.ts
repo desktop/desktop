@@ -68,11 +68,14 @@ export async function createAssistedCommitRunHarness(
     stores.pullRequestStore,
     stores.repositoriesStore
   )
+  const alive = new AliveStore(stores.accountsStore)
+  t.mock.method(alive, 'setEnabled', () => {})
   const notifications = new NotificationsStore(
     stores.accountsStore,
-    new AliveStore(stores.accountsStore),
+    alive,
     coordinator,
-    statsStore
+    statsStore,
+    stores.repositoriesStore
   )
   const planner = createMockPlanner(t)
   const runtime = t.mock.method(

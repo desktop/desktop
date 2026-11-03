@@ -28,6 +28,8 @@ import {
 
 /** AppStore's existing repository operations, not feature implementation callbacks. */
 export interface IAssistedCommitRepository {
+  /** Resolve current account and metadata without replacing frozen run intent. */
+  readonly getCurrent: (repository: Repository) => Repository
   readonly refresh: (
     repository: Repository,
     clearPartialState: boolean

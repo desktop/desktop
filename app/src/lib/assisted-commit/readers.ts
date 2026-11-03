@@ -50,7 +50,9 @@ export class AssistedCommitReaders {
   public takeRefresh(repository: Repository): Repository | undefined {
     const deferred = this.deferredRefreshes.get(repository.id)
     this.deferredRefreshes.delete(repository.id)
-    return deferred
+    return deferred === undefined
+      ? undefined
+      : this.repository.getCurrent(deferred)
   }
 
   /** History selection delivery waits for the exact run's complete lifetime. */
@@ -60,7 +62,7 @@ export class AssistedCommitReaders {
       this.deferredHistory.set(repository.id, repository)
     } else {
       this.deferredHistory.delete(repository.id)
-      await this.repository.loadHistory(repository)
+      await this.repository.loadHistory(this.repository.getCurrent(repository))
     }
   }
 
@@ -219,7 +221,7 @@ export class AssistedCommitReaders {
     try {
       await withRepositoryGitOperation(deferred.path, 'read', () =>
         withRepositoryGitErrorPropagation(() =>
-          this.repository.loadHistory(deferred)
+          this.repository.loadHistory(this.repository.getCurrent(deferred))
         )
       )
       if (this.deferredHistory.get(repository.id) === deferred) {
@@ -250,12 +252,13 @@ export class AssistedCommitReaders {
   /** Coalesce refreshes while retaining the newest repository metadata identity. */
   public deferRefresh(repository: Repository): void {
     const selected = this.configuration().selectedRepository
-    const latest =
+    const latest = this.repository.getCurrent(
       selected instanceof Repository &&
-      selected.id === repository.id &&
-      selected.path === repository.path
+        selected.id === repository.id &&
+        selected.path === repository.path
         ? selected
         : repository
+    )
     const run = this.state.runs.get(repository.id)
     if (
       run !== undefined &&

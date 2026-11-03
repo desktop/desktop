@@ -80,6 +80,7 @@ describe('standalone assisted coordinator', () => {
         },
       }))
       const host: IAssistedCommitRepository = {
+        getCurrent: repository => repository,
         refresh: async (_repository, clearPartialState) => {
           await synchronizeHead()
           if (clearPartialState && !held) {

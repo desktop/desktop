@@ -9,6 +9,7 @@ import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions
 import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 import { isRepositoryGitMutationInProgress } from '../../../src/lib/git/repository-operation'
 import { TipState } from '../../../src/models/tip'
+import { Account } from '../../../src/models/account'
 import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
 import {
   count,
@@ -59,6 +60,189 @@ async function credentialHarness(t: TestContext) {
   }
   return { ...h, account, accountsStore, rotate, renewals: () => renewals }
 }
+
+async function assignedAccountHarness(t: TestContext) {
+  const h = await createAssistedCommitRunHarness(t)
+  h.appStore['updateRepositorySelectionAfterRepositoriesChanged'] = () => {}
+  h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+  h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+  h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+  const original = h.appStore['accounts'][0]
+  const other = await h.stores.accountsStore.addAccount(
+    new Account(
+      'other-user',
+      original.endpoint,
+      'other-synthetic-token',
+      [],
+      '',
+      2,
+      'Other user',
+      'free',
+      undefined,
+      true,
+      original.features,
+      'PRO'
+    )
+  )
+  assert.ok(other)
+  const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+  await writeFile(join(source.path, 'one'), 'selected one\n')
+  await writeFile(join(source.path, 'two'), 'selected two\n')
+  const local = await h.register(source)
+  const github =
+    await h.stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+      account: original,
+      owner: 'synthetic-owner',
+      name: 'synthetic-repository',
+    })
+  const repository = await h.stores.repositoriesStore.setGitHubRepository(
+    local,
+    github,
+    original.login
+  )
+  h.appStore['adoptRepository'](repository)
+  const background = await h.register(await seed(t, { file: 'unrelated\n' }))
+  h.appStore['selectedRepository'] = background
+  return { ...h, repository, original, other }
+}
+
+describe('assisted runs with repository-assigned accounts', () => {
+  it('uses the current assigned account for a stale repository snapshot, not the first account on its endpoint', async t => {
+    const h = await assignedAccountHarness(t)
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    assert.equal(result.kind, 'local-ready')
+    assert.equal(h.propose.mock.calls[0].arguments[0], h.other)
+    assert.deepEqual(
+      h.appStore['gitStoreCache'].get(h.repository).repository,
+      updated
+    )
+    assert.equal(await count(h.repository), 2)
+  })
+
+  it('rejects prepared intent after a background repository changes its assigned account', async t => {
+    const h = await assignedAccountHarness(t)
+    const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+      h.repository,
+      h.request(h.repository)
+    )
+    await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      request
+    )
+    assert.equal(result.kind, 'error')
+    assert.equal(h.propose.mock.callCount(), 0)
+    assert.equal(await count(h.repository), 1)
+  })
+
+  it('aborts pending background analysis when its assigned account changes, even while both accounts stay signed in', async t => {
+    const h = await assignedAccountHarness(t)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      entered.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    await entered.promise
+    const run = h.assisted.state.runs.get(h.repository.id)
+    assert.ok(run)
+    let aborted = false
+    try {
+      await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+      aborted = run.controller.signal.aborted
+    } finally {
+      finish.resolve()
+    }
+    const result = await operation
+    assert.equal(aborted, true)
+    assert.equal(result.kind, 'error')
+    assert.equal(h.appStore['accounts'].length, 2)
+    assert.equal(await count(h.repository), 1)
+    assert.equal(h.commits.mock.callCount(), 0)
+  })
+
+  it('rolls back earlier native commits after its repository is assigned to another signed-in account', async t => {
+    const h = await assignedAccountHarness(t)
+    const originalHead = await rawGit(h.repository, ['rev-parse', 'HEAD'])
+    const originalIndex = await optionalBytes(await indexPath(h.repository))
+    h.propose.mock.mockImplementation(async (_account, analysis) =>
+      splitResponse(analysis)
+    )
+    const progress = h.assisted.context.progress.bind(h.assisted.context)
+    let reassigned = false
+    h.assisted.context.progress = async (run, step) => {
+      progress(run, step)
+      if (step.kind === 'committing' && step.index === 1) {
+        assert.equal(await count(h.repository), 2)
+        reassigned = true
+        await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+      }
+    }
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    assert.equal(reassigned, true)
+    assert.equal(result.kind, 'error')
+    assert.equal(
+      await rawGit(h.repository, ['rev-parse', 'HEAD']),
+      originalHead
+    )
+    assert.deepEqual(
+      await optionalBytes(await indexPath(h.repository)),
+      originalIndex
+    )
+    assert.equal(
+      await readFile(join(h.repository.path, 'one'), 'utf8'),
+      'selected one\n'
+    )
+    assert.equal(
+      await readFile(join(h.repository.path, 'two'), 'utf8'),
+      'selected two\n'
+    )
+    assert.equal(h.commits.mock.callCount(), 0)
+  })
+
+  it('refreshes background deferred work with the current assigned repository snapshot', async t => {
+    const h = await assignedAccountHarness(t)
+    h.assisted.readers.deferRefresh(h.repository)
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    h.assisted.readers.deferRefresh(h.repository)
+    assert.deepEqual(h.assisted.readers.takeRefresh(h.repository), updated)
+  })
+
+  it('loads deferred background History with the current assigned repository snapshot', async t => {
+    const h = await assignedAccountHarness(t)
+    h.assisted.readers['deferredHistory'].set(h.repository.id, h.repository)
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    const load = t.mock.method(
+      h.appStore,
+      '_loadChangedFilesForCurrentSelection',
+      async () => {}
+    )
+    await h.assisted.readers.resumeHistory(h.repository)
+    assert.equal(load.mock.callCount(), 1)
+    assert.deepEqual(load.mock.calls[0].arguments[0], updated)
+  })
+})
 
 describe('assisted runs on upstream credential and worktree APIs', () => {
   for (const phase of ['first-click', 'analysis'] as const) {

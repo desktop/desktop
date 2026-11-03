@@ -71,6 +71,9 @@ export async function executeAssistedCommitRun(
     (prepared === undefined ||
       prepared.repository.path !== repository.path ||
       prepared.repository.id !== repository.id ||
+      prepared.repository.login !== repository.login ||
+      prepared.repository.gitHubRepository?.endpoint !==
+        repository.gitHubRepository?.endpoint ||
       !assistedCommitRequestsEqual(prepared.request, request))
   ) {
     throw new AssistedCommitError(

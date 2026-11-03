@@ -843,6 +843,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.copilotStore,
       this.popupManager,
       {
+        getCurrent: repository => this.gitStoreCache.get(repository).repository,
         refresh: (repository, clearPartialState) =>
           this.refreshAssistedCommitRepositoryCore(
             repository,
@@ -3219,6 +3220,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           .get(repository)
           .loadStatus({ propagateErrors })
         this.updateSidebarIndicator(repository, status)
+        if (status === null) {
+          this.emitUpdate()
+        }
         return status
       },
       status => this.publishRepositoryStatus(repository, status)
@@ -5466,6 +5470,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const association = getRepositoryAssociation(repository)
     const previous = this.repositoryAssociations.get(key)
     this.repositoryAssociations.set(key, association)
+    this.assistedCommits.context.abortUnauthorized()
 
     if (previous === undefined || previous === association) {
       return
@@ -6008,6 +6013,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     fn: () => Promise<boolean>
   ): Promise<boolean> {
+    if (this.isWorktreeMoving(repository)) {
+      return false
+    }
     return this.withAssistedCommitMutationResources(repository, async () => {
       this.assistedCommits.state.assertAvailable(repository)
       const state = this.repositoryStateCache.get(repository)
@@ -6042,11 +6050,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: (signal: AbortSignal) => Promise<boolean>
   ): Promise<boolean> {
+    if (this.isWorktreeMoving(repository)) {
+      return false
+    }
     return this.withAssistedCommitMutationResources(repository, async () => {
       this.assistedCommits.state.assertAvailable(repository)
       const state = this.repositoryStateCache.get(repository)
       // ensure the user doesn't try and commit again
-      if (state.isGeneratingCommitMessage || this.isWorktreeMoving(repository)) {
+      if (
+        state.isGeneratingCommitMessage ||
+        this.isWorktreeMoving(repository)
+      ) {
         return false
       }
 
@@ -6084,11 +6098,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     fn: () => Promise<void>
   ): Promise<void> {
+    if (this.isWorktreeMoving(repository)) {
+      return
+    }
     return this.withAssistedCommitMutationResources(repository, async () => {
       this.assistedCommits.state.assertAvailable(repository)
       const state = this.repositoryStateCache.get(repository)
       // Don't allow concurrent network operations.
-      if (state.isPushPullFetchInProgress || this.isWorktreeMoving(repository)) {
+      if (
+        state.isPushPullFetchInProgress ||
+        this.isWorktreeMoving(repository)
+      ) {
         return
       }
 
@@ -7158,15 +7178,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     assertRepositoryGitAvailable(worktreePath)
-    return this.assistedCommits.state.withDestruction(worktreePath, () =>
-      this.assistedCommits.state.withDestruction(newPath, () =>
-        withRepositoryGitOperation(repository.path, 'mutation', () =>
-          withRepositoryGitOperation(worktreePath, 'mutation', () =>
-            this.moveWorktreeCore(repository, worktreePath, newPath)
-          )
-        )
+    const isCurrentWorktree = repository.path === worktreePath
+    const key = getRepositoryStateKey(repository)
+    if (
+      isCurrentWorktree &&
+      (this.isRepositoryBusy(repository) || this.movingWorktrees.has(key))
+    ) {
+      throw new Error(
+        'The worktree cannot be renamed while an operation is in progress. Please try again once it has finished.'
       )
-    )
+    }
+    if (isCurrentWorktree) {
+      this.movingWorktrees.add(key)
+    }
+    try {
+      return await this.assistedCommits.state.withDestruction(
+        worktreePath,
+        () =>
+          this.assistedCommits.state.withDestruction(newPath, () =>
+            withRepositoryGitOperation(repository.path, 'mutation', () =>
+              withRepositoryGitOperation(worktreePath, 'mutation', () =>
+                this.moveWorktreeCore(repository, worktreePath, newPath)
+              )
+            )
+          )
+      )
+    } finally {
+      if (isCurrentWorktree) {
+        this.movingWorktrees.delete(key)
+      }
+    }
   }
 
   private async moveWorktreeCore(
@@ -7180,18 +7221,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const key = getRepositoryStateKey(repository)
-    if (this.isRepositoryBusy(repository) || this.movingWorktrees.has(key)) {
-      throw new Error(
-        'The worktree cannot be renamed while an operation is in progress. Please try again once it has finished.'
-      )
-    }
-    this.movingWorktrees.add(key)
-    try {
-      await this.moveCurrentWorktree(repository, worktreePath, newPath)
-    } finally {
-      this.movingWorktrees.delete(key)
-    }
+    await this.moveCurrentWorktree(repository, worktreePath, newPath)
   }
 
   private async moveCurrentWorktree(

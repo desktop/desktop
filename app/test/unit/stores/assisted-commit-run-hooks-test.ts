@@ -255,8 +255,11 @@ describe('AppStore assisted runs with real hook interception', () => {
       null,
       {},
       false,
-      local.gitDir
+      local.gitDir,
+      local.mainWorktreePath,
+      h.appStore['accounts'][0].login
     )
+    h.appStore['adoptRepository'](repository)
     await h.appStore._loadStatus(repository)
     const rules = new RepoRulesInfo()
     rules.committerEmailPatterns.push({

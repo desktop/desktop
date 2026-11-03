@@ -72,7 +72,8 @@ import graph. Dashed links represent shared lifecycle services.
 
 AppStore retains existing repository cache publication, conflict/menu updates,
 ordinary operations and Dispatcher entrypoints. Its repository port supplies
-only existing refresh, full refresh, History loading and commit-stat recording
+current-snapshot resolution from the working-directory-keyed GitStore cache,
+existing refresh, full refresh, History loading and commit-stat recording
 operations. A current configuration reader, the shared model resolver and
 synchronous change/error notifications complete the integration. No owner
 receives AppStore or accesses its private members. Native engine capabilities
@@ -140,6 +141,10 @@ Account intent is bound to its issuing credential session, not an access-token
 string. Renewal within that session remains valid; replacement sign-in retires
 the request even if it reuses the same token. Synchronous binding checks acquire
 no tokens, and empty commits bypass credential binding entirely.
+Repository account reassignment also revokes prepared and active runs, including
+background runs while another repository is selected. Deferred refresh and
+History work resolve the current assigned repository snapshot when delivered;
+an older snapshot cannot select another account on the same endpoint.
 
 Assisted consent has its own `AssistedCommitDisclaimer` and 30-day timestamp,
 not the manual-generation disclaimer's continuation or acceptance. It accurately

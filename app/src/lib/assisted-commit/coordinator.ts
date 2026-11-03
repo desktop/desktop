@@ -77,7 +77,8 @@ export class AssistedCommitCoordinator {
       accounts,
       copilot,
       configuration,
-      resolveModel
+      resolveModel,
+      repository.getCurrent
     )
     this.readers = new AssistedCommitReaders(
       this.state,
@@ -101,6 +102,7 @@ export class AssistedCommitCoordinator {
     repository: Repository,
     request: ICopilotAssistedCommitRequest
   ): Promise<ICopilotAssistedCommitRequest> {
+    repository = this.repository.getCurrent(repository)
     this.state.assertAvailable(repository)
     if (isRepositoryGitMutationInProgress(repository.path)) {
       throw new AssistedCommitError(
@@ -168,6 +170,7 @@ export class AssistedCommitCoordinator {
     repository: Repository,
     request: ICopilotAssistedCommitRequest
   ): Promise<AssistedCommitRunOutcome> {
+    repository = this.repository.getCurrent(repository)
     const currentState = this.state.cache.get(repository)
     const prepared =
       request.intent === undefined
