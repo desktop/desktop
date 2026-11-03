@@ -6,6 +6,7 @@ import * as electronInstaller from 'electron-winstaller'
 import { getProductName, getCompanyName } from '../app/package-info'
 import {
   getDistPath,
+  getExecutableName,
   getOSXZipPath,
   getWindowsIdentifierName,
   getWindowsStandaloneName,
@@ -19,7 +20,17 @@ import {
   getIconDirectory,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
-import { existsSync, rmSync, writeFileSync } from 'fs'
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'fs'
+import { tmpdir } from 'os'
 import { getVersion } from '../app/package-info'
 import { computeBundleHashSync } from '../app/src/lib/compute-bundle-hash'
 import { rename } from 'fs/promises'
@@ -40,6 +51,8 @@ if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
+} else if (process.platform === 'linux') {
+  packageLinux()
 } else {
   console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
@@ -67,6 +80,117 @@ function packageOSX() {
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
   )
+}
+
+function getLinuxArchivePath() {
+  return path.join(
+    getDistRoot(),
+    `${productName.replace(/\s+/g, '')}-linux-${getDistArchitecture()}.tar.gz`
+  )
+}
+
+function packageLinux() {
+  const dest = getLinuxArchivePath()
+  rmSync(dest, { force: true })
+
+  console.log('Packaging for Linux…')
+  cp.execFileSync('tar', [
+    '-czf',
+    dest,
+    '-C',
+    path.dirname(distPath),
+    path.basename(distPath),
+  ])
+
+  packageDeb()
+}
+
+/**
+ * Builds a .deb with plain `dpkg-deb` (no extra npm dependencies). The app is
+ * installed to /opt/<name>, with a /usr/bin symlink and a .desktop entry that
+ * registers the protocol handlers.
+ */
+function packageDeb() {
+  const arch = getDistArchitecture()
+  const debArch = arch === 'arm64' ? 'arm64' : 'amd64'
+  const exe = getExecutableName()
+  const installDir = `opt/${getWindowsIdentifierName()}`
+  const root = mkdtempSync(path.join(tmpdir(), 'desktop-deb-'))
+
+  try {
+    const appDir = path.join(root, installDir)
+    mkdirSync(path.dirname(appDir), { recursive: true })
+    cpSync(distPath, appDir, { recursive: true, verbatimSymlinks: true })
+
+    mkdirSync(path.join(root, 'usr', 'bin'), { recursive: true })
+    symlinkSync(
+      `/${installDir}/${exe}`,
+      path.join(root, 'usr', 'bin', 'github-desktop')
+    )
+
+    const iconDir = path.join(root, 'usr/share/icons/hicolor/512x512/apps')
+    mkdirSync(iconDir, { recursive: true })
+    cpSync(
+      path.resolve(__dirname, '../app/static/linux/icon-logo.png'),
+      path.join(iconDir, 'github-desktop.png')
+    )
+
+    const appsDir = path.join(root, 'usr', 'share', 'applications')
+    mkdirSync(appsDir, { recursive: true })
+    writeFileSync(
+      path.join(appsDir, 'github-desktop.desktop'),
+      [
+        '[Desktop Entry]',
+        `Name=${productName}`,
+        'Comment=Simple collaboration from your desktop',
+        `Exec=/${installDir}/${exe} %U`,
+        'Icon=github-desktop',
+        'Terminal=false',
+        'Type=Application',
+        'Categories=Development;RevisionControl;',
+        'MimeType=x-scheme-handler/x-github-client;x-scheme-handler/x-github-desktop-auth;x-scheme-handler/github-mac;',
+        '',
+      ].join('\n')
+    )
+
+    const debian = path.join(root, 'DEBIAN')
+    mkdirSync(debian)
+    writeFileSync(
+      path.join(debian, 'control'),
+      [
+        'Package: github-desktop',
+        `Version: ${getVersion()}`,
+        'Section: devel',
+        'Priority: optional',
+        `Architecture: ${debArch}`,
+        `Maintainer: ${getCompanyName()}`,
+        'Depends: libgtk-3-0, libnss3, libxss1, libsecret-1-0, libgbm1, xdg-utils',
+        `Description: ${productName}`,
+        ' Simple collaboration from your desktop.',
+        '',
+      ].join('\n')
+    )
+    const postinst = path.join(debian, 'postinst')
+    writeFileSync(
+      postinst,
+      '#!/bin/sh\nset -e\nchmod 4755 "/' +
+        installDir +
+        '/chrome-sandbox" 2>/dev/null || true\n'
+    )
+    chmodSync(postinst, 0o755)
+
+    // mkdtemp and the packager output are 0700; make everything readable and
+    // traversable by all users, otherwise only root can run the installed app.
+    cp.execFileSync('chmod', ['-R', 'u+rwX,go+rX', root])
+
+    const dest = path.join(getDistRoot(), `GitHubDesktop-${debArch}.deb`)
+    rmSync(dest, { force: true })
+    cp.execFileSync('dpkg-deb', ['--root-owner-group', '-b', root, dest], {
+      stdio: 'inherit',
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 }
 
 function packageWindows() {
