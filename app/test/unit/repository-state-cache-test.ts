@@ -114,4 +114,57 @@ describe('RepositoryStateCache', () => {
     assert.equal(compareState.filterText, filterText)
     assert.equal(compareState.commitSHAs.length, 1)
   })
+
+  it('keeps the state when the account changes', () => {
+    const alice = new Repository(
+      '/path',
+      1,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'alice'
+    )
+    const bob = new Repository(
+      '/path',
+      1,
+      null,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'bob'
+    )
+    const cache = new RepositoryStateCache(new TestStatsStore())
+
+    cache.update(alice, () => ({ isPushPullFetchInProgress: true }))
+    cache.update(bob, () => ({ isPushPullFetchInProgress: false }))
+
+    assert.equal(cache.get(alice).isPushPullFetchInProgress, false)
+  })
+
+  it('keeps separate state for worktrees of the same repository', () => {
+    const main = new Repository('/main', 1, null, false)
+    const worktree = new Repository('/worktree', 1, null, false)
+    const cache = new RepositoryStateCache(new TestStatsStore())
+
+    cache.update(main, () => ({ isPushPullFetchInProgress: true }))
+
+    assert.equal(cache.get(worktree).isPushPullFetchInProgress, false)
+  })
+
+  it('keeps separate state for repositories that are not persisted', () => {
+    const first = new Repository('/path', -1, null, false)
+    const second = new Repository('/path', -1, null, false, 'alias')
+    const cache = new RepositoryStateCache(new TestStatsStore())
+
+    cache.update(first, () => ({ isPushPullFetchInProgress: true }))
+
+    assert.equal(cache.get(second).isPushPullFetchInProgress, false)
+  })
 })

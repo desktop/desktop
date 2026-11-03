@@ -7,6 +7,7 @@ import { APICheckConclusion, APICheckStatus } from '../../../src/lib/api'
 import { ICombinedRefCheck } from '../../../src/lib/ci-checks/ci-checks'
 import { GitHubRepository } from '../../../src/models/github-repository'
 import { Owner } from '../../../src/models/owner'
+import { Repository } from '../../../src/models/repository'
 import { CIStatus } from '../../../src/ui/branches/ci-status'
 import { Dispatcher } from '../../../src/ui/dispatcher'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
@@ -21,6 +22,7 @@ const repository = new GitHubRepository(
   new Owner('desktop', 'https://api.github.com', 1),
   1
 )
+const localRepository = new Repository('desktop', 1, repository, false)
 
 function renderStatus(check: ICombinedRefCheck | null) {
   const dispatcher: Pick<
@@ -35,6 +37,7 @@ function renderStatus(check: ICombinedRefCheck | null) {
     <CIStatus
       dispatcher={dispatcher as Dispatcher}
       repository={repository}
+      localRepository={localRepository}
       commitRef="refs/pull/467/head"
     />
   )
@@ -107,5 +110,74 @@ describe('CIStatus', () => {
       }).container.childElementCount,
       0
     )
+  })
+
+  it('clears the old status and resubscribes when the account assignment changes', () => {
+    const check: ICombinedRefCheck = {
+      status: APICheckStatus.Completed,
+      conclusion: APICheckConclusion.Success,
+      checks: [
+        {
+          id: 1,
+          name: 'Build',
+          description: '',
+          status: APICheckStatus.Completed,
+          conclusion: APICheckConclusion.Success,
+          appName: '',
+          htmlUrl: null,
+          checkSuiteId: null,
+        },
+      ],
+    }
+    const assignedRepository = new Repository(
+      'desktop',
+      1,
+      repository,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      'second'
+    )
+    const subscriptions: Repository[] = []
+    let disposed = 0
+    const updates: (ICombinedRefCheck | null)[] = []
+    const dispatcher: Pick<
+      Dispatcher,
+      'tryGetCommitStatus' | 'subscribeToCommitStatus'
+    > = {
+      tryGetCommitStatus: (_githubRepository, local) =>
+        local === localRepository ? check : null,
+      subscribeToCommitStatus: (_githubRepository, local) => {
+        subscriptions.push(local)
+        return new Disposable(() => disposed++)
+      },
+    }
+    const view = render(
+      <CIStatus
+        dispatcher={dispatcher as Dispatcher}
+        repository={repository}
+        localRepository={localRepository}
+        commitRef="refs/pull/467/head"
+        onCheckChange={status => updates.push(status)}
+      />
+    )
+    assert.ok(view.container.querySelector('.ci-status'))
+
+    view.rerender(
+      <CIStatus
+        dispatcher={dispatcher as Dispatcher}
+        repository={repository}
+        localRepository={assignedRepository}
+        commitRef="refs/pull/467/head"
+        onCheckChange={status => updates.push(status)}
+      />
+    )
+    assert.strictEqual(view.container.childElementCount, 0)
+    assert.deepStrictEqual(subscriptions, [localRepository, assignedRepository])
+    assert.strictEqual(disposed, 1)
+    assert.deepStrictEqual(updates, [check, null])
   })
 })
