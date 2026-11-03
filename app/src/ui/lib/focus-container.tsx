@@ -38,6 +38,13 @@ export class FocusContainer extends React.Component<
     this.state = { focusWithin: false }
   }
 
+  public componentWillUnmount() {
+    if (this.focusWithinChangedTimeoutId !== null) {
+      cancelAnimationFrame(this.focusWithinChangedTimeoutId)
+      this.focusWithinChangedTimeoutId = null
+    }
+  }
+
   /**
    * Update the focus state of the container, aborting any in-flight animation
    *

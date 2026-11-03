@@ -22,13 +22,18 @@ import {
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { IStatsStore } from '../stats'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { WorktreeEntry } from '../../models/worktree'
+import { getCommitMode } from './helpers/commit-mode-storage'
+import { getPushAfterAssistedCommit } from './helpers/assisted-commit-push-storage'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
+  private readonly commitModes = new Map<number | string, CommitMode>()
+  private readonly assistedPushPreferences = new Map<number | string, boolean>()
 
   public constructor(private readonly statsStore: IStatsStore) {}
 
@@ -39,13 +44,45 @@ export class RepositoryStateCache {
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
-    const existing = this.repositoryState.get(getRepositoryStateKey(repository))
+    const stateKey = getRepositoryStateKey(repository)
+    const modeKey = repository.id < 0 ? stateKey : repository.id
+    const commitMode =
+      this.commitModes.get(modeKey) ?? getCommitMode(repository)
+    this.commitModes.set(modeKey, commitMode)
+    const pushAfterAssistedCommit =
+      this.assistedPushPreferences.get(modeKey) ??
+      getPushAfterAssistedCommit(repository)
+    this.assistedPushPreferences.set(modeKey, pushAfterAssistedCommit)
+
+    const existing = this.repositoryState.get(stateKey)
     if (existing != null) {
-      return existing
+      if (
+        existing.changesState.commitMode === commitMode &&
+        existing.changesState.pushAfterAssistedCommit ===
+          pushAfterAssistedCommit
+      ) {
+        return existing
+      }
+
+      // Worktrees retain separate state while sharing the repository's preference.
+      const reconciled = {
+        ...existing,
+        changesState: {
+          ...existing.changesState,
+          commitMode,
+          pushAfterAssistedCommit,
+        },
+      }
+      this.repositoryState.set(stateKey, reconciled)
+      return reconciled
     }
 
-    const newItem = getInitialRepositoryState()
-    this.repositoryState.set(getRepositoryStateKey(repository), newItem)
+    const initial = getInitialRepositoryState(commitMode)
+    const newItem = {
+      ...initial,
+      changesState: { ...initial.changesState, pushAfterAssistedCommit },
+    }
+    this.repositoryState.set(stateKey, newItem)
     return newItem
   }
 
@@ -56,6 +93,14 @@ export class RepositoryStateCache {
     const currentState = this.get(repository)
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
+    this.commitModes.set(
+      repository.id < 0 ? getRepositoryStateKey(repository) : repository.id,
+      newState.changesState.commitMode
+    )
+    this.assistedPushPreferences.set(
+      repository.id < 0 ? getRepositoryStateKey(repository) : repository.id,
+      newState.changesState.pushAfterAssistedCommit
+    )
 
     const currentTip = currentState.branchesState.tip
     const newTip = newState.branchesState.tip
@@ -363,7 +408,7 @@ export class RepositoryStateCache {
   }
 }
 
-function getInitialRepositoryState(): IRepositoryState {
+function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
   return {
     commitSelection: {
       shas: [],
@@ -383,6 +428,10 @@ function getInitialRepositoryState(): IRepositoryState {
         diff: null,
       },
       commitMessage: DefaultCommitMessage,
+      commitMode,
+      pushAfterAssistedCommit: false,
+      assistedCommit: { kind: 'idle' },
+      assistedCommitAvailable: false,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,

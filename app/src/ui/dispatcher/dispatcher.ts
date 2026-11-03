@@ -37,6 +37,7 @@ import {
   getRebaseSnapshot,
   getRepositoryType,
   listWorktrees,
+  IAddWorktreeOptions,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -68,6 +69,9 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
+import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
+import { AssistedCommitRunOutcome } from '../../models/assisted-commit-run'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
@@ -187,6 +191,14 @@ export class Dispatcher {
     return this.appStore._addRepositories(paths)
   }
 
+  /** Protect complete repository creation, including templates and initial commit. */
+  public createRepository<T>(
+    path: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return this.appStore._createRepository(path, operation)
+  }
+
   /**
    * Add a tutorial repository.
    *
@@ -236,6 +248,70 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
+  }
+
+  /** Set and persist the preferred commit mode for this repository. */
+  public setCommitMode(repository: Repository, commitMode: CommitMode): void {
+    this.appStore._setCommitMode(repository, commitMode)
+  }
+
+  /** Persist this repository's assisted-push opt-in, independently of manual options. */
+  public setPushAfterAssistedCommit(
+    repository: Repository,
+    enabled: boolean
+  ): void {
+    this.appStore._setPushAfterAssistedCommit(repository, enabled)
+  }
+
+  /** Freeze first-click intent and certify Desktop selections before warning dialogs. */
+  public prepareCopilotAssistedCommitRequest(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<ICopilotAssistedCommitRequest> {
+    return this.appStore._prepareCopilotAssistedCommitRequest(
+      repository,
+      request
+    )
+  }
+
+  /** Plan, validate, and await one Desktop-owned local assisted commit transaction. */
+  public createCopilotAssistedCommits(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<AssistedCommitRunOutcome> {
+    return this.appStore._createCopilotAssistedCommits(repository, request)
+  }
+
+  /** Cancel only the identified run; its owner awaits Git and verified recovery. */
+  public cancelCopilotAssistedCommits(
+    repository: Repository,
+    runId: string
+  ): void {
+    this.appStore._cancelCopilotAssistedCommits(repository, runId)
+  }
+
+  /** Retry retained recovery, never rerun the model or create more commits. */
+  public retryCopilotAssistedCommitRecovery(
+    repository: Repository,
+    runId: string
+  ): Promise<void> {
+    return this.appStore._retryCopilotAssistedCommitRecovery(repository, runId)
+  }
+
+  /** Retry only the frozen push intent. Never plan, commit, or roll history back. */
+  public retryCopilotAssistedCommitPush(
+    repository: Repository,
+    runId: string
+  ): Promise<AssistedCommitRunOutcome | undefined> {
+    return this.appStore._retryCopilotAssistedCommitPush(repository, runId)
+  }
+
+  /** Dismiss a settled error, but never abandon unresolved recovery ownership. */
+  public dismissCopilotAssistedCommitError(
+    repository: Repository,
+    runId: string
+  ): void {
+    this.appStore._dismissCopilotAssistedCommitError(repository, runId)
   }
 
   public updateCommitOptions(
@@ -1029,6 +1105,30 @@ export class Dispatcher {
     await this.appStore
       ._switchWorktree(repository, worktree)
       .catch(e => this.postError(e))
+  }
+
+  /** Create, read back and switch to a worktree as one tracked user operation. */
+  public async addWorktreeAndSwitch(
+    repository: Repository,
+    path: string,
+    options: IAddWorktreeOptions
+  ): Promise<boolean> {
+    return this.appStore
+      ._addWorktreeAndSwitch(repository, path, options)
+      .then(() => true)
+      .catch(error => {
+        this.postError(error)
+        return false
+      })
+  }
+
+  /** Update the local name/email pair without admitting an assisted run between writes. */
+  public updateRepositoryCommitter(
+    repository: Repository,
+    name: string | null | undefined,
+    email: string | null | undefined
+  ): Promise<void> {
+    return this.appStore._updateRepositoryCommitter(repository, name, email)
   }
 
   /**
@@ -4202,7 +4302,7 @@ export class Dispatcher {
   }
 
   public startPullRequest(repository: Repository) {
-    this.appStore._startPullRequest(repository)
+    return this.appStore._startPullRequest(repository)
   }
 
   /**

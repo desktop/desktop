@@ -32,6 +32,8 @@ import {
 import { Author } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
+import { CommitMode } from '../models/commit-mode'
+import { AssistedCommitRunState } from '../models/assisted-commit-run'
 import {
   IRevertProgress,
   Progress,
@@ -824,6 +826,18 @@ export interface IChangesState {
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage
+
+  /** The repository's preferred commit mode, even when assisted commits are unavailable. */
+  readonly commitMode: CommitMode
+
+  /** Explicit per-repository opt-in. Does not affect manual commits. */
+  readonly pushAfterAssistedCommit: boolean
+
+  /** The repository's awaited assisted run, independent of the selected repository and mounted UI. */
+  readonly assistedCommit: AssistedCommitRunState
+
+  /** A real callback may be offered only when the account, SDK, runtime, and preview gates pass. */
+  readonly assistedCommitAvailable: boolean
 
   /**
    * Whether or not to show a field for adding co-authors to

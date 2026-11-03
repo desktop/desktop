@@ -247,13 +247,16 @@ describe('AppStore explicitly adding repositories', () => {
     })
 
     /** Run a network operation that finishes when the returned function is called. */
-    function startNetworkOperation(repository: Repository) {
+    async function startNetworkOperation(repository: Repository) {
       let finish = () => {}
+      let entered = () => {}
+      const started = new Promise<void>(resolve => (entered = resolve))
       const finished = new Promise<void>(resolve => (finish = resolve))
-      const operation = appStore['withPushPullFetch'](
-        repository,
-        () => finished
-      )
+      const operation = appStore['withPushPullFetch'](repository, () => {
+        entered()
+        return finished
+      })
+      await started
       return async () => {
         finish()
         await operation
@@ -267,7 +270,7 @@ describe('AppStore explicitly adding repositories', () => {
 
     it('finishes a fetch that was running when the account changed', async t => {
       const repository = await setupDraft(t)
-      const finish = startNetworkOperation(repository)
+      const finish = await startNetworkOperation(repository)
       const updated = await appStore._updateRepositoryAccount(repository, 'bob')
       assert.strictEqual(isNetworkOperationInProgress(updated), true)
       await appStore._setCommitMessage(updated, {
@@ -298,7 +301,7 @@ describe('AppStore explicitly adding repositories', () => {
           fetchProtectedBranches: async () => [],
         })
       )
-      const finish = startNetworkOperation(repository)
+      const finish = await startNetworkOperation(repository)
       const refreshed = await appStore[
         'repositoryWithRefreshedGitHubRepository'
       ](repository)
@@ -330,7 +333,7 @@ describe('AppStore explicitly adding repositories', () => {
           fetchProtectedBranches: async () => [],
         })
       )
-      const finish = startNetworkOperation(added)
+      const finish = await startNetworkOperation(added)
       const refreshed = await appStore[
         'repositoryWithRefreshedGitHubRepository'
       ](added)
@@ -344,10 +347,13 @@ describe('AppStore explicitly adding repositories', () => {
     it('finishes a commit that was running when the account changed', async t => {
       const repository = await setupDraft(t)
       let finish = () => {}
-      const commit = appStore['withIsCommitting'](
-        repository,
-        () => new Promise<boolean>(resolve => (finish = () => resolve(true)))
-      )
+      let entered = () => {}
+      const started = new Promise<void>(resolve => (entered = resolve))
+      const commit = appStore['withIsCommitting'](repository, [], () => {
+        entered()
+        return new Promise<boolean>(resolve => (finish = () => resolve(true)))
+      })
+      await started
       const updated = await appStore._updateRepositoryAccount(repository, 'bob')
 
       finish()
@@ -529,7 +535,7 @@ describe('AppStore explicitly adding repositories', () => {
       it('refuses to rename the worktree while a fetch is running', async t => {
         const { added, worktreePath } = await setupWorktree(t)
         const newPath = `${worktreePath}-renamed`
-        const finish = startNetworkOperation(added)
+        const finish = await startNetworkOperation(added)
         await assert.rejects(
           appStore._moveWorktree(added, worktreePath, newPath)
         )
