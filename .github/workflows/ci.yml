@@ -81,9 +81,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14-xlarge, windows-2022]
+        os: [macos-14-xlarge, windows-2022, ubuntu-22.04]
         arch: [x64, arm64]
+        exclude:
+          # No arm64 Linux cross-build yet (native modules need a toolchain)
+          - os: ubuntu-22.04
+            arch: arm64
         include:
+          - os: ubuntu-22.04
+            friendlyName: Linux
           - os: macos-14-xlarge
             friendlyName: macOS
           - os: windows-2022
@@ -102,6 +108,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           arch: ${{ matrix.arch }}
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecret-1-dev libkrb5-dev
       - name: Validate macOS version
         if: runner.os == 'macOS'
         run: yarn validate-macos-version
@@ -192,6 +203,8 @@ jobs:
             dist/GitHubDesktop-*.nupkg
             dist/GitHubDesktopSetup-${{matrix.arch}}.exe
             dist/GitHubDesktopSetup-${{matrix.arch}}.msi
+            dist/GitHubDesktop-linux-${{matrix.arch}}.tar.gz
+            dist/GitHubDesktop-*.deb
             dist/bundle-size.json
             dist/bundle-hash.json
           if-no-files-found: error
