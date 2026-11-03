@@ -503,6 +503,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     // Duplicate accounts keep the last entry, like CredentialSessions.restore.
     const accountsByKey = new Map<string, Account>()
+    const unreadableAccounts = new Array<IAccount>()
     let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
@@ -539,6 +540,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         accountsByKey.set(getAccountKey(restored), restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
+        unreadableAccounts.push(account)
 
         this.emitError(e)
       }
@@ -547,16 +549,22 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     this.accounts = sortAccounts([...accountsByKey.values()])
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null || removedInvalidAccounts) {
-      this.save() // Save already emits an update
+      // Keep accounts whose credentials we couldn't read (e.g. due to a
+      // locked keychain) so that they aren't lost from the persisted users.
+      const unloaded = unreadableAccounts.filter(
+        a => !accountsByKey.has(getAccountKey(a))
+      )
+      this.save(unloaded) // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
     }
   }
 
-  private save() {
-    const usersWithoutTokens = this.accounts.map(account =>
-      account.withToken('')
-    )
+  private save(unloadedAccounts: ReadonlyArray<IAccount> = []) {
+    const usersWithoutTokens = [
+      ...this.accounts.map(account => account.withToken('')),
+      ...unloadedAccounts.map(account => ({ ...account, token: '' })),
+    ]
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
     this.emitUpdate(this.accounts)

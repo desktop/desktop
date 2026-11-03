@@ -11,11 +11,13 @@ import {
   CommitMessageGenerationCancelledError,
   CopilotConflictResolutionAbortError,
   type CopilotModelRequest,
+  type CopilotModelSelections,
   CopilotStore,
   DefaultCopilotModel,
   getCopilotGHHost,
   getCopilotAccountCacheKey,
   migrateCopilotModelSelectionsToAccounts,
+  migrateGHECopilotModelSelectionKeys,
   getCopilotModelCacheKey,
   getLowestReasoningEffort,
   getPreferredDefaultModel,
@@ -290,6 +292,70 @@ describe('migrateCopilotModelSelectionsToAccounts', () => {
     assert.deepStrictEqual(
       migrated.get(getCopilotAccountCacheKey(otherAccount)),
       legacySelections
+    )
+  })
+})
+
+describe('migrateGHECopilotModelSelectionKeys', () => {
+  it('rewrites legacy .ghe.com endpoints to the canonical endpoint', () => {
+    const slash = { 'commit-message-generation': 'slash' } as const
+    const apiV3 = { 'conflict-resolution': 'api-v3' } as const
+    const dotcom = { 'commit-message-generation': 'dotcom' } as const
+    const migrated = migrateGHECopilotModelSelectionKeys(
+      new Map<string, CopilotModelSelections>([
+        ['1:https://api.whatever.ghe.com/', slash],
+        ['2:https://other.ghe.com/api/v3', apiV3],
+        ['3:https://api.github.com', dotcom],
+      ])
+    )
+
+    assert.deepStrictEqual(
+      migrated,
+      new Map<string, CopilotModelSelections>([
+        ['3:https://api.github.com', dotcom],
+        ['1:https://api.whatever.ghe.com', slash],
+        ['2:https://api.other.ghe.com', apiV3],
+      ])
+    )
+    assert.deepStrictEqual(
+      migrated?.get(
+        getCopilotAccountCacheKey(
+          makeAccount({ id: 1, endpoint: 'https://api.whatever.ghe.com' })
+        )
+      ),
+      slash
+    )
+  })
+
+  it('prefers selections already stored under the canonical key', () => {
+    const canonical = { 'commit-message-generation': 'canonical' } as const
+    const migrated = migrateGHECopilotModelSelectionKeys(
+      new Map<string, CopilotModelSelections>([
+        ['1:https://api.whatever.ghe.com', canonical],
+        [
+          '1:https://api.whatever.ghe.com/',
+          { 'commit-message-generation': 'x' },
+        ],
+      ])
+    )
+
+    assert.deepStrictEqual(
+      migrated,
+      new Map([['1:https://api.whatever.ghe.com', canonical]])
+    )
+  })
+
+  it('returns null when nothing needs migrating', () => {
+    assert.strictEqual(
+      migrateGHECopilotModelSelectionKeys(
+        new Map<string, CopilotModelSelections>([
+          ['1:https://api.github.com', {}],
+          ['2:https://api.whatever.ghe.com', {}],
+          ['invalid', {}],
+          ['3:not a url', {}],
+        ])
+      ),
+      null
     )
   })
 })

@@ -507,6 +507,70 @@ describe('AccountsStore', () => {
       ])
     })
 
+    it('keeps unreadable accounts when persisting migrated endpoints', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([
+          persisted('alice', 'https://api.github.com'),
+          persisted('bob', 'https://api.whatever.ghe.com/'),
+          persisted('carol', 'https://api.other.ghe.com/'),
+        ])
+      )
+      const tokens = new Map([
+        ['alice', 'alice-token'],
+        ['bob', 'bob-token'],
+        ['carol', 'carol-token'],
+      ])
+      const secureStore = new AsyncInMemoryStore()
+      for (const [login, token] of tokens) {
+        const endpoint =
+          login === 'alice'
+            ? 'https://api.github.com'
+            : `https://api.${login === 'bob' ? 'whatever' : 'other'}.ghe.com/`
+        await secureStore.setItem(getKeyForEndpoint(endpoint), login, token)
+      }
+
+      let locked = true
+      const getItem = secureStore.getItem.bind(secureStore)
+      secureStore.getItem = async (key: string, login: string) => {
+        if (locked && login !== 'carol') {
+          throw new Error('The keychain is locked')
+        }
+        return getItem(key, login)
+      }
+
+      const lockedStore = new AccountsStore(dataStore, secureStore)
+      lockedStore.onDidError(() => {})
+      assert.deepStrictEqual(
+        (await lockedStore.getAll()).map(a => a.login),
+        ['carol']
+      )
+
+      const users: ReadonlyArray<{ login: string; endpoint: string }> =
+        JSON.parse(dataStore.getItem('users') ?? '[]')
+      assert.deepStrictEqual(
+        users.map(({ login, endpoint }) => ({ login, endpoint })),
+        [
+          { login: 'carol', endpoint: 'https://api.other.ghe.com' },
+          { login: 'alice', endpoint: 'https://api.github.com' },
+          { login: 'bob', endpoint: 'https://api.whatever.ghe.com' },
+        ]
+      )
+
+      locked = false
+      const unlockedStore = new AccountsStore(dataStore, secureStore)
+      const accounts = await unlockedStore.getAll()
+      assert.deepStrictEqual(
+        accounts.map(a => [a.login, a.endpoint, a.token]).sort(),
+        [
+          ['alice', 'https://api.github.com', 'alice-token'],
+          ['bob', 'https://api.whatever.ghe.com', 'bob-token'],
+          ['carol', 'https://api.other.ghe.com', 'carol-token'],
+        ]
+      )
+    })
+
     it('includes accounts whose stored credentials were unusable', async () => {
       const dataStore = new InMemoryStore()
       dataStore.setItem(

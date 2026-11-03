@@ -25,6 +25,7 @@ import {
   CommitMessageGenerationCancelledError,
   getCopilotAccountCacheKey,
   migrateCopilotModelSelectionsToAccounts,
+  migrateGHECopilotModelSelectionKeys,
 } from './copilot-store'
 import {
   IBYOKProvider,
@@ -11220,7 +11221,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       const parsed: unknown = JSON.parse(raw)
       if (typeof parsed === 'object' && parsed !== null) {
-        return new Map(Object.entries(parsed))
+        const selections = new Map(Object.entries(parsed))
+        const migrated = migrateGHECopilotModelSelectionKeys(selections)
+        if (migrated !== null) {
+          localStorage.setItem(
+            selectedCopilotModelsByAccountKey,
+            JSON.stringify(Object.fromEntries(migrated))
+          )
+        }
+        return migrated ?? selections
       }
     } catch {
       // Ignore invalid persisted selections.
