@@ -100,6 +100,7 @@ export class AssistedCommitPush {
     let outcome: AssistedCommitPushOutcome
     let pushProgress = 0
     try {
+      this.context.assertPushAuthorization(run)
       const destination = run.pushDestination
       if (destination === undefined) {
         throw new AssistedCommitPushError(
@@ -183,6 +184,7 @@ export class AssistedCommitPush {
                     if (!run.finalized) {
                       this.context.check(run)
                     }
+                    this.context.assertPushAuthorization(run)
                     enter()
                     if (!run.finalized) {
                       this.state.accept(run, {
@@ -338,7 +340,8 @@ export class AssistedCommitPush {
     if (run?.id === runId && run.pushRetry !== undefined) {
       return run.pushRetry
     }
-    const state = this.state.cache.get(repository).changesState.assistedCommit
+    const state = this.state.cache.get(run?.repository ?? repository)
+      .changesState.assistedCommit
     if (
       run?.id !== runId ||
       !run.finished ||
@@ -390,6 +393,7 @@ export class AssistedCommitPush {
     }
     let verifyAliases: ReadonlyArray<() => void>
     try {
+      this.context.assertPushAuthorization(run)
       verifyAliases = await Promise.all(
         [
           repository,

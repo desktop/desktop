@@ -14,8 +14,160 @@ import {
 import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 import { acquireAssistedCommitGitLease } from '../../../src/lib/git/repository-operation'
 import { SelectionType } from '../../../src/lib/app-state'
+import { Account } from '../../../src/models/account'
+import { AccountsStore } from '../../../src/lib/stores/accounts-store'
+import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 
 describe('assisted push lifecycle ownership', () => {
+  for (const change of ['rotation', 'replacement'] as const) {
+    it(`preserves the issuing session across push-only retry after credential ${change}`, async t => {
+      let now = Date.now()
+      const accounts = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore(),
+        async () => ({
+          accessToken: 'rotated-retry-token',
+          refreshToken: 'rotated-retry-refresh',
+          expiresAt: now + 8 * 60 * 60_000,
+        }),
+        () => now
+      )
+      const h = await createAssistedCommitRunHarness(t, accounts)
+      h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+      h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+      h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+      const original = h.appStore['accounts'][0]
+      const account = await accounts.addAccount(original, {
+        accessToken: original.token,
+        refreshToken: 'retry-refresh',
+        expiresAt: now + 8 * 60 * 60_000,
+      })
+      assert.ok(account)
+      const source = await seed(t, { file: 'before\n' })
+      const remote = await addBareRemote(t, source)
+      const receiverHook = join(remote.path, 'hooks', 'pre-receive')
+      await writeFile(receiverHook, '#!/bin/sh\nexit 1\n', { mode: 0o755 })
+      await writeFile(join(source.path, 'file'), 'after\n')
+      const repository = await h.register(source)
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      const initial = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.ok(initial.kind === 'push-error')
+      const run = h.assisted.state.runs.get(repository.id)
+      assert.ok(run)
+      const accepted = await tip(repository)
+      await unlink(receiverHook)
+      if (change === 'rotation') {
+        now += 8 * 60 * 60_000
+        await accounts.getAccountWithFreshToken(account)
+      } else {
+        await accounts.addAccount(account)
+      }
+      const outcome = await h.dispatcher.retryCopilotAssistedCommitPush(
+        repository,
+        run.id
+      )
+      assert.equal(
+        outcome?.kind,
+        change === 'rotation' ? 'pushed' : 'push-error'
+      )
+      assert.equal(await tip(repository), accepted)
+      assert.equal(
+        await remote.tip(),
+        change === 'rotation' ? accepted : remote.originalTip
+      )
+      assert.equal(await count(repository), 2)
+      assert.equal(h.propose.mock.callCount(), 1)
+      assert.equal(h.commits.mock.callCount(), 1)
+    })
+  }
+
+  for (const timing of ['before-retry', 'native-entry'] as const) {
+    it(`refuses push-only retry after repository account reassignment at ${timing} without changing accepted history`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      const remote = await addBareRemote(t, source)
+      const receiverHook = join(remote.path, 'hooks', 'pre-receive')
+      await writeFile(receiverHook, '#!/bin/sh\nexit 1\n', { mode: 0o755 })
+      await writeFile(join(source.path, 'file'), 'after\n')
+      const h = await createAssistedCommitRunHarness(t)
+      h.appStore['updateRepositorySelectionAfterRepositoriesChanged'] = () => {}
+      h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+      h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+      h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+      const original = h.appStore['accounts'][0]
+      const other = await h.stores.accountsStore.addAccount(
+        new Account(
+          'second-account',
+          original.endpoint,
+          'second-synthetic-token',
+          [],
+          '',
+          2,
+          'Second account',
+          'free',
+          undefined,
+          true,
+          original.features,
+          'PRO'
+        )
+      )
+      assert.ok(other)
+      const local = await h.register(source)
+      const github =
+        await h.stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+          account: original,
+          owner: 'synthetic-owner',
+          name: 'synthetic-repository',
+        })
+      const repository = await h.stores.repositoriesStore.setGitHubRepository(
+        local,
+        github,
+        original.login
+      )
+      h.appStore['adoptRepository'](repository)
+      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      const initial = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.ok(initial.kind === 'push-error')
+      const accepted = await tip(repository)
+      await unlink(receiverHook)
+      let nativeEntries = 0
+      if (timing === 'before-retry') {
+        await h.appStore._updateRepositoryAccount(repository, other.login)
+      } else {
+        const host = h.assisted.push['repository']
+        const nativePush = host.push.bind(host)
+        t.mock.method(
+          host,
+          'push',
+          async (...args: Parameters<typeof host.push>) => {
+            nativeEntries++
+            await h.appStore._updateRepositoryAccount(repository, other.login)
+            return nativePush(...args)
+          }
+        )
+      }
+      const run = h.assisted.state.runs.get(repository.id)
+      assert.ok(run)
+      const outcome = await h.dispatcher.retryCopilotAssistedCommitPush(
+        repository,
+        run.id
+      )
+      assert.ok(outcome?.kind === 'push-error')
+      assert.match(outcome.error.message, /account|sign.in|authorization/i)
+      assert.equal(await tip(repository), accepted)
+      assert.equal(await remote.tip(), remote.originalTip)
+      assert.equal(await count(repository), 2)
+      assert.equal(h.propose.mock.callCount(), 1)
+      assert.equal(h.commits.mock.callCount(), 1)
+      assert.equal(nativeEntries, timing === 'native-entry' ? 1 : 0)
+    })
+  }
+
   for (const refusal of ['alias', 'busy'] as const) {
     it(`publishes the actual early ${refusal} retry refusal to AppStore subscribers`, async t => {
       const source = await seed(t, { file: 'before\n' })

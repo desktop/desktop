@@ -86,4 +86,59 @@ describe('repository assisted push preference', () => {
       )
     }
   })
+
+  it('shares only persisted preferences, not assisted run state, across worktree paths', () => {
+    const main = repository(1)
+    const worktree = new Repository('/linked/worktree', main.id, null, false)
+    const cache = createTestRepositoryStateCache()
+    cache.updateChangesState(main, () => ({
+      pushAfterAssistedCommit: true,
+      assistedCommit: {
+        kind: 'preparing',
+        runId: 'main-run',
+        cancelRequested: false,
+      },
+      assistedCommitAvailable: true,
+    }))
+    assert.strictEqual(
+      cache.get(worktree).changesState.pushAfterAssistedCommit,
+      true
+    )
+    assert.strictEqual(
+      cache.get(worktree).changesState.assistedCommit.kind,
+      'idle'
+    )
+    assert.strictEqual(
+      cache.get(worktree).changesState.assistedCommitAvailable,
+      false
+    )
+    cache.updateChangesState(worktree, () => ({
+      pushAfterAssistedCommit: false,
+    }))
+    assert.strictEqual(
+      cache.get(main).changesState.pushAfterAssistedCommit,
+      false
+    )
+    assert.strictEqual(
+      cache.get(main).changesState.assistedCommit.kind,
+      'preparing'
+    )
+  })
+
+  it('isolates preferences for unpersisted repository placeholders', () => {
+    const first = new Repository('/placeholder', -1, null, false)
+    const second = new Repository(
+      '/placeholder',
+      -1,
+      null,
+      false,
+      'another-placeholder'
+    )
+    const cache = createTestRepositoryStateCache()
+    cache.updateChangesState(first, () => ({ pushAfterAssistedCommit: true }))
+    assert.strictEqual(
+      cache.get(second).changesState.pushAfterAssistedCommit,
+      false
+    )
+  })
 })

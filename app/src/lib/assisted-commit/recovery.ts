@@ -151,7 +151,8 @@ export function createAssistedCommitRecovery(
   /** Retry full recovery before cleanup-only capabilities, preserving original causes. */
   async function retry(repository: Repository, runId: string): Promise<void> {
     const run = owner.runs.get(repository.id)
-    const state = owner.cache.get(repository).changesState.assistedCommit
+    const state = owner.cache.get(run?.repository ?? repository).changesState
+      .assistedCommit
     if (
       run?.id !== runId ||
       !run.finished ||
@@ -219,7 +220,7 @@ export function createAssistedCommitRecovery(
         if (run.recovery === undefined && run.result === undefined) {
           // No transaction changed history. Reconcile current content, not a stale cleanup fence.
           run.selectionFence = undefined
-          selections.clearRestored(repository)
+          selections.clearRestored(run.repository)
         }
         return withRepositoryGitErrorPropagation(async () => {
           if (run.finalized) {
@@ -288,7 +289,7 @@ export function createAssistedCommitRecovery(
       }
       verifyRecoveryAlias?.()
       run.finished = true
-      owner.cache.update(repository, () => ({
+      owner.cache.update(run.repository, () => ({
         isCommitting: false,
       }))
       run.resourceProtection?.release()
@@ -300,7 +301,7 @@ export function createAssistedCommitRecovery(
         if (owner.runs.get(repository.id) === run) {
           owner.runs.delete(repository.id)
         }
-        owner.cache.updateChangesState(repository, () => ({
+        owner.cache.updateChangesState(run.repository, () => ({
           assistedCommit: { kind: 'idle' },
         }))
       }
@@ -339,14 +340,14 @@ export function createAssistedCommitRecovery(
       if (run.recoveryCapability === undefined && !run.cleanupPending) {
         run.lease?.release()
         run.lease = undefined
-        owner.cache.update(repository, () => ({
+        owner.cache.update(run.repository, () => ({
           isCommitting: false,
         }))
       }
     } finally {
       run.finished = true
       run.settlement.complete()
-      owner.updateErrorSettlement(repository)
+      owner.updateErrorSettlement(run.repository)
       owner.releaseResources(run)
     }
     await recovery.present(run)

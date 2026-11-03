@@ -599,6 +599,10 @@ changed remotes refuse retry rather than publishing different commits or deletin
 external history; equivalent physical aliases remain valid. Retry does not
 capture, analyze, commit, reset options/drafts or count local commits again.
 It stays reachable across repository switches without requiring AI eligibility.
+The originally assigned repository account must still match at retry admission
+and native push entry. Selected-change runs also retain their issuing credential
+session: token rotation is valid, but replacement sign-in or account reassignment
+requires reviewing authorization instead of silently switching credentials.
 Early refusals notify subscribers so the current refusal replaces an old error.
 
 Acknowledged-success errors retain Details/Dismiss even after setup expires,

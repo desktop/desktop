@@ -58,7 +58,8 @@ export class RepositoryStateCache {
     if (existing != null) {
       if (
         existing.changesState.commitMode === commitMode &&
-        existing.changesState.pushAfterAssistedCommit === pushAfterAssistedCommit
+        existing.changesState.pushAfterAssistedCommit ===
+          pushAfterAssistedCommit
       ) {
         return existing
       }
@@ -428,6 +429,7 @@ function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
       },
       commitMessage: DefaultCommitMessage,
       commitMode,
+      pushAfterAssistedCommit: false,
       assistedCommit: { kind: 'idle' },
       assistedCommitAvailable: false,
       coAuthors: [],
