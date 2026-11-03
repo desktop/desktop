@@ -2375,9 +2375,17 @@ export function getHTMLURL(endpoint: string): string {
  * https://example.ghe.com -> https://api.example.ghe.com
  */
 export function getEnterpriseAPIURL(endpoint: string): string {
-  const { host } = new window.URL(endpoint)
+  const { host, hostname } = new window.URL(endpoint)
 
-  return isGHE(endpoint) ? `https://api.${host}` : `https://${host}/api/v3`
+  if (isGHE(endpoint)) {
+    // Callers may already be holding an API endpoint (e.g. when signing in
+    // again to an existing account) so we mustn't prefix api. twice.
+    return hostname.startsWith('api.')
+      ? `https://${host}`
+      : `https://api.${host}`
+  }
+
+  return `https://${host}/api/v3`
 }
 
 export const getAPIEndpoint = (endpoint: string) =>

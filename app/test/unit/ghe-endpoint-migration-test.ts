@@ -18,6 +18,21 @@ describe('getEnterpriseAPIURL', () => {
     )
   })
 
+  it('is idempotent for API endpoints', () => {
+    assert.equal(
+      getEnterpriseAPIURL('https://api.whatever.ghe.com'),
+      'https://api.whatever.ghe.com'
+    )
+    assert.equal(
+      getEnterpriseAPIURL('https://api.whatever.ghe.com/'),
+      'https://api.whatever.ghe.com'
+    )
+    assert.equal(
+      getEnterpriseAPIURL('https://ghes.example.com/api/v3'),
+      'https://ghes.example.com/api/v3'
+    )
+  })
+
   it('uses the /api/v3 path for GHES', () => {
     assert.equal(
       getEnterpriseAPIURL('https://ghes.example.com/'),

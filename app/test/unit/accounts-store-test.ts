@@ -558,6 +558,27 @@ describe('AccountsStore', () => {
         ]
       )
 
+      // Later saves, such as signing in, must keep the unreadable accounts
+      const dave = new Account(
+        'dave',
+        'https://api.github.com',
+        'dave-token',
+        [],
+        '',
+        4,
+        'Dave'
+      )
+      await lockedStore.addAccount(dave)
+      const usersAfterSignIn: ReadonlyArray<{ login: string }> = JSON.parse(
+        dataStore.getItem('users') ?? '[]'
+      )
+      assert.deepStrictEqual(usersAfterSignIn.map(u => u.login).sort(), [
+        'alice',
+        'bob',
+        'carol',
+        'dave',
+      ])
+
       locked = false
       const unlockedStore = new AccountsStore(dataStore, secureStore)
       const accounts = await unlockedStore.getAll()
@@ -567,7 +588,49 @@ describe('AccountsStore', () => {
           ['alice', 'https://api.github.com', 'alice-token'],
           ['bob', 'https://api.whatever.ghe.com', 'bob-token'],
           ['carol', 'https://api.other.ghe.com', 'carol-token'],
+          ['dave', 'https://api.github.com', 'dave-token'],
         ]
+      )
+    })
+
+    it('replaces unloaded accounts which are signed in again', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persisted('bob', 'https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const getItem = secureStore.getItem.bind(secureStore)
+      let locked = true
+      secureStore.getItem = async (key: string, login: string) => {
+        if (locked) {
+          throw new Error('The keychain is locked')
+        }
+        return getItem(key, login)
+      }
+      const store = new AccountsStore(dataStore, secureStore)
+      store.onDidError(() => {})
+      assert.deepStrictEqual(await store.getAll(), [])
+
+      locked = false
+      await store.addAccount(
+        new Account(
+          'bob',
+          'https://api.whatever.ghe.com',
+          'new-token',
+          [],
+          '',
+          2,
+          'Bob'
+        )
+      )
+
+      const users: ReadonlyArray<{ login: string; name: string }> = JSON.parse(
+        dataStore.getItem('users') ?? '[]'
+      )
+      assert.deepStrictEqual(
+        users.map(u => [u.login, u.name]),
+        [['bob', 'Bob']]
       )
     })
 

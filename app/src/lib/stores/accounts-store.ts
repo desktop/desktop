@@ -98,6 +98,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    */
   private persistedIdentities: ReadonlyArray<IAccountIdentity> = []
 
+  /**
+   * Persisted accounts whose credentials couldn't be read when the store
+   * loaded (e.g. due to a locked keychain). These are kept in storage when
+   * saving so that they can be loaded again on the next launch.
+   */
+  private unloadedAccounts: ReadonlyArray<IAccount> = []
+
   public constructor(
     dataStore: IDataStore,
     secureStore: ISecureStore,
@@ -547,23 +554,24 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
 
     this.accounts = sortAccounts([...accountsByKey.values()])
+    this.unloadedAccounts = unreadableAccounts
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null || removedInvalidAccounts) {
-      // Keep accounts whose credentials we couldn't read (e.g. due to a
-      // locked keychain) so that they aren't lost from the persisted users.
-      const unloaded = unreadableAccounts.filter(
-        a => !accountsByKey.has(getAccountKey(a))
-      )
-      this.save(unloaded) // Save already emits an update
+      this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
     }
   }
 
-  private save(unloadedAccounts: ReadonlyArray<IAccount> = []) {
+  private save() {
+    const keys = new Set(this.accounts.map(getAccountKey))
+    // Accounts which have since been signed in again replace unloaded ones
+    this.unloadedAccounts = this.unloadedAccounts.filter(
+      a => !keys.has(getAccountKey(a))
+    )
     const usersWithoutTokens = [
       ...this.accounts.map(account => account.withToken('')),
-      ...unloadedAccounts.map(account => ({ ...account, token: '' })),
+      ...this.unloadedAccounts.map(account => ({ ...account, token: '' })),
     ]
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
