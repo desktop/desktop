@@ -81,6 +81,18 @@ describe('getLegacyGHEEndpoints', () => {
     )
   })
 
+  it('preserves explicit ports', () => {
+    const canonical = 'https://api.whatever.ghe.com:8443'
+    const legacy = getLegacyGHEEndpoints(canonical)
+    assert.deepStrictEqual(legacy, [
+      'https://api.whatever.ghe.com:8443/',
+      'https://whatever.ghe.com:8443/api/v3',
+    ])
+    for (const endpoint of legacy) {
+      assert.equal(getMigratedGHEEndpoint(endpoint), canonical)
+    }
+  })
+
   it('returns nothing for non ghe.com endpoints', () => {
     assert.deepStrictEqual(getLegacyGHEEndpoints('https://api.github.com'), [])
     assert.deepStrictEqual(

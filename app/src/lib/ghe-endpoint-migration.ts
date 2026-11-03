@@ -44,6 +44,6 @@ export function getLegacyGHEEndpoints(endpoint: string): ReadonlyArray<string> {
     return []
   }
 
-  const htmlHostname = hostname.substring('api.'.length)
-  return [`https://${host}/`, `https://${htmlHostname}/api/v3`]
+  const htmlHost = host.substring('api.'.length)
+  return [`https://${host}/`, `https://${htmlHost}/api/v3`]
 }
