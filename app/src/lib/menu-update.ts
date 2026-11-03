@@ -93,6 +93,21 @@ function isRepositoryHostedOnGitHub(
   return repository.gitHubRepository.htmlURL !== null
 }
 
+function isRepositoryForkWithUpstreamOnGitHub(
+  repository: Repository | CloningRepository
+) {
+  if (
+    !repository ||
+    repository instanceof CloningRepository ||
+    !repository.gitHubRepository
+  ) {
+    return false
+  }
+
+  const parent = repository.gitHubRepository.parent
+  return parent !== null && parent.htmlURL !== null
+}
+
 function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
   if (
     state.enabled !== undefined &&
@@ -116,6 +131,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'merge-branch',
   'rebase-branch',
   'view-repository-on-github',
+  'view-upstream-repository-on-github',
   'compare-on-github',
   'branch-on-github',
   'open-in-shell',
@@ -162,6 +178,9 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const selectedState = state.selectedState
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
+    : false
+  const hasUpstreamOnGitHub = selectedState
+    ? isRepositoryForkWithUpstreamOnGitHub(selectedState.repository)
     : false
 
   let repositorySelected = false
@@ -306,6 +325,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
     menuStateBuilder.setEnabled(
+      'view-upstream-repository-on-github',
+      hasUpstreamOnGitHub
+    )
+    menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
       repoIssuesEnabled
     )
@@ -358,6 +381,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     }
 
     menuStateBuilder.disable('view-repository-on-github')
+    menuStateBuilder.disable('view-upstream-repository-on-github')
     menuStateBuilder.disable('create-pull-request')
     menuStateBuilder.disable('preview-pull-request')
     if (

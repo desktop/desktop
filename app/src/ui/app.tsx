@@ -521,6 +521,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showRepositorySettings()
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
+      case 'view-upstream-repository-on-github':
+        return this.viewUpstreamRepositoryOnGitHub()
       case 'compare-on-github':
         return this.openBranchOnGitHub('compare')
       case 'branch-on-github':
@@ -1360,6 +1362,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = this.getRepository()
 
     this.viewOnGitHub(repository)
+  }
+
+  /** Opens the parent (upstream) of the current fork on GitHub, if any */
+  private viewUpstreamRepositoryOnGitHub() {
+    const repository = this.getRepository()
+
+    if (
+      !(repository instanceof Repository) ||
+      repository.gitHubRepository === null
+    ) {
+      return
+    }
+
+    const parent = repository.gitHubRepository.parent
+    if (parent !== null && parent.htmlURL !== null) {
+      this.props.dispatcher.openInBrowser(parent.htmlURL)
+    }
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
