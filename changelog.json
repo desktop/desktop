@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.6.11-beta1": [
+      "Clone Repository now has a single GitHub tab with an account picker covering all signed-in accounts, replacing the separate GitHub.com/GitHub Enterprise tabs",
+      "Keep the repository list's uncommitted-changes indicator in sync when refreshing the Changes tab"
+    ],
     "3.6.10": ["[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"],
     "3.6.10-beta1": [
       "[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"
