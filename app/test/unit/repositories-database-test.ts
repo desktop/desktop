@@ -8,6 +8,44 @@ import {
 } from '../../src/lib/databases'
 
 describe('RepositoriesDatabase', () => {
+  it('migrates legacy metadata to an unassigned scope without trusting old permissions', async t => {
+    const name = 'AccountScopedRepositoriesMigration'
+    let db = new RepositoriesDatabase(name, 9)
+    await db.delete()
+    await db.open()
+    t.after(() => db.delete())
+    const id = await db.gitHubRepositories.add({
+      ownerID: 1,
+      name: 'repo',
+      private: false,
+      htmlURL: null,
+      cloneURL: null,
+      parentID: null,
+      lastPruneDate: null,
+      permissions: 'admin',
+    })
+    await db.protectedBranches.add({ repoId: id, name: 'main' })
+    db.close()
+    db = new RepositoriesDatabase(name)
+    await db.open()
+    const record = await db.gitHubRepositories.get(id)
+    assert.strictEqual(record?.accountLogin, '')
+    assert.strictEqual(record?.permissions, null)
+    assert.strictEqual(await db.protectedBranches.count(), 0)
+    assert.ok(record)
+    await db.gitHubRepositories.add({
+      ...record,
+      id: undefined,
+      accountLogin: 'alice',
+    })
+    await db.gitHubRepositories.add({
+      ...record,
+      id: undefined,
+      accountLogin: 'bob',
+    })
+    assert.strictEqual(await db.gitHubRepositories.count(), 3)
+  })
+
   it('migrates from version 2 to 4 by deleting duplicate GitHub repositories', async () => {
     const dbName = 'TestRepositoriesDatabase'
     let db = new RepositoriesDatabase(dbName, 2)
@@ -115,14 +153,15 @@ describe('RepositoriesDatabase', () => {
     await db.delete()
   })
 
-  describe('migrating from version 9 to 10', () => {
+  describe('migrating from version 10 to 11', () => {
     const dbName = 'TestRepositoriesDatabaseGHEOwners'
     const canonical = 'https://api.whatever.ghe.com'
 
     const ghRepo = (
       ownerID: number,
       name: string,
-      parentID: number | null = null
+      parentID: number | null = null,
+      accountLogin = ''
     ): IDatabaseGitHubRepository => ({
       ownerID,
       name,
@@ -133,6 +172,7 @@ describe('RepositoriesDatabase', () => {
       lastPruneDate: null,
       permissions: 'write',
       issuesEnabled: true,
+      accountLogin,
     })
 
     const addOwner = (
@@ -142,7 +182,7 @@ describe('RepositoriesDatabase', () => {
     ) => db.owners.add({ endpoint, login, key: getOwnerKey(endpoint, login) })
 
     it('migrates .ghe.com owners to the canonical endpoint', async () => {
-      let db = new RepositoriesDatabase(dbName, 9)
+      let db = new RepositoriesDatabase(dbName, 10)
       await db.delete()
       await db.open()
 
@@ -159,7 +199,7 @@ describe('RepositoriesDatabase', () => {
       )
       db.close()
 
-      db = new RepositoriesDatabase(dbName, 10)
+      db = new RepositoriesDatabase(dbName, 11)
       await db.open()
 
       assert.equal(await db.owners.count(), 3)
@@ -179,7 +219,7 @@ describe('RepositoriesDatabase', () => {
     })
 
     it('merges duplicate .ghe.com owners and their repositories', async () => {
-      let db = new RepositoriesDatabase(dbName, 9)
+      let db = new RepositoriesDatabase(dbName, 10)
       await db.delete()
       await db.open()
 
@@ -217,7 +257,7 @@ describe('RepositoriesDatabase', () => {
       })
       db.close()
 
-      db = new RepositoriesDatabase(dbName, 10)
+      db = new RepositoriesDatabase(dbName, 11)
       await db.open()
 
       const owners = await db.owners.toArray()
@@ -250,6 +290,40 @@ describe('RepositoriesDatabase', () => {
       assert.deepStrictEqual(protectedBranches, [
         { repoId: newShared, name: 'main' },
       ])
+
+      await db.delete()
+    })
+
+    it('only merges repositories scoped to the same account', async () => {
+      let db = new RepositoriesDatabase(dbName, 10)
+      await db.delete()
+      await db.open()
+
+      const oldOwner = await addOwner(
+        db,
+        'https://whatever.ghe.com/api/v3',
+        'desktop'
+      )
+      const newOwner = await addOwner(db, `${canonical}/`, 'desktop')
+
+      const oldAlice = await db.gitHubRepositories.add(
+        ghRepo(oldOwner, 'shared', null, 'alice')
+      )
+      const newBob = await db.gitHubRepositories.add(
+        ghRepo(newOwner, 'shared', null, 'bob')
+      )
+      db.close()
+
+      db = new RepositoriesDatabase(dbName, 11)
+      await db.open()
+
+      assert.equal(await db.owners.count(), 1)
+      assert.equal(await db.gitHubRepositories.count(), 2)
+      assert.equal(
+        (await db.gitHubRepositories.get(oldAlice))?.ownerID,
+        newOwner
+      )
+      assert.equal((await db.gitHubRepositories.get(newBob))?.ownerID, newOwner)
 
       await db.delete()
     })

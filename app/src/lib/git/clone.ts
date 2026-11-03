@@ -112,7 +112,10 @@ export async function clone(
     '--recursive',
   ]
 
-  let opts: IGitStringExecutionOptions = { env }
+  let opts: IGitStringExecutionOptions = {
+    env,
+    fallbackAccount: options.fallbackAccount,
+  }
 
   if (progressCallback) {
     args.push('--progress')

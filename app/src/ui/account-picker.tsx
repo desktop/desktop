@@ -1,6 +1,11 @@
 import * as React from 'react'
 import { PopoverDropdown } from './lib/popover-dropdown'
-import { Account, accountEquals } from '../models/account'
+import {
+  Account,
+  accountEquals,
+  isDotComAccount,
+  isEnterpriseAccount,
+} from '../models/account'
 import { SectionFilterList } from './lib/section-filter-list'
 import {
   IFilterListGroup,
@@ -12,11 +17,23 @@ import { Avatar } from './lib/avatar'
 import { lookupPreferredEmail } from '../lib/email'
 import { IAvatarUser } from '../models/avatar'
 import memoizeOne from 'memoize-one'
+import { groupAccountsByHost } from '../lib/group-accounts-by-host'
 
 interface IAccountPickerProps {
   readonly accounts: ReadonlyArray<Account>
-  readonly selectedAccount: Account
+
+  /**
+   * The selected account, or null when the user still has to choose one, in
+   * which case the picker shows a placeholder.
+   */
+  readonly selectedAccount: Account | null
   readonly onSelectedAccountChanged: (account: Account) => void
+
+  /**
+   * Whether to list accounts under a heading per host, GitHub.com first and
+   * then each GitHub Enterprise host alphabetically.
+   */
+  readonly groupByHost?: boolean
 
   /**
    * The class name to apply to the open button. This is useful for
@@ -39,6 +56,34 @@ interface IAccountListItem extends IFilterListItem {
 
 const getItemId = (account: Account) => `${account.login}@${account.endpoint}`
 
+const toListItem = (account: Account): IAccountListItem => ({
+  text: [account.login, account.endpoint],
+  id: getItemId(account),
+  account,
+})
+
+/**
+ * Group accounts like the Accounts preferences: GitHub.com first, then a
+ * group per GitHub Enterprise host.
+ */
+function getHostGroups(
+  accounts: ReadonlyArray<Account>
+): ReadonlyArray<IFilterListGroup<IAccountListItem>> {
+  const dotComAccounts = accounts.filter(isDotComAccount)
+  const enterpriseGroups = groupAccountsByHost(
+    accounts.filter(isEnterpriseAccount)
+  )
+  return [
+    ...(dotComAccounts.length > 0
+      ? [{ identifier: 'GitHub.com', items: dotComAccounts.map(toListItem) }]
+      : []),
+    ...enterpriseGroups.map(([identifier, accounts]) => ({
+      identifier,
+      items: accounts.map(toListItem),
+    })),
+  ]
+}
+
 /**
  * A select-like element for filter and selecting an account.
  */
@@ -48,33 +93,30 @@ export class AccountPicker extends React.Component<
 > {
   private getFilterListGroups = memoizeOne(
     (
-      accounts: ReadonlyArray<Account>
-    ): ReadonlyArray<IFilterListGroup<IAccountListItem>> => [
-      {
-        identifier: 'accounts',
-        items: accounts.map(account => ({
-          text: [account.login, account.endpoint],
-          id: getItemId(account),
-          account,
-        })),
-      },
-    ]
+      accounts: ReadonlyArray<Account>,
+      groupByHost: boolean
+    ): ReadonlyArray<IFilterListGroup<IAccountListItem>> =>
+      groupByHost
+        ? getHostGroups(accounts)
+        : [{ identifier: 'accounts', items: accounts.map(toListItem) }]
   )
 
   private getSelectedItem = memoizeOne(
     (
       accounts: ReadonlyArray<Account>,
+      groupByHost: boolean,
       selectedItemId: string | undefined,
-      selectedAccount: Account
+      selectedAccount: Account | null
     ) =>
-      this.getFilterListGroups(accounts)
+      this.getFilterListGroups(accounts, groupByHost)
         .flatMap(x => x.items)
         .find(x =>
           // Prioritize selectedItemId (i.e. our own internal state) which
           // gets reset when the selectedAccount props changes.
           selectedItemId
             ? x.id === selectedItemId
-            : accountEquals(x.account, selectedAccount)
+            : selectedAccount !== null &&
+              accountEquals(x.account, selectedAccount)
         ) ?? null
   )
 
@@ -139,31 +181,51 @@ export class AccountPicker extends React.Component<
   private getItemAriaLabel = (item: IAccountListItem) =>
     `@${item.account.login} ${item.account.friendlyEndpoint}`
 
-  public render() {
+  private renderGroupHeader = (identifier: string) => (
+    <div className="filter-list-group-header">{identifier}</div>
+  )
+
+  private getRowHeight = (info: { readonly item: IAccountListItem | null }) =>
+    info.item === null ? 29 : 47
+
+  private renderButtonContent() {
     const account = this.props.selectedAccount
+    if (account === null) {
+      return (
+        <div className="account placeholder">
+          {__DARWIN__ ? 'Choose an Account…' : 'Choose an account…'}
+        </div>
+      )
+    }
+
+    return (
+      <div className="account">
+        <span className="login">@{account.login}</span> -{' '}
+        <span className="endpoint">{account.friendlyEndpoint}</span>
+      </div>
+    )
+  }
+
+  public render() {
+    const groupByHost = this.props.groupByHost === true
 
     return (
       <PopoverDropdown
         className="account-picker"
         contentTitle="Choose an account"
-        buttonContent={
-          <div className="account">
-            <span className="login">@{account.login}</span> -{' '}
-            <span className="endpoint">
-              {this.props.selectedAccount.friendlyEndpoint}
-            </span>
-          </div>
-        }
+        buttonContent={this.renderButtonContent()}
         label="Account"
         ref={this.popoverRef}
         openButtonClassName={this.props.openButtonClassName}
       >
         <SectionFilterList<IAccountListItem>
           className="account-list"
-          rowHeight={47}
-          groups={this.getFilterListGroups(this.props.accounts)}
+          rowHeight={groupByHost ? this.getRowHeight : 47}
+          groups={this.getFilterListGroups(this.props.accounts, groupByHost)}
+          renderGroupHeader={groupByHost ? this.renderGroupHeader : undefined}
           selectedItem={this.getSelectedItem(
             this.props.accounts,
+            groupByHost,
             this.state.selectedItemId,
             this.props.selectedAccount
           )}

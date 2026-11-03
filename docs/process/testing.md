@@ -73,7 +73,8 @@
       - [ ] If authentication error for Enterprise, user redirected to Preferences
     - [ ] Valid path can be entered or selected
       - [ ] Local path is prepopulated; if not unique then error surfaced
-    - [ ] All repos from both GitHub.com and Enterprise are populated -- your repos are listed first, followed by org(s)
+    - [ ] GitHub tab has an account picker listing GitHub.com and Enterprise accounts; URL tab is also present
+    - [ ] Repos for the selected account are populated -- your repos are listed first, followed by org(s)
       - [ ] User must be logged in to view list; else `Sign In` button present
       - [ ] Results are filterable, and can be selected for cloning
     - [ ] `Clone` creates repo at selected path

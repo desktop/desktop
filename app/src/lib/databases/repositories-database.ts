@@ -20,6 +20,33 @@ export interface IDatabaseOwner {
 
 export interface IDatabaseGitHubRepository {
   readonly id?: number
+  /**
+   * The lowercase login of the account which this metadata was fetched with,
+   * or an empty string for metadata that isn't attributable to an account
+   * (unassigned repositories and records predating multi-account support).
+   *
+   * This is not the repository's account assignment. That's the `login` field
+   * of the local repository (`IDatabaseRepository`), which is the source of
+   * truth and is changed by explicit user choice. This field is derived from
+   * it and only scopes the metadata cache.
+   *
+   * It's necessary because multiple local repositories can point to the same
+   * GitHub repository while being assigned to different accounts, and some of
+   * the data we store differs depending on which account fetched it. The
+   * `permissions` field is one example (one account might be an admin while
+   * another has read-only access). This record's `id` also keys other
+   * account-dependent data, such as protected branches and cached pull
+   * requests, which may include private data that only one of the accounts is
+   * allowed to see. Including the login in the unique
+   * `[ownerID+name+accountLogin]` index gives each account its own record,
+   * and therefore its own `id`, which isolates all such data without having
+   * to include the login in every dependent cache key.
+   *
+   * A record's `accountLogin` never changes. When a local repository is
+   * assigned to another account it switches to the record scoped to that
+   * account, creating one if needed, rather than rewriting this one.
+   */
+  readonly accountLogin?: string
   readonly ownerID: number
   readonly name: string
   readonly private: boolean | null
@@ -54,6 +81,9 @@ export interface IDatabaseRepository {
   readonly path: string
   readonly alias: string | null
   readonly missing: boolean
+
+  /** Undefined only for records awaiting the one-time account migration. */
+  readonly login?: string | null
 
   /** The path to the .git directory for this repository */
   readonly gitDir?: string
@@ -148,7 +178,21 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
-    this.conditionalVersion(10, {}, migrateGHEOwnerEndpoints)
+    this.conditionalVersion(
+      10,
+      {
+        gitHubRepositories: '++id, &[ownerID+name+accountLogin]',
+      },
+      async tx => {
+        // Legacy permissions cannot be attributed to a particular account.
+        await tx
+          .table<IDatabaseGitHubRepository, number>('gitHubRepositories')
+          .toCollection()
+          .modify({ accountLogin: '', permissions: null })
+        await tx.table('protectedBranches').clear()
+      }
+    )
+    this.conditionalVersion(11, {}, migrateGHEOwnerEndpoints)
   }
 }
 
@@ -310,7 +354,8 @@ async function migrateGHEOwnerEndpoints(tx: Transaction) {
 
 /**
  * Move all GitHub repositories belonging to one owner to another owner. If
- * the target owner already has a GitHub repository with the same name the
+ * the target owner already has a GitHub repository with the same name (for
+ * the same account, see `IDatabaseGitHubRepository.accountLogin`) the
  * source repository is deleted and any references to it are updated to point
  * to the target repository.
  */
@@ -328,7 +373,7 @@ async function mergeOwnerGitHubRepositories(
   )
 
   const ghRepos = await ghReposTable
-    .where('[ownerID+name]')
+    .where('[ownerID+name+accountLogin]')
     .between([fromOwnerID], [fromOwnerID + 1])
     .toArray()
 
@@ -337,8 +382,8 @@ async function mergeOwnerGitHubRepositories(
     assertNonNullable(fromID, 'Missing GitHub repository id')
 
     const existing = await ghReposTable
-      .where('[ownerID+name]')
-      .equals([toOwnerID, ghRepo.name])
+      .where('[ownerID+name+accountLogin]')
+      .equals([toOwnerID, ghRepo.name, ghRepo.accountLogin ?? ''])
       .first()
 
     if (existing === undefined) {
