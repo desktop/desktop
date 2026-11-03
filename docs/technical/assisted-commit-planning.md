@@ -220,13 +220,21 @@ are disposed. Late cleanup failures are logged because cancellation has already
 been delivered.
 Response waiting uses Desktop-owned send/events and the enclosing deadline,
 not SDK `sendAndWait`'s independent timer; all response/idle/error/abort listeners
-are removed on completion or cancellation. Successful/error cleanup disconnects the session and awaits
-client shutdown, bounded to one second before force-stop and an explicit
-cleanup failure. Cancellation during cleanup cannot return a successful plan.
+are removed on completion or cancellation. Successful/error cleanup disconnects
+the session and awaits client shutdown, bounded to one second before force-stop.
+For the owned stdio runtime, SDK force-stop waits for child exit and disconnects
+sessions, pending requests and host callbacks. Desktop also joins the original
+graceful continuation (with a separate one-second bound); a delayed disconnect
+cannot start another stop after force-stop began. Only confirmed force-stop plus
+settled graceful work recovers a teardown timeout/error, with a content-free
+warning. A failed force-stop or unjoined continuation remains `cleanup-failed`;
+the earlier request/billing/cancellation/timeout error stays in `cause`.
+Cancellation during cleanup cannot return a successful plan.
 Every owned in-memory filesystem is cleared and rejects late reads/writes.
 SDK session journals use that filesystem; no per-session content is written to
 disk or the shared session store. There is no Desktop-owned instruction config
-directory to clean up. Any client/session cleanup failure stays visible.
+directory to clean up. Unrecovered client/session cleanup failures stay visible,
+including their `cleanupErrors` in the standard Details dialog.
 
 The caller must keep using `withAssistedCommitSnapshot` for snapshot resource
 cleanup. The planner never assumes ownership of it.

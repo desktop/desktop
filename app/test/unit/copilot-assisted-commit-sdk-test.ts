@@ -127,6 +127,104 @@ class PendingSyntheticModel extends CopilotRequestHandler {
 }
 
 describe('assisted planner actual SDK instruction and model-tool contract', () => {
+  for (const delay of ['none', 'disconnect', 'stop'] as const) {
+    it(`joins the actual owned SDK runtime after repeated successful plans with delayed ${delay}`, async t => {
+      const { AssistedCommitCleanupTimeoutMs } = await import(
+        '../../src/lib/stores/copilot-store'
+      )
+      const root = await createTempDirectory(t)
+      const repositoryPath = join(root, 'repository')
+      const home = join(root, 'home')
+      await mkdir(repositoryPath)
+      await mkdir(home)
+      for (let iteration = 0; iteration < 2; iteration++) {
+        const client = new CopilotClient({
+          connection: RuntimeConnection.forStdio(),
+          workingDirectory: repositoryPath,
+          baseDirectory: home,
+          env: {
+            ...getAssistedCommitClientEnvironment({
+              HOME: home,
+              COPILOT_HOME: home,
+              PATH: process.env.PATH,
+            }),
+            COPILOT_DISABLE_KEYTAR: '1',
+          },
+          useLoggedInUser: false,
+          logLevel: 'none',
+          onListModels: () => [],
+          requestHandler: new SyntheticModel(wholeSelectionResponse()),
+          sessionFs: getCopilotInMemorySessionFsConfig(
+            repositoryPath,
+            __WIN32__ ? 'windows' : 'posix'
+          ),
+        })
+        t.after(() => client.forceStop())
+        let pid: number | undefined
+        let forced = false
+        let pendingSettled = false
+        const adapter = getCopilotPlanningClient(client, async config => {
+          const session = await client.createSession(config)
+          pid = client['cliProcess']?.pid
+          if (delay === 'disconnect') {
+            const disconnect = session.disconnect.bind(session)
+            session.disconnect = async () => {
+              await new Promise(resolve =>
+                setTimeout(resolve, AssistedCommitCleanupTimeoutMs + 100)
+              )
+              try {
+                await disconnect()
+              } finally {
+                pendingSettled = true
+              }
+            }
+          }
+          return session
+        })
+        const nativeStop = adapter.stop
+        const nativeForceStop = adapter.forceStop
+        adapter.stop = async () => {
+          if (delay === 'stop') {
+            await new Promise(resolve =>
+              setTimeout(resolve, AssistedCommitCleanupTimeoutMs + 100)
+            )
+          }
+          try {
+            return await nativeStop()
+          } finally {
+            pendingSettled = true
+          }
+        }
+        adapter.forceStop = async () => {
+          forced = true
+          await nativeForceStop()
+        }
+        const store = createPlannerStore(async () => adapter)
+        const request = syntheticBYOKRequest()
+        assert.ok(request.kind === 'byok')
+        assert.deepStrictEqual(
+          await store.proposeAssistedCommitPlan(
+            makeCopilotAccount(),
+            syntheticAnalysis,
+            repositoryPath,
+            {
+              request: { ...request, reasoningEffort: undefined },
+            }
+          ),
+          wholeSelectionResponse()
+        )
+        assert.ok(pid !== undefined)
+        const stoppedPid = pid
+        assert.throws(() => process.kill(stoppedPid, 0), { code: 'ESRCH' })
+        assert.strictEqual(client['state'], 'disconnected')
+        assert.strictEqual(pendingSettled, true)
+        if (delay !== 'none') {
+          assert.strictEqual(forced, true)
+        }
+      }
+    })
+  }
+
   it('clears all referenced response/deadline timers when actual SDK request is cancelled', async t => {
     const { deferred } = await import('../helpers/copilot-assisted-commit')
     const root = await createTempDirectory(t)

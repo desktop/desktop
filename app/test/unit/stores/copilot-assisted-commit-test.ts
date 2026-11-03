@@ -48,6 +48,73 @@ function makeModel(
 }
 
 describe('CopilotStore constrained assisted planner', () => {
+  for (const stage of ['disconnect', 'stop'] as const) {
+    it(`accepts a completed plan only after forced cleanup settles delayed ${stage}`, async t => {
+      const mock = createMockPlanner(t)
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const started = deferred<void>()
+      const pending = deferred<void>()
+      const forceFinished = deferred<void>()
+      if (stage === 'disconnect') {
+        mock.disconnect.mock.mockImplementation(() => {
+          started.resolve()
+          return pending.promise
+        })
+      } else {
+        mock.stop.mock.mockImplementation(async () => {
+          started.resolve()
+          await pending.promise
+          return []
+        })
+      }
+      mock.forceStop.mock.mockImplementation(async () => {
+        pending.resolve()
+        await forceFinished.promise
+      })
+      let completed = false
+      const operation = mock.store
+        .proposeAssistedCommitPlan(account, syntheticAnalysis, repositoryPath, {
+          request: syntheticBYOKRequest(),
+        })
+        .then(result => {
+          completed = true
+          return result
+        })
+      await started.promise
+      t.mock.timers.tick(AssistedCommitCleanupTimeoutMs)
+      await setImmediate()
+      assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+      assert.strictEqual(completed, false)
+      forceFinished.resolve()
+      assert.deepStrictEqual(await operation, wholeSelectionResponse())
+      assert.strictEqual(mock.listenerCount(), 0)
+      assert.strictEqual(
+        mock.stop.mock.callCount(),
+        stage === 'disconnect' ? 0 : 1
+      )
+    })
+  }
+
+  it('retains the original provider failure when reported graceful errors are recovered by force stop', async t => {
+    const mock = createMockPlanner(t)
+    const original = new Error('Synthetic provider failure')
+    mock.send.mock.mockImplementation(async () => {
+      throw original
+    })
+    mock.stop.mock.mockImplementation(async () => [
+      new Error('Synthetic graceful shutdown error'),
+    ])
+    await assert.rejects(
+      mock.store.proposeAssistedCommitPlan(
+        account,
+        syntheticAnalysis,
+        repositoryPath
+      ),
+      error => error === original
+    )
+    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+  })
+
   it('uses only snapshot analysis and caller BYOK selection without metadata lookup or draft updates', async t => {
     const mock = createMockPlanner(t)
     const scheduled = t.mock.method(globalThis, 'setTimeout')
@@ -643,6 +710,10 @@ describe('CopilotStore constrained assisted planner', () => {
       throw original
     })
     mock.stop.mock.mockImplementation(async () => [cleanup])
+    const forceFailure = new Error('forced runtime termination failed')
+    mock.forceStop.mock.mockImplementation(async () => {
+      throw forceFailure
+    })
     await assert.rejects(
       mock.store.proposeAssistedCommitPlan(
         account,
@@ -656,7 +727,10 @@ describe('CopilotStore constrained assisted planner', () => {
         assert.strictEqual(error.cause, original)
         assert.strictEqual(error.cleanupErrors.length, 1)
         assert.ok(error.cleanupErrors[0] instanceof AggregateError)
-        assert.deepStrictEqual(error.cleanupErrors[0].errors, [cleanup])
+        const [graceful, forced] = error.cleanupErrors[0].errors
+        assert.ok(graceful instanceof AggregateError)
+        assert.deepStrictEqual(graceful.errors, [cleanup])
+        assert.strictEqual(forced, forceFailure)
         return true
       }
     )
@@ -679,7 +753,131 @@ describe('CopilotStore constrained assisted planner', () => {
     )
     await started.promise
     t.mock.timers.tick(AssistedCommitCleanupTimeoutMs)
+    await setImmediate()
+    t.mock.timers.tick(AssistedCommitCleanupTimeoutMs)
     await assert.rejects(operation, assertPlanningError('cleanup-failed'))
     assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+  })
+
+  it('accepts a completed plan after returned stop errors only when force stop succeeds', async t => {
+    const mock = createMockPlanner(t)
+    mock.stop.mock.mockImplementation(async () => [
+      new Error('Synthetic graceful stop error'),
+    ])
+    assert.deepStrictEqual(
+      await mock.store.proposeAssistedCommitPlan(
+        account,
+        syntheticAnalysis,
+        repositoryPath
+      ),
+      wholeSelectionResponse()
+    )
+    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+  })
+
+  it('keeps force-stop failure explicit after a successful response', async t => {
+    const mock = createMockPlanner(t)
+    const graceful = new Error('Synthetic detach failure')
+    const forced = new Error('Synthetic force-stop failure')
+    mock.disconnect.mock.mockImplementation(async () => {
+      throw graceful
+    })
+    mock.forceStop.mock.mockImplementation(async () => {
+      throw forced
+    })
+    await assert.rejects(
+      mock.store.proposeAssistedCommitPlan(
+        account,
+        syntheticAnalysis,
+        repositoryPath
+      ),
+      error => {
+        assert.ok(error instanceof CopilotAssistedCommitError)
+        assert.strictEqual(error.code, 'cleanup-failed')
+        assert.ok(error.cleanupErrors[0] instanceof AggregateError)
+        assert.deepStrictEqual(error.cleanupErrors[0].errors, [
+          graceful,
+          forced,
+        ])
+        return true
+      }
+    )
+  })
+
+  it('preserves cancellation during recovered cleanup', async t => {
+    const mock = createMockPlanner(t)
+    const controller = new AbortController()
+    mock.stop.mock.mockImplementation(async () => {
+      controller.abort()
+      return [new Error('Synthetic shutdown failure')]
+    })
+    await assert.rejects(
+      mock.store.proposeAssistedCommitPlan(
+        account,
+        syntheticAnalysis,
+        repositoryPath,
+        {
+          request: syntheticBYOKRequest(),
+          signal: controller.signal,
+        }
+      ),
+      assertPlanningError('cancelled')
+    )
+    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+  })
+
+  it('observes late graceful rejection after force stop before accepting a completed plan', async t => {
+    const mock = createMockPlanner(t)
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const started = deferred<void>()
+    const pending = deferred<ReadonlyArray<Error>>()
+    mock.stop.mock.mockImplementation(() => {
+      started.resolve()
+      return pending.promise
+    })
+    mock.forceStop.mock.mockImplementation(async () => {
+      pending.reject(new Error('Connection disposed by forced shutdown'))
+    })
+    const operation = mock.store.proposeAssistedCommitPlan(
+      account,
+      syntheticAnalysis,
+      repositoryPath
+    )
+    await started.promise
+    t.mock.timers.tick(AssistedCommitCleanupTimeoutMs)
+    assert.deepStrictEqual(await operation, wholeSelectionResponse())
+    assert.strictEqual(mock.forceStop.mock.callCount(), 1)
+  })
+
+  it('retains deadline expiry as the primary cause when forced cleanup fails', async t => {
+    const mock = createMockPlanner(t)
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const started = deferred<void>()
+    const forced = new Error('Runtime termination could not be confirmed')
+    mock.send.mock.mockImplementation(() => {
+      started.resolve()
+      return new Promise<never>(() => {})
+    })
+    mock.forceStop.mock.mockImplementation(async () => {
+      throw forced
+    })
+    const operation = mock.store.proposeAssistedCommitPlan(
+      account,
+      syntheticAnalysis,
+      repositoryPath,
+      {
+        request: syntheticBYOKRequest(25),
+      }
+    )
+    await started.promise
+    t.mock.timers.tick(25)
+    await assert.rejects(operation, error => {
+      assert.ok(error instanceof CopilotAssistedCommitError)
+      assert.strictEqual(error.code, 'cleanup-failed')
+      assert.ok(error.cause instanceof CopilotAssistedCommitError)
+      assert.strictEqual(error.cause.code, 'timed-out')
+      assert.deepStrictEqual(error.cleanupErrors, [forced])
+      return true
+    })
   })
 })

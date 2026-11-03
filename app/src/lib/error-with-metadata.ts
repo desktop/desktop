@@ -4,6 +4,7 @@ import { RetryAction, RetryActionType } from '../models/retry-actions'
 import { GitErrorContext } from './git-error-context'
 import { Branch } from '../models/branch'
 import { WorkingDirectoryFileChange } from '../models/status'
+import { CopilotAssistedCommitError } from './copilot-assisted-commit'
 
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */
@@ -53,6 +54,9 @@ export function getErrorCauses(error: unknown): ReadonlyArray<unknown> {
     }
     if (value instanceof AggregateError) {
       value.errors.forEach(visit)
+    }
+    if (value instanceof CopilotAssistedCommitError) {
+      value.cleanupErrors.forEach(visit)
     }
   }
   visit(error)

@@ -4,6 +4,7 @@ import * as React from 'react'
 import { ipcRenderer } from 'electron'
 import { RepositorySectionTab } from '../../../src/lib/app-state'
 import { ErrorWithMetadata } from '../../../src/lib/error-with-metadata'
+import { CopilotAssistedCommitError } from '../../../src/lib/copilot-assisted-commit'
 import { AheadBehindStore } from '../../../src/lib/stores/ahead-behind-store'
 import { AssistedCommitRunState } from '../../../src/models/assisted-commit-run'
 import { ImageDiffType } from '../../../src/models/diff'
@@ -33,7 +34,13 @@ describe('assisted commit error details', () => {
           'Additional retained failures'
         ),
       })
-      const error = new ErrorWithMetadata(underlying, { repository })
+      const error = new ErrorWithMetadata(
+        new CopilotAssistedCommitError('cleanup-failed', message, {
+          cause: underlying,
+          cleanupErrors: [new Error('SDK runtime cleanup diagnostic')],
+        }),
+        { repository }
+      )
       const state: AssistedCommitRunState =
         kind === 'push-error'
           ? { kind, runId: 'run', attempted: true, settling: false, error }
@@ -121,6 +128,7 @@ describe('assisted commit error details', () => {
       assert.ok(dialog.textContent?.includes(message))
       assert.ok(within(dialog).getByText('Original transport cause'))
       assert.ok(within(dialog).getByText('Owned cleanup diagnostic'))
+      assert.ok(within(dialog).getByText('SDK runtime cleanup diagnostic'))
       assert.strictEqual(screen.queryByRole('button', { name: /Retry/ }), null)
     })
   }
