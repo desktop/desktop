@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.6.11-beta1": [
+      "[New] Work with personal and work accounts side by side without signing out, with support for multiple accounts on GitHub.com and on the same GitHub Enterprise server - #23020",
+      "[Added] Choose the account used for each repository's GitHub access and HTTPS authentication in Repository Settings or the repository's Account context menu, without changing your Git author name or email - #23020, #23023",
+      "[Added] Choose whether to keep or clear a signed-out account's repository assignments when signing out - #23020",
+      "[Fixed] Keep the repository list's uncommitted-changes indicator in sync when refreshing the Changes tab - #23089",
+      "[Improved] Manage multiple accounts in Accounts settings, with GitHub Enterprise accounts grouped by server - #23022",
+      "[Improved] Clone repositories from any signed-in account using a single GitHub tab with an account picker grouped by host - #23044",
+      "[Improved] Publish repositories with your chosen account using a single account picker across GitHub.com and GitHub Enterprise, with organizations matching the selected account - #23024"
+    ],
     "3.6.10": ["[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"],
     "3.6.10-beta1": [
       "[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"
