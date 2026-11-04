@@ -79,7 +79,7 @@ export class CopilotCommitPanel extends React.Component<
   }
 
   private panelRef = React.createRef<HTMLDivElement>()
-  private headRef = React.createRef<HTMLDivElement>()
+  private headRef = React.createRef<HTMLButtonElement>()
   private pointerFrameId: number | null = null
   private lastPointer: { readonly x: number; readonly y: number } | null = null
   private clickTimestamps: ReadonlyArray<number> = []
@@ -209,7 +209,7 @@ export class CopilotCommitPanel extends React.Component<
 
     // Changing the key restarts the burst's CSS animations
     return (
-      <div className="sparkles" key={sparkleBurst}>
+      <div className="sparkles" key={sparkleBurst} aria-hidden={true}>
         {sparkles}
       </div>
     )
@@ -398,16 +398,14 @@ export class CopilotCommitPanel extends React.Component<
       >
         <div className="glow" />
         {this.props.children}
-        <div className="copilot-stage" aria-hidden={true}>
+        <div className="copilot-stage">
           {this.renderSparkles()}
-          {/*
-           * Poking Copilot is a purely decorative easter egg, so it's
-           * intentionally not exposed to keyboard or assistive technology users.
-           */}
-          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-          <div
+          <button
+            type="button"
             className={headClassName}
             ref={this.headRef}
+            aria-label="Animate Copilot"
+            aria-disabled={isThinking}
             onMouseEnter={this.onHeadMouseEnter}
             onClick={this.onHeadClick}
           >
@@ -419,8 +417,8 @@ export class CopilotCommitPanel extends React.Component<
               size={48}
               onAnimationEnd={this.onAnimationEnd}
             />
-          </div>
-          <div className="copilot-shadow" />
+          </button>
+          <div className="copilot-shadow" aria-hidden={true} />
         </div>
         <div className="caption">{this.renderCaption()}</div>
         <AriaLiveContainer

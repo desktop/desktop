@@ -4,7 +4,7 @@ import * as React from 'react'
 
 import { CopilotAnimation } from '../../../src/ui/copilot-animation/copilot-animation'
 import { CopilotCommitPanel } from '../../../src/ui/changes/copilot-commit-panel'
-import { render, screen } from '../../helpers/ui/render'
+import { fireEvent, render, screen } from '../../helpers/ui/render'
 import {
   advanceTimersBy,
   enableTestTimers,
@@ -179,6 +179,79 @@ describe('CopilotCommitPanel', () => {
 
     advanceThroughPhases(33, 1056)
     assert.ok(view.container.querySelector('.copilot-sprite-idle'))
+  })
+
+  it('exposes a named native mascot button while hiding decorative elements', () => {
+    const view = render(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />
+    )
+    const button = screen.getByRole('button', { name: 'Animate Copilot' })
+    assert.ok(button instanceof HTMLButtonElement)
+    assert.strictEqual(button.type, 'button')
+    assert.strictEqual(button.tabIndex, 0)
+    button.focus()
+    assert.strictEqual(document.activeElement, button)
+    for (const selector of [
+      '.copilot-animation',
+      '.sparkles',
+      '.copilot-shadow',
+    ]) {
+      assert.strictEqual(
+        view.container.querySelector(selector)?.getAttribute('aria-hidden'),
+        'true'
+      )
+    }
+  })
+
+  it('jumps on activation and celebrates after five rapid activations', () => {
+    const view = render(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />
+    )
+    const button = screen.getByRole('button', { name: 'Animate Copilot' })
+    advanceThroughPhases(33, 1056)
+    const sparkles = view.container.querySelector('.sparkles')
+
+    fireEvent.click(button)
+    assert.ok(view.container.querySelector('.copilot-sprite-jump-wiggle'))
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(button)
+    }
+    assert.ok(view.container.querySelector('.copilot-sprite-jump-wiggle'))
+    fireEvent.click(button)
+    assert.ok(view.container.querySelector('.copilot-sprite-celebrate'))
+    assert.notStrictEqual(view.container.querySelector('.sparkles'), sparkles)
+    assert.strictEqual(
+      view.container.querySelector('[aria-live="polite"]')?.textContent,
+      ''
+    )
+  })
+
+  it('keeps focus but disables mascot reactions until thinking finishes', () => {
+    const view = render(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />
+    )
+    const button = screen.getByRole('button', { name: 'Animate Copilot' })
+    button.focus()
+    view.rerender(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={true} />
+    )
+    assert.strictEqual(button.getAttribute('aria-disabled'), 'true')
+    assert.strictEqual(document.activeElement, button)
+    const sparkles = view.container.querySelector('.sparkles')
+    for (let i = 0; i < 5; i++) {
+      fireEvent.click(button)
+    }
+    assert.ok(view.container.querySelector('.copilot-sprite-thinking'))
+    assert.strictEqual(view.container.querySelector('.sparkles'), sparkles)
+
+    view.rerender(
+      <CopilotCommitPanel filesSelectedCount={1} isWorking={false} />
+    )
+    assert.strictEqual(button.getAttribute('aria-disabled'), 'true')
+    advanceThroughPhases(33, 429, 1390, 429)
+    assert.strictEqual(button.getAttribute('aria-disabled'), 'false')
+    fireEvent.click(button)
+    assert.ok(view.container.querySelector('.copilot-sprite-jump-wiggle'))
   })
 
   it('thinks while Copilot is working', () => {

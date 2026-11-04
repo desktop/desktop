@@ -592,7 +592,7 @@ describe('Copilot commit run panel', () => {
     })
   }
 
-  it('returns to idle after remount without retaining old progress or exposing the mascot to AT', async () => {
+  it('returns to idle after remount without retaining old progress or exposing decorative animation to AT', async () => {
     const initial = render(
       <CopilotCommitPanel
         filesSelectedCount={1}
@@ -614,9 +614,10 @@ describe('Copilot commit run panel', () => {
     assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
     assert.strictEqual(
       view.container
-        .querySelector('.copilot-stage')
+        .querySelector('.copilot-animation')
         ?.getAttribute('aria-hidden'),
       'true'
     )
+    assert.ok(screen.getByRole('button', { name: 'Animate Copilot' }))
   })
 })
