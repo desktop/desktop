@@ -1000,9 +1000,8 @@ async function getFilesUsingBinaryMergeDriver(
     .map(x => x.path)
 }
 
-// Prefix absolute path with `:(top,literal)` to ensure that git treats it as a
-// literal path. This is important for paths that appear to be absolute paths on
-// some platforms and not others. See
+// Treat filenames literally, retaining the top prefix for paths that appear
+// absolute on some platforms and not others. See
 // https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-top
 const ensureRelativePath = (path: string) =>
-  isAbsolute(path) ? `:(top,literal)${path}` : path
+  isAbsolute(path) ? `:(top,literal)${path}` : `:(literal)${path}`
