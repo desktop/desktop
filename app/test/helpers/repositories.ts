@@ -126,6 +126,51 @@ export async function setupConflictedRepo(t: TestContext): Promise<Repository> {
   return repo
 }
 
+export const PathspecMagicFileName = ':(glob)*.txt'
+
+/** Set up a repository with a tracked file whose name uses pathspec syntax. */
+export async function setupRepositoryWithPathspecMagicFile(
+  t: TestContext
+): Promise<Repository> {
+  const repo = await setupEmptyRepository(t)
+
+  await writeFile(join(repo.path, PathspecMagicFileName), 'base content\n')
+  await writeFile(join(repo.path, 'unrelated.txt'), 'unrelated content\n')
+  await exec(['add', '--all'], repo.path)
+  await exec(['commit', '-m', 'Initial commit'], repo.path)
+
+  return repo
+}
+
+/** Set up a repository with a conflict in a pathspec-magic filename. */
+export async function setupConflictedRepoWithPathspecMagicFile(
+  t: TestContext,
+  includeUnrelatedConflict = false
+): Promise<Repository> {
+  const repo = await setupRepositoryWithPathspecMagicFile(t)
+
+  await exec(['branch', 'other-branch'], repo.path)
+
+  await writeFile(join(repo.path, PathspecMagicFileName), 'master content\n')
+  if (includeUnrelatedConflict) {
+    await writeFile(join(repo.path, 'unrelated.txt'), 'master unrelated\n')
+  }
+  await exec(['add', '--all'], repo.path)
+  await exec(['commit', '-m', 'Update on master'], repo.path)
+
+  await switchTo(repo, 'other-branch')
+  await writeFile(join(repo.path, PathspecMagicFileName), 'other content\n')
+  if (includeUnrelatedConflict) {
+    await writeFile(join(repo.path, 'unrelated.txt'), 'other unrelated\n')
+  }
+  await exec(['add', '--all'], repo.path)
+  await exec(['commit', '-m', 'Update on other branch'], repo.path)
+
+  await exec(['merge', 'master'], repo.path)
+
+  return repo
+}
+
 /**
  * Setup a repository and create a merge conflict
  *
