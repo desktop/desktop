@@ -1,16 +1,27 @@
+import type {
+  AssistantMessageEvent,
+  CopilotClient,
+  CopilotSession,
+  MessageOptions,
+  SessionConfig,
+  SessionEventPayload,
+} from '@github/copilot-sdk'
+import { getCopilotPaymentRequiredErrorFromSessionError } from './copilot-error'
+
 /** Cancellation controls for SDK operations, preserving the caller's domain error. */
 export interface ICancellableCopilotOperationOptions<T> {
   readonly signal?: AbortSignal
   readonly cancellationError: () => Error
   /** Dispose resources returned after cancellation; failures must be reported. */
-  readonly disposeLateValue?: (value: T) => Promise<void>
+  readonly disposeLateValue?: (value: T) => void | Promise<void>
   /** Report secondary failures from interrupted resource setup after cancellation was delivered. */
   readonly onLateError?: (error: unknown) => void
 }
 
 /**
- * Await SDK setup/metadata without blocking cancellation on a pending promise.
+ * Await SDK setup, metadata, or a response without blocking cancellation.
  *
+ * Cancels only this waiter, never shared token renewal or model discovery.
  * The operation's rejection is always observed. A resource that arrives after
  * cancellation is disposed exactly once; late disposal errors are logged since
  * the cancellation has already been delivered to the caller.
@@ -61,7 +72,9 @@ export async function awaitCancellableCopilotOperation<T>(
             )
           }
           try {
-            void disposeLateValue?.(value).catch(reportCleanupError)
+            void Promise.resolve(disposeLateValue?.(value)).catch(
+              reportCleanupError
+            )
           } catch (error) {
             reportCleanupError(error)
           }
@@ -83,17 +96,7 @@ export async function awaitCancellableCopilotOperation<T>(
     )
   })
 }
-import type {
-  AssistantMessageEvent,
-  CopilotClient,
-  CopilotSession,
-  MessageOptions,
-  SessionConfig,
-  SessionEventPayload,
-} from '@github/copilot-sdk'
-import { getCopilotPaymentRequiredErrorFromSessionError } from './copilot-error'
-
-/** The SDK message/session surface used by the constrained planner. */
+/** The SDK message/session surface shared by commit messages and planning. */
 export interface ICopilotMessageSession {
   onSessionError(
     handler: (data: SessionEventPayload<'session.error'>['data']) => void
@@ -121,7 +124,7 @@ export interface ICopilotPlanningClient {
   forceStop(): Promise<void>
 }
 
-/** Adapt SDK event overloads without weakening their types in planner backends/tests. */
+/** Adapt SDK event overloads without weakening their types in callers/tests. */
 export function getCopilotMessageSession(
   session: CopilotSession
 ): ICopilotMessageSession {
@@ -143,6 +146,47 @@ export function getCopilotPlanningSession(
     onAssistantMessage: handler => session.on('assistant.message', handler),
     onIdle: handler => session.on('session.idle', handler),
     send: options => session.send(options),
+  }
+}
+
+/**
+ * Await the SDK's response with caller-owned cancellation and billing metadata.
+ *
+ * Unlike planning, nonbilling session errors are logged, not terminal. A 402
+ * replaces an SDK rejection but never overrides a successful SDK response.
+ * The SDK owns the response timeout; the caller still owns session teardown.
+ */
+export async function sendCopilotMessageRequest(
+  session: ICopilotMessageSession,
+  options: MessageOptions,
+  timeoutMs: number,
+  cancellation: ICancellableCopilotOperationOptions<
+    AssistantMessageEvent | undefined
+  >
+): Promise<AssistantMessageEvent | undefined> {
+  let paymentRequiredError: Error | undefined
+  const unsubscribe = session.onSessionError(data => {
+    const captured = getCopilotPaymentRequiredErrorFromSessionError(data)
+    if (captured !== null) {
+      paymentRequiredError = captured
+    } else {
+      const error = new Error(data.message)
+      if (data.stack !== undefined) {
+        error.stack = data.stack
+      }
+      log.error(`CopilotStore: Session error (${data.errorType})`, error)
+    }
+  })
+  try {
+    return await awaitCancellableCopilotOperation(
+      () =>
+        session.sendAndWait(options, timeoutMs).catch(error => {
+          throw paymentRequiredError ?? error
+        }),
+      cancellation
+    )
+  } finally {
+    unsubscribe()
   }
 }
 
