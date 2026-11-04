@@ -93,7 +93,7 @@ function isRepositoryHostedOnGitHub(
   return repository.gitHubRepository.htmlURL !== null
 }
 
-function isRepositoryForkWithUpstreamOnGitHub(
+export function isRepositoryForkWithUpstreamOnGitHub(
   repository: Repository | CloningRepository
 ) {
   if (
