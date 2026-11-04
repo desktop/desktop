@@ -214,6 +214,38 @@ describe('CopilotStore session credential wiring', () => {
 
   after(() => mock.restoreAll())
 
+  it('disables hook, configuration, and skill discovery for commit messages', async t => {
+    const { createSession, generate, sessionCreationStopped } = await setup(t, {
+      accessToken: account.token,
+    })
+
+    await assert.rejects(generate(), sessionCreationStopped)
+    assert.equal(createSession.mock.callCount(), 1)
+    const config = createSession.mock.calls[0].arguments[0]
+    assert.ok(config)
+    assert.equal(config.enableFileHooks, false)
+    assert.equal(config.enableConfigDiscovery, false)
+    assert.equal(config.enableSkills, false)
+    assert.equal(config.systemMessage?.mode, 'append')
+    assert.notEqual(config.skipCustomInstructions, true)
+  })
+
+  it('disables hook, configuration, and skill discovery for conflict resolution', async t => {
+    const { store, createSession } = await setup(t, {
+      accessToken: account.token,
+    })
+
+    await assert.rejects(resolveConflicts(store, new AbortController().signal))
+    assert.equal(createSession.mock.callCount(), 1)
+    const config = createSession.mock.calls[0].arguments[0]
+    assert.ok(config)
+    assert.equal(config.enableFileHooks, false)
+    assert.equal(config.enableConfigDiscovery, false)
+    assert.equal(config.enableSkills, false)
+    assert.equal(config.systemMessage?.mode, 'append')
+    assert.notEqual(config.skipCustomInstructions, true)
+  })
+
   it('rejects already-aborted conflict resolution before credential preparation', async () => {
     const accountsStore = new AccountsStore(
       new InMemoryStore(),
