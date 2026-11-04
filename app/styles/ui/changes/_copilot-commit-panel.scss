@@ -48,10 +48,20 @@
   // Copilot leans towards the mouse pointer
   .copilot-head {
     position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: var(--border-radius);
+    background: transparent;
     cursor: pointer;
     color: var(--text-color);
+    outline-offset: 2px;
     transform: translate(calc(var(--look-x, 0) * 6px), calc(var(--look-y, 0) * 4px)) rotate(calc(var(--look-x, 0) * 8deg));
     transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    &[aria-disabled='true'] {
+      cursor: default;
+    }
   }
 
   .copilot-shadow {
