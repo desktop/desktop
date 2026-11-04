@@ -845,7 +845,13 @@ export async function runConflictResolutionTurn(
       }
 
       const timer = setTimeout(() => {
-        finish(() => reject(new Error('Copilot conflict resolution timed out')))
+        finish(() =>
+          reject(
+            Object.assign(new Error('Copilot conflict resolution timed out'), {
+              code: 'COPILOT_TURN_TIMEOUT',
+            })
+          )
+        )
       }, timeoutMs)
 
       // If the signal already aborted before we got here, tear down now. The
@@ -887,7 +893,13 @@ export async function runConflictResolutionTurn(
         session.on('assistant.message', event => {
           const content = event.data.content
           if (!content) {
-            finish(() => reject(new Error('No response from Copilot')))
+            finish(() =>
+              reject(
+                Object.assign(new Error('No response from Copilot'), {
+                  code: 'COPILOT_EMPTY_RESPONSE',
+                })
+              )
+            )
           } else {
             finish(() => resolve(content))
           }
@@ -897,7 +909,13 @@ export async function runConflictResolutionTurn(
       unsubs.push(
         session.on('session.error', event => {
           finish(() =>
-            reject(new Error(`Copilot error: ${event.data.message}`))
+            reject(
+              Object.assign(new Error(`Copilot error: ${event.data.message}`), {
+                errorType: event.data.errorType,
+                errorCode: event.data.errorCode,
+                statusCode: event.data.statusCode,
+              })
+            )
           )
         })
       )

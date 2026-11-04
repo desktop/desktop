@@ -1045,7 +1045,7 @@ describe('getPreferredDefaultModel', () => {
  * unsubscribe fn), `send`, and `disconnect`. Lets us drive the streaming turn
  * deterministically and assert teardown behaviour.
  */
-function createFakeSession() {
+function createFakeSession(sendError?: Error) {
   const handlers: Record<string, Array<(event: unknown) => void>> = {}
   let unsubCalls = 0
   let disconnectCalls = 0
@@ -1065,6 +1065,9 @@ function createFakeSession() {
     },
     send() {
       sendCalls++
+      if (sendError !== undefined) {
+        return Promise.reject(sendError)
+      }
       // Never settles on its own — the turn completes via emitted events.
       return new Promise<void>(() => {})
     },
@@ -1144,6 +1147,102 @@ function makeConflictResolutionContext(): IConflictResolutionContext {
 }
 
 describe('runConflictResolutionTurn', () => {
+  it('preserves structured SDK error metadata without reporting its message', async () => {
+    const fake = createFakeSession()
+    const promise = runConflictResolutionTurn(fake.session, 'private prompt', {
+      timeoutMs: 60_000,
+    })
+
+    fake.emit('session.error', {
+      message: 'secret provider message /private/repository',
+      errorType: 'rate_limit',
+      errorCode: 'user_model_rate_limited',
+      statusCode: 429,
+      providerCallId: 'private-request-id',
+      stack: 'private provider stack',
+    })
+
+    await assert.rejects(promise, error => {
+      const failure = new CopilotConflictResolutionError(
+        error,
+        'stream-response'
+      )
+      assert.strictEqual(
+        failure.message,
+        'Copilot Conflict Resolution Error: stage=stream-response, retryState=not-retried, type=rate_limit, status=429, code=user_model_rate_limited'
+      )
+      assert.strictEqual(
+        failure.underlyingError.message,
+        'Copilot error: secret provider message /private/repository'
+      )
+      assert.ok(!failure.stack?.includes('secret'))
+      assert.ok(!failure.stack?.includes('private-request-id'))
+      return true
+    })
+    assert.strictEqual(fake.disconnectCalls, 1)
+    assert.strictEqual(fake.unsubCalls, 4)
+  })
+
+  it('identifies local turn timeouts and tears down the session', async () => {
+    const fake = createFakeSession()
+
+    await assert.rejects(
+      runConflictResolutionTurn(fake.session, 'prompt', { timeoutMs: 1 }),
+      error => {
+        const failure = new CopilotConflictResolutionError(
+          error,
+          'stream-response'
+        )
+        assert.ok(failure.message.endsWith('code=COPILOT_TURN_TIMEOUT'))
+        return true
+      }
+    )
+    assert.strictEqual(fake.disconnectCalls, 1)
+    assert.strictEqual(fake.unsubCalls, 4)
+  })
+
+  it('identifies an empty assistant response', async () => {
+    const fake = createFakeSession()
+    const promise = runConflictResolutionTurn(fake.session, 'prompt', {
+      timeoutMs: 60_000,
+    })
+
+    fake.emit('assistant.message', { content: '' })
+
+    await assert.rejects(promise, error => {
+      const failure = new CopilotConflictResolutionError(
+        error,
+        'stream-response'
+      )
+      assert.ok(failure.message.endsWith('code=COPILOT_EMPTY_RESPONSE'))
+      assert.strictEqual(
+        failure.underlyingError.message,
+        'No response from Copilot'
+      )
+      return true
+    })
+    assert.strictEqual(fake.disconnectCalls, 1)
+  })
+
+  it('preserves structured errors rejected by send', async () => {
+    const original = new Error('private RPC failure details')
+    const fake = createFakeSession(original)
+
+    await assert.rejects(
+      runConflictResolutionTurn(fake.session, 'prompt', { timeoutMs: 60_000 }),
+      error => {
+        const failure = new CopilotConflictResolutionError(
+          error,
+          'stream-response'
+        )
+        assert.ok(failure.message.endsWith('code=unknown'))
+        assert.strictEqual(failure.underlyingError, original)
+        return true
+      }
+    )
+    assert.strictEqual(fake.disconnectCalls, 1)
+  })
+
   it('rejects as aborted and tears down the session when cancelled mid-turn', async () => {
     const fake = createFakeSession()
     const controller = new AbortController()
@@ -1289,6 +1388,9 @@ describe('CopilotStore conflict resolution', () => {
           )
         )
         assert.strictEqual(error.underlyingError, sessionError)
+        assert.ok(
+          error.message.endsWith('type=unknown, status=unknown, code=unknown')
+        )
         return true
       }
     )
