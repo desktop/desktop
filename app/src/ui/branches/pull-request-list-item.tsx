@@ -6,6 +6,7 @@ import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DropTargetType } from '../../models/drag-drop'
@@ -47,6 +48,7 @@ export interface IPullRequestListItemProps {
 
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
+  readonly localRepository: Repository
 
   /** When a drag element has landed on a pull request */
   readonly onDropOntoPullRequest: (prNumber: number) => void
@@ -182,6 +184,7 @@ export class PullRequestListItem extends React.Component<
         <CIStatus
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          localRepository={this.props.localRepository}
           commitRef={ref}
         />
       </div>

@@ -344,12 +344,14 @@ export async function getCommitRangeChangedFiles(
 export async function getWorkingDirectoryDiff(
   repository: Repository,
   file: WorkingDirectoryFileChange,
-  hideWhitespaceInDiff: boolean = false
+  hideWhitespaceInDiff: boolean = false,
+  options: { readonly noTextconv?: boolean } = {}
 ): Promise<IDiff> {
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
   const args = [
     'diff',
+    ...(options.noTextconv === true ? ['--no-textconv'] : []),
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--no-ext-diff',
     '--patch-with-raw',

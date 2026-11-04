@@ -63,6 +63,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // (e.g. co-authors and Copilot buttons)
   --commit-message-action-button-separator-color: var(--box-border-color);
 
+  // Colors used by the Copilot-assisted commit panel
+  --copilot-commit-glow-color: #{rgba($purple-500, 0.14)};
+  --copilot-commit-accent-color: #{$purple-500};
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.

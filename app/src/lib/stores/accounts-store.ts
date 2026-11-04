@@ -1,6 +1,11 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
+import {
+  Account,
+  getAccountKey,
+  IAccountIdentity,
+  isDotComAccount,
+} from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
@@ -84,6 +89,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
+  /**
+   * The endpoint and login of every account persisted when the store loaded,
+   * including those whose credentials couldn't be read or were unusable.
+   */
+  private persistedIdentities: ReadonlyArray<IAccountIdentity> = []
+
   public constructor(
     dataStore: IDataStore,
     secureStore: ISecureStore,
@@ -113,6 +124,20 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /**
    * Get the list of accounts in the cache.
    */
+  /**
+   * Get the endpoint and login of every account that was persisted when the
+   * store loaded, whether or not its credentials could be loaded.
+   *
+   * Use this when only the identity matters, such as migrating repository
+   * account assignments, so a locked keychain at launch doesn't lose them.
+   */
+  public async getPersistedIdentities(): Promise<
+    ReadonlyArray<IAccountIdentity>
+  > {
+    await this.loadingPromise
+    return this.persistedIdentities
+  }
+
   public async getAll(): Promise<ReadonlyArray<Account>> {
     await this.loadingPromise
 
@@ -155,8 +180,8 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   ): Promise<Account> {
     await this.loadingPromise
     const token = await this.credentials.getFreshToken(account, minimumValidity)
-    const current = this.accounts.find(a => a.endpoint === account.endpoint)
-    if (current === undefined || current.id !== account.id) {
+    const current = this.findAccount(account)
+    if (current === undefined) {
       throw new AccountRequiresSignInError()
     }
     return this.credentials.inheritSession(current, current.withToken(token))
@@ -172,7 +197,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   ): Promise<{ readonly account: Account; readonly release: () => void }> {
     await this.loadingPromise
     const lease = await this.credentials.leaseToken(account, holder)
-    const current = this.accounts.find(a => a.endpoint === account.endpoint)
+    const current = this.findAccount(account)
     if (current === undefined || current.id !== account.id) {
       lease.release()
       throw new AccountRequiresSignInError()
@@ -255,25 +280,37 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return retired
   }
 
-  private onTokenRenewed = (endpoint: string, accessToken: string) => {
+  private onTokenRenewed = (account: Account, accessToken: string) => {
+    const key = getAccountKey(account)
     this.accounts = this.accounts.map(a =>
-      a.endpoint === endpoint
+      getAccountKey(a) === key
         ? this.credentials.inheritSession(a, a.withToken(accessToken))
         : a
     )
     this.save()
   }
 
+  /** Add the account, or replace an existing account with the same identity. */
   private onSignedIn = (account: Account) => {
-    this.accounts = sortAccounts([
-      ...this.accounts.filter(a => a.endpoint !== account.endpoint),
-      account,
-    ])
+    const key = getAccountKey(account)
+    const existing = this.accounts.findIndex(a => getAccountKey(a) === key)
+    this.accounts =
+      existing === -1
+        ? sortAccounts([...this.accounts, account])
+        : this.accounts.map((a, i) => (i === existing ? account : a))
     this.save()
   }
 
+  /** The installed account with the same identity (endpoint, login and id). */
+  private findAccount(account: Account): Account | undefined {
+    const key = getAccountKey(account)
+    return this.accounts.find(
+      a => getAccountKey(a) === key && a.id === account.id
+    )
+  }
+
   /**
-   * Add the account to the store.
+   * Add the account, or refresh an existing endpoint and login identity.
    *
    * Returns a new signed-in snapshot. Previous snapshots retain their old session.
    */
@@ -316,14 +353,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    * credentials that rotated while the profile request was in flight.
    */
   private async tryUpdateAccount(account: Account): Promise<void> {
-    const currentToken = this.credentials.trackToken(account.endpoint)
+    const currentToken = this.credentials.trackToken(account)
     try {
       const fresh = await this.getAccountWithFreshToken(account)
       const updated = await updatedAccount(fresh)
       const token = currentToken()
       if (token !== null) {
+        const key = getAccountKey(account)
         this.accounts = this.accounts.map(a =>
-          a.endpoint === account.endpoint
+          getAccountKey(a) === key
             ? this.credentials.inheritSession(a, updated.withToken(token))
             : a
         )
@@ -335,12 +373,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   private retireAccount(account: Account): Account | null {
-    const current = this.accounts.find(a => a.endpoint === account.endpoint)
-    if (current === undefined || current.id !== account.id) {
+    const current = this.findAccount(account)
+    if (current === undefined) {
       return null
     }
-    this.credentials.retire(account.endpoint)
-    this.accounts = this.accounts.filter(a => a.endpoint !== account.endpoint)
+    this.credentials.retire(current)
+    this.accounts = this.accounts.filter(a => a !== current)
     this.save()
     return current
   }
@@ -407,9 +445,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const parsedAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
     const migratedAccounts = this.getMigratedGHEAccounts(parsedAccounts)
     const rawAccounts = migratedAccounts ?? parsedAccounts
+    this.persistedIdentities = rawAccounts.map(({ endpoint, login }) => ({
+      endpoint,
+      login,
+    }))
 
-    // Duplicate endpoints keep the last entry, like CredentialSessions.restore.
-    const accountsByEndpoint = new Map<string, Account>()
+    // Duplicate accounts keep the last entry, like CredentialSessions.restore.
+    const accountsByKey = new Map<string, Account>()
     let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
@@ -443,7 +485,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
           credential?.accessToken ?? ''
         )
         const restored = this.credentials.restore(loaded, credential)
-        accountsByEndpoint.set(restored.endpoint, restored)
+        accountsByKey.set(getAccountKey(restored), restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
 
@@ -451,7 +493,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
     }
 
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    this.accounts = sortAccounts([...accountsByKey.values()])
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null || removedInvalidAccounts) {
       this.save() // Save already emits an update

@@ -402,7 +402,7 @@ function copyDependencies() {
   })
 
   console.log('  Copying desktop credential helper…')
-  const mingw = getDistArchitecture() === 'x64' ? 'mingw64' : 'clangarm64'
+  const mingw = getDistArchitecture() === 'x64' ? 'ucrt64' : 'clangarm64'
   const gitCoreDir =
     process.platform === 'win32'
       ? path.resolve(outRoot, 'git', mingw, 'libexec', 'git-core')
