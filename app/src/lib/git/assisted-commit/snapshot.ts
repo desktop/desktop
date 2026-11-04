@@ -979,12 +979,14 @@ export async function captureAssistedCommitSnapshot(
             sha: await hashBlob(context, selectedBytes),
           }
         : full
-      const selectedTree = await writeTree(
-        context,
-        baseTree,
-        [...blockingDeletions, ...fileTreeUpdates({ file, selected })],
-        scratchIndex
-      )
+      const selectedTree = partial
+        ? await writeTree(
+            context,
+            baseTree,
+            [...blockingDeletions, ...fileTreeUpdates({ file, selected })],
+            scratchIndex
+          )
+        : fullTree
       if (selectedTree === baseTree) {
         throw new AssistedCommitError(
           'unsafe-selection',

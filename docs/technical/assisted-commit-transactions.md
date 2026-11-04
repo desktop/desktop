@@ -199,6 +199,12 @@ independent of user diff-prefix configuration. Only capture reads live files;
 later trees and commits use those frozen canonical blobs.
 Native conversion itself never rereads selected paths in the original worktree,
 so swapped/restored ancestor directories cannot substitute unselected bytes.
+Complete selections reuse each file's already materialized immutable full tree
+for its selected-tree check, avoiding a second `read-tree`, `update-index` and
+`write-tree`. Partial selections still materialize and certify their distinct
+selected content independently. This reuse is local to that file's capture;
+it does not cache filesystem routes, infer descendant identity from a parent
+directory, or skip any final HEAD, index, selected-file or operation checks.
 Clean/process filters still execute with the original root as cwd and
 `GIT_WORK_TREE`, while their stdin comes from frozen captured copies.
 Internal full-conversion patches always have context, independently of
