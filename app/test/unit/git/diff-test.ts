@@ -29,6 +29,7 @@ import {
   getBinaryPaths,
   getBranchMergeBaseChangedFiles,
   getBranchMergeBaseDiff,
+  getLFSTextDiff,
   git,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -733,6 +734,139 @@ describe('git/diff', () => {
 
       assert(!diff.text.includes('bar'))
       assert(diff.text.includes('feature'))
+    })
+  })
+
+  describe('LFS diff detection', () => {
+    it('returns DiffType.LFSText when diff contains LFS pointer', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      const lfsPointerContent = [
+        'version https://git-lfs.github.com/spec/v1',
+        'oid sha256:abc123',
+        'size 12345',
+      ].join('\n')
+
+      const filePath = join(repository.path, 'large-file.bin')
+      await writeFile(filePath, lfsPointerContent)
+      await git(['add', '.'], repository.path, 'add')
+      await git(['commit', '-m', 'add lfs pointer'], repository.path, 'commit')
+
+      await writeFile(filePath, lfsPointerContent.replace('abc123', 'def456'))
+
+      const status = await getStatusOrThrow(repository)
+      const files = status.workingDirectory.files
+      assert(files.length > 0)
+
+      const diff = await getWorkingDirectoryDiff(repository, files[0])
+      assert.equal(diff.kind, DiffType.LFSText)
+    })
+
+    it('returns DiffType.Text for non-LFS pointer diff', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      const filePath = join(repository.path, 'normal.txt')
+      await writeFile(filePath, 'hello\n')
+      await git(['add', '.'], repository.path, 'add')
+      await git(['commit', '-m', 'add normal file'], repository.path, 'commit')
+
+      await appendFile(filePath, 'world\n')
+
+      const status = await getStatusOrThrow(repository)
+      const files = status.workingDirectory.files
+      assert(files.length > 0)
+
+      const diff = await getWorkingDirectoryDiff(repository, files[0])
+      assert.equal(diff.kind, DiffType.Text)
+    })
+  })
+
+  describe('getLFSTextDiff', () => {
+    async function hasGitLFS(): Promise<boolean> {
+      try {
+        const result = await exec(['lfs', 'version'], process.cwd())
+        return result.exitCode === 0
+      } catch {
+        return false
+      }
+    }
+
+    it('returns DiffType.Text for LFS-tracked text file', async t => {
+      if (!(await hasGitLFS())) {
+        t.skip('git-lfs is not available')
+        return
+      }
+
+      const repository = await setupEmptyRepository(t)
+
+      await exec(['lfs', 'install', '--local'], repository.path)
+      await exec(['lfs', 'track', '*.lfs'], repository.path)
+      await git(['add', '.gitattributes'], repository.path, 'add')
+      await git(['commit', '-m', 'configure lfs'], repository.path, 'commit')
+
+      const filePath = join(repository.path, 'textfile.lfs')
+      await writeFile(filePath, 'hello world\nthis is text content\n')
+      await git(['add', '.'], repository.path, 'add')
+      await git(
+        ['commit', '-m', 'add lfs text file'],
+        repository.path,
+        'commit'
+      )
+
+      await writeFile(filePath, 'hello world\nmodified text content\n')
+      await git(['add', '.'], repository.path, 'add')
+      await git(
+        ['commit', '-m', 'modify lfs text file'],
+        repository.path,
+        'commit'
+      )
+
+      const file = new FileChange('textfile.lfs', {
+        kind: AppFileStatusKind.Modified,
+      })
+      const diff = await getLFSTextDiff(repository, file, 'HEAD', 'HEAD', false)
+      assert(diff !== null)
+      assert.equal(diff!.kind, DiffType.Text)
+    })
+
+    it('returns DiffType.Binary for LFS-tracked binary file', async t => {
+      if (!(await hasGitLFS())) {
+        t.skip('git-lfs is not available')
+        return
+      }
+
+      const repository = await setupEmptyRepository(t)
+
+      await exec(['lfs', 'install', '--local'], repository.path)
+      await exec(['lfs', 'track', '*.lfs'], repository.path)
+      await git(['add', '.gitattributes'], repository.path, 'add')
+      await git(['commit', '-m', 'configure lfs'], repository.path, 'commit')
+
+      const filePath = join(repository.path, 'binaryfile.lfs')
+      const binaryContent = Buffer.from([0x48, 0x65, 0x6c, 0x00, 0x6f])
+      await writeFile(filePath, binaryContent)
+      await git(['add', '.'], repository.path, 'add')
+      await git(
+        ['commit', '-m', 'add lfs binary file'],
+        repository.path,
+        'commit'
+      )
+
+      const newBinaryContent = Buffer.from([0x48, 0x65, 0x6c, 0x00, 0x6f, 0x21])
+      await writeFile(filePath, newBinaryContent)
+      await git(['add', '.'], repository.path, 'add')
+      await git(
+        ['commit', '-m', 'modify lfs binary file'],
+        repository.path,
+        'commit'
+      )
+
+      const file = new FileChange('binaryfile.lfs', {
+        kind: AppFileStatusKind.Modified,
+      })
+      const diff = await getLFSTextDiff(repository, file, 'HEAD', 'HEAD', false)
+      assert(diff !== null)
+      assert.equal(diff!.kind, DiffType.Binary)
     })
   })
 })

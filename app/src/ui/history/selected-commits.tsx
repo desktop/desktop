@@ -6,6 +6,7 @@ import { Repository } from '../../models/repository'
 import { CommittedFileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { IDiff, ImageDiffType } from '../../models/diff'
+import { getLFSTextDiff } from '../../lib/git'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { revealInFileManager } from '../../lib/app-shell'
@@ -171,6 +172,7 @@ export class SelectedCommits extends React.Component<
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onOpenSubmodule={this.props.onOpenSubmodule}
+          onLoadLFSDiff={this.onLoadLFSDiff}
         />
       </div>
     )
@@ -228,6 +230,23 @@ export class SelectedCommits extends React.Component<
 
   private onExpandChanged = (isExpanded: boolean) => {
     this.setState({ isExpanded })
+  }
+
+  private onLoadLFSDiff = (): Promise<IDiff | null> => {
+    const file = this.props.selectedFile
+    if (file === null) {
+      return Promise.resolve(null)
+    }
+    const shas = this.props.shasInDiff
+    const oldestCommit = shas[0] ?? ''
+    const newestCommit = shas.at(-1) ?? ''
+    return getLFSTextDiff(
+      this.props.repository,
+      file,
+      oldestCommit,
+      newestCommit,
+      this.props.hideWhitespaceInDiff
+    )
   }
 
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {
