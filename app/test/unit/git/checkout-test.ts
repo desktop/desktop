@@ -28,6 +28,7 @@ import { exec } from 'dugite'
 import { TestStatsStore } from '../../helpers/test-stats-store'
 import { pathExists } from '../../../src/lib/path-exists'
 import { removeConflictedFile } from '../../../src/lib/git/rm'
+import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
 
 describe('git/checkout', () => {
   it(
@@ -63,7 +64,11 @@ describe('git/checkout', () => {
         throw new Error('Expected the pathspec-magic file to be conflicted')
       }
 
-      await checkoutConflictedFile(repository, file, 'ours')
+      await checkoutConflictedFile(
+        repository,
+        file,
+        ManualConflictResolution.ours
+      )
 
       assert.equal(
         await readFile(

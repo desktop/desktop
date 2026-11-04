@@ -20,6 +20,8 @@ import {
 import {
   setupFixtureRepository,
   setupEmptyRepository,
+  PathspecMagicFileName,
+  setupRepositoryWithPathspecMagicFile,
 } from '../../helpers/repositories'
 
 import {
@@ -29,6 +31,8 @@ import {
   getBinaryPaths,
   getBranchMergeBaseChangedFiles,
   getBranchMergeBaseDiff,
+  getCommitDiff,
+  getCommitRangeDiff,
   git,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -47,6 +51,83 @@ async function getTextDiff(
 }
 
 describe('git/diff', () => {
+  describe('historical diffs with literal filenames', () => {
+    for (const fileName of [PathspecMagicFileName, 'file*.txt']) {
+      for (const operation of ['commit', 'merge-base', 'range'] as const) {
+        it(
+          `loads only ${fileName} in a ${operation} diff`,
+          { skip: process.platform === 'win32' },
+          async t => {
+            const repository = await setupEmptyRepository(t)
+            const files = [fileName, 'file-other.txt']
+            for (const filePath of files) {
+              await writeFile(
+                path.join(repository.path, filePath),
+                'base content\n'
+              )
+            }
+            const runGit = async (args: string[]) => {
+              const result = await exec(args, repository.path)
+              assert.strictEqual(result.exitCode, 0, result.stderr)
+              return result.stdout.trim()
+            }
+            await runGit(['add', '--all'])
+            await runGit(['commit', '-m', 'Initial files'])
+            const base = await runGit(['rev-parse', 'HEAD'])
+            await writeFile(
+              path.join(repository.path, fileName),
+              'selected change\n'
+            )
+            await writeFile(
+              path.join(repository.path, 'file-other.txt'),
+              'unrelated change\n'
+            )
+            await runGit(['add', '--all'])
+            await runGit(['commit', '-m', 'Change both files'])
+            const first = await runGit(['rev-parse', 'HEAD'])
+            await writeFile(
+              path.join(repository.path, fileName),
+              'selected final\n'
+            )
+            await writeFile(
+              path.join(repository.path, 'file-other.txt'),
+              'unrelated final\n'
+            )
+            await runGit(['add', '--all'])
+            await runGit(['commit', '-m', 'Change both files again'])
+            const latest = await runGit(['rev-parse', 'HEAD'])
+            const file = new FileChange(fileName, {
+              kind: AppFileStatusKind.Modified,
+            })
+
+            const diff =
+              operation === 'commit'
+                ? await getCommitDiff(repository, file, latest)
+                : operation === 'merge-base'
+                ? await getBranchMergeBaseDiff(
+                    repository,
+                    file,
+                    base,
+                    latest,
+                    false,
+                    latest
+                  )
+                : await getCommitRangeDiff(repository, file, [first, latest])
+
+            assert.strictEqual(diff.kind, DiffType.Text)
+            assert.ok(diff.kind === DiffType.Text)
+            assert.strictEqual(
+              diff.text,
+              operation === 'commit'
+                ? '@@ -1 +1 @@\n-selected change\n+selected final'
+                : '@@ -1 +1 @@\n-base content\n+selected final'
+            )
+          }
+        )
+      }
+    }
+  })
+
   describe('getWorkingDirectoryImage', () => {
     it('retrieves valid image for new file', async t => {
       const testRepoPath = await setupFixtureRepository(
@@ -181,6 +262,45 @@ describe('git/diff', () => {
   })
 
   describe('getWorkingDirectoryDiff', () => {
+    for (const fileName of [PathspecMagicFileName, 'file*.txt']) {
+      it(
+        `loads only the selected file's diff for ${fileName}`,
+        { skip: process.platform === 'win32' },
+        async t => {
+          const repo = await setupRepositoryWithPathspecMagicFile(t)
+          await writeFile(path.join(repo.path, fileName), 'base content\n')
+          await writeFile(
+            path.join(repo.path, 'file-other.txt'),
+            'base other\n'
+          )
+          await exec(['add', '--all'], repo.path)
+          await exec(['commit', '-m', 'Add diff files'], repo.path)
+
+          await writeFile(path.join(repo.path, fileName), 'selected change\n')
+          await writeFile(
+            path.join(repo.path, 'file-other.txt'),
+            'other change\n'
+          )
+          await writeFile(
+            path.join(repo.path, 'unrelated.txt'),
+            'unrelated change\n'
+          )
+
+          const status = await getStatusOrThrow(repo)
+          const file = status.workingDirectory.files.find(
+            f => f.path === fileName
+          )
+          assert.ok(file)
+
+          const diff = await getTextDiff(repo, file)
+          assert.strictEqual(
+            diff.text,
+            '@@ -1 +1 @@\n-base content\n+selected change'
+          )
+        }
+      )
+    }
+
     it('counts lines for new file', async t => {
       const testRepoPath = await setupFixtureRepository(t, 'repo-with-changes')
       const repository = new Repository(testRepoPath, -1, null, false)
