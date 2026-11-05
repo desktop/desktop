@@ -81,6 +81,8 @@ import type { IBYOKProvider } from '../lib/copilot/byok'
 import { getConflictResolutionModelDisplay } from '../lib/copilot/conflict-resolution-model'
 import { OpenWithExternalEditor } from './open-with-external-editor/open-with-external-editor'
 import { RepositorySettings } from './repository-settings'
+import { RepositoryAccountDialog } from './repository-account/repository-account-dialog'
+import { ConfirmAccountSignOut } from './repository-account/confirm-account-sign-out'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -230,6 +232,8 @@ import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-dialog'
 import { IDeleteWorktreeOptions, WorktreeEntry } from '../models/worktree'
 import { shouldShowWorktreeDropdown } from '../lib/worktree-dropdown'
+import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from '../lib/git/repository-operation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1834,6 +1838,27 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      case PopupType.RepositoryAccount:
+        return (
+          <RepositoryAccountDialog
+            key={`repository-account-${popup.repository.id}`}
+            repository={popup.repository}
+            accounts={popup.accounts ?? this.state.accounts}
+            dispatcher={this.props.dispatcher}
+            onComplete={popup.onComplete}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.ConfirmAccountSignOut:
+        return (
+          <ConfirmAccountSignOut
+            key="confirm-account-sign-out"
+            account={popup.account}
+            repositoryCount={popup.repositoryCount}
+            onComplete={popup.onComplete}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       case PopupType.RepositorySettings: {
         const repository = popup.repository
         const state = this.props.repositoryStateManager.get(repository)
@@ -1850,6 +1875,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={repository}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -1861,8 +1887,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             signInState={this.state.signInState}
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
-            isCredentialHelperSignIn={popup.isCredentialHelperSignIn}
-            credentialHelperUrl={popup.credentialHelperUrl}
           />
         )
       case PopupType.AddRepository:
@@ -1894,6 +1918,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
+            selectedAccount={this.state.selectedCloneAccount}
             apiRepositories={this.state.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
             isTopMost={isTopMost}
@@ -2604,6 +2629,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CICheckRunRerunDialog
             key="rerun-check-runs"
+            localRepository={popup.localRepository}
             checkRuns={popup.checkRuns}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
@@ -2745,6 +2771,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <AppError
             error={popup.error}
+            showCauses={popup.showCauses}
             onDismissed={onPopupDismissedFn}
             onShowPopup={this.showPopup}
             onRetryAction={this.onRetryAction}
@@ -2912,6 +2939,22 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           >
             Review and edit the generated message carefully before use.
+          </CopilotDisclaimer>
+        )
+      }
+      case PopupType.AssistedCommitDisclaimer: {
+        return (
+          <CopilotDisclaimer
+            key="assisted-commit-disclaimer"
+            onAccepted={popup.onAccepted}
+            onDismissed={onPopupDismissedFn}
+          >
+            Copilot will plan your selected changes, and GitHub Desktop will
+            create one or more local commits with their generated messages.
+            Copilot will not edit your files. You can cancel before local
+            acceptance to undo commits created by this run. If Push after
+            committing is enabled, all local commits are kept once pushing
+            starts, even if the push fails.
           </CopilotDisclaimer>
         )
       }
@@ -3408,9 +3451,41 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
+        accounts={this.state.accounts}
+        onChangeRepositoryAccount={this.changeRepositoryAccount}
+        onShowRepositorySettings={this.showRepositorySettingsFor}
         dispatcher={this.props.dispatcher}
       />
     )
+  }
+
+  private changeRepositoryAccount = async (
+    repository: Repository,
+    login: string
+  ) => {
+    try {
+      await this.props.dispatcher.updateRepositoryAccount(repository, login)
+    } catch (e) {
+      this.props.dispatcher.postError(e)
+    }
+  }
+
+  /**
+   * Show the settings for a repository that may not be selected, without
+   * changing the selection.
+   */
+  private showRepositorySettingsFor = async (repository: Repository) => {
+    const selected = this.state.selectedState?.repository
+    // The dialog reads the remote from the repository's state, which is only
+    // loaded once the repository has been refreshed.
+    if (!(selected instanceof Repository) || selected.id !== repository.id) {
+      await this.props.dispatcher.refreshRepository(repository)
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.RepositorySettings,
+      repository,
+    })
   }
 
   private viewOnGitHub = (
@@ -3601,6 +3676,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       onOpenInExternalEditor: this.openInExternalEditor,
       askForConfirmationOnRemoveRepository:
         this.state.askForConfirmationOnRepositoryRemoval,
+      accounts: this.state.accounts,
+      onChangeRepositoryAccount: this.changeRepositoryAccount,
+      onShowRepositorySettings: this.showRepositorySettingsFor,
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
@@ -3677,6 +3755,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         remoteName={remoteName}
         lastFetched={state.lastFetched}
         networkActionInProgress={state.isPushPullFetchInProgress}
+        disabled={
+          isAssistedCommitRepositoryLocked(state.changesState.assistedCommit) ||
+          isRepositoryAffectedByAssistedCommit(selection.repository.path)
+        }
         progress={progress}
         tipState={tip.kind}
         pullWithRebase={pullWithRebase}
@@ -3861,6 +3943,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropDownStateChanged={this.onWorktreeDropdownStateChanged}
         enableFocusTrap={enableFocusTrap}
         worktreeDropdownWidth={this.state.worktreeDropdownWidth}
+        disabled={
+          isAssistedCommitRepositoryLocked(
+            selection.state.changesState.assistedCommit
+          ) || isRepositoryAffectedByAssistedCommit(repository.path)
+        }
       />
     )
   }

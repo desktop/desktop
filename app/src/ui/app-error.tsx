@@ -10,7 +10,7 @@ import { dialogTransitionTimeout } from './app'
 import { GitError, isAuthFailureError } from '../lib/git/core'
 import { Popup, PopupType } from '../models/popup'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
-import { ErrorWithMetadata } from '../lib/error-with-metadata'
+import { ErrorWithMetadata, getErrorCauses } from '../lib/error-with-metadata'
 import { RetryActionType, RetryAction } from '../models/retry-actions'
 import { Ref } from './lib/ref'
 import { GitError as DugiteError } from 'dugite'
@@ -23,6 +23,8 @@ import { coerceToString } from '../lib/git/coerce-to-string'
 interface IAppErrorProps {
   /** The error to be displayed  */
   readonly error: Error
+  /** Show retained nested failures only for an explicit details request. */
+  readonly showCauses?: boolean
 
   /** Called to dismiss the dialog */
   readonly onDismissed: () => void
@@ -311,6 +313,19 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         <DialogContent onRef={this.onDialogContentRef}>
           <div id="app-error-description">
             {this.renderErrorMessage(error)}
+            {this.props.showCauses &&
+              getErrorCauses(error)
+                .filter(
+                  (cause): cause is Error =>
+                    cause instanceof Error &&
+                    !(cause instanceof ErrorWithMetadata) &&
+                    cause !== getUnderlyingError(error)
+                )
+                .map((cause, index) => (
+                  <React.Fragment key={index}>
+                    {this.renderErrorMessage(cause)}
+                  </React.Fragment>
+                ))}
             {this.renderContentAfterErrorMessage(error)}
           </div>
         </DialogContent>
@@ -321,7 +336,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 }
 
 export function getUnderlyingError(error: Error): Error {
-  return isErrorWithMetaData(error) ? error.underlyingError : error
+  const copilotError = getErrorCauses(error).find(
+    (cause): cause is CopilotError => cause instanceof CopilotError
+  )
+  return (
+    copilotError ?? (isErrorWithMetaData(error) ? error.underlyingError : error)
+  )
 }
 
 export function isErrorWithMetaData(error: Error): error is ErrorWithMetadata {

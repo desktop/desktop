@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { IAccountIdentity } from './account'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -65,7 +66,9 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    /** The explicitly assigned account login, or null if no account is assigned. */
+    public readonly login: string | null = null
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +79,8 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.login
     )
   }
 
@@ -89,6 +93,21 @@ export class Repository {
   public get resolvedGitDir(): string {
     return this.gitDir ?? Path.join(this.path, '.git')
   }
+}
+
+/**
+ * A key identifying the working directory a repository refers to.
+ *
+ * Unlike `hash`, the key doesn't change when the repository's account,
+ * GitHub repository or other metadata changes, so in-memory state and
+ * in-flight operations survive those changes. Worktrees share a repository id,
+ * so the path is part of the key. Repositories that haven't been persisted
+ * (id -1) fall back to the hash so unrelated placeholders don't share state.
+ */
+export function getRepositoryStateKey(repository: Repository): string {
+  return repository.id < 0
+    ? `hash:${repository.hash}`
+    : `${repository.id}:${repository.path}`
 }
 
 /** Identical to `Repository`, except it **must** have a `gitHubRepository` */
@@ -126,6 +145,19 @@ export function assertIsRepositoryWithGitHubRepository(
   if (!isRepositoryWithGitHubRepository(repository)) {
     return fatalError(`Repository must be GitHub repository`)
   }
+}
+
+/**
+ * Get the identity of the account assigned to the repository, or null when
+ * the repository isn't a GitHub repository or has no assigned account.
+ */
+export function getRepositoryAccountIdentity(
+  repository: Repository
+): IAccountIdentity | null {
+  const { gitHubRepository, login } = repository
+  return gitHubRepository === null || login === null
+    ? null
+    : { endpoint: gitHubRepository.endpoint, login }
 }
 
 /**

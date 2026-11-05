@@ -61,7 +61,10 @@
     "yarn": ">= 1.9"
   },
   "resolutions": {
-    "@types/react-css-transition-replace/@types/react": "^16.14.62"
+    "@github/markdownlint-github/markdown-it": "14.3.3",
+    "@types/react-css-transition-replace/@types/react": "^16.14.62",
+    "markdownlint-cli/js-yaml": "5.4.3",
+    "markdownlint-cli/smol-toml": "1.9.1"
   },
   "dependencies": {
     "@primer/octicons": "^19.28.1",
@@ -155,7 +158,7 @@
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/webpack-hot-middleware": "^2.25.9",
     "diff": "^8.0.3",
-    "electron": "44.1.1",
+    "electron": "44.9.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.49.1",

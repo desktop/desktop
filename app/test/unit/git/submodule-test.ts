@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
 import { readFile, writeFile } from 'fs/promises'
+import { exec } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 import {
@@ -9,7 +10,10 @@ import {
   resetSubmodulePaths,
 } from '../../../src/lib/git/submodule'
 import { checkoutBranch, getBranches } from '../../../src/lib/git'
-import { setupFixtureRepository } from '../../helpers/repositories'
+import {
+  setupEmptyRepository,
+  setupFixtureRepository,
+} from '../../helpers/repositories'
 
 describe('git/submodule', () => {
   describe('listSubmodules', () => {
@@ -56,6 +60,74 @@ describe('git/submodule', () => {
   })
 
   describe('resetSubmodulePaths', () => {
+    for (const selectedPath of [':(glob)*-module', '*-module']) {
+      it(
+        `discards only the literal submodule ${selectedPath}`,
+        { skip: process.platform === 'win32' },
+        async t => {
+          const source = await setupEmptyRepository(t)
+          const repository = await setupEmptyRepository(t)
+          await writeFile(path.join(source.path, 'example.txt'), 'original\n')
+          for (const args of [
+            ['add', '--', 'example.txt'],
+            ['commit', '-m', 'Initial content'],
+          ]) {
+            const result = await exec(args, source.path)
+            assert.strictEqual(result.exitCode, 0, result.stderr)
+          }
+          for (const modulePath of ['selected-module', 'unintended-module']) {
+            const result = await exec(
+              [
+                '-c',
+                'protocol.file.allow=always',
+                'submodule',
+                'add',
+                '--',
+                source.path,
+                modulePath,
+              ],
+              repository.path
+            )
+            assert.strictEqual(result.exitCode, 0, result.stderr)
+          }
+          for (const args of [
+            [
+              '--literal-pathspecs',
+              'mv',
+              '--',
+              'selected-module',
+              selectedPath,
+            ],
+            ['add', '--', '.gitmodules'],
+            ['commit', '-m', 'Add submodules'],
+          ]) {
+            const result = await exec(args, repository.path)
+            assert.strictEqual(result.exitCode, 0, result.stderr)
+          }
+          const selectedFile = path.join(
+            repository.path,
+            selectedPath,
+            'example.txt'
+          )
+          const unrelatedFile = path.join(
+            repository.path,
+            'unintended-module',
+            'example.txt'
+          )
+          await writeFile(selectedFile, 'selected edit\n')
+          await writeFile(unrelatedFile, 'unrelated edit\n')
+
+          await resetSubmodulePaths(repository, [selectedPath])
+
+          assert.strictEqual(await readFile(selectedFile, 'utf8'), 'original\n')
+          assert.strictEqual(
+            await readFile(unrelatedFile, 'utf8'),
+            'unrelated edit\n'
+          )
+        }
+      )
+    }
+
     it('update submodule to original commit', async t => {
       const testRepoPath = await setupFixtureRepository(
         t,

@@ -1,7 +1,7 @@
 import { Branch, BranchType } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { PullRequest } from '../../models/pull-request'
-import { Repository } from '../../models/repository'
+import { Repository, getRepositoryStateKey } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
@@ -22,25 +22,67 @@ import {
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { IStatsStore } from '../stats'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { WorktreeEntry } from '../../models/worktree'
+import { getCommitMode } from './helpers/commit-mode-storage'
+import { getPushAfterAssistedCommit } from './helpers/assisted-commit-push-storage'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
+  private readonly commitModes = new Map<number | string, CommitMode>()
+  private readonly assistedPushPreferences = new Map<number | string, boolean>()
 
   public constructor(private readonly statsStore: IStatsStore) {}
 
+  /** Whether any state has been created for the repository. */
+  public has(repository: Repository): boolean {
+    return this.repositoryState.has(getRepositoryStateKey(repository))
+  }
+
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
-    const existing = this.repositoryState.get(repository.hash)
+    const stateKey = getRepositoryStateKey(repository)
+    const modeKey = repository.id < 0 ? stateKey : repository.id
+    const commitMode =
+      this.commitModes.get(modeKey) ?? getCommitMode(repository)
+    this.commitModes.set(modeKey, commitMode)
+    const pushAfterAssistedCommit =
+      this.assistedPushPreferences.get(modeKey) ??
+      getPushAfterAssistedCommit(repository)
+    this.assistedPushPreferences.set(modeKey, pushAfterAssistedCommit)
+
+    const existing = this.repositoryState.get(stateKey)
     if (existing != null) {
-      return existing
+      if (
+        existing.changesState.commitMode === commitMode &&
+        existing.changesState.pushAfterAssistedCommit ===
+          pushAfterAssistedCommit
+      ) {
+        return existing
+      }
+
+      // Worktrees retain separate state while sharing the repository's preference.
+      const reconciled = {
+        ...existing,
+        changesState: {
+          ...existing.changesState,
+          commitMode,
+          pushAfterAssistedCommit,
+        },
+      }
+      this.repositoryState.set(stateKey, reconciled)
+      return reconciled
     }
 
-    const newItem = getInitialRepositoryState()
-    this.repositoryState.set(repository.hash, newItem)
+    const initial = getInitialRepositoryState(commitMode)
+    const newItem = {
+      ...initial,
+      changesState: { ...initial.changesState, pushAfterAssistedCommit },
+    }
+    this.repositoryState.set(stateKey, newItem)
     return newItem
   }
 
@@ -51,6 +93,14 @@ export class RepositoryStateCache {
     const currentState = this.get(repository)
     const newValues = fn(currentState)
     const newState = merge(currentState, newValues)
+    this.commitModes.set(
+      repository.id < 0 ? getRepositoryStateKey(repository) : repository.id,
+      newState.changesState.commitMode
+    )
+    this.assistedPushPreferences.set(
+      repository.id < 0 ? getRepositoryStateKey(repository) : repository.id,
+      newState.changesState.pushAfterAssistedCommit
+    )
 
     const currentTip = currentState.branchesState.tip
     const newTip = newState.branchesState.tip
@@ -65,7 +115,7 @@ export class RepositoryStateCache {
       newTip.branch.tip.sha === newState.commitToAmend.sha &&
       newState.changesState.conflictState === null
 
-    this.repositoryState.set(repository.hash, {
+    this.repositoryState.set(getRepositoryStateKey(repository), {
       ...newState,
       commitToAmend: isAmending ? newState.commitToAmend : null,
     })
@@ -257,14 +307,14 @@ export class RepositoryStateCache {
     source: Repository,
     worktree: WorktreeEntry
   ) {
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceState = this.repositoryState.get(getRepositoryStateKey(source))
     if (sourceState === undefined) {
       return
     }
 
     const targetState = this.get(target)
 
-    this.repositoryState.set(target.hash, {
+    this.repositoryState.set(getRepositoryStateKey(target), {
       ...targetState,
       branchesState: {
         ...targetState.branchesState,
@@ -295,17 +345,17 @@ export class RepositoryStateCache {
    * identity rather than reset to its initial values.
    */
   public transferState(source: Repository, target: Repository) {
-    if (source.hash === target.hash) {
+    if (getRepositoryStateKey(source) === getRepositoryStateKey(target)) {
       return
     }
 
-    const sourceState = this.repositoryState.get(source.hash)
+    const sourceState = this.repositoryState.get(getRepositoryStateKey(source))
     if (sourceState === undefined) {
       return
     }
 
-    this.repositoryState.set(target.hash, sourceState)
-    this.repositoryState.delete(source.hash)
+    this.repositoryState.set(getRepositoryStateKey(target), sourceState)
+    this.repositoryState.delete(getRepositoryStateKey(source))
   }
 
   private sendPullRequestStateNotExistsException() {
@@ -358,7 +408,7 @@ export class RepositoryStateCache {
   }
 }
 
-function getInitialRepositoryState(): IRepositoryState {
+function getInitialRepositoryState(commitMode: CommitMode): IRepositoryState {
   return {
     commitSelection: {
       shas: [],
@@ -378,6 +428,10 @@ function getInitialRepositoryState(): IRepositoryState {
         diff: null,
       },
       commitMessage: DefaultCommitMessage,
+      commitMode,
+      pushAfterAssistedCommit: false,
+      assistedCommit: { kind: 'idle' },
+      assistedCommitAvailable: false,
       coAuthors: [],
       showCoAuthoredBy: false,
       conflictState: null,

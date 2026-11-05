@@ -37,6 +37,7 @@ import {
   getRebaseSnapshot,
   getRepositoryType,
   listWorktrees,
+  IAddWorktreeOptions,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -59,7 +60,7 @@ import type { IBYOKProvider } from '../../lib/copilot/byok'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
-import { Account } from '../../models/account'
+import { Account, IAccountIdentity } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
@@ -68,6 +69,9 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
+import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
+import { AssistedCommitRunOutcome } from '../../models/assisted-commit-run'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
@@ -86,6 +90,7 @@ import {
   getNonForkGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
+import { CloneRepositoryOptions } from '../../models/clone-options'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -186,6 +191,14 @@ export class Dispatcher {
     return this.appStore._addRepositories(paths)
   }
 
+  /** Protect complete repository creation, including templates and initial commit. */
+  public createRepository<T>(
+    path: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return this.appStore._createRepository(path, operation)
+  }
+
   /**
    * Add a tutorial repository.
    *
@@ -235,6 +248,70 @@ export class Dispatcher {
     missing: boolean
   ): Promise<Repository> {
     return this.appStore._updateRepositoryMissing(repository, missing)
+  }
+
+  /** Set and persist the preferred commit mode for this repository. */
+  public setCommitMode(repository: Repository, commitMode: CommitMode): void {
+    this.appStore._setCommitMode(repository, commitMode)
+  }
+
+  /** Persist this repository's assisted-push opt-in, independently of manual options. */
+  public setPushAfterAssistedCommit(
+    repository: Repository,
+    enabled: boolean
+  ): void {
+    this.appStore._setPushAfterAssistedCommit(repository, enabled)
+  }
+
+  /** Freeze first-click intent and certify Desktop selections before warning dialogs. */
+  public prepareCopilotAssistedCommitRequest(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<ICopilotAssistedCommitRequest> {
+    return this.appStore._prepareCopilotAssistedCommitRequest(
+      repository,
+      request
+    )
+  }
+
+  /** Plan, validate, and await one Desktop-owned local assisted commit transaction. */
+  public createCopilotAssistedCommits(
+    repository: Repository,
+    request: ICopilotAssistedCommitRequest
+  ): Promise<AssistedCommitRunOutcome> {
+    return this.appStore._createCopilotAssistedCommits(repository, request)
+  }
+
+  /** Cancel only the identified run; its owner awaits Git and verified recovery. */
+  public cancelCopilotAssistedCommits(
+    repository: Repository,
+    runId: string
+  ): void {
+    this.appStore._cancelCopilotAssistedCommits(repository, runId)
+  }
+
+  /** Retry retained recovery, never rerun the model or create more commits. */
+  public retryCopilotAssistedCommitRecovery(
+    repository: Repository,
+    runId: string
+  ): Promise<void> {
+    return this.appStore._retryCopilotAssistedCommitRecovery(repository, runId)
+  }
+
+  /** Retry only the frozen push intent. Never plan, commit, or roll history back. */
+  public retryCopilotAssistedCommitPush(
+    repository: Repository,
+    runId: string
+  ): Promise<AssistedCommitRunOutcome | undefined> {
+    return this.appStore._retryCopilotAssistedCommitPush(repository, runId)
+  }
+
+  /** Dismiss a settled error, but never abandon unresolved recovery ownership. */
+  public dismissCopilotAssistedCommitError(
+    repository: Repository,
+    runId: string
+  ): void {
+    this.appStore._dismissCopilotAssistedCommitError(repository, runId)
   }
 
   public updateCommitOptions(
@@ -837,7 +914,7 @@ export class Dispatcher {
   public async clone(
     url: string,
     path: string,
-    options?: { branch?: string; defaultBranch?: string }
+    options?: CloneRepositoryOptions
   ): Promise<Repository | null> {
     return this.appStore._completeOpenInDesktop(async () => {
       const { promise, repository } = this.appStore._clone(url, path, options)
@@ -1030,6 +1107,30 @@ export class Dispatcher {
       .catch(e => this.postError(e))
   }
 
+  /** Create, read back and switch to a worktree as one tracked user operation. */
+  public async addWorktreeAndSwitch(
+    repository: Repository,
+    path: string,
+    options: IAddWorktreeOptions
+  ): Promise<boolean> {
+    return this.appStore
+      ._addWorktreeAndSwitch(repository, path, options)
+      .then(() => true)
+      .catch(error => {
+        this.postError(error)
+        return false
+      })
+  }
+
+  /** Update the local name/email pair without admitting an assisted run between writes. */
+  public updateRepositoryCommitter(
+    repository: Repository,
+    name: string | null | undefined,
+    email: string | null | undefined
+  ): Promise<void> {
+    return this.appStore._updateRepositoryCommitter(repository, name, email)
+  }
+
   /**
    * Rename (move) a worktree to a new path and keep the worktree list in sync.
    * If the worktree being renamed is the currently selected one, the repository
@@ -1154,7 +1255,7 @@ export class Dispatcher {
   }
 
   /** Update the repository's issues from GitHub. */
-  public refreshIssues(repository: GitHubRepository): Promise<void> {
+  public refreshIssues(repository: Repository): Promise<void> {
     return this.appStore._refreshIssues(repository)
   }
 
@@ -1262,7 +1363,38 @@ export class Dispatcher {
 
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
-    return this.appStore._removeAccount(account)
+    return this.appStore._signOutAccount(account)
+  }
+
+  /** Explicitly change the account assigned to a local repository. */
+  public updateRepositoryAccount(repository: Repository, login: string | null) {
+    return this.appStore._updateRepositoryAccount(repository, login)
+  }
+
+  /** Resolve an account, prompting only for a user-initiated operation. */
+  public ensureRepositoryAccount(repository: Repository) {
+    return this.appStore._ensureRepositoryAccount(repository)
+  }
+
+  /**
+   * Associate a repository without a GitHub association with the endpoint Git
+   * is asking credentials for, if its default remote is on that endpoint.
+   */
+  public associateRepositoryWithEndpoint(
+    repository: Repository,
+    endpoint: string
+  ) {
+    return this.appStore._associateRepositoryWithEndpoint(repository, endpoint)
+  }
+
+  /** Sign back into a specific account without replacing other accounts. */
+  public async showAccountSignInDialog(
+    endpoint: string,
+    login: string,
+    resultCallback?: (result: SignInResult) => void
+  ): Promise<void> {
+    this.appStore._beginSignInForAccount(endpoint, login, resultCallback)
+    await this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
   /**
@@ -2450,6 +2582,11 @@ export class Dispatcher {
     return this.appStore._changeCloneRepositoriesTab(tab)
   }
 
+  /** Remember the account picked in the GitHub tab of Clone Repository. */
+  public changeCloneRepositoriesAccount(account: IAccountIdentity): void {
+    this.appStore._changeCloneRepositoriesAccount(account)
+  }
+
   /**
    * Request a refresh of the list of repositories that
    * the provided account has explicit permissions to access.
@@ -2745,16 +2882,23 @@ export class Dispatcher {
    */
   public tryGetCommitStatus(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     branchName?: string
   ): ICombinedRefCheck | null {
-    return this.commitStatusStore.tryGetStatus(repository, ref, branchName)
+    return this.commitStatusStore.tryGetStatus(
+      repository,
+      localRepository,
+      ref,
+      branchName
+    )
   }
 
   /**
    * Subscribe to commit status updates for a particular ref.
    *
    * @param repository The GitHub repository to use when looking up commit status.
+   * @param localRepository The local repository providing the account assignment.
    * @param ref        The commit ref (can be a SHA or a Git ref) for which to
    *                   fetch status.
    * @param callback   A callback which will be invoked whenever the
@@ -2764,12 +2908,14 @@ export class Dispatcher {
    */
   public subscribeToCommitStatus(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     callback: StatusCallBack,
     branchName?: string
   ): Disposable {
     return this.commitStatusStore.subscribe(
       repository,
+      localRepository,
       ref,
       callback,
       branchName
@@ -2781,11 +2927,13 @@ export class Dispatcher {
    */
   public manualRefreshSubscription(
     repository: GitHubRepository,
+    localRepository: Repository,
     ref: string,
     pendingChecks: ReadonlyArray<IRefCheck>
   ): Promise<void> {
     return this.commitStatusStore.manualRefreshSubscription(
       repository,
+      localRepository,
       ref,
       pendingChecks
     )
@@ -2797,15 +2945,25 @@ export class Dispatcher {
    */
   public async rerequestCheckSuites(
     repository: GitHubRepository,
+    localRepository: Repository,
     checkRuns: ReadonlyArray<IRefCheck>,
     failedOnly: boolean
   ): Promise<ReadonlyArray<boolean>> {
+    if ((await this.ensureRepositoryAccount(localRepository)) === undefined) {
+      return []
+    }
+    localRepository = await this.appStore._getCurrentRepository(localRepository)
+
     const promises = new Array<Promise<boolean>>()
 
     // If it is one and in actions check, we can rerun it individually.
     if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
       promises.push(
-        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+        this.commitStatusStore.rerunJob(
+          repository,
+          localRepository,
+          checkRuns[0].id
+        )
       )
       return Promise.all(promises)
     }
@@ -2826,11 +2984,19 @@ export class Dispatcher {
     }
 
     for (const id of workflowRunIds) {
-      promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
+      promises.push(
+        this.commitStatusStore.rerunFailedJobs(repository, localRepository, id)
+      )
     }
 
     for (const id of checkSuiteIds) {
-      promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
+      promises.push(
+        this.commitStatusStore.rerequestCheckSuite(
+          repository,
+          localRepository,
+          id
+        )
+      )
     }
 
     return Promise.all(promises)
@@ -2841,9 +3007,14 @@ export class Dispatcher {
    */
   public async fetchCheckSuite(
     repository: GitHubRepository,
+    localRepository: Repository,
     checkSuiteId: number
   ): Promise<IAPICheckSuite | null> {
-    return this.commitStatusStore.fetchCheckSuite(repository, checkSuiteId)
+    return this.commitStatusStore.fetchCheckSuite(
+      repository,
+      localRepository,
+      checkSuiteId
+    )
   }
 
   /**
@@ -4131,7 +4302,7 @@ export class Dispatcher {
   }
 
   public startPullRequest(repository: Repository) {
-    this.appStore._startPullRequest(repository)
+    return this.appStore._startPullRequest(repository)
   }
 
   /**

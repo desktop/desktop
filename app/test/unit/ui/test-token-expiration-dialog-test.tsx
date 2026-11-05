@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as React from 'react'
-import { Account } from '../../../src/models/account'
+import { Account, getAccountKey } from '../../../src/models/account'
 import { IAccountTokenExpiration } from '../../../src/lib/credential-sessions'
 import { Dispatcher } from '../../../src/ui/dispatcher'
 import { TestTokenExpirationDialog } from '../../../src/ui/preferences/test-token-expiration-dialog'
@@ -270,7 +270,7 @@ describe('TestTokenExpirationDialog', () => {
     renderDialog(dispatcher, [account, enterprise])
     await waitFor(() => assert.equal(dateInput().disabled, false))
     fireEvent.change(screen.getByLabelText('Account'), {
-      target: { value: enterprise.endpoint },
+      target: { value: getAccountKey(enterprise) },
     })
     await waitFor(() =>
       assert.equal(new Date(dateInput().value).getTime(), initial.expiresAt)
