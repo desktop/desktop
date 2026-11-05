@@ -554,6 +554,38 @@ const basenameModes: ReadonlyArray<IModeDefinition> = [
       'cargo.lock': 'text/x-toml',
     },
   },
+  {
+    install: () => import('codemirror/mode/dockerfile/dockerfile'),
+    mappings: {
+      containerfile: 'text/x-dockerfile',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/ruby/ruby'),
+    mappings: {
+      gemfile: 'text/x-ruby',
+      rakefile: 'text/x-ruby',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/groovy/groovy'),
+    mappings: {
+      jenkinsfile: 'text/x-groovy',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/shell/shell'),
+    mappings: {
+      '.bashrc': 'text/x-sh',
+      '.zshrc': 'text/x-sh',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/nginx/nginx'),
+    mappings: {
+      'nginx.conf': 'text/x-nginx-conf',
+    },
+  },
 ]
 
 /**
