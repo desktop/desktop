@@ -2,8 +2,9 @@
 
 The Changes action connects the repository-owned assisted mode to an
 awaited local transaction, optionally followed by a repository-authorized push.
-Ordinary commits,
-amend/squash forms, tutorials, and standalone commit-message generation keep
+Ordinary manual commits share the repository's optional push preference and
+native push pipeline, but keep their separate local execution path.
+Amend/squash forms, tutorials, and standalone commit-message generation also keep
 their separate paths.
 
 ## Ownership and UI
@@ -98,7 +99,7 @@ RepositoryStateCache reconciles assisted state by database ID, independently of
 the repository's metadata hash. An alias or refreshed GitHub metadata must not
 hide progress, permit a duplicate run, or disconnect Cancel. Distinct repository
 IDs retain independent preferences, progress, and errors. The existing
-per-repository commit-mode and assisted-push storage supply restart persistence;
+per-repository commit-mode and shared commit-push storage supply restart persistence;
 active runs and
 recovery capabilities are not reconstructed after process death.
 Native GitStore publication has one authoritative store per repository ID/path;
@@ -494,23 +495,57 @@ logging it without skipping draft/options/status/history success bookkeeping.
 
 ### Opt in once per repository
 
-**Push after committing** lives in the assisted options menu beside co-authors,
-sign-off, bypass commit hooks and allow-empty. It defaults off and never affects
-Manual commits. AppStore/Dispatcher save only a boolean under
+**Push after committing** lives in both Manual and Copilot commit options menus,
+beside sign-off, bypass commit hooks and allow-empty (and co-authors in Copilot
+mode). It defaults off. AppStore/Dispatcher save only a boolean under
 `assisted-commit-push-<repository ID>`; missing or invalid values mean off.
+The historical storage key is intentionally retained as the single authoritative
+setting, now named `pushAfterCommit` in application state. Existing assisted
+opt-ins therefore also enable automatic push for ordinary manual commits.
+Changing modes does not change or copy the preference.
 Aliases, metadata refreshes, path moves and rebuilt caches retain that ID's
-choice. Other repository IDs keep their own choice; no global/manual setting
-is migrated.
+choice. Other repository IDs keep their own choice; no unreleased global setting
+is migrated, and unpersisted placeholders never read or write a shared saved key.
 
-The first confirmed action freezes this choice separately from snapshot options.
+For assisted runs, the first confirmed action freezes this choice separately from snapshot options.
 It also freezes the original branch, upstream/default remote, single push URL,
 effective configuration and physical working/Git/common/object directories.
 Changing options during a warning cannot silently add a push, and switching the
 visible repository cannot redirect the run.
 
+### Ordinary manual commits
+
+`AppStore._commitIncludedChanges` retains its existing staging, message,
+co-author/sign-off, commit-hook and local-success bookkeeping. When opted in,
+`lib/commit-push.ts` captures the original native branch, destination and assigned
+account session before committing. After local success it resolves the exact
+created commit and verifies its original parent. It then uses the shared native
+push pipeline with that full SHA and explicit remote branch, authentication,
+proxy resolution, pre-push hooks and progress. Pending tags, force updates and
+submodule pushes are not included. No model request is added.
+
+Failed or declined commits never push. Successful local commits clear their
+manual draft and allow-empty option and record their normal statistics even
+when push fails. They never gain assisted transaction rollback authority.
+The normal error dialog states that the commit is saved locally and offers
+**Retry push**. Retry retains repository, branch, exact commit, destination and
+issuing account session; switching the visible repository cannot redirect it.
+Changed HEAD, branch, destination or account refuses retry, leaving all local
+history intact. Token rotation within the original session remains valid;
+retired sessions cannot be replaced silently. After acknowledged remote success,
+**Retry refresh** only finishes upstream metadata/local refresh, without another
+push or another commit/statistics increment.
+
+Missing or unsupported remote configuration keeps the local commit and explains
+normal Push/Publish setup; it never creates a remote repository. Publishing a new
+branch to an existing supported remote installs only its original tracking
+configuration. Amend, tutorial, conflict-completion, squash, rebase and
+cherry-pick/multi-commit continuations do not automatically push. Their existing
+explicit publication paths remain unchanged.
+
 ### Follow the commits through the run
 
-This diagram focuses on what happens to local commits and what each retry does.
+This diagram focuses on assisted local commits and what each assisted retry does.
 The configuration and filesystem safeguards behind these decisions follow below.
 
 ```mermaid

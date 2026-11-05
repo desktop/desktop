@@ -138,7 +138,7 @@ export class AssistedCommitCoordinator {
       repository,
       undefined,
       async () => ({
-        pushDestination: initialState.changesState.pushAfterAssistedCommit
+        pushDestination: initialState.changesState.pushAfterCommit
           ? await this.push.readDestination(repository, initialState)
           : undefined,
         versions: await this.selections.verifyRequested(
@@ -213,8 +213,7 @@ export class AssistedCommitCoordinator {
       repository,
       request: freezeAssistedCommitRequest(request),
       initialState,
-      pushAfterAssistedCommit:
-        initialState.changesState.pushAfterAssistedCommit,
+      pushAfterCommit: initialState.changesState.pushAfterCommit,
       pushDestination: prepared?.pushDestination,
       publicationResources: { locks: [] },
       account,
@@ -280,7 +279,7 @@ export class AssistedCommitCoordinator {
           workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
         }))
       }
-      if (run.pushAfterAssistedCommit) {
+      if (run.pushAfterCommit) {
         outcome = await this.push.execute(run, result)
       } else {
         await run.lease.run(

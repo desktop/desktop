@@ -91,7 +91,7 @@ export async function executeAssistedCommitRun(
   state.protect(run, await getAssistedCommitProtectedPaths(repository.path))
   run.originalResourceProtection = run.resourceProtection
   const verifiedVersions = await readers.read(repository, run, async () => {
-    if (run.pushAfterAssistedCommit && run.pushDestination === undefined) {
+    if (run.pushAfterCommit && run.pushDestination === undefined) {
       run.pushDestination = await push.readDestination(
         repository,
         run.initialState

@@ -410,7 +410,7 @@ export function createAssistedCommitRecovery(
     let verifiedCancellation = false
 
     if (run.finalized && run.result !== undefined) {
-      if (run.pushAfterAssistedCommit && !run.pushSucceeded) {
+      if (run.pushAfterCommit && !run.pushSucceeded) {
         const error = owner.failPush(run, originalError)
         outcome = {
           kind: 'push-error',

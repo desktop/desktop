@@ -71,6 +71,51 @@ function resolveHookPopups(
 }
 
 describe('assisted push with native hook interception', () => {
+  for (const phase of ['pre-commit', 'pre-push'] as const) {
+    for (const action of ['abort', 'ignore'] as const) {
+      it(`manual commit honors intercepted ${phase} ${action} without confusing local and push success`, async t => {
+        const source = await fixtures.seed(t, { file: 'before\n' })
+        const remote = await remotes.addBareRemote(t, source)
+        await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
+        const h = await harness.createAssistedCommitRunHarness(t)
+        const repository = await h.register(source)
+        h.dispatcher.setCommitMode(repository, 'manual')
+        h.dispatcher.setPushAfterCommit(repository, true)
+        hooks.setHooksEnvEnabled(true)
+        await fixtures.writeHook(
+          source,
+          phase,
+          'echo "synthetic hook refusal" >&2\nexit 1'
+        )
+        const errors: Error[] = []
+        h.appStore.onDidError(error => errors.push(error))
+        const refresh = t.mock.method(h.appStore, '_refreshRepository')
+        const subscription = resolveHookPopups(h, action)
+        t.after(() => subscription.dispose())
+        const success = await h.dispatcher.commitIncludedChanges(repository, {
+          summary: 'Manual commit with hooks',
+          description: '',
+        })
+        await Promise.all(refresh.mock.calls.map(call => call.result))
+        const committed = phase === 'pre-push' || action === 'ignore'
+        assert.strictEqual(success, committed)
+        assert.strictEqual(await fixtures.count(source), committed ? 2 : 1)
+        assert.strictEqual(
+          await remote.tip(),
+          action === 'ignore' ? await fixtures.tip(source) : remote.originalTip
+        )
+        assert.strictEqual(
+          errors.length,
+          phase === 'pre-push' && action === 'abort' ? 1 : 0
+        )
+        assert.strictEqual(h.commits.mock.callCount(), committed ? 1 : 0)
+        assert.strictEqual(h.propose.mock.callCount(), 0)
+        assert.strictEqual(h.state(repository).hookProgress, null)
+        assert.strictEqual(h.state(repository).isCommitting, false)
+      })
+    }
+  }
+
   it('preserves the configured remote name and exact frozen ref update in native pre-push input', async t => {
     const source = await fixtures.seed(t, { file: 'before\n' })
     const remote = await remotes.addBareRemote(t, source)
@@ -83,7 +128,7 @@ describe('assisted push with native hook interception', () => {
       'pre-push',
       'printf "%s\\n" "$1" > hook-remote-name\nprintf "%s\\n" "$2" > hook-remote-url\ncat > hook-update\nexit 0'
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -119,7 +164,7 @@ describe('assisted push with native hook interception', () => {
         'pre-push',
         'echo "native rejecting pre-push" >&2\nexit 1'
       )
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.propose.mock.mockImplementation(async (_account, analysis) =>
         models.splitResponse(analysis)
       )
@@ -176,7 +221,7 @@ describe('assisted push with native hook interception', () => {
       'n=0; if test -f hook-count; then n=$(cat hook-count); fi\nn=$((n + 1)); printf "%s" "$n" > hook-count\necho "push hook must run" >&2\nexit 1'
     )
     h.dispatcher.updateCommitOptions(repository, { skipCommitHooks: true })
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let subscription = resolveHookPopups(h, 'abort')
     t.after(() => subscription.dispose())
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -222,7 +267,7 @@ describe('assisted push with native hook interception', () => {
     const repository = await h.register(source)
     hooks.setHooksEnvEnabled(true)
     await fixtures.writeHook(repository, 'pre-push', 'sleep 10\nexit 0')
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const subscription = h.appStore.onDidUpdate(() => {
       const state = h.state(repository)
       if (

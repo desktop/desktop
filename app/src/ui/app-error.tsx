@@ -155,6 +155,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private getTitle(error: Error) {
+    const commitPush = getCommitPushRequest(error)
+    if (commitPush !== undefined) {
+      return commitPush.publication.pushed
+        ? 'Commit pushed, refresh failed'
+        : 'Commit saved locally, push failed'
+    }
     const underlyingError = getUnderlyingError(error)
 
     if (underlyingError instanceof CopilotError) {
@@ -242,11 +248,39 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderFooter(error: Error) {
+    const underlyingError = getUnderlyingError(error)
+    const commitPush = getCommitPushRequest(error)
+    if (commitPush !== undefined) {
+      const needsAuthentication =
+        isGitError(underlyingError) &&
+        underlyingError.result.gitError !== null &&
+        isAuthFailureError(underlyingError.result.gitError)
+      return (
+        <DialogFooter>
+          <OkCancelButtonGroup
+            okButtonText={
+              commitPush.publication.pushed ? 'Retry refresh' : 'Retry push'
+            }
+            onOkButtonClick={this.onRetryAction}
+            cancelButtonText={
+              needsAuthentication
+                ? __DARWIN__
+                  ? 'Open Preferences'
+                  : 'Open options'
+                : 'Close'
+            }
+            onCancelButtonClick={
+              needsAuthentication
+                ? this.showPreferencesDialog
+                : this.onCloseButtonClick
+            }
+          />
+        </DialogFooter>
+      )
+    }
     if (isCloneError(error)) {
       return this.renderRetryCloneFooter()
     }
-
-    const underlyingError = getUnderlyingError(error)
 
     if (isGitError(underlyingError)) {
       const { gitError } = underlyingError.result
@@ -366,6 +400,13 @@ function isCloneError(error: Error) {
   }
   const { retryAction } = error.metadata
   return retryAction !== undefined && retryAction.type === RetryActionType.Clone
+}
+
+function getCommitPushRequest(error: Error) {
+  const retry = isErrorWithMetaData(error)
+    ? error.metadata.retryAction
+    : undefined
+  return retry?.type === RetryActionType.Push ? retry.commit : undefined
 }
 
 function getRetryActionType(error: Error) {

@@ -432,7 +432,7 @@ describe('assisted native push boundary', () => {
       }
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const lease = await operations.acquireAssistedCommitGitLease(foreign.path)
       let releasedForTimeout = false
@@ -495,7 +495,7 @@ describe('assisted native push boundary', () => {
       }
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const variable =
         input === 'system' ? 'GIT_CONFIG_SYSTEM' : 'GIT_CONFIG_GLOBAL'
       const previous = process.env[variable]
@@ -558,7 +558,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const config = join(source.path, '.git', 'config')
     const original = await FileSystem.readFile(config)
     afterPublicationTrackingProbe = async () => {
@@ -598,7 +598,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
@@ -625,7 +625,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const config = join(source.path, '.git', 'config')
     const original = await FileSystem.readFile(config)
     let lockPath: string | undefined
@@ -701,7 +701,7 @@ describe('assisted native push boundary', () => {
         description: 'Preserved description',
         timestamp: 1,
       })
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const previous = process.env.GIT_CONFIG_GLOBAL
       process.env.GIT_CONFIG_GLOBAL = globalConfiguration
@@ -804,7 +804,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
@@ -889,7 +889,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
@@ -979,7 +979,7 @@ describe('assisted native push boundary', () => {
         description: 'Preserved manual details',
         timestamp: Date.now(),
       })
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const lease = await operations.acquireAssistedCommitGitLease(foreign.path)
       let releasedForTimeout = false
@@ -1126,7 +1126,7 @@ describe('assisted native push boundary', () => {
         await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
         const h = await harness.createAssistedCommitRunHarness(t)
         const repository = await h.register(source)
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         afterPush = async () => {
           afterPush = undefined
           await FileSystem.unlink(alias)
@@ -1203,7 +1203,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let lease:
       | Awaited<ReturnType<typeof operations.acquireAssistedCommitGitLease>>
       | undefined
@@ -1271,7 +1271,7 @@ describe('assisted native push boundary', () => {
         }
         const h = await harness.createAssistedCommitRunHarness(t)
         const repository = await h.register(source)
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         h.dispatcher.updateCommitOptions(repository, {
           allowEmptyCommit: empty,
         })
@@ -1348,7 +1348,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     afterPush = async () => {
       afterPush = undefined
       const route = join(source.path, '.git', 'packed-refs')
@@ -1412,7 +1412,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       let lease:
         | Awaited<ReturnType<typeof operations.acquireAssistedCommitGitLease>>
         | undefined
@@ -1476,7 +1476,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const gitStore = h.appStore['gitStoreCache'].get(repository)
       let installedHistory: ReadonlyArray<string> | null | undefined
       const previousBase = process.env.GIT_REPLACE_REF_BASE
@@ -1581,7 +1581,7 @@ describe('assisted native push boundary', () => {
           await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
           const h = await harness.createAssistedCommitRunHarness(t)
           const repository = await h.register(source)
-          h.dispatcher.setPushAfterAssistedCommit(repository, true)
+          h.dispatcher.setPushAfterCommit(repository, true)
           const gitStore = h.appStore['gitStoreCache'].get(repository)
           let installedHistory: ReadonlyArray<string> | null | undefined
           const metadataPath =
@@ -1749,7 +1749,7 @@ describe('assisted native push boundary', () => {
           description: 'Preserved manual description',
           timestamp: 1,
         })
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         h.dispatcher.updateCommitOptions(repository, {
           allowEmptyCommit: empty,
         })
@@ -1840,7 +1840,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const lock = join(source.path, '.git', 'config.lock')
       duringConfigWrite = async () => {
         duringConfigWrite = undefined
@@ -1952,7 +1952,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(linked, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(linkedRepository)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       afterPush = async () => {
         afterPush = undefined
         await FileSystem.unlink(route)
@@ -2005,7 +2005,7 @@ describe('assisted native push boundary', () => {
     const repository = await h.register(
       new repositories.Repository(alias, source.id, null, false)
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const branch = remote.branchRef.slice('refs/heads/'.length)
     const lock = join(source.path, '.git', 'config.lock')
     denyConfigKey = `branch.${branch}.merge`
@@ -2109,7 +2109,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let receiverTip: string | undefined
     afterPush = async () => {
       afterPush = undefined
@@ -2198,7 +2198,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const target = join(
         await temporary.createTempDirectory(t),
         __WIN32__
@@ -2265,7 +2265,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let replaced = false
     afterPush = async () => {
       afterPush = undefined
@@ -2321,7 +2321,7 @@ describe('assisted native push boundary', () => {
     try {
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       afterPush = async () => {
         afterPush = undefined
         await FileSystem.unlink(route)
@@ -2373,7 +2373,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let replaced = false
     afterPush = async () => {
       afterPush = undefined
@@ -2436,7 +2436,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       afterPush = async () => {
         afterPush = undefined
         const path = join(source.path, '.git', route)
@@ -2484,7 +2484,7 @@ describe('assisted native push boundary', () => {
       null,
       false
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     statusFailure = new Error('Synthetic first refresh failure')
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -2562,7 +2562,7 @@ describe('assisted native push boundary', () => {
     assert.ok(image !== undefined)
     await h.dispatcher.changeFileIncluded(repository, image, false)
     await h.dispatcher.selectWorkingDirectoryFiles(repository, [image])
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let retargeted = false
     let readerError: unknown
     let injected = false
@@ -2641,7 +2641,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let receiverOnly: string | undefined
     let retargeted = false
     afterPush = async () => {
@@ -2728,7 +2728,7 @@ describe('assisted native push boundary', () => {
         }
       })
       t.after(() => subscription.dispose())
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const failure = new Error('Synthetic acknowledged refresh failure')
       afterPush = async () => {
         afterPush = undefined
@@ -2820,7 +2820,7 @@ describe('assisted native push boundary', () => {
       new repositories.Repository(alias, source.id, null, false)
     )
     h.appStore['selectedRepository'] = repository
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     afterPush = async () => {
       afterPush = undefined
       statusFailure = new Error('Synthetic acknowledged refresh failure')
@@ -2906,7 +2906,7 @@ describe('assisted native push boundary', () => {
         new repositories.Repository(alias, source.id, null, false)
       )
       h.appStore['selectedRepository'] = repository
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       if (retry === 'push') {
         reportPushFailure = new Error('Synthetic remote response lost')
       } else {
@@ -2997,7 +2997,7 @@ describe('assisted native push boundary', () => {
     const repository = await h.register(
       new repositories.Repository(alias, source.id, null, false)
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let retargetedAt = 0
     afterPush = async () => {
       afterPush = undefined
@@ -3050,7 +3050,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const failure = Object.assign(new Error(`Synthetic final ${phase} EIO`), {
         code: 'EIO',
       })
@@ -3118,7 +3118,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       const failed = retry
         ? await (async () => {
@@ -3203,7 +3203,7 @@ describe('assisted native push boundary', () => {
     const repository = await h.register(
       new repositories.Repository(alias, source.id, null, false)
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let before = h.state(repository).commitSelection.changesetData
     let retargeted = false
     let queued = false
@@ -3269,7 +3269,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
@@ -3313,7 +3313,7 @@ describe('assisted native push boundary', () => {
       null,
       false
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     reportPushFailure = new Error('Synthetic first push response lost')
     const failed = await h.dispatcher.createCopilotAssistedCommits(
@@ -3385,7 +3385,7 @@ describe('assisted native push boundary', () => {
       }
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
@@ -3412,7 +3412,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     markerOpenFailure = Object.assign(
       new Error('Synthetic first staging marker open EIO'),
       { code: 'EIO' }
@@ -3481,7 +3481,7 @@ describe('assisted native push boundary', () => {
       null,
       false
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     statusFailure = new Error(
       'Synthetic post-ACK status failure before alias retry'
@@ -3550,7 +3550,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     afterPush = async path => {
       afterPush = undefined
       const result = await actualExec(
@@ -3610,7 +3610,7 @@ describe('assisted native push boundary', () => {
     const repository = await h.register(
       new repositories.Repository(alias, source.id, null, false)
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     statusFailure = new Error('Synthetic post-ACK status failure')
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -3670,7 +3670,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const matches = await fixtures.createPathMatcher(first)
     let retargeted = false
     afterModeStat = async path => {
@@ -3740,7 +3740,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
@@ -3824,7 +3824,7 @@ describe('assisted native push boundary', () => {
       const repository = await h.register(
         new repositories.Repository(alias, source.id, null, false)
       )
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       let retargeted = false
       const retarget = async () => {
@@ -3890,7 +3890,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const directory = join(source.path, '.git', 'desktop-publication-unrelated')
     await FileSystem.mkdir(directory)
     await FileSystem.writeFile(
@@ -3966,7 +3966,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     afterPush = async () => {
       afterPush = undefined
@@ -4027,7 +4027,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     afterPush = async () => {
       afterPush = undefined
@@ -4082,7 +4082,7 @@ describe('assisted native push boundary', () => {
         await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
         const h = await harness.createAssistedCommitRunHarness(t)
         const repository = await h.register(source)
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         capturePushes = true
         afterPush = async path => {
           afterPush = undefined
@@ -4142,7 +4142,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       const changeInclude = async (path: string) => {
         if (cleanupFault) {
@@ -4228,7 +4228,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const target = await FileSystem.realpath(
         site === 'closing-config'
           ? join(repository.path, '.git', 'config')
@@ -4334,7 +4334,7 @@ describe('assisted native push boundary', () => {
         await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
         const h = await harness.createAssistedCommitRunHarness(t)
         const repository = await h.register(source)
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         let added = false
         afterConfigurationRead = async () => {
           if (
@@ -4416,7 +4416,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       let added = false
       afterConfigurationRead = async () => {
         if (pushArguments.length === 0) {
@@ -4485,7 +4485,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     afterPush = async path => {
       afterPush = undefined
@@ -4542,7 +4542,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     afterPush = async () => {
       afterPush = undefined
@@ -4592,7 +4592,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const shadow = join(await temporary.createTempDirectory(t), 'config-shadow')
     await FileSystem.writeFile(shadow, '')
     const config = await actualExec(
@@ -4662,7 +4662,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       capturePushes = true
       if (packed) {
         afterPush = async path => {
@@ -4760,7 +4760,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(linked, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(linkedRepository)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     denyConfigKey = 'branch.waiting-linked.merge'
     denyUnlink = await fixtures.createPathMatcher(join(common, 'config.lock'))
@@ -4822,7 +4822,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     afterPush = async path => {
       afterPush = undefined
@@ -4876,7 +4876,7 @@ describe('assisted native push boundary', () => {
       await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
       const h = await harness.createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       let changed = false
       duringConfigWrite = async (_args, path) => {
         if (changed) {
@@ -4970,7 +4970,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(linked, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(linkedRepository)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     let substituted = false
     beforePublicationConfig = async () => {
@@ -5034,7 +5034,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     duringConfigWrite = async (_args, path) => {
       duringConfigWrite = undefined
@@ -5103,7 +5103,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     let attempted = false
     duringConfigWrite = async (_args, path) => {
       if (attempted) {
@@ -5157,7 +5157,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     beforePush = async path => {
       beforePush = undefined
@@ -5196,7 +5196,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
@@ -5218,7 +5218,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     denyConfigKey = 'branch.master.merge'
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
@@ -5275,7 +5275,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const transportFailure = new Error(
       'Synthetic response lost after remote acceptance'
     )
@@ -5327,7 +5327,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     capturePushes = true
     beforePush = async path => {
       beforePush = undefined
@@ -5365,7 +5365,7 @@ describe('assisted native push boundary', () => {
     await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
     const h = await harness.createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const isHeadLock = await fixtures.createPathMatcher(
       join(repository.path, '.git', 'HEAD.lock')
     )

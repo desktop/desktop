@@ -108,7 +108,7 @@ export interface IAssistedCommitRun {
   readonly repository: Repository
   readonly request: ICopilotAssistedCommitRequest
   readonly initialState: IRepositoryState
-  readonly pushAfterAssistedCommit: boolean
+  readonly pushAfterCommit: boolean
   readonly publicationResources: IAssistedCommitPublicationResources
   readonly account: Account | undefined
   readonly modelSelection: string | null

@@ -1,4 +1,11 @@
-import { storePushAfterAssistedCommit } from './helpers/assisted-commit-push-storage'
+import { storePushAfterCommit } from './helpers/commit-push-storage'
+import {
+  ICommitPushRequest,
+  captureCommitPushAuthorization,
+  createCommitPushRequest,
+  prepareCommitPush,
+  pushCommittedChanges,
+} from '../commit-push'
 import {
   AssistedCommitPushOutcome as PushBranchOutcome,
   IAssistedCommitPushObserver,
@@ -3958,6 +3965,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     return this.withIsCommitting(repository, selectedFiles, async () => {
+      const pushPreparation =
+        state.changesState.pushAfterCommit &&
+        context.amend !== true &&
+        state.commitToAmend === null &&
+        state.changesState.conflictState === null &&
+        state.multiCommitOperationState === null &&
+        !repository.isTutorialRepository
+          ? await prepareCommitPush(
+              repository,
+              captureCommitPushAuthorization(
+                gitStore.repository,
+                this.accountsStore,
+                () => this.accounts,
+                () => gitStore.repository
+              )
+            ).then(
+              prepared => ({ kind: 'prepared' as const, prepared }),
+              error => ({ kind: 'error' as const, error })
+            )
+          : undefined
       const result = await gitStore.performFailableOperation(
         async () => {
           const certifiedPartialDiffs =
@@ -4023,6 +4050,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
         await this.refreshChangesSection(repository, {
           includingStatus: true,
           clearPartialState: true,
+        })
+
+        // Publication failure must never turn local success into a commit retry.
+        await gitStore.performFailableOperation(async () => {
+          if (pushPreparation?.kind === 'error') {
+            throw new Error(
+              'The commit was saved locally, but push preparation failed. Review repository settings and use Push.',
+              { cause: pushPreparation.error }
+            )
+          }
+          if (pushPreparation?.prepared !== undefined) {
+            const request = await createCommitPushRequest(
+              pushPreparation.prepared,
+              result
+            )
+            await this._pushAfterCommit(request)
+          }
         })
 
         // Do not await for refreshing the repository, otherwise this will block
@@ -4736,14 +4780,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
-  public _setPushAfterAssistedCommit(
-    repository: Repository,
-    enabled: boolean
-  ): void {
+  public _setPushAfterCommit(repository: Repository, enabled: boolean): void {
     this.assistedCommits.state.assertAvailable(repository)
-    storePushAfterAssistedCommit(repository, enabled)
+    storePushAfterCommit(repository, enabled)
     this.repositoryStateCache.updateChangesState(repository, () => ({
-      pushAfterAssistedCommit: enabled,
+      pushAfterCommit: enabled,
     }))
     this.emitUpdate()
   }
@@ -5858,6 +5899,78 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.withRefreshedGitHubRepository(repository, repository =>
         this.performPush(repository, options)
       )
+    )
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _pushAfterCommit(request: ICommitPushRequest): Promise<void> {
+    const { repository } = request
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.performFailableOperation(
+      async () => {
+        if (
+          this.repositoryStateCache.get(repository).isPushPullFetchInProgress ||
+          this.isWorktreeMoving(repository)
+        ) {
+          throw new Error(
+            'The commit was saved locally. Finish the current network operation before retrying push.'
+          )
+        }
+        return this.withPushPullFetch(repository, async () => {
+          try {
+            await pushCommittedChanges(
+              request,
+              (repository, branch, remote, options, observer) =>
+                this.withRefreshedGitHubRepository(repository, refreshed => {
+                  request.verifyAuthorization()
+                  if (
+                    refreshed.id !== repository.id ||
+                    refreshed.path !== repository.path
+                  ) {
+                    throw new Error(
+                      'The repository moved before push. The commit was saved locally. Review the repository and use Push.'
+                    )
+                  }
+                  return this.performPushBranch(
+                    refreshed,
+                    branch,
+                    remote,
+                    {
+                      ...options,
+                      onHookProgress: this.onHookProgress(repository),
+                      onTerminalOutputAvailable: subscribeToCommitOutput => {
+                        this.repositoryStateCache.update(repository, () => ({
+                          subscribeToCommitOutput,
+                        }))
+                        this.emitUpdate()
+                      },
+                    },
+                    observer
+                  )
+                }),
+              () => this._refreshRepository(repository),
+              () =>
+                this.statsStore.recordPush(
+                  getAccountForRepository(this.accounts, repository)
+                )
+            )
+          } finally {
+            this.updatePushPullFetchProgress(repository, null)
+            this.repositoryStateCache.update(repository, () => ({
+              hookProgress: null,
+              subscribeToCommitOutput: null,
+            }))
+            this.updateMenuLabelsForSelectedRepository()
+          }
+        })
+      },
+      {
+        retryAction: {
+          type: RetryActionType.Push,
+          repository,
+          commit: request,
+        },
+      }
     )
   }
 

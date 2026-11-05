@@ -256,11 +256,8 @@ export class Dispatcher {
   }
 
   /** Persist this repository's assisted-push opt-in, independently of manual options. */
-  public setPushAfterAssistedCommit(
-    repository: Repository,
-    enabled: boolean
-  ): void {
-    this.appStore._setPushAfterAssistedCommit(repository, enabled)
+  public setPushAfterCommit(repository: Repository, enabled: boolean): void {
+    this.appStore._setPushAfterCommit(repository, enabled)
   }
 
   /** Freeze first-click intent and certify Desktop selections before warning dialogs. */
@@ -2445,7 +2442,9 @@ export class Dispatcher {
   public async performRetry(retryAction: RetryAction): Promise<void> {
     switch (retryAction.type) {
       case RetryActionType.Push:
-        return this.push(retryAction.repository)
+        return retryAction.commit === undefined
+          ? this.push(retryAction.repository)
+          : this.appStore._pushAfterCommit(retryAction.commit)
 
       case RetryActionType.Pull:
         return this.pull(retryAction.repository)

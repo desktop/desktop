@@ -49,7 +49,7 @@ describe('assisted push lifecycle ownership', () => {
       await writeFile(receiverHook, '#!/bin/sh\nexit 1\n', { mode: 0o755 })
       await writeFile(join(source.path, 'file'), 'after\n')
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const initial = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         h.request(repository)
@@ -127,7 +127,7 @@ describe('assisted push lifecycle ownership', () => {
         original.login
       )
       h.appStore['adoptRepository'](repository)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const initial = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         h.request(repository)
@@ -197,7 +197,7 @@ describe('assisted push lifecycle ownership', () => {
         }
       })
       t.after(() => subscription.dispose())
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const initial = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         h.request(repository)
@@ -251,7 +251,7 @@ describe('assisted push lifecycle ownership', () => {
     await symlink(source.path, alias, 'junction')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(new Repository(alias, -1, null, false))
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const initial = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -310,7 +310,7 @@ describe('assisted push lifecycle ownership', () => {
     await symlink(source.path, alias, __WIN32__ ? 'junction' : 'dir')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(new Repository(alias, -1, null, false))
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -355,7 +355,7 @@ describe('assisted push lifecycle ownership', () => {
     const h = await createAssistedCommitRunHarness(t)
     const repositoryA = await h.register(sourceA)
     const repositoryB = await h.register(sourceB)
-    h.dispatcher.setPushAfterAssistedCommit(repositoryA, true)
+    h.dispatcher.setPushAfterCommit(repositoryA, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repositoryA,
       h.request(repositoryA)
@@ -373,10 +373,7 @@ describe('assisted push lifecycle ownership', () => {
     assert.strictEqual(await remoteA.tip(), await tip(repositoryA))
     assert.strictEqual(await remoteB.tip(), remoteB.originalTip)
     assert.strictEqual(await count(repositoryB), 1)
-    assert.strictEqual(
-      h.state(repositoryB).changesState.pushAfterAssistedCommit,
-      false
-    )
+    assert.strictEqual(h.state(repositoryB).changesState.pushAfterCommit, false)
     assert.strictEqual(
       await rawGit(repositoryB, ['diff', '--name-only', '--']),
       'file'
@@ -396,7 +393,7 @@ describe('assisted push lifecycle ownership', () => {
       await writeFile(join(source.path, 'file'), 'after\n')
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         h.request(repository)
@@ -449,7 +446,7 @@ describe('assisted push lifecycle ownership', () => {
     h.commits.mock.mockImplementation(() => {
       throw statisticsFailure
     })
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -476,7 +473,7 @@ describe('assisted push lifecycle ownership', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -547,7 +544,7 @@ describe('assisted push lifecycle ownership', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -585,7 +582,7 @@ describe('assisted push lifecycle ownership', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)

@@ -178,7 +178,7 @@ interface IFilterChangesListProps {
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
   readonly commitMode: CommitMode
-  readonly pushAfterAssistedCommit?: boolean
+  readonly pushAfterCommit?: boolean
 
   /** Provided only when a real Desktop-owned assisted commit executor is available. */
   readonly onCreateCopilotAssistedCommits?: (
@@ -989,8 +989,9 @@ export class FilterChangesList extends React.Component<
         commitMessage={this.props.commitMessage}
         commitMode={this.props.commitMode}
         onCommitModeChanged={this.onCommitModeChanged}
-        pushAfterAssistedCommit={this.props.pushAfterAssistedCommit}
-        onPushAfterAssistedCommitChanged={this.onPushAfterAssistedCommitChanged}
+        pushAfterCommit={this.props.pushAfterCommit}
+        canPushAfterCommit={this.props.conflictState === null}
+        onPushAfterCommitChanged={this.onPushAfterCommitChanged}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
@@ -1096,11 +1097,8 @@ export class FilterChangesList extends React.Component<
   private onCommitModeChanged = (commitMode: CommitMode) =>
     this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
 
-  private onPushAfterAssistedCommitChanged = (enabled: boolean) =>
-    this.props.dispatcher.setPushAfterAssistedCommit(
-      this.props.repository,
-      enabled
-    )
+  private onPushAfterCommitChanged = (enabled: boolean) =>
+    this.props.dispatcher.setPushAfterCommit(this.props.repository, enabled)
 
   private onGenerateCommitMessage = (
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,

@@ -2104,13 +2104,13 @@ describe('CommitMessage', () => {
       )
     })
 
-    it('exposes the repository push choice as an assisted-only checkbox and freezes it while busy', async t => {
+    it('shares the repository push checkbox across modes and freezes it while busy', async t => {
       const { menus, select } = captureOptionsMenu(t)
       const choices: boolean[] = []
       const { view, rerender } = renderWithCommitModes({
         commitMode: 'copilot',
-        pushAfterAssistedCommit: true,
-        onPushAfterAssistedCommitChanged: enabled => choices.push(enabled),
+        pushAfterCommit: true,
+        onPushAfterCommitChanged: enabled => choices.push(enabled),
       })
       select('Push after committing')
       await waitFor(() => assert.deepStrictEqual(choices, [false]))
@@ -2140,9 +2140,26 @@ describe('CommitMessage', () => {
       await waitFor(() => assert.strictEqual(menus.length, 2))
       assert.strictEqual(
         menus[1].some(item => item.label === 'Push after committing'),
+        true
+      )
+      await waitFor(() => assert.deepStrictEqual(choices, [false, false]))
+      rerender({
+        commitMode: 'copilot',
+        pushAfterCommit: false,
+      })
+      select('Push after committing')
+      assert.strictEqual(
+        menus[2].find(item => item.label === 'Push after committing')?.checked,
         false
       )
-      assert.deepStrictEqual(choices, [false])
+      await waitFor(() => assert.deepStrictEqual(choices, [false, false, true]))
+      rerender({ commitMode: 'manual', canPushAfterCommit: false })
+      select('Push after committing')
+      assert.strictEqual(
+        menus[3].find(item => item.label === 'Push after committing')?.enabled,
+        false
+      )
+      assert.deepStrictEqual(choices, [false, false, true])
     })
 
     it('keeps push retry reachable with no selection, manual preference, and no AI account', async () => {

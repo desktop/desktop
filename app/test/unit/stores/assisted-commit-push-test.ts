@@ -49,7 +49,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await addBareRemote(t, source)
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
     const observed: number[] = []
     const parser = new PushProgressParser()
@@ -127,7 +127,7 @@ describe('AppStore assisted push with real local remotes', () => {
       }
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       await h.dispatcher.setCommitMessage(repository, {
         summary: 'Preserved manual draft',
@@ -259,7 +259,7 @@ describe('AppStore assisted push with real local remotes', () => {
       await writeFile(join(source.path, 'one'), 'ONE\n')
       await writeFile(join(source.path, 'two'), 'TWO\n')
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.propose.mock.mockImplementation(async (_account, analysis) =>
         splitResponse(analysis)
       )
@@ -387,7 +387,7 @@ describe('AppStore assisted push with real local remotes', () => {
             description: 'Preserved manual details',
             timestamp: Date.now(),
           })
-          h.dispatcher.setPushAfterAssistedCommit(repository, true)
+          h.dispatcher.setPushAfterCommit(repository, true)
           h.dispatcher.updateCommitOptions(repository, {
             allowEmptyCommit: empty,
           })
@@ -462,7 +462,7 @@ describe('AppStore assisted push with real local remotes', () => {
             description: 'Manual details stay',
             timestamp: Date.now(),
           })
-          h.dispatcher.setPushAfterAssistedCommit(repository, true)
+          h.dispatcher.setPushAfterCommit(repository, true)
           h.dispatcher.updateCommitOptions(repository, {
             allowEmptyCommit: empty,
           })
@@ -539,7 +539,7 @@ describe('AppStore assisted push with real local remotes', () => {
           description: 'Manual details stay',
           timestamp: Date.now(),
         })
-        h.dispatcher.setPushAfterAssistedCommit(repository, true)
+        h.dispatcher.setPushAfterCommit(repository, true)
         h.dispatcher.updateCommitOptions(repository, {
           allowEmptyCommit: empty,
         })
@@ -600,7 +600,7 @@ describe('AppStore assisted push with real local remotes', () => {
       }
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
         repository,
@@ -647,7 +647,7 @@ describe('AppStore assisted push with real local remotes', () => {
         description: 'Manual details stay',
         timestamp: Date.now(),
       })
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
       const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
         repository,
@@ -715,7 +715,7 @@ describe('AppStore assisted push with real local remotes', () => {
           }
           const h = await createAssistedCommitRunHarness(t)
           const repository = await h.register(source)
-          h.dispatcher.setPushAfterAssistedCommit(repository, true)
+          h.dispatcher.setPushAfterCommit(repository, true)
           h.dispatcher.updateCommitOptions(repository, {
             allowEmptyCommit: empty,
           })
@@ -792,7 +792,7 @@ describe('AppStore assisted push with real local remotes', () => {
     const previous = process.env.GIT_CONFIG
     process.env.GIT_CONFIG = shadow
     try {
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
         repository,
         h.request(repository)
@@ -853,7 +853,7 @@ describe('AppStore assisted push with real local remotes', () => {
         timestamp: Date.now(),
       })
       h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: empty })
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       await rawGit(repository, [
         'config',
         '--local',
@@ -905,7 +905,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
       repository,
       h.request(repository)
@@ -946,13 +946,15 @@ describe('AppStore assisted push with real local remotes', () => {
     assert.strictEqual(h.state(repository).isPushPullFetchInProgress, false)
   })
 
-  it('never auto-pushes a manual commit even when this repository opted into assisted push', async t => {
+  it('auto-pushes a manual commit using the existing repository opt-in', async t => {
     const source = await seed(t, { file: 'before\n' })
     const remote = await addBareRemote(t, source)
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    h.appStore.onDidError(error => errors.push(error))
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.dispatcher.setCommitMode(repository, 'manual')
     const refresh = t.mock.method(h.appStore, '_refreshRepository')
     assert.strictEqual(
@@ -963,13 +965,11 @@ describe('AppStore assisted push with real local remotes', () => {
       true
     )
     await Promise.all(refresh.mock.calls.map(call => call.result))
+    assert.deepStrictEqual(errors, [])
     assert.strictEqual(await count(repository), 2)
-    assert.strictEqual(await remote.tip(), remote.originalTip)
+    assert.strictEqual(await remote.tip(), await tip(repository))
     assert.strictEqual(h.propose.mock.callCount(), 0)
-    assert.strictEqual(
-      h.state(repository).changesState.pushAfterAssistedCommit,
-      true
-    )
+    assert.strictEqual(h.state(repository).changesState.pushAfterCommit, true)
   })
 
   it('rejects a preference changed after first-click preparation rather than silently adding a push', async t => {
@@ -982,7 +982,7 @@ describe('AppStore assisted push with real local remotes', () => {
       repository,
       h.request(repository)
     )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       request
@@ -1007,7 +1007,7 @@ describe('AppStore assisted push with real local remotes', () => {
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
       const originalIndex = await optionalBytes(await indexPath(repository))
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       h.propose.mock.mockImplementation(async (_account, analysis) =>
         splitResponse(analysis)
       )
@@ -1059,7 +1059,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const failure = new Error('Synthetic model failure')
     h.propose.mock.mockImplementation(async () => {
       throw failure
@@ -1108,7 +1108,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1144,7 +1144,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1191,7 +1191,7 @@ describe('AppStore assisted push with real local remotes', () => {
       await writeFile(join(source.path, 'file'), 'after\n')
       const h = await createAssistedCommitRunHarness(t)
       const repository = await h.register(source)
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
+      h.dispatcher.setPushAfterCommit(repository, true)
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         h.request(repository)
@@ -1234,7 +1234,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1261,7 +1261,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'two'), 'TWO\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.propose.mock.mockImplementation(async (_account, analysis) => {
       await rawGit(repository, [
         'remote',
@@ -1313,7 +1313,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1357,7 +1357,7 @@ describe('AppStore assisted push with real local remotes', () => {
       .changesState.workingDirectory.files.find(file => file.path === 'other')
     assert.ok(other)
     await h.dispatcher.changeFileIncluded(repository, other, false)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.dispatcher.updateCommitOptions(repository, { signOffCommits: true })
     h.propose.mock.mockImplementation(async (_account, analysis) =>
       splitResponse(analysis)
@@ -1439,7 +1439,7 @@ describe('AppStore assisted push with real local remotes', () => {
     const repository = await h.register(source)
     await h.dispatcher.changeIncludeAllFiles(repository, false)
     h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.assisted.dialogs['lastConsent'] = null
     const draft = {
       ...DefaultCommitMessage,
@@ -1480,7 +1480,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1536,7 +1536,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1574,7 +1574,7 @@ describe('AppStore assisted push with real local remotes', () => {
     )
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     h.propose.mock.mockImplementation(async (_account, analysis) =>
       splitResponse(analysis)
     )
@@ -1622,7 +1622,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const outcome = await h.dispatcher.createCopilotAssistedCommits(
       repository,
       h.request(repository)
@@ -1648,7 +1648,7 @@ describe('AppStore assisted push with real local remotes', () => {
     await writeFile(join(source.path, 'file'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
+    h.dispatcher.setPushAfterCommit(repository, true)
     const refresh = h.appStore._refreshRepository.bind(h.appStore)
     const failure = new Error('Synthetic refresh failed after remote success')
     let fail = true

@@ -23,7 +23,7 @@ export type PushOptions = {
 
   readonly noVerify?: boolean
 
-  /** Desktop-owned assisted entry; never enables force, tag, or submodule pushes. */
+  /** Frozen automatic commit push; never enables force, tag, or submodule pushes. */
   readonly assistedCommit?: {
     readonly expectedTip: string
     readonly remoteRef: string
