@@ -212,9 +212,8 @@ describe('RepositoryAccountDialog', () => {
 
   it('targets the assigned signed-out identity and completes after sign-in', async () => {
     const view = await renderAccountDialog(createRepository('personal'), [work])
-    assert.ok(
-      screen.getByText(/assigned to @personal on https:\/\/api.github.com/)
-    )
+    assert.ok(screen.getByText(/assigned to @personal on GitHub\.com\./))
+    assert.strictEqual(screen.queryByText(/api\.github\.com/), null)
     click('Sign in')
     assert.deepStrictEqual(
       view.showAccountSignInDialog.mock.calls[0].arguments.slice(0, 2),
@@ -274,6 +273,26 @@ describe('RepositoryAccountDialog', () => {
     view.finishSignIn({ kind: 'success', account: enterprise })
     click('Use account')
     assert.deepStrictEqual(view.completed, [enterprise])
+  })
+
+  it('names GitHub.com rather than its API endpoint when choosing an account', async () => {
+    await renderAccountDialog(createRepository(), [personal])
+    assert.ok(screen.getByText(/for repository on GitHub\.com\./))
+    assert.strictEqual(screen.queryByText(/api\.github\.com/), null)
+  })
+
+  it('names the enterprise host rather than its API endpoint', async () => {
+    await renderAccountDialog(createRepository(null, enterpriseEndpoint), [])
+    assert.ok(screen.getByText(/for repository on enterprise\.example\.com\./))
+    assert.strictEqual(screen.queryByText(/\/api\/v3/), null)
+  })
+
+  it('names the enterprise host for a signed-out assigned account', async () => {
+    await renderAccountDialog(createRepository('work', enterpriseEndpoint), [])
+    assert.ok(
+      screen.getByText(/assigned to @work on enterprise\.example\.com\./)
+    )
+    assert.strictEqual(screen.queryByText(/\/api\/v3/), null)
   })
 })
 
