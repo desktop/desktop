@@ -47,3 +47,16 @@ export function isConflictsFlow(
     conflictSteps.includes(multiCommitOperationState.step.kind)
   )
 }
+
+export function isWaitingForConflictResolution(
+  multiCommitOperationState: IMultiCommitOperationState | null
+): boolean {
+  if (multiCommitOperationState === null) {
+    return false
+  }
+  const { kind } = multiCommitOperationState.step
+  return (
+    conflictSteps.includes(kind) ||
+    kind === MultiCommitOperationStepKind.HideConflicts
+  )
+}
