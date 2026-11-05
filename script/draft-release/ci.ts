@@ -1,11 +1,11 @@
 /**
  * CI helper for the Draft Release workflow (.github/workflows/draft-release.yml).
  *
- * Reuses the same functions as `yarn draft-release` so there is a single source
+ * Reuses the same functions as `npm run draft-release` so there is a single source
  * of truth for version computation, tag discovery, and changelog aggregation.
  *
  * Usage (from repo root):
- *   yarn ts-node -P script/tsconfig.json script/draft-release/ci.ts <command> [args]
+ *   npm exec -- ts-node -P script/tsconfig.json script/draft-release/ci.ts <command> [args]
  *
  * Commands:
  *   version <channel>
@@ -20,7 +20,7 @@
  *     Outputs a JSON array of entry strings.
  *
  *   prepare <next-version> <entries-json>
- *     Bumps app/package.json to <next-version> and prepends entries to
+ *     Bumps app/package.json and its lockfile to <next-version> and prepends entries to
  *     changelog.json. Used in the commit step.
  */
 
@@ -31,6 +31,8 @@ import { getLatestRelease } from './tags'
 import { getNextVersionNumber } from './version'
 import { getChangelogEntriesSince } from '../changelog/parser'
 import { Channel } from './channel'
+import { execFileSync } from 'child_process'
+import { getNpmCommand } from '../npm'
 
 const repoRoot = join(__dirname, '..', '..')
 
@@ -132,12 +134,18 @@ function commandChangelogEntries(previousVersion: string): void {
 }
 
 function commandPrepare(nextVersion: string, entriesJson: string): void {
-  // Bump app/package.json
-  const pkgPath = join(repoRoot, 'app', 'package.json')
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
-  pkg.version = nextVersion
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
-  console.log(`✅ Set app/package.json version to ${nextVersion}`)
+  const npm = getNpmCommand([
+    'version',
+    nextVersion,
+    '--allow-same-version',
+    '--no-git-tag-version',
+    '--ignore-scripts',
+  ])
+  execFileSync(npm.executable, npm.args, {
+    cwd: join(repoRoot, 'app'),
+    stdio: 'inherit',
+  })
+  console.log(`✅ Set app/package.json and lockfile version to ${nextVersion}`)
 
   // Prepend to changelog.json
   const changelogPath = join(repoRoot, 'changelog.json')

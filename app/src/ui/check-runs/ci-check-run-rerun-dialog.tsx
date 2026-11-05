@@ -4,6 +4,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import {
   APICheckConclusion,
@@ -23,6 +24,7 @@ const BlankSlateImage = encodePathAsUrl(
 interface ICICheckRunRerunDialogProps {
   readonly dispatcher: Dispatcher
   readonly repository: GitHubRepository
+  readonly localRepository: Repository
 
   /** List of all the check runs (some of which are not rerunnable) */
   readonly checkRuns: ReadonlyArray<IRefCheck>
@@ -62,15 +64,21 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private onSubmit = async () => {
-    const { dispatcher, repository, prRef } = this.props
+    const { dispatcher, repository, localRepository, prRef } = this.props
     this.setState({ loadingRerun: true })
-    await dispatcher.rerequestCheckSuites(
+    const results = await dispatcher.rerequestCheckSuites(
       repository,
+      localRepository,
       this.state.rerunnable,
       this.props.failedOnly
     )
+    if (results.length === 0 || results.some(result => !result)) {
+      this.setState({ loadingRerun: false })
+      return
+    }
     await dispatcher.manualRefreshSubscription(
       repository,
+      localRepository,
       prRef,
       this.state.rerunnable
     )
@@ -97,7 +105,11 @@ export class CICheckRunRerunDialog extends React.Component<
         continue
       }
       checkSuitesPromises.push(
-        this.props.dispatcher.fetchCheckSuite(this.props.repository, id)
+        this.props.dispatcher.fetchCheckSuite(
+          this.props.repository,
+          this.props.localRepository,
+          id
+        )
       )
     }
 

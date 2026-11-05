@@ -35,9 +35,9 @@ If you are interested in testing installers locally, first ensure your [developm
 Once your environment is setup, you can create an installer locally by running:
 
 ```shellsession
-$ yarn
-$ yarn build:prod
-$ yarn run package
+$ npm ci
+$ npm run build:prod
+$ npm run package
 ```
 
 If you think you've found a solution, please submit a pull request to [`shiftkey/desktop`](https://github.com/shiftkey/desktop) explaining the change and what it fixes. If you're not quite sure, open an issue on the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork explaining what you've found and where you think the problem lies. Maybe someone else has insight into the issue.

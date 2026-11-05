@@ -47,7 +47,7 @@ describe('module being tested', () => {
 })
 ```
 
-If you run `yarn test:unit` from a shell you should see this error, which
+If you run `npm run test:unit` from a shell you should see this error, which
 indicates the file is loaded into our test runner successfully.
 
 Once you're happy that the test is being run, feel free to write some proper
@@ -67,7 +67,7 @@ but here are some guidelines to help you figure out what to test.
  - if you're not confident in writing tests, the [Arrange-Act-Assert](http://wiki.c2.com/?ArrangeActAssert)
    pattern is a nice way to get started
 
-As you're writing your tests, don't forget to `yarn test:unit` to verify that
+As you're writing your tests, don't forget to `npm run test:unit` to verify that
 your tests are working as expected.
 
 ## Specific Testing Scenarios

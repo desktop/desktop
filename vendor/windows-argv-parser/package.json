@@ -13,6 +13,6 @@
   },
   "devDependencies": {
     "node-gyp": "^10.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^6.0.3"
   }
 }

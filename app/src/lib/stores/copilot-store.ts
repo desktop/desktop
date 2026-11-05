@@ -2,9 +2,10 @@ import {
   CopilotClient,
   CopilotSession,
   RuntimeConnection,
-  AssistantMessageEvent,
-  MessageOptions,
   SessionConfig,
+  ModelBillingTokenPrices,
+  GitHubTokenProvider,
+  CopilotClientOptions,
 } from '@github/copilot-sdk'
 import { AccountsStore } from './accounts-store'
 import { Account, isDotComAccount } from '../../models/account'
@@ -12,7 +13,6 @@ import {
   ICopilotCommitMessage,
   parseCopilotCommitMessage,
 } from '../copilot-commit-message'
-import { getCopilotPaymentRequiredErrorFromSessionError } from '../copilot-error'
 import {
   CopilotValidationError,
   ConflictResolutionSystemPrompt,
@@ -35,7 +35,30 @@ import {
 import {
   createCopilotInMemorySessionFsProvider,
   getCopilotInMemorySessionFsConfig,
+  ICopilotInMemorySessionFsProvider,
 } from '../copilot-in-memory-session-fs-provider'
+import {
+  awaitCancellableCopilotOperation,
+  getCopilotMessageSession,
+  getCopilotPlanningClient,
+  ICopilotMessageSession,
+  ICopilotPlanningClient,
+  ICopilotPlanningSession,
+  sendCopilotMessageRequest,
+  sendCopilotPlanningRequest,
+} from '../copilot-operation'
+import {
+  assertAssistedCommitAnalysis,
+  buildAssistedCommitSystemPrompt,
+  buildAssistedCommitUserPrompt,
+  CopilotAssistedCommitError,
+  CopilotAssistedCommitResponse,
+  getAssistedCommitClientEnvironment,
+  getAssistedCommitSessionConfig,
+  ICopilotAssistedCommitPlanningOptions,
+  parseCopilotAssistedCommitResponse,
+} from '../copilot-assisted-commit'
+import { IAssistedCommitAnalysis } from '../../models/assisted-commit'
 import { getCopilotRuntimePath } from '../copilot-runtime'
 import { startTimer } from '../../ui/lib/timing'
 import { join } from 'path'
@@ -44,11 +67,7 @@ import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
 import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
-import type {
-  AccountQuotaSnapshot,
-  Model,
-  ModelBillingTokenPrices,
-} from '@github/copilot-sdk/dist/generated/rpc'
+import type { AccountQuotaSnapshot, Model } from '../copilot/types'
 import { isGHE } from '../endpoint-capabilities'
 import {
   CopilotConflictResolutionError,
@@ -73,6 +92,84 @@ export const DefaultConflictResolutionReasoningEffort: ReasoningEffort =
  * via {@link CopilotModelRequest.timeoutMs}.
  */
 export const DefaultCopilotRequestTimeoutMs = 60000
+
+/** Bound graceful teardown of an ephemeral planner runtime before force-stopping it. */
+export const AssistedCommitCleanupTimeoutMs = 1000
+
+async function disposeAssistedCommitClient(
+  client: ICopilotPlanningClient,
+  session: ICopilotMessageSession | null,
+  interrupted: boolean
+): Promise<void> {
+  if (interrupted) {
+    // No Git or tool work exists to join; kill the owned ephemeral runtime.
+    await client.forceStop()
+    return
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error('Copilot assisted commit cleanup timed out')),
+      AssistedCommitCleanupTimeoutMs
+    )
+  })
+  let forcing = false
+  const cleanup = async () => {
+    await session?.disconnect()
+    if (forcing) {
+      return
+    }
+    const errors = await client.stop()
+    if (errors.length > 0) {
+      throw new AggregateError(errors, 'Copilot runtime cleanup failed')
+    }
+  }
+  const pending = cleanup()
+  try {
+    await Promise.race([pending, timeout])
+  } catch (error) {
+    forcing = true
+    clearTimeout(timer)
+    try {
+      await client.forceStop()
+    } catch (forceStopError) {
+      throw new AggregateError(
+        [error, forceStopError],
+        'Copilot runtime cleanup and force stop failed'
+      )
+    }
+    const settled = pending.then(
+      () => undefined,
+      () => undefined
+    )
+    const joinTimeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new Error(
+              'Copilot graceful cleanup did not settle after force stop'
+            )
+          ),
+        AssistedCommitCleanupTimeoutMs
+      )
+    })
+    try {
+      await Promise.race([settled, joinTimeout])
+    } catch (joinError) {
+      throw new AggregateError(
+        [error, joinError],
+        'Copilot runtime stopped, but graceful cleanup is still pending'
+      )
+    }
+    // The owned stdio runtime exited and its graceful continuation settled.
+    // Do not log SDK error text: it can contain request or user-specific data.
+    log.warn(
+      'Copilot assisted commit graceful cleanup required a completed force stop'
+    )
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 /**
  * Provider configuration forwarded to the Copilot SDK when generating a
@@ -138,6 +235,11 @@ interface ICopilotModelCacheEntry {
 interface ICopilotQuotaCacheEntry {
   readonly quotaSnapshots: CopilotQuotaSnapshots
   readonly cachedAt: number
+}
+
+interface ICopilotCredentialContext {
+  readonly getToken: ReturnType<AccountsStore['createTokenGetter']>
+  readonly tokenProvider: GitHubTokenProvider | undefined
 }
 
 /**
@@ -236,6 +338,56 @@ export function getCopilotGHHost(account: Account): string | undefined {
     : new URL(account.endpoint).host
 
   return isGHE(account.endpoint) && host ? host.replace(/^api\./, '') : host
+}
+
+const CopilotTokenRefreshMarginMs = 60 * 60 * 1000
+const CopilotTokenLifetimeBufferMs = 60 * 1000
+const CopilotTokenRoundingBufferMs = 1000
+
+/** Supply only access tokens to SDK sessions, with aligned renewal deadlines. */
+export function createCopilotTokenProvider(
+  accountsStore: AccountsStore,
+  account: Account
+): GitHubTokenProvider | undefined {
+  // The SDK requires whole seconds and uses a one-hour preflight margin.
+  // Reserve rounding slack and report the IPC buffer as already spent so
+  // its cached-token refresh cannot precede Desktop's renewal deadline.
+  const getToken = accountsStore.createTokenGetter(
+    account,
+    CopilotTokenRefreshMarginMs +
+      CopilotTokenLifetimeBufferMs +
+      CopilotTokenRoundingBufferMs
+  )
+  if (!accountsStore.isRefreshable(account)) {
+    return undefined
+  }
+  const expectedHost = getCopilotGHHost(account) ?? 'github.com'
+  return async ({ host }) => {
+    if (host !== expectedHost && host !== `https://${expectedHost}`) {
+      throw new Error(
+        'Copilot requested credentials for an unexpected GitHub host.'
+      )
+    }
+    const { accessToken, expiresAt } = await getToken()
+    // A refreshable token without a known expiry can't be given a safe
+    // lifetime: guessing too long leaves the SDK using a dead token.
+    const expiresIn =
+      expiresAt === undefined
+        ? 0
+        : Math.floor(
+            (expiresAt - Date.now() - CopilotTokenLifetimeBufferMs) / 1000
+          )
+    // Fail here with a clear message instead of in the SDK.
+    if (
+      !Number.isSafeInteger(expiresIn) ||
+      expiresIn <= CopilotTokenRefreshMarginMs / 1000
+    ) {
+      throw new Error(
+        'GitHub returned credentials without enough lifetime for a Copilot session.'
+      )
+    }
+    return { kind: 'token', accessToken, expiresIn }
+  }
 }
 
 /**
@@ -763,6 +915,10 @@ export async function runConflictResolutionTurn(
  * Copilot feature is used.
  */
 export class CopilotStore extends BaseStore {
+  private readonly clientTokenProviders = new WeakMap<
+    CopilotClient,
+    GitHubTokenProvider
+  >()
   private readonly modelCaches = new Map<string, ICopilotModelCacheEntry>()
   private readonly modelsInFlight = new Map<
     string,
@@ -828,19 +984,27 @@ export class CopilotStore extends BaseStore {
     }
   }
 
+  /** Bind client authentication and session callbacks before asynchronous work. */
+  private createCredentialContext(account: Account): ICopilotCredentialContext {
+    return {
+      getToken: this.accountsStore.createTokenGetter(account),
+      tokenProvider: createCopilotTokenProvider(this.accountsStore, account),
+    }
+  }
+
   /**
    * Creates a new Copilot client for the account.
    *
-   * @throws Error if the account has no token
+   * @throws Error if the account has no token or its sign-in has retired
    */
   private async createClient(
     account: Account,
-    repositoryPath?: string
+    repositoryPath?: string,
+    credentials: ICopilotCredentialContext = this.createCredentialContext(
+      account
+    ),
+    options: Pick<CopilotClientOptions, 'logLevel' | 'env'> = {}
   ): Promise<CopilotClient> {
-    if (!account.token) {
-      throw new Error('Cannot create Copilot client: Account has no token')
-    }
-
     const runtimePath = getCopilotRuntimePath(join(__dirname, 'copilot'))
     if (!(await pathExists(runtimePath))) {
       throw new Error(
@@ -848,22 +1012,60 @@ export class CopilotStore extends BaseStore {
       )
     }
 
-    return new CopilotClient({
+    const { accessToken } = await credentials.getToken()
+    if (!accessToken) {
+      throw new Error('Cannot create Copilot client: Account has no token')
+    }
+
+    const client = new CopilotClient({
       connection: RuntimeConnection.forStdio({
         path: runtimePath,
       }),
       env: {
+        ...options.env,
         GH_HOST: getCopilotGHHost(account),
         GITHUB_COPILOT_INTEGRATION_ID: `copilot-desktop${
           __DEV__ ? '-dev' : ''
         }`,
       },
       workingDirectory: repositoryPath,
+      logLevel: options.logLevel,
       sessionFs: getCopilotInMemorySessionFsConfig(
         repositoryPath,
         __WIN32__ ? 'windows' : 'posix'
       ),
-      gitHubToken: account.token,
+      gitHubToken: accessToken,
+    })
+    if (credentials.tokenProvider !== undefined) {
+      this.clientTokenProviders.set(client, credentials.tokenProvider)
+    }
+    return client
+  }
+
+  /** Preserve custom instructions without discovering hooks, config, or skills. */
+  private createSession(client: CopilotClient, config: SessionConfig) {
+    const provider = config.provider
+    // The runtime reserves 'auto' for Copilot routing. Use a session alias
+    // for custom providers where, for whatever reason, the model is named 'auto',
+    // while keeping the provider's actual model name on the wire.
+    const isProviderAuto = provider !== undefined && config.model === 'auto'
+
+    return client.createSession({
+      ...config,
+      enableFileHooks: false,
+      enableConfigDiscovery: false,
+      enableSkills: false,
+      model: isProviderAuto ? 'byok-auto' : config.model,
+      provider: isProviderAuto
+        ? {
+            ...provider,
+            wireModel: provider.wireModel ?? config.model,
+          }
+        : provider,
+      gitHubTokenProvider:
+        provider === undefined
+          ? this.clientTokenProviders.get(client)
+          : undefined,
     })
   }
 
@@ -881,140 +1083,213 @@ export class CopilotStore extends BaseStore {
     })
   }
 
+  /** Whether the packaged SDK runtime needed for assisted commit planning is installed. */
+  public async isAssistedCommitRuntimeAvailable(): Promise<boolean> {
+    return pathExists(getCopilotRuntimePath(join(__dirname, 'copilot')))
+  }
+
+  /** Reuse current session-bound authentication with the planner's isolated runtime policy. */
+  protected async createAssistedCommitClient(
+    account: Account,
+    repositoryPath: string
+  ): Promise<ICopilotPlanningClient> {
+    const client = await this.createClient(
+      account,
+      repositoryPath,
+      this.createCredentialContext(account),
+      {
+        logLevel: 'none',
+        env: getAssistedCommitClientEnvironment(),
+      }
+    )
+    return getCopilotPlanningClient(client, config =>
+      this.createSession(client, config)
+    )
+  }
+
   private async createCancellableSession(
     client: CopilotClient,
     config: SessionConfig,
-    signal?: AbortSignal
+    signal: AbortSignal | undefined,
+    cancellationError: () => Error
   ): Promise<CopilotSession> {
-    if (signal?.aborted) {
-      throw new CommitMessageGenerationCancelledError()
-    }
-
-    const sessionCreation = client.createSession(config)
-
-    if (signal === undefined) {
-      return sessionCreation
-    }
-
-    let sessionWasReturned = false
-    void sessionCreation
-      .then(async createdSession => {
-        if (signal.aborted && !sessionWasReturned) {
-          await createdSession.disconnect().catch(() => {})
-        }
-      })
-      .catch(() => {})
-
-    let rejectAbort: ((error: Error) => void) | null = null
-    const abortPromise = new Promise<never>((_, reject) => {
-      rejectAbort = reject
-    })
-
-    const onAbort = () => {
-      rejectAbort?.(new CommitMessageGenerationCancelledError())
-    }
-
-    signal.addEventListener('abort', onAbort)
-
-    try {
-      if (signal.aborted) {
-        onAbort()
+    return awaitCancellableCopilotOperation(
+      () => this.createSession(client, config),
+      {
+        signal,
+        cancellationError,
+        disposeLateValue: session => session.disconnect(),
       }
-
-      const session = await Promise.race([sessionCreation, abortPromise])
-      sessionWasReturned = true
-      return session
-    } catch (error) {
-      if (signal.aborted) {
-        throw new CommitMessageGenerationCancelledError()
-      }
-
-      throw error
-    } finally {
-      signal.removeEventListener('abort', onAbort)
-    }
+    )
   }
 
   /**
-   * Sends a prompt on the given session and waits for the assistant
-   * response, while capturing any `session.error` events emitted during
-   * the round-trip.
+   * Propose messages and exact opaque-ID ownership for frozen selected changes.
    *
-   * If the SDK emits a `session.error` whose upstream HTTP status code is
-   * 402 (Payment Required), the corresponding `CopilotError` is thrown
-   * instead of whatever {@link CopilotSession.sendAndWait} would have
-   * rejected with — the underlying rejection is intentionally swallowed
-   * because the SDK surfaces the same failure twice (once on the event
-   * channel, once on the awaited promise) and only the parsed 402 error
-   * carries actionable billing metadata for the UI.
-   *
-   * Any other `session.error` event is logged and otherwise ignored so
-   * the original `sendAndWait` rejection (or success) is propagated
-   * unchanged.
+   * This method never reads selected files, changes CommitMessage drafts, or
+   * mutates Git. Reuse the commit-message feature's caller-selected model and
+   * account eligibility/consent gates. Pass its response to planAssistedCommits,
+   * which checks every cumulative tree before integration may execute anything.
+   * Empty selections must bypass this method with an explicit caller title.
    */
-  private async sendAndWait(
-    session: CopilotSession,
-    options: MessageOptions,
-    timeoutMs: number,
-    signal?: AbortSignal
-  ): Promise<AssistantMessageEvent | undefined> {
-    let paymentRequiredError: Error | undefined
-    let rejectAbort: ((error: Error) => void) | null = null
-
-    const abortPromise = new Promise<never>((_, reject) => {
-      rejectAbort = reject
-    })
-
-    const onAbort = () => {
-      rejectAbort?.(new CommitMessageGenerationCancelledError())
+  public async proposeAssistedCommitPlan(
+    account: Account,
+    analysis: IAssistedCommitAnalysis,
+    repositoryPath: string,
+    options: ICopilotAssistedCommitPlanningOptions = {}
+  ): Promise<CopilotAssistedCommitResponse> {
+    assertAssistedCommitAnalysis(analysis)
+    const request = options.request
+    const timeoutMs =
+      request?.kind === 'byok' && request.timeoutMs !== undefined
+        ? request.timeoutMs
+        : DefaultCopilotRequestTimeoutMs
+    if (
+      !Number.isFinite(timeoutMs) ||
+      timeoutMs <= 0 ||
+      timeoutMs > 2147483647
+    ) {
+      throw new CopilotAssistedCommitError(
+        'invalid-request',
+        'The assisted commit request timeout must be finite, positive and supported by the runtime'
+      )
     }
-
-    const unsubscribe = session.on('session.error', e => {
-      const captured = getCopilotPaymentRequiredErrorFromSessionError(e.data)
-      if (captured !== null) {
-        paymentRequiredError = captured
+    const deadline = new AbortController()
+    const signal =
+      options.signal === undefined
+        ? deadline.signal
+        : AbortSignal.any([options.signal, deadline.signal])
+    const cancellationError = () =>
+      options.signal?.aborted
+        ? new CopilotAssistedCommitError(
+            'cancelled',
+            'Assisted commit planning cancelled'
+          )
+        : new CopilotAssistedCommitError(
+            'timed-out',
+            'Assisted commit planning timed out'
+          )
+    const throwIfCancelled = () => {
+      if (signal.aborted) {
+        throw cancellationError()
+      }
+    }
+    const timer = setTimeout(() => deadline.abort(), timeoutMs)
+    let client: ICopilotPlanningClient | null = null
+    let session: ICopilotPlanningSession | null = null
+    let failed = false
+    let failure: unknown
+    let disposed = false
+    const fileSystems: ICopilotInMemorySessionFsProvider[] = []
+    try {
+      throwIfCancelled()
+      const tags = generateCommitMessagePromptTags()
+      const mode = options.mode ?? 'plan'
+      const cleanedRules = getCleanedEnforcedRuleDescriptions(
+        options.commitMessageRules
+      )
+      const prompt = buildAssistedCommitUserPrompt(analysis, tags, cleanedRules)
+      let modelId: string
+      let reasoningEffort: ReasoningEffort | undefined
+      let provider: CopilotProviderConfig | undefined
+      if (request?.kind === 'byok') {
+        modelId = request.modelId
+        reasoningEffort = request.reasoningEffort
+        provider = request.provider
       } else {
-        const sessionError = new Error(e.data.message)
-        if (e.data.stack !== undefined) {
-          sessionError.stack = e.data.stack
+        const models = this.getCachedModelList(account)
+        const requested = request?.modelId
+        const resolved = requested
+          ? models?.find(model => model.id === requested)
+          : getPreferredDefaultModel(models ?? [])
+        modelId = resolved?.id ?? requested ?? DefaultCopilotModel
+        reasoningEffort = undefined
+      }
+      throwIfCancelled()
+      client = await awaitCancellableCopilotOperation(
+        () => this.createAssistedCommitClient(account, repositoryPath),
+        {
+          signal,
+          cancellationError,
+          disposeLateValue: lateClient => lateClient.forceStop(),
         }
-
-        log.error(
-          `CopilotStore: Session error (${e.data.errorType})`,
-          sessionError
+      )
+      throwIfCancelled()
+      const planningClient = client
+      session = await awaitCancellableCopilotOperation(
+        () =>
+          planningClient.createSession({
+            ...getAssistedCommitSessionConfig(
+              repositoryPath,
+              buildAssistedCommitSystemPrompt(tags, mode)
+            ),
+            clientName: CopilotClientNames['commit-message-generation'],
+            model: modelId,
+            reasoningEffort,
+            provider,
+            createSessionFsProvider: () => {
+              const fs = createCopilotInMemorySessionFsProvider()
+              if (disposed) {
+                fs.dispose()
+              } else {
+                fileSystems.push(fs)
+              }
+              return fs
+            },
+          }),
+        {
+          signal,
+          cancellationError,
+          disposeLateValue: lateSession => lateSession.disconnect(),
+        }
+      )
+      throwIfCancelled()
+      const response = await sendCopilotPlanningRequest(
+        session,
+        { prompt },
+        signal,
+        cancellationError
+      )
+      throwIfCancelled()
+      return parseCopilotAssistedCommitResponse(
+        analysis,
+        response?.data.content,
+        mode
+      )
+    } catch (error) {
+      failed = true
+      failure = signal.aborted ? cancellationError() : error
+      throw failure
+    } finally {
+      clearTimeout(timer)
+      const cleanupErrors: unknown[] = []
+      try {
+        if (client !== null) {
+          await disposeAssistedCommitClient(client, session, signal.aborted)
+        }
+      } catch (error) {
+        cleanupErrors.push(error)
+      } finally {
+        disposed = true
+        fileSystems.forEach(fs => fs.dispose())
+      }
+      if (cleanupErrors.length > 0) {
+        throw new CopilotAssistedCommitError(
+          'cleanup-failed',
+          'Copilot assisted commit resources could not be cleaned up',
+          {
+            cause: failed
+              ? failure
+              : signal.aborted
+              ? cancellationError()
+              : undefined,
+            cleanupErrors,
+          }
         )
       }
-    })
-
-    signal?.addEventListener('abort', onAbort)
-
-    try {
-      if (signal?.aborted) {
-        onAbort()
-        throw new CommitMessageGenerationCancelledError()
+      if (!failed) {
+        throwIfCancelled()
       }
-
-      const response = session.sendAndWait(options, timeoutMs).catch(e => {
-        if (signal?.aborted) {
-          throw new CommitMessageGenerationCancelledError()
-        }
-
-        throw paymentRequiredError ?? e
-      })
-      void response.catch(() => {})
-
-      return signal === undefined
-        ? await response
-        : await Promise.race([response, abortPromise])
-    } catch (e) {
-      if (signal?.aborted) {
-        throw new CommitMessageGenerationCancelledError()
-      }
-
-      throw e
-    } finally {
-      signal?.removeEventListener('abort', onAbort)
-      unsubscribe()
     }
   }
 
@@ -1053,6 +1328,7 @@ export class CopilotStore extends BaseStore {
     }
 
     throwIfCancelled()
+    const credentials = this.createCredentialContext(account)
 
     let modelId: string
     let reasoningEffort: ReasoningEffort | undefined
@@ -1069,7 +1345,13 @@ export class CopilotStore extends BaseStore {
     } else {
       const requestedModelId =
         request?.kind === 'copilot' ? request.modelId : null
-      const cachedModels = await this.getCachedModels(account)
+      const cachedModels = await awaitCancellableCopilotOperation(
+        () => this.getCachedModels(account),
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+        }
+      )
       throwIfCancelled()
       const resolvedModel = requestedModelId
         ? cachedModels.find(m => m.id === requestedModelId) ?? null
@@ -1088,7 +1370,14 @@ export class CopilotStore extends BaseStore {
       null
 
     try {
-      client = await this.createClient(account, repositoryPath)
+      client = await awaitCancellableCopilotOperation(
+        () => this.createClient(account, repositoryPath, credentials),
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+          disposeLateValue: lateClient => this.stopClient(lateClient),
+        }
+      )
       throwIfCancelled()
 
       const tags = generateCommitMessagePromptTags()
@@ -1119,7 +1408,8 @@ export class CopilotStore extends BaseStore {
             kind: 'reject',
           }),
         },
-        signal
+        signal,
+        () => new CommitMessageGenerationCancelledError()
       )
 
       throwIfCancelled()
@@ -1134,11 +1424,14 @@ export class CopilotStore extends BaseStore {
         cleanedRuleDescriptions
       )
 
-      const response = await this.sendAndWait(
-        session,
+      const response = await sendCopilotMessageRequest(
+        getCopilotMessageSession(session),
         { prompt: userPrompt },
         timeoutMs,
-        signal
+        {
+          signal,
+          cancellationError: () => new CommitMessageGenerationCancelledError(),
+        }
       )
 
       throwIfCancelled()
@@ -1249,6 +1542,9 @@ export class CopilotStore extends BaseStore {
     if (filesTotal === 0) {
       return { resolutions: [], summary: null, references: [] }
     }
+    if (signal?.aborted) {
+      throw new CopilotConflictResolutionAbortError()
+    }
 
     onProgress?.({ filesResolved: 0, filesTotal })
 
@@ -1262,8 +1558,18 @@ export class CopilotStore extends BaseStore {
     const clientTimer = startTimer('createClient')
     let client: CopilotClient
     try {
-      client = await this.createClient(account, repositoryPath)
+      client = await awaitCancellableCopilotOperation(
+        () => this.createClient(account, repositoryPath),
+        {
+          signal,
+          cancellationError: () => new CopilotConflictResolutionAbortError(),
+          disposeLateValue: lateClient => this.stopClient(lateClient),
+        }
+      )
     } catch (error) {
+      if (isCopilotConflictResolutionAbortError(error)) {
+        throw error
+      }
       throw new CopilotConflictResolutionError(error, 'create-client')
     }
     clientTimer.done()
@@ -1421,23 +1727,28 @@ export class CopilotStore extends BaseStore {
         const sessionTimer = startTimer(
           `createSession (attempt ${attempt + 1})`
         )
-        const session = await client.createSession({
-          clientName: CopilotClientNames['conflict-resolution'],
-          model: modelConfig.modelId,
-          reasoningEffort: modelConfig.reasoningEffort,
-          provider: modelConfig.provider,
-          streaming: true,
-          availableTools: [],
-          enableSessionStore: false,
-          createSessionFsProvider: createCopilotInMemorySessionFsProvider,
-          systemMessage: {
-            mode: 'append',
-            content: ConflictResolutionSystemPrompt,
+        const session = await this.createCancellableSession(
+          client,
+          {
+            clientName: CopilotClientNames['conflict-resolution'],
+            model: modelConfig.modelId,
+            reasoningEffort: modelConfig.reasoningEffort,
+            provider: modelConfig.provider,
+            streaming: true,
+            availableTools: [],
+            enableSessionStore: false,
+            createSessionFsProvider: createCopilotInMemorySessionFsProvider,
+            systemMessage: {
+              mode: 'append',
+              content: ConflictResolutionSystemPrompt,
+            },
+            onPermissionRequest: async () => ({
+              kind: 'reject',
+            }),
           },
-          onPermissionRequest: async () => ({
-            kind: 'reject',
-          }),
-        })
+          signal,
+          () => new CopilotConflictResolutionAbortError()
+        )
         sessionTimer.done()
 
         // The user may have cancelled while the session was being created. Tear
@@ -1706,12 +2017,14 @@ export class CopilotStore extends BaseStore {
   private async fetchQuotaSnapshots(
     account: Account
   ): Promise<CopilotQuotaSnapshots> {
-    const client = await this.createClient(account)
+    const credentials = this.createCredentialContext(account)
+    const client = await this.createClient(account, undefined, credentials)
 
     try {
       await client.start()
+      const { accessToken } = await credentials.getToken()
       const result = await client.rpc.account.getQuota({
-        gitHubToken: account.token,
+        gitHubToken: accessToken,
       })
 
       const quotaSnapshots = new Map<string, ICopilotQuotaSnapshot>()

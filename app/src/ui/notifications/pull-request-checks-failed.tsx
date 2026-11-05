@@ -14,9 +14,13 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
+import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { RepositoryWithGitHubRepository } from '../../models/repository'
+import {
+  RepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
+} from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
@@ -56,6 +60,7 @@ export class PullRequestChecksFailed extends React.Component<
   IPullRequestChecksFailedState
 > {
   private checkRunsLoadCancelled: boolean = false
+  private checkRunsLoadId = 0
 
   public constructor(props: IPullRequestChecksFailedProps) {
     super(props)
@@ -258,7 +263,7 @@ export class PullRequestChecksFailed extends React.Component<
     const url = getCheckRunStepURL(
       checkRun,
       step,
-      repository.gitHubRepository,
+      getNonForkGitHubRepository(repository),
       pullRequest.pullRequestNumber
     )
 
@@ -269,6 +274,16 @@ export class PullRequestChecksFailed extends React.Component<
 
   public componentDidMount() {
     this.loadCheckRunLogs()
+  }
+
+  public componentDidUpdate(prevProps: IPullRequestChecksFailedProps) {
+    if (
+      prevProps.repository.hash !== this.props.repository.hash ||
+      getAccountForRepository(prevProps.accounts, prevProps.repository) !==
+        getAccountForRepository(this.props.accounts, this.props.repository)
+    ) {
+      this.loadCheckRunLogs()
+    }
   }
 
   public componentWillUnmount() {
@@ -304,7 +319,8 @@ export class PullRequestChecksFailed extends React.Component<
     this.props.dispatcher.showPopup({
       type: PopupType.CICheckRunRerun,
       checkRuns: checks ?? this.state.checks,
-      repository: this.props.repository.gitHubRepository,
+      repository: getNonForkGitHubRepository(this.props.repository),
+      localRepository: this.props.repository,
       prRef,
       failedOnly,
     })
@@ -312,13 +328,18 @@ export class PullRequestChecksFailed extends React.Component<
 
   private async loadCheckRunLogs() {
     const { pullRequest, repository } = this.props
-    const { gitHubRepository } = repository
+    const gitHubRepository = getNonForkGitHubRepository(repository)
+    const loadId = ++this.checkRunsLoadId
+    const originalChecks = this.props.checks.map(check => ({
+      ...check,
+      actionJobSteps: undefined,
+      actionsWorkflow: undefined,
+    }))
+    this.setState({ checks: originalChecks, loadingActionWorkflows: true })
 
-    const account = this.props.accounts.find(
-      a => a.endpoint === gitHubRepository.endpoint
-    )
+    const account = getAccountForRepository(this.props.accounts, repository)
 
-    if (account === undefined) {
+    if (account === null) {
       this.setState({ loadingActionWorkflows: false })
       return
     }
@@ -338,10 +359,10 @@ export class PullRequestChecksFailed extends React.Component<
       gitHubRepository.owner.login,
       gitHubRepository.name,
       pullRequest.head.ref,
-      this.props.checks
+      originalChecks
     )
 
-    if (this.checkRunsLoadCancelled) {
+    if (this.checkRunsLoadCancelled || loadId !== this.checkRunsLoadId) {
       return
     }
 
@@ -354,7 +375,7 @@ export class PullRequestChecksFailed extends React.Component<
       checkRunsWithActionsUrls
     )
 
-    if (this.checkRunsLoadCancelled) {
+    if (this.checkRunsLoadCancelled || loadId !== this.checkRunsLoadId) {
       return
     }
 
@@ -381,7 +402,9 @@ export class PullRequestChecksFailed extends React.Component<
     // dissatisfying tho more of an edgecase anyways.
     const url =
       checkRun.htmlUrl ??
-      `${repository.gitHubRepository.htmlURL}/pull/${pullRequest.pullRequestNumber}`
+      `${getNonForkGitHubRepository(repository).htmlURL}/pull/${
+        pullRequest.pullRequestNumber
+      }`
     if (url === null) {
       // The repository should have a htmlURL.
       return

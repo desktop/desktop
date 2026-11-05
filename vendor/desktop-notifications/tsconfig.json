@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "rootDir": "./lib",
+    "types": ["node"],
     "target": "ES2022",
     "esModuleInterop": true,
     "resolveJsonModule": true,

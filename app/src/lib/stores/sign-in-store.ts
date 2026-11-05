@@ -1,5 +1,5 @@
 import { Disposable } from 'event-kit'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account } from '../../models/account'
 import { fatalError } from '../fatal-error'
 import {
   validateURL,
@@ -11,8 +11,8 @@ import {
   fetchUser,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
-  requestOAuthToken,
   getOAuthAuthorizationURL,
+  getHTMLURL,
 } from '../../lib/api'
 
 import { TypedBaseStore } from './base-store'
@@ -21,6 +21,8 @@ import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
 import { isGHES } from '../endpoint-capabilities'
+import { exchangeOAuthToken } from '../oauth-token'
+import { shouldRequestShortLivedTokens } from '../short-lived-token-rollout'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -28,7 +30,6 @@ import { isGHES } from '../endpoint-capabilities'
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
-  ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
   Success = 'Success',
@@ -40,7 +41,6 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
-  | IExistingAccountWarning
   | IAuthenticationState
   | ISuccessState
 
@@ -77,26 +77,6 @@ export interface ISignInState {
  * This is the initial step in the Enterprise sign in
  * flow and is not present when signing in to GitHub.com
  */
-export interface IExistingAccountWarning extends ISignInState {
-  readonly kind: SignInStep.ExistingAccountWarning
-  /**
-   * The URL to the host which we're currently authenticating
-   * against. This will be either https://api.github.com when
-   * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise
-   * instance.
-   */
-  readonly existingAccount: Account
-  readonly endpoint: string
-
-  readonly resultCallback: (result: SignInResult) => void
-}
-
-/**
- * State interface representing the endpoint entry step.
- * This is the initial step in the Enterprise sign in
- * flow and is not present when signing in to GitHub.com
- */
 export interface IEndpointEntryState extends ISignInState {
   readonly kind: SignInStep.EndpointEntry
   readonly resultCallback: (result: SignInResult) => void
@@ -120,6 +100,9 @@ export interface IAuthenticationState extends ISignInState {
    * instance.
    */
   readonly endpoint: string
+
+  /** The account login required when reauthenticating a specific account. */
+  readonly expectedLogin?: string
 
   /** Whether Git supplied this unfamiliar Enterprise Server endpoint. */
   readonly isUnrecognizedEnterpriseServer?: boolean
@@ -159,6 +142,7 @@ export type SignInResult =
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
+  private resolvingOAuthState: string | undefined
 
   private accounts: ReadonlyArray<Account> = []
 
@@ -176,7 +160,6 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   private emitAuthenticate(account: Account) {
     const event: IAuthenticationEvent = { account }
     this.emitter.emit('did-authenticate', event)
-    this.state?.resultCallback({ kind: 'success', account })
   }
 
   /**
@@ -215,11 +198,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    */
   public reset() {
     const currentState = this.state
-    this.state?.resultCallback({ kind: 'cancelled' })
     this.setState(null)
 
     if (currentState?.kind === SignInStep.Authentication) {
       currentState.oauthState?.onAuthError(new Error('cancelled'))
+    }
+    if (currentState !== null && currentState.kind !== SignInStep.Success) {
+      currentState.resultCallback({ kind: 'cancelled' })
     }
   }
 
@@ -234,26 +219,33 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
+  }
 
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
+  /** Begin reauthentication for a specific login at a known API endpoint. */
+  public beginSignInForAccount(
+    endpoint: string,
+    login: string,
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    if (this.state !== null) {
+      this.reset()
     }
+
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      expectedLogin: login,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
   }
 
   /**
@@ -264,25 +256,21 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async authenticateWithBrowser() {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.Authentication &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with browser authentication`
       )
     }
 
-    this.setState({ ...currentState, loading: true })
+    const authenticatingState = { ...currentState, loading: true }
+    this.setState(authenticatingState)
 
-    if (currentState.kind === SignInStep.ExistingAccountWarning) {
-      const { existingAccount } = currentState
-      // Try to avoid emitting an error out of AccountsStore if the account
-      // is already gone.
-      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
-        await this.accountStore.removeAccount(existingAccount)
-      }
+    const shortLived = await shouldRequestShortLivedTokens(
+      currentState.endpoint
+    )
+    if (this.state !== authenticatingState) {
+      return
     }
 
     const csrfToken = crypto.randomUUID()
@@ -293,6 +281,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
+        expectedLogin:
+          currentState.kind === SignInStep.Authentication
+            ? currentState.expectedLogin
+            : undefined,
         isUnrecognizedEnterpriseServer:
           currentState.kind === SignInStep.Authentication
             ? currentState.isUnrecognizedEnterpriseServer
@@ -307,21 +299,39 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           onAuthError: reject,
         },
       })
-      shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
+      shell.openExternal(
+        getOAuthAuthorizationURL(
+          endpoint,
+          csrfToken,
+          currentState.expectedLogin,
+          shortLived
+        )
+      )
     })
       .then(account => {
-        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+        if (
+          this.state?.kind !== SignInStep.Authentication ||
+          this.state.oauthState?.state !== csrfToken
+        ) {
           // Looks like the sign in flow has been aborted
           log.warn('[SignInStore] account resolved but session has changed')
           return
         }
 
+        const { resultCallback } = this.state
         log.info('[SignInStore] account resolved')
-        this.emitAuthenticate(account)
-        this.setState({
+        const successState: ISuccessState = {
           kind: SignInStep.Success,
-          resultCallback: this.state.resultCallback,
-        })
+          resultCallback,
+        }
+        // Commit completion before invoking observers, which can reset the
+        // store or begin another flow. The account has already been saved.
+        this.state = successState
+        this.emitAuthenticate(account)
+        if (this.state === successState) {
+          this.emitUpdate(successState)
+        }
+        resultCallback({ kind: 'success', account })
       })
       .catch(e => {
         // Make sure we're still in the same sign in session
@@ -353,16 +363,65 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       return
     }
 
-    const { endpoint } = this.state
-    const token = await requestOAuthToken(endpoint, action.code)
-
-    if (token) {
-      const account = await fetchUser(endpoint, token)
-      this.state.oauthState.onAuthCompleted(account)
-    } else {
-      this.state.oauthState.onAuthError(
-        new Error('Failed retrieving authenticated user')
+    const { endpoint, expectedLogin, oauthState } = this.state
+    if (this.resolvingOAuthState === oauthState.state) {
+      return
+    }
+    this.resolvingOAuthState = oauthState.state
+    // False once the user cancels, restarts, or leaves this browser sign-in.
+    const isSignInAttemptActive = () =>
+      this.state?.kind === SignInStep.Authentication &&
+      this.state.oauthState === oauthState
+    let unpublishedToken: string | undefined
+    try {
+      const credential = await exchangeOAuthToken(
+        getHTMLURL(endpoint),
+        action.code
       )
+      unpublishedToken = credential.accessToken
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      const account = await fetchUser(endpoint, credential.accessToken, true)
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      // Check before saving so a different browser account isn't signed in.
+      if (
+        expectedLogin !== undefined &&
+        account.login.toLowerCase() !== expectedLogin.toLowerCase()
+      ) {
+        throw new Error(
+          `Please sign in as ${expectedLogin} on ${
+            new URL(getHTMLURL(endpoint)).host
+          }. The browser signed in to a different account.`
+        )
+      }
+      const stored = await this.accountStore.addAccount(account, credential)
+      if (stored !== null) {
+        unpublishedToken = undefined
+      }
+      if (!isSignInAttemptActive()) {
+        return
+      }
+      if (stored === null) {
+        throw new Error(
+          'Unable to save your GitHub credentials. Please try signing in again.'
+        )
+      }
+      oauthState.onAuthCompleted(stored)
+    } catch (e) {
+      oauthState.onAuthError(e)
+    } finally {
+      if (this.resolvingOAuthState === oauthState.state) {
+        this.resolvingOAuthState = undefined
+      }
+      if (unpublishedToken !== undefined) {
+        void this.accountStore.revokeUnusedToken({
+          endpoint,
+          token: unpublishedToken,
+        })
+      }
     }
   }
 
@@ -399,10 +458,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   ): Promise<void> {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.EndpointEntry &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.EndpointEntry) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with endpoint entry`
@@ -441,26 +497,18 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const endpoint = getEnterpriseAPIURL(validUrl)
 
-    const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
+    const existingAccount = this.accounts.find(
+      x => x.endpoint.toLowerCase() === endpoint.toLowerCase()
+    )
 
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        isUnrecognizedEnterpriseServer: isEndpointFromGit && isGHES(endpoint),
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    }
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      isUnrecognizedEnterpriseServer:
+        isEndpointFromGit && !existingAccount && isGHES(endpoint),
+      error: null,
+      loading: false,
+      resultCallback: currentState.resultCallback,
+    })
   }
 }

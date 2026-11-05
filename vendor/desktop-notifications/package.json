@@ -7,14 +7,14 @@
   "scripts": {
     "install": "node-gyp rebuild && tsc",
     "build": "tsc",
-    "pretest": "yarn build",
-    "prettify": "yarn prettier --write \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
+    "pretest": "npm run build",
+    "prettify": "prettier --write \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\"",
     "check-prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\""
   },
   "devDependencies": {
     "node-gyp": "^10.1.0",
     "prettier": "^2.0.5",
-    "typescript": "^5.4.5"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "node-addon-api": "^7.0.0"
