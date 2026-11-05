@@ -47,6 +47,7 @@ import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
 import { getSystemNotificationsPermission } from '../notifications/notification-permission'
+import { TokenRefreshEvent } from '../credential-sessions'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -102,6 +103,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   partialCommits: 0,
   openShellCount: 0,
   openInCopilotAppCount: 0,
+  tokenRefreshAttemptCount: 0,
+  tokenRefreshSuccessCount: 0,
+  tokenRefreshTransientFailureCount: 0,
+  tokenRefreshNonTransientFailureCount: 0,
+  tokenRefreshAbandonedCount: 0,
+  tokenRefreshRequiredSignInCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,
@@ -406,6 +413,9 @@ interface ICalculatedStats {
   /** Is the user logged in with an Enterprise account? */
   readonly enterpriseAccount: boolean
 
+  /** Whether any currently signed-in account uses refreshable OAuth credentials. */
+  readonly usesShortLivedToken: boolean
+
   /**
    * The name of the currently selected theme/application appearance as set at
    * time of stats submission.
@@ -554,6 +564,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     diffMode,
     dotComAccount,
     enterpriseAccount,
+    usesShortLivedToken,
     notificationsEnabled,
     notificationsPermission,
     launchedFromApplicationsFolder,
@@ -592,6 +603,7 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     diffMode,
     dotComAccount,
     enterpriseAccount,
+    usesShortLivedToken,
     notificationsEnabled,
     notificationsPermission,
     launchedFromApplicationsFolder,
@@ -661,6 +673,7 @@ export class StatsStore implements IStatsStore {
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
+  private usesShortLivedToken = false
 
   public constructor(
     private readonly db: StatsDatabase,
@@ -693,6 +706,25 @@ export class StatsStore implements IStatsStore {
     const lastDate = getNumber(LastDailyStatsReportKey, 0)
     const now = Date.now()
     return now - lastDate > DailyStatsReportInterval
+  }
+
+  /** Update installation-level short-lived-token usage from the account list. */
+  public setUsesShortLivedToken(value: boolean): void {
+    this.usesShortLivedToken = value
+  }
+
+  /** Count a single token refresh lifecycle event without credential metadata. */
+  public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
+    const measures: Readonly<Record<TokenRefreshEvent, keyof NumericMeasures>> =
+      {
+        attempt: 'tokenRefreshAttemptCount',
+        success: 'tokenRefreshSuccessCount',
+        'transient-failure': 'tokenRefreshTransientFailureCount',
+        'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
+        abandoned: 'tokenRefreshAbandonedCount',
+        'required-sign-in': 'tokenRefreshRequiredSignInCount',
+      }
+    return this.increment(measures[event])
   }
 
   /** Report any stats which are eligible for reporting. */
@@ -851,6 +883,7 @@ export class StatsStore implements IStatsStore {
       selectedTextEditor,
       notificationsEnabled: getNotificationsEnabled(),
       notificationsPermission: await getSystemNotificationsPermission(),
+      usesShortLivedToken: this.usesShortLivedToken,
       ...launchStats,
       ...dailyMeasures,
       ...userType,

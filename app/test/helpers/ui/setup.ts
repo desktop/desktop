@@ -15,6 +15,10 @@ if (globalThis.ResizeObserver === undefined) {
   })
 }
 
+if (typeof window !== 'undefined' && window.ResizeObserver === undefined) {
+  Object.assign(window, { ResizeObserver: globalThis.ResizeObserver })
+}
+
 if (
   typeof window !== 'undefined' &&
   globalThis.CustomEvent !== window.CustomEvent

@@ -328,4 +328,19 @@ export class DiffSelection {
       selectableLines
     )
   }
+
+  /** Compare exact immutable selection inputs, including their selectable-line bounds. */
+  public equals(other: DiffSelection): boolean {
+    const setsEqual = (left: Set<number> | null, right: Set<number> | null) =>
+      left === right ||
+      (left !== null &&
+        right !== null &&
+        left.size === right.size &&
+        [...left].every(line => right.has(line)))
+    return (
+      this.defaultSelectionType === other.defaultSelectionType &&
+      setsEqual(this.divergingLines, other.divergingLines) &&
+      setsEqual(this.selectableLines, other.selectableLines)
+    )
+  }
 }
