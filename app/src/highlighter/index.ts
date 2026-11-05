@@ -52,6 +52,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.mjs': 'text/javascript',
       '.cjs': 'text/javascript',
       '.json': 'application/json',
+      '.jsonc': 'application/json',
     },
   },
   {
@@ -144,6 +145,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/clike/clike'),
     mappings: {
       '.m': 'text/x-objectivec',
+      '.mm': 'text/x-objectivec++',
       '.scala': 'text/x-scala',
       '.sc': 'text/x-scala',
       '.cs': 'text/x-csharp',
@@ -159,6 +161,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.cxx': 'text/x-c++src',
       '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
+      '.kts': 'text/x-kotlin',
     },
   },
   {
@@ -180,6 +183,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/shell/shell'),
     mappings: {
       '.sh': 'text/x-sh',
+      '.bash': 'text/x-sh',
+      '.zsh': 'text/x-sh',
     },
   },
   {
@@ -446,6 +451,56 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/cmake/cmake'),
     mappings: {
       '.cmake': 'text/x-cmake',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/sass/sass'),
+    mappings: {
+      '.sass': 'text/x-sass',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/handlebars/handlebars'),
+    mappings: {
+      '.hbs': 'text/x-handlebars-template',
+      '.handlebars': 'text/x-handlebars-template',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/groovy/groovy'),
+    mappings: {
+      '.groovy': 'text/x-groovy',
+      '.gradle': 'text/x-groovy',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/haskell/haskell'),
+    mappings: {
+      '.hs': 'text/x-haskell',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/erlang/erlang'),
+    mappings: {
+      '.erl': 'text/x-erlang',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/elm/elm'),
+    mappings: {
+      '.elm': 'text/x-elm',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/twig/twig'),
+    mappings: {
+      '.twig': 'text/x-twig',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/jinja2/jinja2'),
+    mappings: {
+      '.j2': 'text/jinja2',
     },
   },
   {
