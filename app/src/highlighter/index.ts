@@ -555,6 +555,12 @@ const basenameModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror/mode/cmake/cmake'),
+    mappings: {
+      'cmakelists.txt': 'text/x-cmake',
+    },
+  },
+  {
     install: () => import('codemirror/mode/dockerfile/dockerfile'),
     mappings: {
       containerfile: 'text/x-dockerfile',
