@@ -21,8 +21,8 @@ This is intentionally not a Jest or Vitest migration guide.
 ## Running UI Tests
 
 - Run one file directly: `node script/test.mjs app/test/unit/ui/tab-bar-test.tsx`
-- Run the UI directory: `yarn test:unit app/test/unit/ui`
-- Run the full unit suite: `yarn test:unit`
+- Run the UI directory: `npm run test:unit -- app/test/unit/ui`
+- Run the full unit suite: `npm run test:unit`
 
 Directory discovery for `script/test.mjs` now includes `-test.tsx` and
 `-test.jsx`. If a future change regresses that pattern, UI directory runs will

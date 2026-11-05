@@ -1,0 +1,3 @@
+# prebuild-install 5 expects _from metadata that modern npm no longer writes.
+# Force the download attempt only; this does not enable npm --force.
+force=true
