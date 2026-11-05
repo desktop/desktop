@@ -4,6 +4,7 @@
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
 import {
+  defineMIME,
   getMode,
   innerMode,
   StringStream,
@@ -444,6 +445,31 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/cmake/cmake'),
     mappings: {
       '.cmake': 'text/x-cmake',
+    },
+  },
+  {
+    // CodeMirror has no Prisma mode; the C-like tokenizer covers its syntax.
+    install: async () => {
+      await import('codemirror/mode/clike/clike')
+      const set = (s: string) =>
+        Object.fromEntries(s.split(' ').map(w => [w, true]))
+      defineMIME('text/x-prisma', {
+        name: 'clike',
+        keywords: set('datasource generator model enum type view'),
+        types: set(
+          'String Int BigInt Float Decimal Boolean DateTime Json Bytes Unsupported'
+        ),
+        atoms: set('true false null'),
+        hooks: {
+          '@': (stream: CodeMirror.StringStream) => {
+            stream.eatWhile(/[\w.@]/)
+            return 'meta'
+          },
+        },
+      })
+    },
+    mappings: {
+      '.prisma': 'text/x-prisma',
     },
   },
 ]
