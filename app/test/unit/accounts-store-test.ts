@@ -3,8 +3,10 @@ import assert from 'node:assert'
 import { Account } from '../../src/models/account'
 import { AccountsStore } from '../../src/lib/stores'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { getKeyForEndpoint } from '../../src/lib/auth'
 import { TokenRefreshEvent } from '../../src/lib/credential-sessions'
 import { OAuthRefreshRejectedError } from '../../src/lib/oauth-token'
+import { serializeAccountCredential } from '../../src/lib/account-credential'
 
 describe('AccountsStore', () => {
   let accountsStore: AccountsStore
@@ -245,14 +247,14 @@ describe('AccountsStore', () => {
 
       const users = await accountsStore.getAll()
       assert.equal(users[0].login, 'joan')
-      assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com/')
+      assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com')
 
       const persistedUsers = JSON.parse(dataStore.getItem('users'))
       assert.equal(persistedUsers[0].login, 'joan')
-      assert.equal(persistedUsers[0].endpoint, 'https://api.whatever.ghe.com/')
+      assert.equal(persistedUsers[0].endpoint, 'https://api.whatever.ghe.com')
     })
 
-    it('does NOT migrate GHE users already using the api. subdomain', async () => {
+    it('migrates .ghe.com users with a trailing slash in their endpoint', async () => {
       const dataStore = new InMemoryStore()
       dataStore.setItem(
         'users',
@@ -273,11 +275,11 @@ describe('AccountsStore', () => {
 
       const users = await accountsStore.getAll()
       assert.equal(users[0].login, 'joan')
-      assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com/')
+      assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com')
 
       const persistedUsers = JSON.parse(dataStore.getItem('users'))
       assert.equal(persistedUsers[0].login, 'joan')
-      assert.equal(persistedUsers[0].endpoint, 'https://api.whatever.ghe.com/')
+      assert.equal(persistedUsers[0].endpoint, 'https://api.whatever.ghe.com')
     })
 
     it('does NOT migrate GHES users still using /api/v3 to api. subdomain', async () => {
@@ -309,6 +311,159 @@ describe('AccountsStore', () => {
         persistedUsers[0].endpoint,
         'https://my-company-repos.com/api/v3'
       )
+    })
+
+    it('does NOT migrate .ghe.com users already using the canonical endpoint', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persistedUser('https://api.whatever.ghe.com')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      await secureStore.setItem(
+        getKeyForEndpoint('https://api.whatever.ghe.com'),
+        'joan',
+        'deadbeef'
+      )
+      accountsStore = new AccountsStore(dataStore, secureStore)
+
+      const users = await accountsStore.getAll()
+      assert.equal(users[0].endpoint, 'https://api.whatever.ghe.com')
+      assert.equal(users[0].token, 'deadbeef')
+    })
+  })
+
+  describe('migrating tokens of .ghe.com users', () => {
+    const canonicalEndpoint = 'https://api.whatever.ghe.com'
+
+    const legacyEndpoints = [
+      'https://api.whatever.ghe.com/',
+      'https://whatever.ghe.com/api/v3',
+    ]
+
+    for (const legacyEndpoint of legacyEndpoints) {
+      it(`moves the token from ${legacyEndpoint} to the canonical key`, async () => {
+        const dataStore = new InMemoryStore()
+        dataStore.setItem(
+          'users',
+          JSON.stringify([persistedUser(legacyEndpoint)])
+        )
+        const secureStore = new AsyncInMemoryStore()
+        const legacyKey = getKeyForEndpoint(legacyEndpoint)
+        const canonicalKey = getKeyForEndpoint(canonicalEndpoint)
+        await secureStore.setItem(legacyKey, 'joan', 'deadbeef')
+
+        accountsStore = new AccountsStore(dataStore, secureStore)
+
+        const users = await accountsStore.getAll()
+        assert.equal(users[0].endpoint, canonicalEndpoint)
+        assert.equal(users[0].token, 'deadbeef')
+
+        assert.equal(
+          await secureStore.getItem(canonicalKey, 'joan'),
+          'deadbeef'
+        )
+        assert.equal(await secureStore.getItem(legacyKey, 'joan'), null)
+
+        // Reloading from the persisted (migrated) state keeps the token
+        const reloadedStore = new AccountsStore(dataStore, secureStore)
+        const reloadedUsers = await reloadedStore.getAll()
+        assert.equal(reloadedUsers[0].endpoint, canonicalEndpoint)
+        assert.equal(reloadedUsers[0].token, 'deadbeef')
+      })
+    }
+
+    it('moves refreshable credentials intact', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persistedUser('https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const legacyKey = getKeyForEndpoint('https://api.whatever.ghe.com/')
+      const serialized = serializeAccountCredential({
+        accessToken: 'access',
+        refreshToken: 'refresh',
+        expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+        refreshTokenExpiresAt: Date.now() + 180 * 24 * 60 * 60 * 1000,
+      })
+      await secureStore.setItem(legacyKey, 'joan', serialized)
+
+      accountsStore = new AccountsStore(dataStore, secureStore)
+
+      const users = await accountsStore.getAll()
+      assert.equal(users[0].endpoint, canonicalEndpoint)
+      assert.equal(users[0].token, 'access')
+      assert.equal(accountsStore.isRefreshable(users[0]), true)
+      assert.equal(
+        await secureStore.getItem(getKeyForEndpoint(canonicalEndpoint), 'joan'),
+        serialized
+      )
+      assert.equal(await secureStore.getItem(legacyKey, 'joan'), null)
+    })
+
+    it('recovers tokens lost by a previous endpoint migration', async () => {
+      // Previous versions migrated the endpoint from /api/v3 to the api.
+      // subdomain without moving the token, leaving it under the old key.
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persistedUser('https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const legacyKey = getKeyForEndpoint('https://whatever.ghe.com/api/v3')
+      await secureStore.setItem(legacyKey, 'joan', 'deadbeef')
+
+      accountsStore = new AccountsStore(dataStore, secureStore)
+
+      const users = await accountsStore.getAll()
+      assert.equal(users[0].endpoint, canonicalEndpoint)
+      assert.equal(users[0].token, 'deadbeef')
+      assert.equal(
+        await secureStore.getItem(getKeyForEndpoint(canonicalEndpoint), 'joan'),
+        'deadbeef'
+      )
+      assert.equal(await secureStore.getItem(legacyKey, 'joan'), null)
+    })
+
+    it('prefers a token already stored under the canonical key', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persistedUser('https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const legacyKey = getKeyForEndpoint('https://api.whatever.ghe.com/')
+      await secureStore.setItem(legacyKey, 'joan', 'old')
+      await secureStore.setItem(
+        getKeyForEndpoint(canonicalEndpoint),
+        'joan',
+        'new'
+      )
+
+      accountsStore = new AccountsStore(dataStore, secureStore)
+
+      const users = await accountsStore.getAll()
+      assert.equal(users[0].token, 'new')
+      assert.equal(await secureStore.getItem(legacyKey, 'joan'), 'old')
+    })
+
+    it('keeps the legacy token if it cannot be moved', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persistedUser('https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const legacyKey = getKeyForEndpoint('https://api.whatever.ghe.com/')
+      await secureStore.setItem(legacyKey, 'joan', 'deadbeef')
+      secureStore.setItem = () => Promise.reject(new Error('locked keychain'))
+
+      accountsStore = new AccountsStore(dataStore, secureStore)
+
+      const users = await accountsStore.getAll()
+      assert.equal(users[0].token, 'deadbeef')
+      assert.equal(await secureStore.getItem(legacyKey, 'joan'), 'deadbeef')
     })
   })
 
@@ -352,6 +507,133 @@ describe('AccountsStore', () => {
       ])
     })
 
+    it('keeps unreadable accounts when persisting migrated endpoints', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([
+          persisted('alice', 'https://api.github.com'),
+          persisted('bob', 'https://api.whatever.ghe.com/'),
+          persisted('carol', 'https://api.other.ghe.com/'),
+        ])
+      )
+      const tokens = new Map([
+        ['alice', 'alice-token'],
+        ['bob', 'bob-token'],
+        ['carol', 'carol-token'],
+      ])
+      const secureStore = new AsyncInMemoryStore()
+      for (const [login, token] of tokens) {
+        const endpoint =
+          login === 'alice'
+            ? 'https://api.github.com'
+            : `https://api.${login === 'bob' ? 'whatever' : 'other'}.ghe.com/`
+        await secureStore.setItem(getKeyForEndpoint(endpoint), login, token)
+      }
+
+      let locked = true
+      const getItem = secureStore.getItem.bind(secureStore)
+      secureStore.getItem = async (key: string, login: string) => {
+        if (locked && login !== 'carol') {
+          throw new Error('The keychain is locked')
+        }
+        return getItem(key, login)
+      }
+
+      const lockedStore = new AccountsStore(dataStore, secureStore)
+      lockedStore.onDidError(() => {})
+      assert.deepStrictEqual(
+        (await lockedStore.getAll()).map(a => a.login),
+        ['carol']
+      )
+
+      const users: ReadonlyArray<{ login: string; endpoint: string }> =
+        JSON.parse(dataStore.getItem('users') ?? '[]')
+      assert.deepStrictEqual(
+        users.map(({ login, endpoint }) => ({ login, endpoint })),
+        [
+          { login: 'carol', endpoint: 'https://api.other.ghe.com' },
+          { login: 'alice', endpoint: 'https://api.github.com' },
+          { login: 'bob', endpoint: 'https://api.whatever.ghe.com' },
+        ]
+      )
+
+      // Later saves, such as signing in, must keep the unreadable accounts
+      const dave = new Account(
+        'dave',
+        'https://api.github.com',
+        'dave-token',
+        [],
+        '',
+        4,
+        'Dave'
+      )
+      await lockedStore.addAccount(dave)
+      const usersAfterSignIn: ReadonlyArray<{ login: string }> = JSON.parse(
+        dataStore.getItem('users') ?? '[]'
+      )
+      assert.deepStrictEqual(usersAfterSignIn.map(u => u.login).sort(), [
+        'alice',
+        'bob',
+        'carol',
+        'dave',
+      ])
+
+      locked = false
+      const unlockedStore = new AccountsStore(dataStore, secureStore)
+      const accounts = await unlockedStore.getAll()
+      assert.deepStrictEqual(
+        accounts.map(a => [a.login, a.endpoint, a.token]).sort(),
+        [
+          ['alice', 'https://api.github.com', 'alice-token'],
+          ['bob', 'https://api.whatever.ghe.com', 'bob-token'],
+          ['carol', 'https://api.other.ghe.com', 'carol-token'],
+          ['dave', 'https://api.github.com', 'dave-token'],
+        ]
+      )
+    })
+
+    it('replaces unloaded accounts which are signed in again', async () => {
+      const dataStore = new InMemoryStore()
+      dataStore.setItem(
+        'users',
+        JSON.stringify([persisted('bob', 'https://api.whatever.ghe.com/')])
+      )
+      const secureStore = new AsyncInMemoryStore()
+      const getItem = secureStore.getItem.bind(secureStore)
+      let locked = true
+      secureStore.getItem = async (key: string, login: string) => {
+        if (locked) {
+          throw new Error('The keychain is locked')
+        }
+        return getItem(key, login)
+      }
+      const store = new AccountsStore(dataStore, secureStore)
+      store.onDidError(() => {})
+      assert.deepStrictEqual(await store.getAll(), [])
+
+      locked = false
+      await store.addAccount(
+        new Account(
+          'bob',
+          'https://api.whatever.ghe.com',
+          'new-token',
+          [],
+          '',
+          2,
+          'Bob'
+        )
+      )
+
+      const users: ReadonlyArray<{ login: string; name: string }> = JSON.parse(
+        dataStore.getItem('users') ?? '[]'
+      )
+      assert.deepStrictEqual(
+        users.map(u => [u.login, u.name]),
+        [['bob', 'Bob']]
+      )
+    })
+
     it('includes accounts whose stored credentials were unusable', async () => {
       const dataStore = new InMemoryStore()
       dataStore.setItem(
@@ -377,8 +659,21 @@ describe('AccountsStore', () => {
       )
       const store = new AccountsStore(dataStore, new AsyncInMemoryStore())
       assert.deepStrictEqual(await store.getPersistedIdentities(), [
-        { endpoint: 'https://api.whatever.ghe.com/', login: 'joan' },
+        { endpoint: 'https://api.whatever.ghe.com', login: 'joan' },
       ])
     })
   })
 })
+
+function persistedUser(endpoint: string) {
+  return {
+    login: 'joan',
+    endpoint,
+    token: '',
+    emails: [],
+    avatarURL: '',
+    id: 1,
+    name: '',
+    plan: 'free',
+  }
+}

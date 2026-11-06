@@ -1,16 +1,19 @@
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForAccount } from '../auth'
+import { getKeyForAccount, getKeyForEndpoint } from '../auth'
 import {
   Account,
   getAccountKey,
   IAccountIdentity,
   isDotComAccount,
 } from '../../models/account'
-import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
+import { fetchUser, EmailVisibility } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
-import { isGHE } from '../endpoint-capabilities'
 import { compare, compareDescending } from '../compare'
+import {
+  getLegacyGHEEndpoints,
+  getMigratedGHEEndpoint,
+} from '../ghe-endpoint-migration'
 import { Disposable } from 'event-kit'
 import { deleteToken } from '../api'
 import { IOAuthToken, refreshOAuthToken } from '../oauth-token'
@@ -94,6 +97,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    * including those whose credentials couldn't be read or were unusable.
    */
   private persistedIdentities: ReadonlyArray<IAccountIdentity> = []
+
+  /**
+   * Persisted accounts whose credentials couldn't be read when the store
+   * loaded (e.g. due to a locked keychain). These are kept in storage when
+   * saving so that they can be loaded again on the next launch.
+   */
+  private unloadedAccounts: ReadonlyArray<IAccount> = []
 
   public constructor(
     dataStore: IDataStore,
@@ -410,27 +420,75 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     return current
   }
 
+  /**
+   * Migrate endpoints of `.ghe.com` accounts persisted in a legacy format
+   * (using the `/api/v3` path or a trailing slash) to the canonical format.
+   * See `getMigratedGHEEndpoint`.
+   */
   private getMigratedGHEAccounts(
     accounts: ReadonlyArray<IAccount>
   ): ReadonlyArray<IAccount> | null {
     let migrated = false
     const migratedAccounts = accounts.map(account => {
-      let endpoint = account.endpoint
-      const endpointURL = new URL(endpoint)
-      // Migrate endpoints of subdomains of `.ghe.com` that use the `/api/v3`
-      // path to the correct URL using the `api.` subdomain.
-      if (isGHE(endpoint) && !endpointURL.hostname.startsWith('api.')) {
-        endpoint = getEnterpriseAPIURL(endpoint)
-        migrated = true
+      const endpoint = getMigratedGHEEndpoint(account.endpoint)
+
+      if (endpoint === undefined) {
+        return account
       }
 
-      return {
-        ...account,
-        endpoint,
-      }
+      migrated = true
+      return { ...account, endpoint }
     })
 
     return migrated ? migratedAccounts : null
+  }
+
+  /**
+   * Get the serialized credential for the given account from the secure store.
+   *
+   * For `.ghe.com` accounts whose credential can't be found we'll look for it
+   * under the keys of the legacy endpoint formats (see
+   * `getLegacyGHEEndpoints`) and, if found, move it to the key of the current
+   * endpoint. The stored value is moved as-is so that any refresh token
+   * persisted alongside the access token is preserved.
+   */
+  private async getStoredCredential(account: Account): Promise<string | null> {
+    const key = getKeyForAccount(account)
+    const stored = await this.secureStore.getItem(key, account.login)
+
+    if (stored) {
+      return stored
+    }
+
+    for (const legacyEndpoint of getLegacyGHEEndpoints(account.endpoint)) {
+      const legacyKey = getKeyForEndpoint(legacyEndpoint)
+      const legacyStored = await this.secureStore.getItem(
+        legacyKey,
+        account.login
+      )
+
+      if (!legacyStored) {
+        continue
+      }
+
+      log.info(
+        `Migrating credential for '${account.login}' from '${legacyKey}'`
+      )
+
+      try {
+        await this.secureStore.setItem(key, account.login, legacyStored)
+        await this.secureStore.deleteItem(legacyKey, account.login)
+      } catch {
+        // We'll try again next time the accounts are loaded, the legacy
+        // credential is only deleted once we've successfully stored it under
+        // the new key.
+        log.error(`Unable to migrate credential for '${account.login}'`)
+      }
+
+      return legacyStored
+    }
+
+    return stored
   }
 
   /**
@@ -452,6 +510,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     // Duplicate accounts keep the last entry, like CredentialSessions.restore.
     const accountsByKey = new Map<string, Account>()
+    const unreadableAccounts = new Array<IAccount>()
     let removedInvalidAccounts = false
     for (const account of rawAccounts) {
       const accountWithoutToken = new Account(
@@ -467,7 +526,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const stored = await this.secureStore.getItem(key, account.login)
+        const stored = await this.getStoredCredential(accountWithoutToken)
         const credential = deserializeAccountCredential(stored)
         if (credential === null && stored !== null) {
           removedInvalidAccounts = true
@@ -488,12 +547,14 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         accountsByKey.set(getAccountKey(restored), restored)
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)
+        unreadableAccounts.push(account)
 
         this.emitError(e)
       }
     }
 
     this.accounts = sortAccounts([...accountsByKey.values()])
+    this.unloadedAccounts = unreadableAccounts
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null || removedInvalidAccounts) {
       this.save() // Save already emits an update
@@ -503,9 +564,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   private save() {
-    const usersWithoutTokens = this.accounts.map(account =>
-      account.withToken('')
+    const keys = new Set(this.accounts.map(getAccountKey))
+    // Accounts which have since been signed in again replace unloaded ones
+    this.unloadedAccounts = this.unloadedAccounts.filter(
+      a => !keys.has(getAccountKey(a))
     )
+    const usersWithoutTokens = [
+      ...this.accounts.map(account => account.withToken('')),
+      ...this.unloadedAccounts.map(account => ({ ...account, token: '' })),
+    ]
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
     this.emitUpdate(this.accounts)

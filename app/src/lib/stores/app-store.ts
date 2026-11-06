@@ -35,6 +35,7 @@ import {
   CommitMessageGenerationCancelledError,
   getCopilotAccountCacheKey,
   migrateCopilotModelSelectionsToAccounts,
+  migrateGHECopilotModelSelectionKeys,
 } from './copilot-store'
 import {
   IBYOKProvider,
@@ -170,7 +171,7 @@ import {
   getDotComAPIEndpoint,
   getHTMLURL,
   IAPIOrganization,
-  getEndpointForRepository,
+  getAPIEndpoint,
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
@@ -2568,7 +2569,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return null
     }
 
-    const endpoint = getEndpointForRepository(repoUrl)
+    const endpoint = getAPIEndpoint(`https://${remoteUrl.hostname}`)
     const matches = (repository: GitHubRepository) =>
       repository.endpoint === endpoint &&
       repository.owner.login.toLowerCase() === remoteUrl.owner.toLowerCase() &&
@@ -12330,7 +12331,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     try {
       const parsed: unknown = JSON.parse(raw)
       if (typeof parsed === 'object' && parsed !== null) {
-        return new Map(Object.entries(parsed))
+        const selections = new Map(Object.entries(parsed))
+        const migrated = migrateGHECopilotModelSelectionKeys(selections)
+        if (migrated !== null) {
+          localStorage.setItem(
+            selectedCopilotModelsByAccountKey,
+            JSON.stringify(Object.fromEntries(migrated))
+          )
+        }
+        return migrated ?? selections
       }
     } catch {
       // Ignore invalid persisted selections.
