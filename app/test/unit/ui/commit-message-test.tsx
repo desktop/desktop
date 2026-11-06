@@ -219,6 +219,90 @@ afterEach(() => {
 })
 
 describe('CommitMessage', () => {
+  it(
+    'clears the committed draft before automatic push and preserves edits made during push',
+    { timeout: 30000 },
+    async t => {
+      const { writeFile } = await import('fs/promises')
+      const { join } = await import('path')
+      const { seed } = await import('../../helpers/assisted-commit')
+      const { addBareRemote } = await import(
+        '../../helpers/assisted-commit-push'
+      )
+      const { createAssistedCommitRunHarness } = await import(
+        '../../helpers/assisted-commit-run'
+      )
+      const { deferred } = await import('../../helpers/copilot-assisted-commit')
+      const source = await seed(t, { file: 'before\n' })
+      await addBareRemote(t, source)
+      await writeFile(join(source.path, 'file'), 'after\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.dispatcher.setCommitMode(repository, 'manual')
+      h.dispatcher.setPushAfterCommit(repository, true)
+      const refresh = t.mock.method(h.appStore, '_refreshRepository')
+      const started = deferred<void>()
+      const finish = deferred<void>()
+      const push = t.mock.method(h.appStore, '_push', async () => {
+        started.resolve()
+        await finish.promise
+      })
+      const commits: Promise<boolean>[] = []
+      let completed = 0
+      const view = render(
+        <CommitMessage
+          {...createProps({
+            repository,
+            isGeneratingCommitMessage: false,
+            commitMessage: {
+              summary: 'First commit',
+              description: 'First details',
+              timestamp: Date.now(),
+            },
+            onCreateCommit: context => {
+              const commit = h.dispatcher.commitIncludedChanges(
+                repository,
+                context
+              )
+              commits.push(commit)
+              return commit
+            },
+            onSuccessfulCommitCreated: () => completed++,
+          })}
+        />
+      )
+      try {
+        fireEvent.click(
+          screen.getByRole('button', { name: 'Commit 1 file to main' })
+        )
+        await started.promise
+        const summary = screen.getByRole('combobox', { name: 'Commit summary' })
+        const description = screen.getByRole('combobox', {
+          name: 'Commit description',
+        })
+        assert.ok(summary instanceof HTMLInputElement)
+        assert.ok(description instanceof HTMLTextAreaElement)
+        assert.strictEqual(completed, 1)
+        assert.strictEqual(summary.value, '')
+        assert.strictEqual(description.value, '')
+        fireEvent.change(summary, { target: { value: 'Next commit' } })
+        fireEvent.change(description, { target: { value: 'Next details' } })
+        finish.resolve()
+        await Promise.all(push.mock.calls.map(call => call.result))
+        await Promise.all(commits)
+        assert.strictEqual(summary.value, 'Next commit')
+        assert.strictEqual(description.value, 'Next details')
+        assert.strictEqual(completed, 1)
+      } finally {
+        finish.resolve()
+        await Promise.all(push.mock.calls.map(call => call.result))
+        await Promise.all(commits)
+        await Promise.all(refresh.mock.calls.map(call => call.result))
+        view.unmount()
+      }
+    }
+  )
+
   it('does not allow cancelling commit message generation when the Copilot SDK is disabled', async () => {
     delete process.env[PreviewFeaturesEnv]
 

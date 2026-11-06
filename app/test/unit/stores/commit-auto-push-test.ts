@@ -49,8 +49,20 @@ async function setup(
   const failures: Error[] = []
   h.appStore.onDidError(error => failures.push(error))
   const pushes = t.mock.method(h.statsStore, 'recordPush')
-  const settle = () => Promise.all(refresh.mock.calls.map(call => call.result))
+  const publications: Promise<void>[] = []
+  const settleRefresh = () =>
+    Promise.all(refresh.mock.calls.map(call => call.result))
+  const settle = async () => {
+    await Promise.all(publications)
+    await settleRefresh()
+  }
   const commit = async (context: Partial<ICommitContext> = {}) => {
+    const publish = h.appStore['pushAfterCommit'].bind(h.appStore)
+    h.appStore['pushAfterCommit'] = (...args) => {
+      const publication = publish(...args)
+      publications.push(publication)
+      return publication
+    }
     const outcome =
       mode === 'manual'
         ? await h.dispatcher.commitIncludedChanges(repository, {
@@ -65,7 +77,17 @@ async function setup(
     await settle()
     return outcome
   }
-  return { ...h, repository, source, remote, failures, pushes, commit, settle }
+  return {
+    ...h,
+    repository,
+    source,
+    remote,
+    failures,
+    pushes,
+    commit,
+    settle,
+    settleRefresh,
+  }
 }
 
 describe('automatic commit publication uses ordinary Push', () => {
@@ -93,6 +115,10 @@ describe('automatic commit publication uses ordinary Push', () => {
       h.dispatcher.setCommitMode(repository, mode)
       h.dispatcher.setPushAfterCommit(repository, true)
       const refresh = t.mock.method(h.appStore, '_refreshRepository')
+      const publication = t.mock.fn(
+        h.appStore['pushAfterCommit'].bind(h.appStore)
+      )
+      h.appStore['pushAfterCommit'] = publication
       commands.length = 0
       const push = h.appStore._push.bind(h.appStore)
       const ordinaryPush = t.mock.method(
@@ -131,6 +157,7 @@ describe('automatic commit publication uses ordinary Push', () => {
         )
         assert.strictEqual(outcome.kind, 'local-ready')
       }
+      await Promise.all(publication.mock.calls.map(call => call.result))
       await Promise.all(refresh.mock.calls.map(call => call.result))
       console.log(
         `${mode} native push prefix: ${commands.findIndex(command =>
@@ -198,6 +225,10 @@ describe('automatic commit publication uses ordinary Push', () => {
     h.dispatcher.setCommitMode(repository, 'manual')
     h.dispatcher.setPushAfterCommit(repository, true)
     const refresh = t.mock.method(h.appStore, '_refreshRepository')
+    const publication = t.mock.fn(
+      h.appStore['pushAfterCommit'].bind(h.appStore)
+    )
+    h.appStore['pushAfterCommit'] = publication
     assert.strictEqual(
       await h.dispatcher.commitIncludedChanges(repository, {
         summary: 'Partial manual commit',
@@ -205,6 +236,7 @@ describe('automatic commit publication uses ordinary Push', () => {
       }),
       true
     )
+    await Promise.all(publication.mock.calls.map(call => call.result))
     await Promise.all(refresh.mock.calls.map(call => call.result))
     assert.strictEqual(await remote.tip(), await fixtures.tip(repository))
     assert.match(
@@ -378,7 +410,7 @@ describe('automatic commit publication uses ordinary Push', () => {
       let handingOff = false
       let changed = false
       h.appStore['pushAfterCommit'] = async (...args) => {
-        await h.settle()
+        await h.settleRefresh()
         handingOff = true
         return handoff(...args)
       }

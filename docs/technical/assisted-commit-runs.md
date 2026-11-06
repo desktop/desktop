@@ -536,6 +536,8 @@ Manual commits retain their existing staging, message, sign-off/co-author,
 commit-hook and success bookkeeping. They clear their draft and allow-empty
 option and count their local commit before optional publication. Assisted success
 does not alter the separate manual draft. No manual model request is added.
+Manual commit completion does not wait for automatic Push; its errors remain
+visible through the ordinary error UI.
 
 After local success and complete settlement, `AppStore.pushAfterCommit` checks
 the current native branch and invokes the same `_push` backend as the Push

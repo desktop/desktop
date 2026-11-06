@@ -89,6 +89,10 @@ describe('ordinary auto-push with native hook interception', () => {
           const errors: Error[] = []
           h.appStore.onDidError(error => errors.push(error))
           const refresh = t.mock.method(h.appStore, '_refreshRepository')
+          const publication = t.mock.fn(
+            h.appStore['pushAfterCommit'].bind(h.appStore)
+          )
+          h.appStore['pushAfterCommit'] = publication
           const subscription = resolveHookPopups(h, action)
           t.after(() => subscription.dispose())
           const outcome =
@@ -101,6 +105,7 @@ describe('ordinary auto-push with native hook interception', () => {
                   repository,
                   h.request(repository)
                 )
+          await Promise.all(publication.mock.calls.map(call => call.result))
           await Promise.all(refresh.mock.calls.map(call => call.result))
           const committed = phase === 'pre-push' || action === 'ignore'
           assert.strictEqual(

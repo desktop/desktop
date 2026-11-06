@@ -4043,7 +4043,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     )
     if (committed && branchToPush !== undefined) {
-      await this.pushAfterCommit(repository, branchToPush)
+      this.pushAfterCommit(repository, branchToPush).catch(error =>
+        this.emitError(new ErrorWithMetadata(error, { repository }))
+      )
     }
     return committed
   }
