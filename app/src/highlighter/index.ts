@@ -4,6 +4,7 @@
 // a small subset. This hack is brought to you by webpack and you
 // can read all about it in webpack.common.js.
 import {
+  defineMIME,
   getMode,
   innerMode,
   StringStream,
@@ -51,6 +52,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.mjs': 'text/javascript',
       '.cjs': 'text/javascript',
       '.json': 'application/json',
+      '.jsonc': 'application/json',
     },
   },
   {
@@ -143,6 +145,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/clike/clike'),
     mappings: {
       '.m': 'text/x-objectivec',
+      '.mm': 'text/x-objectivec++',
       '.scala': 'text/x-scala',
       '.sc': 'text/x-scala',
       '.cs': 'text/x-csharp',
@@ -158,6 +161,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.cxx': 'text/x-c++src',
       '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
+      '.kts': 'text/x-kotlin',
     },
   },
   {
@@ -179,6 +183,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/shell/shell'),
     mappings: {
       '.sh': 'text/x-sh',
+      '.bash': 'text/x-sh',
+      '.zsh': 'text/x-sh',
     },
   },
   {
@@ -447,6 +453,81 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.cmake': 'text/x-cmake',
     },
   },
+  {
+    install: () => import('codemirror/mode/sass/sass'),
+    mappings: {
+      '.sass': 'text/x-sass',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/handlebars/handlebars'),
+    mappings: {
+      '.hbs': 'text/x-handlebars-template',
+      '.handlebars': 'text/x-handlebars-template',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/groovy/groovy'),
+    mappings: {
+      '.groovy': 'text/x-groovy',
+      '.gradle': 'text/x-groovy',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/haskell/haskell'),
+    mappings: {
+      '.hs': 'text/x-haskell',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/erlang/erlang'),
+    mappings: {
+      '.erl': 'text/x-erlang',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/elm/elm'),
+    mappings: {
+      '.elm': 'text/x-elm',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/twig/twig'),
+    mappings: {
+      '.twig': 'text/x-twig',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/jinja2/jinja2'),
+    mappings: {
+      '.j2': 'text/jinja2',
+    },
+  },
+  {
+    // CodeMirror has no Prisma mode; the C-like tokenizer covers its syntax.
+    install: async () => {
+      await import('codemirror/mode/clike/clike')
+      const set = (s: string) =>
+        Object.fromEntries(s.split(' ').map(w => [w, true]))
+      defineMIME('text/x-prisma', {
+        name: 'clike',
+        keywords: set('datasource generator model enum type view'),
+        types: set(
+          'String Int BigInt Float Decimal Boolean DateTime Json Bytes Unsupported'
+        ),
+        atoms: set('true false null'),
+        hooks: {
+          '@': (stream: CodeMirror.StringStream) => {
+            stream.eatWhile(/[\w.@]/)
+            return 'meta'
+          },
+        },
+      })
+    },
+    mappings: {
+      '.prisma': 'text/x-prisma',
+    },
+  },
 ]
 
 /**
@@ -471,6 +552,44 @@ const basenameModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/toml/toml'),
     mappings: {
       'cargo.lock': 'text/x-toml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/cmake/cmake'),
+    mappings: {
+      'cmakelists.txt': 'text/x-cmake',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/dockerfile/dockerfile'),
+    mappings: {
+      containerfile: 'text/x-dockerfile',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/ruby/ruby'),
+    mappings: {
+      gemfile: 'text/x-ruby',
+      rakefile: 'text/x-ruby',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/groovy/groovy'),
+    mappings: {
+      jenkinsfile: 'text/x-groovy',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/shell/shell'),
+    mappings: {
+      '.bashrc': 'text/x-sh',
+      '.zshrc': 'text/x-sh',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/nginx/nginx'),
+    mappings: {
+      'nginx.conf': 'text/x-nginx-conf',
     },
   },
 ]
