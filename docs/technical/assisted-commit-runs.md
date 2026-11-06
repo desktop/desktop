@@ -538,6 +538,8 @@ option and count their local commit before optional publication. Assisted succes
 does not alter the separate manual draft. No manual model request is added.
 Manual commit completion does not wait for automatic Push; its errors remain
 visible through the ordinary error UI.
+If another operation prevents Push from starting, Desktop shows a busy error
+with **Retry push**. It does not silently drop or queue automatic publication.
 
 After local success and complete settlement, `AppStore.pushAfterCommit` checks
 the current native branch and invokes the same `_push` backend as the Push

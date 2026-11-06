@@ -5947,7 +5947,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    return this.withPushPullFetch(repository, async () => {
+    let started = false
+    await this.withPushPullFetch(repository, async () => {
+      started = true
       const branch = this.getBranchToPush(repository, options)
 
       if (branch === undefined) {
@@ -6011,6 +6013,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateMenuLabelsForSelectedRepository()
     })
+    if (!started) {
+      this.emitError(
+        new ErrorWithMetadata(
+          new Error(
+            'The repository is busy. Wait for the current operation to finish and try pushing again.'
+          ),
+          {
+            repository,
+            retryAction: { type: RetryActionType.Push, repository },
+          }
+        )
+      )
+    }
   }
 
   /** Ordinary native Push, shared by explicit and post-commit publication. */

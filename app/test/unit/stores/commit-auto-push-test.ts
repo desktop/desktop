@@ -249,6 +249,51 @@ describe('automatic commit publication uses ordinary Push', () => {
     )
   })
 
+  it('reports a busy automatic push and retries after the active fetch without recommitting', async t => {
+    const { deferred } = await import('../../helpers/copilot-assisted-commit')
+    const { FetchType } = await import('../../../src/models/fetch')
+    const h = await setup(t, 'manual')
+    const store = h.appStore['gitStoreCache'].get(h.repository)
+    const started = deferred<void>()
+    const finish = deferred<void>()
+    t.mock.method(store, 'fetch', async () => {
+      started.resolve()
+      await finish.promise
+    })
+    const fetching = h.appStore._fetch(h.repository, FetchType.BackgroundTask)
+    try {
+      await started.promise
+      assert.strictEqual(await h.commit(), true)
+      assert.strictEqual(await fixtures.count(h.repository), 2)
+      assert.strictEqual(await h.remote.tip(), h.remote.originalTip)
+      assert.strictEqual(h.pushes.mock.callCount(), 0)
+      assert.strictEqual(h.failures.length, 1)
+      const error = h.failures[0]
+      assert.ok(error instanceof errors.ErrorWithMetadata)
+      assert.match(error.message, /repository is busy/i)
+      assert.strictEqual(
+        error.metadata.retryAction?.type,
+        retries.RetryActionType.Push
+      )
+    } finally {
+      finish.resolve()
+      await fetching
+      await h.settle()
+    }
+    const error = h.failures[0]
+    assert.ok(error instanceof errors.ErrorWithMetadata)
+    const retry = error.metadata.retryAction
+    assert.ok(retry?.type === retries.RetryActionType.Push)
+    await h.dispatcher.performRetry(retry)
+    await h.settle()
+    assert.strictEqual(await h.remote.tip(), await fixtures.tip(h.repository))
+    assert.strictEqual(await fixtures.count(h.repository), 2)
+    assert.strictEqual(h.commits.mock.callCount(), 1)
+    assert.strictEqual(h.propose.mock.callCount(), 0)
+    assert.strictEqual(h.pushes.mock.callCount(), 1)
+    assert.strictEqual(h.failures.length, 1)
+  })
+
   for (const mode of ['manual', 'copilot'] as const) {
     it(`${mode} uses ordinary Publish guidance without inventing a remote`, async t => {
       const h = await setup(t, mode)
