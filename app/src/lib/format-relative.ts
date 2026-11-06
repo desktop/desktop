@@ -34,7 +34,7 @@ export function formatRelative(ms: number) {
     return formatter.format(min * sign, 'minute')
   } else if (hr < 24) {
     return formatter.format(hr * sign, 'hour')
-  } else if (day < 30) {
+  } else if (day <= 31) {
     return formatter.format(day * sign, 'day')
   } else if (month < 18) {
     return formatter.format(month * sign, 'month')
