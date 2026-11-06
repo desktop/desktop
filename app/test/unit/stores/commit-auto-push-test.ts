@@ -370,6 +370,48 @@ describe('automatic commit publication uses ordinary Push', () => {
       assert.match(h.failures[0].message, /saved locally.*branch changed/)
     })
 
+    it(`${mode} rejects a cached branch that differs from the checked status`, async t => {
+      const h = await setup(t, mode)
+      const store = h.appStore['gitStoreCache'].get(h.repository)
+      const load = h.appStore._loadStatus.bind(h.appStore)
+      const handoff = h.appStore['pushAfterCommit'].bind(h.appStore)
+      let handingOff = false
+      let changed = false
+      h.appStore['pushAfterCommit'] = async (...args) => {
+        await h.settle()
+        handingOff = true
+        return handoff(...args)
+      }
+      t.mock.method(
+        h.appStore,
+        '_loadStatus',
+        async (...args: Parameters<typeof load>) => {
+          const status = await load(...args)
+          if (handingOff && args[2] === true && !changed) {
+            changed = true
+            await fixtures.rawGit(h.repository, [
+              'checkout',
+              '-b',
+              'different-cached-branch',
+            ])
+            await store.loadStatus({ propagateErrors: true })
+            h.stores.repositoryStateCache.updateBranchesState(
+              h.repository,
+              () => ({ tip: store.tip })
+            )
+          }
+          return status
+        }
+      )
+      const push = t.mock.method(h.appStore, '_push')
+      await h.commit()
+      assert.strictEqual(changed, true)
+      assert.strictEqual(push.mock.callCount(), 0)
+      assert.strictEqual(await h.remote.tip(), h.remote.originalTip)
+      assert.strictEqual(await fixtures.count(h.repository), 2)
+      assert.match(h.failures[0].message, /saved locally.*Refresh/)
+    })
+
     it(`${mode} counts an acknowledged push once even if its follow-up refresh fails`, async t => {
       const h = await setup(t, mode)
       h.appStore['refreshBranchProtectionState'] = async () => {

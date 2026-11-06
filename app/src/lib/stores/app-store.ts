@@ -5882,7 +5882,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       }
       const branch = this.getBranchToPush(repository)
-      if (branch === undefined) {
+      if (branch === undefined || branch.ref !== branchRef) {
         throw new Error(
           'Commits were saved locally. Refresh the repository and use Push.'
         )
