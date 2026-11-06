@@ -29,8 +29,6 @@ import {
   withRepositoryGitOperation,
   hasRepositoryGitOperationAccess,
   withRepositoryGitSpawnFence,
-  assertAssistedCommitGitResourceAdmission,
-  withRepositoryGitResourceMutation,
 } from '../../../src/lib/git/repository-operation'
 import { AssistedCommitError } from '../../../src/lib/git/assisted-commit'
 import {
@@ -48,48 +46,6 @@ import { createTempDirectory } from '../../helpers/temp'
 import { Repository } from '../../../src/models/repository'
 
 describe('assisted repository Git coordination', () => {
-  it('lets a mutation certify its own push destination without borrowing another reservation', async t => {
-    const repository = await seed(t, { file: 'before\n' })
-    const entered = deferred<void>()
-    const release = deferred<void>()
-    const other = withRepositoryGitResourceMutation(
-      [repository.path],
-      async () => {
-        entered.resolve()
-        await release.promise
-      }
-    )
-    await entered.promise
-    try {
-      await withRepositoryGitResourceMutation([repository.path], async () => {
-        assert.throws(
-          () =>
-            assertAssistedCommitGitResourceAdmission(repository.path, [
-              repository.path,
-            ]),
-          /Another Git operation owns/
-        )
-      })
-    } finally {
-      release.resolve()
-      await other
-    }
-    await withRepositoryGitResourceMutation([repository.path], async () => {
-      assertAssistedCommitGitResourceAdmission(repository.path, [
-        repository.path,
-      ])
-      withoutRepositoryGitAccess(() =>
-        assert.throws(
-          () =>
-            assertAssistedCommitGitResourceAdmission(repository.path, [
-              repository.path,
-            ]),
-          /Another Git operation owns/
-        )
-      )
-    })
-  })
-
   it('checks a retained negative owner fence before waiting on a foreign lease', async t => {
     const source = await seed(t, { source: 'Source\n' })
     const foreign = await seed(t, { foreign: 'Foreign\n' })

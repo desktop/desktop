@@ -17,7 +17,7 @@ import { seed } from '../../helpers/assisted-commit'
 import { fireEvent, render, screen, within } from '../../helpers/ui/render'
 
 describe('assisted commit error details', () => {
-  for (const kind of ['push-error', 'error'] as const) {
+  for (const kind of ['error'] as const) {
     it(`opens the standard dialog with the exact ${kind} and retained causes from the real commit panel`, async t => {
       const source = await seed(t, { file: 'unchanged\n' })
       const h = await createAssistedCommitRunHarness(t)
@@ -41,17 +41,14 @@ describe('assisted commit error details', () => {
         }),
         { repository }
       )
-      const state: AssistedCommitRunState =
-        kind === 'push-error'
-          ? { kind, runId: 'run', attempted: true, settling: false, error }
-          : {
-              kind,
-              runId: 'run',
-              retry: 'recovery',
-              settling: false,
-              selectionNeedsReview: false,
-              error,
-            }
+      const state: AssistedCommitRunState = {
+        kind,
+        runId: 'run',
+        retry: 'recovery',
+        settling: false,
+        selectionNeedsReview: false,
+        error,
+      }
       h.stores.repositoryStateCache.update(repository, () => ({
         selectedSection: RepositorySectionTab.Changes,
       }))

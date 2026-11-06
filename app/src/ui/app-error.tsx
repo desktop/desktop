@@ -155,12 +155,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private getTitle(error: Error) {
-    const commitPush = getCommitPushRequest(error)
-    if (commitPush !== undefined) {
-      return commitPush.publication.pushed
-        ? 'Commit pushed, refresh failed'
-        : 'Commit saved locally, push failed'
-    }
     const underlyingError = getUnderlyingError(error)
 
     if (underlyingError instanceof CopilotError) {
@@ -249,35 +243,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private renderFooter(error: Error) {
     const underlyingError = getUnderlyingError(error)
-    const commitPush = getCommitPushRequest(error)
-    if (commitPush !== undefined) {
-      const needsAuthentication =
-        isGitError(underlyingError) &&
-        underlyingError.result.gitError !== null &&
-        isAuthFailureError(underlyingError.result.gitError)
-      return (
-        <DialogFooter>
-          <OkCancelButtonGroup
-            okButtonText={
-              commitPush.publication.pushed ? 'Retry refresh' : 'Retry push'
-            }
-            onOkButtonClick={this.onRetryAction}
-            cancelButtonText={
-              needsAuthentication
-                ? __DARWIN__
-                  ? 'Open Preferences'
-                  : 'Open options'
-                : 'Close'
-            }
-            onCancelButtonClick={
-              needsAuthentication
-                ? this.showPreferencesDialog
-                : this.onCloseButtonClick
-            }
-          />
-        </DialogFooter>
-      )
-    }
     if (isCloneError(error)) {
       return this.renderRetryCloneFooter()
     }
@@ -287,6 +252,19 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       if (gitError !== null && isAuthFailureError(gitError)) {
         return this.renderOpenPreferencesFooter()
       }
+    }
+
+    if (getRetryActionType(error) === RetryActionType.Push) {
+      return (
+        <DialogFooter>
+          <OkCancelButtonGroup
+            okButtonText="Retry push"
+            onOkButtonClick={this.onRetryAction}
+            cancelButtonText="Close"
+            onCancelButtonClick={this.onCloseButtonClick}
+          />
+        </DialogFooter>
+      )
     }
 
     return this.renderDefaultFooter()
@@ -400,13 +378,6 @@ function isCloneError(error: Error) {
   }
   const { retryAction } = error.metadata
   return retryAction !== undefined && retryAction.type === RetryActionType.Clone
-}
-
-function getCommitPushRequest(error: Error) {
-  const retry = isErrorWithMetaData(error)
-    ? error.metadata.retryAction
-    : undefined
-  return retry?.type === RetryActionType.Push ? retry.commit : undefined
 }
 
 function getRetryActionType(error: Error) {

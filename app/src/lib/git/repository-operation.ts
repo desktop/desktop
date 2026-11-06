@@ -67,8 +67,6 @@ const protectionIdentities = new WeakMap<
   ReadonlySet<string>
 >()
 const mutationReservations = new Set<ReadonlySet<string>>()
-const mutationContexts =
-  createRepositoryOperationContext<ReadonlySet<ReadonlySet<string>>>()
 
 function pendingOperation(
   kind: 'read' | 'mutation' = 'read'
@@ -310,10 +308,7 @@ export async function withRepositoryGitResourceMutation<T>(
   }
   mutationReservations.add(resources)
   try {
-    return await mutationContexts.run(
-      new Set([...(mutationContexts.getStore() ?? []), resources]),
-      operation
-    )
+    return await operation()
   } finally {
     mutationReservations.delete(resources)
   }
@@ -478,9 +473,7 @@ export async function getAssistedCommitProtectedResources(
 
 /** Observers and UI callbacks must never inherit transaction or draining-operation access. */
 export function withoutRepositoryGitAccess<T>(operation: () => T): T {
-  return destructiveContexts.exit(() =>
-    mutationContexts.exit(() => contexts.exit(operation))
-  )
+  return destructiveContexts.exit(() => contexts.exit(operation))
 }
 
 /** Command-local read-only refresh; never changes process.env or Git configuration. */
@@ -643,13 +636,10 @@ export function assertAssistedCommitGitResourceAdmission(
       [...destructiveOperations.keys()].some(
         removing => containsPath(removing, key) || containsPath(key, removing)
       ) ||
-      [...mutationReservations].some(
-        resources =>
-          !mutationContexts.getStore()?.has(resources) &&
-          [...resources].some(
-            resource =>
-              containsPath(resource, key) || containsPath(key, resource)
-          )
+      [...mutationReservations].some(resources =>
+        [...resources].some(
+          resource => containsPath(resource, key) || containsPath(key, resource)
+        )
       )
     ) {
       throw new AssistedCommitError(

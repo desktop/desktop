@@ -4,7 +4,6 @@ import { Branch } from './branch'
 import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { WorkingDirectoryFileChange } from './status'
 import { IStashEntry } from './stash-entry'
-import type { ICommitPushRequest } from '../lib/commit-push'
 
 /** The types of actions that can be retried. */
 export enum RetryActionType {
@@ -25,11 +24,7 @@ export enum RetryActionType {
 
 /** The retriable actions and their associated data. */
 export type RetryAction =
-  | {
-      type: RetryActionType.Push
-      repository: Repository
-      readonly commit?: ICommitPushRequest
-    }
+  | { type: RetryActionType.Push; repository: Repository }
   | { type: RetryActionType.Pull; repository: Repository }
   | { type: RetryActionType.Fetch; repository: Repository }
   | {

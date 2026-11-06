@@ -168,7 +168,6 @@ interface ICommitMessageProps {
   ) => Promise<ICopilotAssistedCommitRequest>
   readonly onCancelCopilotAssistedCommits?: () => void
   readonly onRetryCopilotAssistedCommitRecovery?: () => void
-  readonly onRetryCopilotAssistedCommitPush?: () => void
   readonly onDismissCopilotAssistedCommitError?: () => void
   readonly onAssistedCommitErrorDetails?: () => void
   readonly shouldShowGenerateCommitMessageCallOut?: boolean
@@ -725,13 +724,6 @@ export class CommitMessage extends React.Component<
 
   /** Whether Copilot will be creating the commits. */
   private get isCopilotCommitMode() {
-    const state = this.props.assistedCommitState
-    if (
-      state?.kind === 'push-error' ||
-      (state?.kind === 'error' && state.pushed === true)
-    ) {
-      return true
-    }
     if (
       this.props.assistedCommitState !== undefined &&
       isAssistedCommitRepositoryLocked(this.props.assistedCommitState)
@@ -760,10 +752,6 @@ export class CommitMessage extends React.Component<
   private canCreateCopilotAssistedCommits() {
     return (
       this.isCopilotCommitMode &&
-      !(
-        this.props.assistedCommitState?.kind === 'error' &&
-        this.props.assistedCommitState.pushed === true
-      ) &&
       this.isCopilotAssistedCommitAvailable &&
       this.props.repositoryMutationBlocked !== true &&
       (this.props.anyFilesSelected || this.props.allowEmptyCommit) &&
@@ -2283,7 +2271,6 @@ export class CommitMessage extends React.Component<
             runState={this.props.assistedCommitState}
             onCancel={this.props.onCancelCopilotAssistedCommits}
             onRetryRecovery={this.props.onRetryCopilotAssistedCommitRecovery}
-            onRetryPush={this.props.onRetryCopilotAssistedCommitPush}
             onDismissError={this.props.onDismissCopilotAssistedCommitError}
             onErrorDetails={this.props.onAssistedCommitErrorDetails}
           >

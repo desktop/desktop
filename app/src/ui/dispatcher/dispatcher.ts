@@ -295,14 +295,6 @@ export class Dispatcher {
     return this.appStore._retryCopilotAssistedCommitRecovery(repository, runId)
   }
 
-  /** Retry only the frozen push intent. Never plan, commit, or roll history back. */
-  public retryCopilotAssistedCommitPush(
-    repository: Repository,
-    runId: string
-  ): Promise<AssistedCommitRunOutcome | undefined> {
-    return this.appStore._retryCopilotAssistedCommitPush(repository, runId)
-  }
-
   /** Dismiss a settled error, but never abandon unresolved recovery ownership. */
   public dismissCopilotAssistedCommitError(
     repository: Repository,
@@ -2442,9 +2434,7 @@ export class Dispatcher {
   public async performRetry(retryAction: RetryAction): Promise<void> {
     switch (retryAction.type) {
       case RetryActionType.Push:
-        return retryAction.commit === undefined
-          ? this.push(retryAction.repository)
-          : this.appStore._pushAfterCommit(retryAction.commit)
+        return this.push(retryAction.repository)
 
       case RetryActionType.Pull:
         return this.pull(retryAction.repository)

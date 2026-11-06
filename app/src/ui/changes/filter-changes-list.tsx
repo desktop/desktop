@@ -1056,7 +1056,6 @@ export class FilterChangesList extends React.Component<
         onRetryCopilotAssistedCommitRecovery={
           this.onRetryCopilotAssistedCommitRecovery
         }
-        onRetryCopilotAssistedCommitPush={this.onRetryCopilotAssistedCommitPush}
         onDismissCopilotAssistedCommitError={
           this.onDismissCopilotAssistedCommitError
         }
@@ -1143,19 +1142,9 @@ export class FilterChangesList extends React.Component<
     }
   }
 
-  private onRetryCopilotAssistedCommitPush = () => {
-    const state = this.props.assistedCommitState
-    if (state?.kind === 'push-error') {
-      this.props.dispatcher.retryCopilotAssistedCommitPush(
-        this.props.repository,
-        state.runId
-      )
-    }
-  }
-
   private onDismissCopilotAssistedCommitError = () => {
     const state = this.props.assistedCommitState
-    if (state?.kind === 'error' || state?.kind === 'push-error') {
+    if (state?.kind === 'error') {
       this.props.dispatcher.dismissCopilotAssistedCommitError(
         this.props.repository,
         state.runId
@@ -1165,7 +1154,7 @@ export class FilterChangesList extends React.Component<
 
   private onAssistedCommitErrorDetails = () => {
     const state = this.props.assistedCommitState
-    if (state?.kind === 'push-error' || state?.kind === 'error') {
+    if (state?.kind === 'error') {
       this.props.dispatcher.showPopup({
         type: PopupType.Error,
         error: state.error,
