@@ -8,6 +8,7 @@ import {
 } from '../../src/models/multi-commit-operation'
 import {
   isConflictsFlow,
+  isWaitingForConflictResolution,
   getMultiCommitOperationChooseBranchStep,
 } from '../../src/lib/multi-commit-operation'
 import { TipState } from '../../src/models/tip'
@@ -103,6 +104,43 @@ describe('multi-commit-operation', () => {
 
       assert.equal(isConflictsFlow(true, state), true)
     })
+  })
+
+  describe('isWaitingForConflictResolution', () => {
+    const stateWithStep = (kind: MultiCommitOperationStepKind) =>
+      ({
+        step: { kind },
+        operationDetail: { kind: MultiCommitOperationKind.Rebase },
+        progress: { kind: 'multiCommitOperation' as const, value: 0 },
+        userHasResolvedConflicts: false,
+      } as any)
+
+    it('returns false when state is null', () => {
+      assert.equal(isWaitingForConflictResolution(null), false)
+    })
+
+    for (const kind of [
+      MultiCommitOperationStepKind.ShowConflicts,
+      MultiCommitOperationStepKind.HideConflicts,
+      MultiCommitOperationStepKind.ConfirmAbort,
+      MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+      MultiCommitOperationStepKind.ShowCopilotConflicts,
+    ]) {
+      it(`returns true for ${kind}`, () => {
+        assert.equal(isWaitingForConflictResolution(stateWithStep(kind)), true)
+      })
+    }
+
+    for (const kind of [
+      MultiCommitOperationStepKind.ChooseBranch,
+      MultiCommitOperationStepKind.WarnForcePush,
+      MultiCommitOperationStepKind.ShowProgress,
+      MultiCommitOperationStepKind.CreateBranch,
+    ]) {
+      it(`returns false for ${kind}`, () => {
+        assert.equal(isWaitingForConflictResolution(stateWithStep(kind)), false)
+      })
+    }
   })
 
   describe('getMultiCommitOperationChooseBranchStep', () => {
