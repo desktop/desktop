@@ -1,9 +1,9 @@
 import assert from 'node:assert'
 import { beforeEach, afterEach, describe, it } from 'node:test'
 import {
-  getPushAfterAssistedCommit,
-  storePushAfterAssistedCommit,
-} from '../../src/lib/stores/helpers/assisted-commit-push-storage'
+  getPushAfterCommit,
+  storePushAfterCommit,
+} from '../../src/lib/stores/helpers/commit-push-storage'
 import { Repository } from '../../src/models/repository'
 import { createTestRepositoryStateCache } from '../helpers/app-store-test-harness'
 
@@ -11,42 +11,74 @@ function repository(id: number) {
   return new Repository(`/repositories/${id}`, id, null, false)
 }
 
-describe('repository assisted push preference', () => {
+describe('shared repository commit push preference', () => {
   beforeEach(() => localStorage.clear())
   afterEach(() => localStorage.clear())
 
-  it('defaults off and never migrates a global or manual preference', () => {
+  it('defaults off and ignores unreleased global preferences', () => {
     localStorage.setItem('push-after-committing', 'true')
     localStorage.setItem('assisted-commit-push', 'true')
-    assert.strictEqual(getPushAfterAssistedCommit(repository(1)), false)
+    assert.strictEqual(getPushAfterCommit(repository(1)), false)
     assert.strictEqual(
       createTestRepositoryStateCache().get(repository(1)).changesState
-        .pushAfterAssistedCommit,
+        .pushAfterCommit,
       false
     )
   })
 
+  it('uses one automatic push setting in both modes', () => {
+    const repo = repository(1)
+    localStorage.setItem('automatic-commit-push-1', 'true')
+    const cache = createTestRepositoryStateCache()
+    for (const commitMode of ['manual', 'copilot'] as const) {
+      cache.updateChangesState(repo, () => ({ commitMode }))
+      assert.strictEqual(cache.get(repo).changesState.pushAfterCommit, true)
+    }
+    storePushAfterCommit(repo, false)
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), 'false')
+    assert.strictEqual(
+      createTestRepositoryStateCache().get(repo).changesState.pushAfterCommit,
+      false
+    )
+  })
+
+  it('ignores the unreleased assisted preference without migrating it', () => {
+    const repo = repository(1)
+    localStorage.setItem('assisted-commit-push-1', 'true')
+    assert.strictEqual(getPushAfterCommit(repo), false)
+    assert.strictEqual(
+      createTestRepositoryStateCache().get(repo).changesState.pushAfterCommit,
+      false
+    )
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), null)
+    storePushAfterCommit(repo, true)
+    storePushAfterCommit(repo, false)
+    assert.strictEqual(getPushAfterCommit(repo), false)
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), 'false')
+    assert.strictEqual(localStorage.getItem('assisted-commit-push-1'), 'true')
+  })
+
   it('durably remembers independent opt-in for two repositories across cache reconstruction', () => {
-    storePushAfterAssistedCommit(repository(1), true)
-    storePushAfterAssistedCommit(repository(2), false)
+    storePushAfterCommit(repository(1), true)
+    storePushAfterCommit(repository(2), false)
     const cache = createTestRepositoryStateCache()
     assert.strictEqual(
-      cache.get(repository(1)).changesState.pushAfterAssistedCommit,
+      cache.get(repository(1)).changesState.pushAfterCommit,
       true
     )
     assert.strictEqual(
-      cache.get(repository(2)).changesState.pushAfterAssistedCommit,
+      cache.get(repository(2)).changesState.pushAfterCommit,
       false
     )
-    storePushAfterAssistedCommit(repository(2), true)
-    storePushAfterAssistedCommit(repository(1), false)
+    storePushAfterCommit(repository(2), true)
+    storePushAfterCommit(repository(1), false)
     const restarted = createTestRepositoryStateCache()
     assert.strictEqual(
-      restarted.get(repository(1)).changesState.pushAfterAssistedCommit,
+      restarted.get(repository(1)).changesState.pushAfterCommit,
       false
     )
     assert.strictEqual(
-      restarted.get(repository(2)).changesState.pushAfterAssistedCommit,
+      restarted.get(repository(2)).changesState.pushAfterCommit,
       true
     )
   })
@@ -57,31 +89,25 @@ describe('repository assisted push preference', () => {
     const moved = new Repository('/moved/repository', first.id, null, false)
     const cache = createTestRepositoryStateCache()
     cache.get(alias)
-    storePushAfterAssistedCommit(first, true)
-    cache.updateChangesState(first, () => ({ pushAfterAssistedCommit: true }))
+    storePushAfterCommit(first, true)
+    cache.updateChangesState(first, () => ({ pushAfterCommit: true }))
+    assert.strictEqual(cache.get(alias).changesState.pushAfterCommit, true)
+    assert.strictEqual(getPushAfterCommit(moved), true)
+    cache.updateChangesState(alias, () => ({ pushAfterCommit: false }))
+    assert.strictEqual(cache.get(first).changesState.pushAfterCommit, false)
     assert.strictEqual(
-      cache.get(alias).changesState.pushAfterAssistedCommit,
-      true
-    )
-    assert.strictEqual(getPushAfterAssistedCommit(moved), true)
-    cache.updateChangesState(alias, () => ({ pushAfterAssistedCommit: false }))
-    assert.strictEqual(
-      cache.get(first).changesState.pushAfterAssistedCommit,
-      false
-    )
-    assert.strictEqual(
-      cache.get(repository(2)).changesState.pushAfterAssistedCommit,
+      cache.get(repository(2)).changesState.pushAfterCommit,
       false
     )
   })
 
   it('treats every missing or invalid stored value as off', () => {
     for (const value of ['', '1', 'yes', 'TRUE', 'false', '{"enabled":true}']) {
-      localStorage.setItem('assisted-commit-push-1', value)
-      assert.strictEqual(getPushAfterAssistedCommit(repository(1)), false)
+      localStorage.setItem('automatic-commit-push-1', value)
+      assert.strictEqual(getPushAfterCommit(repository(1)), false)
       assert.strictEqual(
         createTestRepositoryStateCache().get(repository(1)).changesState
-          .pushAfterAssistedCommit,
+          .pushAfterCommit,
         false
       )
     }
@@ -92,7 +118,7 @@ describe('repository assisted push preference', () => {
     const worktree = new Repository('/linked/worktree', main.id, null, false)
     const cache = createTestRepositoryStateCache()
     cache.updateChangesState(main, () => ({
-      pushAfterAssistedCommit: true,
+      pushAfterCommit: true,
       assistedCommit: {
         kind: 'preparing',
         runId: 'main-run',
@@ -100,10 +126,7 @@ describe('repository assisted push preference', () => {
       },
       assistedCommitAvailable: true,
     }))
-    assert.strictEqual(
-      cache.get(worktree).changesState.pushAfterAssistedCommit,
-      true
-    )
+    assert.strictEqual(cache.get(worktree).changesState.pushAfterCommit, true)
     assert.strictEqual(
       cache.get(worktree).changesState.assistedCommit.kind,
       'idle'
@@ -113,12 +136,9 @@ describe('repository assisted push preference', () => {
       false
     )
     cache.updateChangesState(worktree, () => ({
-      pushAfterAssistedCommit: false,
+      pushAfterCommit: false,
     }))
-    assert.strictEqual(
-      cache.get(main).changesState.pushAfterAssistedCommit,
-      false
-    )
+    assert.strictEqual(cache.get(main).changesState.pushAfterCommit, false)
     assert.strictEqual(
       cache.get(main).changesState.assistedCommit.kind,
       'preparing'
@@ -135,10 +155,13 @@ describe('repository assisted push preference', () => {
       'another-placeholder'
     )
     const cache = createTestRepositoryStateCache()
-    cache.updateChangesState(first, () => ({ pushAfterAssistedCommit: true }))
-    assert.strictEqual(
-      cache.get(second).changesState.pushAfterAssistedCommit,
-      false
-    )
+    localStorage.setItem('automatic-commit-push--1', 'true')
+    assert.strictEqual(getPushAfterCommit(first), false)
+    storePushAfterCommit(first, true)
+    localStorage.removeItem('automatic-commit-push--1')
+    storePushAfterCommit(first, true)
+    assert.strictEqual(localStorage.getItem('automatic-commit-push--1'), null)
+    cache.updateChangesState(first, () => ({ pushAfterCommit: true }))
+    assert.strictEqual(cache.get(second).changesState.pushAfterCommit, false)
   })
 })

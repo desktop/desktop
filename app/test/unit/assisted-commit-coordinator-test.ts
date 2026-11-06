@@ -81,11 +81,6 @@ describe('standalone assisted coordinator', () => {
       }))
       const host: IAssistedCommitRepository = {
         getCurrent: repository => repository,
-        push: async () => {
-          throw new Error('Local-only coordinator test must not push')
-        },
-        recordPush: () =>
-          assert.fail('Local-only coordinator test must not record a push'),
         refresh: async (_repository, clearPartialState) => {
           await synchronizeHead()
           if (clearPartialState && !held) {

@@ -1,13 +1,4 @@
 import { Account } from '../../models/account'
-import { Branch } from '../../models/branch'
-import { IRemote } from '../../models/remote'
-import { IPushProgress } from '../../models/progress'
-import { AssistedCommitRunOutcome } from '../../models/assisted-commit-run'
-import { PushOptions } from '../git'
-import {
-  AssistedCommitPushDestination,
-  IAssistedCommitPublicationResources,
-} from '../git/assisted-commit-push'
 import {
   IAssistedCommitHead,
   IAssistedCommitSnapshot,
@@ -39,14 +30,6 @@ import {
 export interface IAssistedCommitRepository {
   /** Resolve current account and metadata without replacing frozen run intent. */
   readonly getCurrent: (repository: Repository) => Repository
-  readonly push: (
-    repository: Repository,
-    branch: Branch,
-    remote: IRemote,
-    options: PushOptions,
-    observer: IAssistedCommitPushObserver
-  ) => Promise<AssistedCommitPushOutcome>
-  readonly recordPush: (repository: Repository) => void
   readonly refresh: (
     repository: Repository,
     clearPartialState: boolean
@@ -92,7 +75,6 @@ export interface IAssistedCommitPreparedIntent {
   readonly providerDefinition: string | null
   readonly providerRevision: number
   readonly versions: ReadonlyArray<string>
-  readonly pushDestination?: AssistedCommitPushDestination
 }
 
 /** One native hook failure identity, shared by ordinary and assisted commits. */
@@ -108,8 +90,7 @@ export interface IAssistedCommitRun {
   readonly repository: Repository
   readonly request: ICopilotAssistedCommitRequest
   readonly initialState: IRepositoryState
-  readonly pushAfterAssistedCommit: boolean
-  readonly publicationResources: IAssistedCommitPublicationResources
+  readonly pushAfterCommit: boolean
   readonly account: Account | undefined
   readonly modelSelection: string | null
   readonly providerDefinition: string | null
@@ -146,24 +127,6 @@ export interface IAssistedCommitRun {
   }
   cleanupPending?: boolean
   cleanupToken?: IAssistedCommitCleanupToken
-  pushDestination?: AssistedCommitPushDestination
-  pushAttempted?: boolean
-  pushSucceeded?: boolean
-  pushPublicationPending?: boolean
-  pushRetry?: Promise<AssistedCommitRunOutcome | undefined>
-}
-
-/** Native acknowledgement remains distinct from fallible post-push refresh. */
-export type AssistedCommitPushOutcome =
-  | { readonly kind: 'pushed'; readonly refreshError?: unknown }
-  | { readonly kind: 'error' | 'aborted'; readonly error: unknown }
-
-/** Feature-owned publication and progress composed with the ordinary push pipeline. */
-export interface IAssistedCommitPushObserver {
-  readonly onProgress: (progress: IPushProgress) => void
-  readonly onPushed: () => void
-  readonly completePublication?: () => Promise<void>
-  readonly verifyFollowUpOwner?: () => void
 }
 
 /** Completion of one exact run or manual-consumption owner. */

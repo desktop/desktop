@@ -91,35 +91,6 @@ export class AssistedCommitContext {
     )
   }
 
-  /** Retain issuing authorization for push retry without requiring current AI eligibility. */
-  public assertPushAuthorization(run: IAssistedCommitRun): void {
-    const repository = this.getCurrentRepository(run.repository)
-    const originalIdentity = getRepositoryAccountIdentity(run.repository)
-    const currentIdentity = getRepositoryAccountIdentity(repository)
-    const assignmentMatches =
-      originalIdentity === null
-        ? currentIdentity === null
-        : isSameAccount(originalIdentity, currentIdentity)
-    const account = this.configuration().accounts.find(account =>
-      isSameAccount(account, run.account)
-    )
-    if (
-      !assignmentMatches ||
-      run.account === undefined ||
-      (account !== undefined && account.id !== run.account.id)
-    ) {
-      throw new Error(
-        'The repository account changed. Review the assigned account before pushing these commits.'
-      )
-    }
-    if (run.request.files.length > 0) {
-      this.accountsStore.createTokenGetter(run.account)
-      if (account !== undefined) {
-        this.accountsStore.createTokenGetter(account)
-      }
-    }
-  }
-
   /** Revalidate account session, provider revision and cooperative cancellation. */
   public check(run: IAssistedCommitRun): void {
     if (this.state.runs.get(run.repository.id) !== run) {
@@ -236,8 +207,7 @@ export class AssistedCommitContext {
       state.multiCommitOperationState !== null ||
       state.changesState.conflictState !== null ||
       !assistedCommitRequestsEqual(run.request, currentRequest) ||
-      state.changesState.pushAfterAssistedCommit !==
-        run.pushAfterAssistedCommit ||
+      state.changesState.pushAfterCommit !== run.pushAfterCommit ||
       JSON.stringify(state.changesState.coAuthors) !==
         JSON.stringify(run.initialState.changesState.coAuthors) ||
       state.changesState.showCoAuthoredBy !==

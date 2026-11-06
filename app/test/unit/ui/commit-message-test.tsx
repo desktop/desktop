@@ -219,6 +219,90 @@ afterEach(() => {
 })
 
 describe('CommitMessage', () => {
+  it(
+    'clears the committed draft before automatic push and preserves edits made during push',
+    { timeout: 30000 },
+    async t => {
+      const { writeFile } = await import('fs/promises')
+      const { join } = await import('path')
+      const { seed } = await import('../../helpers/assisted-commit')
+      const { addBareRemote } = await import(
+        '../../helpers/assisted-commit-push'
+      )
+      const { createAssistedCommitRunHarness } = await import(
+        '../../helpers/assisted-commit-run'
+      )
+      const { deferred } = await import('../../helpers/copilot-assisted-commit')
+      const source = await seed(t, { file: 'before\n' })
+      await addBareRemote(t, source)
+      await writeFile(join(source.path, 'file'), 'after\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.dispatcher.setCommitMode(repository, 'manual')
+      h.dispatcher.setPushAfterCommit(repository, true)
+      const refresh = t.mock.method(h.appStore, '_refreshRepository')
+      const started = deferred<void>()
+      const finish = deferred<void>()
+      const push = t.mock.method(h.appStore, '_push', async () => {
+        started.resolve()
+        await finish.promise
+      })
+      const commits: Promise<boolean>[] = []
+      let completed = 0
+      const view = render(
+        <CommitMessage
+          {...createProps({
+            repository,
+            isGeneratingCommitMessage: false,
+            commitMessage: {
+              summary: 'First commit',
+              description: 'First details',
+              timestamp: Date.now(),
+            },
+            onCreateCommit: context => {
+              const commit = h.dispatcher.commitIncludedChanges(
+                repository,
+                context
+              )
+              commits.push(commit)
+              return commit
+            },
+            onSuccessfulCommitCreated: () => completed++,
+          })}
+        />
+      )
+      try {
+        fireEvent.click(
+          screen.getByRole('button', { name: 'Commit 1 file to main' })
+        )
+        await started.promise
+        const summary = screen.getByRole('combobox', { name: 'Commit summary' })
+        const description = screen.getByRole('combobox', {
+          name: 'Commit description',
+        })
+        assert.ok(summary instanceof HTMLInputElement)
+        assert.ok(description instanceof HTMLTextAreaElement)
+        assert.strictEqual(completed, 1)
+        assert.strictEqual(summary.value, '')
+        assert.strictEqual(description.value, '')
+        fireEvent.change(summary, { target: { value: 'Next commit' } })
+        fireEvent.change(description, { target: { value: 'Next details' } })
+        finish.resolve()
+        await Promise.all(push.mock.calls.map(call => call.result))
+        await Promise.all(commits)
+        assert.strictEqual(summary.value, 'Next commit')
+        assert.strictEqual(description.value, 'Next details')
+        assert.strictEqual(completed, 1)
+      } finally {
+        finish.resolve()
+        await Promise.all(push.mock.calls.map(call => call.result))
+        await Promise.all(commits)
+        await Promise.all(refresh.mock.calls.map(call => call.result))
+        view.unmount()
+      }
+    }
+  )
+
   it('does not allow cancelling commit message generation when the Copilot SDK is disabled', async () => {
     delete process.env[PreviewFeaturesEnv]
 
@@ -1751,37 +1835,6 @@ describe('CommitMessage', () => {
         false,
       ],
       [{ kind: 'rolling-back', runId: 'run' }, true, true, 'Cancel', true],
-      [
-        {
-          kind: 'preparing-push',
-          runId: 'run',
-          cancelRequested: false,
-          canCancel: true,
-        },
-        true,
-        true,
-        'Cancel',
-        false,
-      ],
-      ...([false, true] as const).map(
-        settling =>
-          [
-            {
-              kind: 'push-error',
-              runId: 'push-run',
-              attempted: true,
-              settling,
-              error: new ErrorWithMetadata(
-                new Error('Actual push rejection'),
-                {}
-              ),
-            },
-            false,
-            settling,
-            'Retry push',
-            settling,
-          ] as const
-      ),
       ...(['recovery', 'refresh', null] as const).map(
         retry =>
           [
@@ -1826,7 +1879,6 @@ describe('CommitMessage', () => {
           assistedCommitState: state,
           onCancelCopilotAssistedCommits: () => acted++,
           onRetryCopilotAssistedCommitRecovery: () => acted++,
-          onRetryCopilotAssistedCommitPush: () => acted++,
           onDismissCopilotAssistedCommitError: () => acted++,
           onAssistedCommitErrorDetails: () => {},
         })
@@ -1872,38 +1924,12 @@ describe('CommitMessage', () => {
             })
           )
         }
-        if (state.kind === 'error' || state.kind === 'push-error') {
+        if (state.kind === 'error') {
           assert.ok(panel.contains(screen.getByRole('alert')))
           assert.ok(screen.getByRole('button', { name: 'Details' }))
         }
       })
     }
-
-    it('keeps the panel gear disabled during pushing without exposing rollback Cancel', t => {
-      const menu = t.mock.method(ipcRenderer, 'invoke', async () => null)
-      const { view } = renderWithCommitModes({
-        commitMode: 'copilot',
-        isCreatingCopilotAssistedCommits: true,
-        assistedCommitState: {
-          kind: 'pushing',
-          runId: 'push-run',
-          phase: 'push',
-          progress: null,
-        },
-      })
-      const gear = screen.getByRole('button', {
-        name: 'Configure commit options',
-      })
-      const panel = view.container.querySelector(
-        '.copilot-commit-panel.with-options'
-      )
-      assert.ok(panel?.contains(gear))
-      assert.strictEqual(gear.getAttribute('aria-disabled'), 'true')
-      fireEvent.click(gear)
-      assert.strictEqual(menu.mock.callCount(), 0)
-      assert.strictEqual(screen.queryByRole('button', { name: 'Cancel' }), null)
-      assert.ok(screen.getByText('Pushing commits…', { selector: '.title' }))
-    })
 
     it('restores summary focus when leaving the focused panel options control', () => {
       const { rerender } = renderWithCommitModes({ commitMode: 'copilot' })
@@ -2104,13 +2130,13 @@ describe('CommitMessage', () => {
       )
     })
 
-    it('exposes the repository push choice as an assisted-only checkbox and freezes it while busy', async t => {
+    it('shares the repository push checkbox across modes and freezes it while busy', async t => {
       const { menus, select } = captureOptionsMenu(t)
       const choices: boolean[] = []
       const { view, rerender } = renderWithCommitModes({
         commitMode: 'copilot',
-        pushAfterAssistedCommit: true,
-        onPushAfterAssistedCommitChanged: enabled => choices.push(enabled),
+        pushAfterCommit: true,
+        onPushAfterCommitChanged: enabled => choices.push(enabled),
       })
       select('Push after committing')
       await waitFor(() => assert.deepStrictEqual(choices, [false]))
@@ -2140,85 +2166,26 @@ describe('CommitMessage', () => {
       await waitFor(() => assert.strictEqual(menus.length, 2))
       assert.strictEqual(
         menus[1].some(item => item.label === 'Push after committing'),
+        true
+      )
+      await waitFor(() => assert.deepStrictEqual(choices, [false, false]))
+      rerender({
+        commitMode: 'copilot',
+        pushAfterCommit: false,
+      })
+      select('Push after committing')
+      assert.strictEqual(
+        menus[2].find(item => item.label === 'Push after committing')?.checked,
         false
       )
-      assert.deepStrictEqual(choices, [false])
-    })
-
-    it('keeps push retry reachable with no selection, manual preference, and no AI account', async () => {
-      let retried = 0
-      let generated = 0
-      renderWithCommitModes({
-        commitMode: 'manual',
-        accounts: [],
-        repositoryAccount: null,
-        anyFilesSelected: false,
-        filesSelected: [],
-        assistedCommitState: {
-          kind: 'push-error',
-          runId: 'push-run',
-          error: new ErrorWithMetadata(new Error('Actual push rejection'), {}),
-          attempted: true,
-          settling: false,
-        },
-        onRetryCopilotAssistedCommitPush: () => retried++,
-        onCreateCopilotAssistedCommits: () => generated++,
-      })
-      assert.ok(screen.getByRole('alert'))
-      assert.strictEqual(screen.queryByText('Actual push rejection'), null)
-      assert.ok(
-        screen.getByText('All commits from this run were kept locally.')
-      )
-      fireEvent.click(screen.getByRole('button', { name: 'Retry push' }))
-      assert.strictEqual(retried, 1)
-      assert.strictEqual(generated, 0)
+      await waitFor(() => assert.deepStrictEqual(choices, [false, false, true]))
+      rerender({ commitMode: 'manual', canPushAfterCommit: false })
+      select('Push after committing')
       assert.strictEqual(
-        screen.queryByRole('button', { name: 'Retry rollback' }),
-        null
+        menus[3].find(item => item.label === 'Push after committing')?.enabled,
+        false
       )
-    })
-
-    it('keeps acknowledged push errors and Dismiss visible without changing Manual preference or requiring AI', () => {
-      const repository = createMountableRepository()
-      storeCommitMode(repository, 'manual')
-      let dismissed = 0
-      let details = 0
-      const { rerender } = renderWithCommitModes({
-        repository,
-        commitMode: 'manual',
-        accounts: [],
-        repositoryAccount: null,
-        anyFilesSelected: false,
-        filesSelected: [],
-        assistedCommitState: {
-          kind: 'error',
-          runId: 'acknowledged-push',
-          error: new ErrorWithMetadata(
-            new Error('Actual stale refresh refusal'),
-            {}
-          ),
-          pushed: true,
-          retry: null,
-          selectionNeedsReview: false,
-          settling: false,
-        },
-        onDismissCopilotAssistedCommitError: () => dismissed++,
-        onAssistedCommitErrorDetails: () => details++,
-      })
-      assert.ok(screen.getByRole('alert'))
-      assert.strictEqual(
-        screen.queryByText('Actual stale refresh refusal'),
-        null
-      )
-      assert.ok(screen.getByText('Commits pushed'))
-      fireEvent.click(screen.getByRole('button', { name: 'Details' }))
-      fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
-      assert.strictEqual(details, 1)
-      assert.strictEqual(dismissed, 1)
-      assert.strictEqual(getCommitMode(repository), 'manual')
-      rerender({ assistedCommitState: { kind: 'idle' } })
-      assert.ok(screen.getByRole('combobox', { name: 'Commit summary' }))
-      assert.strictEqual(getCommitMode(repository), 'manual')
+      assert.deepStrictEqual(choices, [false, false, true])
     })
 
     it('keeps co-author editing reachable and includes trailers and options in assisted requests', () => {

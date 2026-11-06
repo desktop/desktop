@@ -1,11 +1,5 @@
 import { GitError } from '../git/core'
 import { GitError as DugiteError } from 'dugite'
-import { AssistedCommitPushError } from '../git/assisted-commit-push'
-import {
-  verifyAcceptedOwner,
-  withAcceptedSpawnFence,
-  withAcceptedAliasFence,
-} from './push-ownership'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { ChangesSelectionKind } from '../app-state'
@@ -63,41 +57,16 @@ export class AssistedCommitReaders {
       : this.repository.getCurrent(deferred)
   }
 
-  /** Refresh only the original accepted owner, including after pathname resolution. */
+  /** Defer repository refresh until native transaction ownership is released. */
   public async refresh(
     repository: Repository,
     operation: () => Promise<void>
   ): Promise<void> {
-    const run = this.state.selectionOwner(repository)
-    try {
-      verifyAcceptedOwner(run)
-    } catch (error) {
-      this.invalidate(repository, run, error)
-      try {
-        this.state.events.changed()
-      } catch (notificationError) {
-        throw new AggregateError(
-          [error, notificationError],
-          'Desktop could not present the accepted repository ownership error'
-        )
-      }
-      throw error
-    }
-    const executionPath =
-      run?.finalized && run.pushDestination?.kind === 'configured'
-        ? run.pushDestination.path
-        : repository.path
-    if (isRepositoryGitPaused(executionPath)) {
+    if (isRepositoryGitPaused(repository.path)) {
       this.deferRefresh(repository)
       return
     }
-    return withRepositoryGitOperation(
-      executionPath,
-      'read',
-      () => withAcceptedSpawnFence(run, operation),
-      false,
-      () => verifyAcceptedOwner(run)
-    )
+    return withRepositoryGitOperation(repository.path, 'read', operation)
   }
 
   /** History selection delivery waits for the exact run's complete lifetime. */
@@ -135,24 +104,6 @@ export class AssistedCommitReaders {
       await manual.settlement.done
       return this.read(repository, run, operation)
     }
-    try {
-      verifyAcceptedOwner(run)
-    } catch (error) {
-      this.invalidate(repository, run, error)
-      try {
-        this.state.events.changed()
-      } catch (notificationError) {
-        throw new AggregateError(
-          [error, notificationError],
-          'Desktop could not present the accepted repository ownership error'
-        )
-      }
-      throw error
-    }
-    const executionPath =
-      run?.finalized && run.pushDestination?.kind === 'configured'
-        ? run.pushDestination.path
-        : repository.path
     const state = this.state.cache.get(repository)
     if (
       run === undefined &&
@@ -179,16 +130,10 @@ export class AssistedCommitReaders {
     try {
       this.state.events.changed()
       const result = await withRepositoryGitOperation(
-        executionPath,
+        repository.path,
         'read',
-        () =>
-          withRepositoryGitErrorPropagation(() =>
-            withAcceptedSpawnFence(run, operation)
-          ),
-        false,
-        () => verifyAcceptedOwner(run)
+        () => withRepositoryGitErrorPropagation(operation)
       )
-      verifyAcceptedOwner(run)
       return result
     } catch (error) {
       this.invalidate(repository, run, error)
@@ -254,7 +199,6 @@ export class AssistedCommitReaders {
   /** Drain every admitted selection reader before sealing the run's settlement. */
   public async finish(run: IAssistedCommitRun): Promise<void> {
     try {
-      verifyAcceptedOwner(run)
       await this.updateDiff(run.repository)
       do {
         while (run.selectionReaders.size > 0) {
@@ -283,13 +227,11 @@ export class AssistedCommitReaders {
   ): Promise<ErrorWithMetadata | undefined> {
     const deferred = this.deferredHistory.get(repository.id)
     const assisted = this.state.runs.get(repository.id)
-    const accepted =
-      retainedRun?.finalized &&
-      retainedRun.pushDestination?.kind === 'configured'
-        ? retainedRun
-        : assisted?.finalized && assisted.pushDestination?.kind === 'configured'
-        ? assisted
-        : undefined
+    const accepted = retainedRun?.finalized
+      ? retainedRun
+      : assisted?.finalized
+      ? assisted
+      : undefined
     if (
       deferred === undefined ||
       this.historyReaders.has(repository.id) ||
@@ -298,42 +240,14 @@ export class AssistedCommitReaders {
     ) {
       return
     }
-    const state = this.state.cache.get(repository).changesState.assistedCommit
-    if (
-      accepted !== undefined &&
-      state.kind === 'error' &&
-      state.runId === accepted.id &&
-      state.retry === null &&
-      assistedCommitErrorCauses(state.error).some(
-        cause =>
-          cause instanceof AssistedCommitPushError && cause.publicationStale
-      )
-    ) {
-      if (this.deferredHistory.get(repository.id) === deferred) {
-        this.deferredHistory.delete(repository.id)
-      }
-      return state.error
-    }
     this.historyReaders.add(repository.id)
     try {
-      verifyAcceptedOwner(accepted)
       const execution = accepted?.repository ?? deferred
       const read = () =>
         withRepositoryGitErrorPropagation(() =>
           this.repository.loadHistory(this.repository.getCurrent(execution))
         )
-      await withRepositoryGitOperation(
-        accepted?.pushDestination?.kind === 'configured'
-          ? accepted.pushDestination.path
-          : execution.path,
-        'read',
-        () =>
-          accepted === undefined
-            ? read()
-            : withAcceptedAliasFence(accepted, [deferred], read),
-        false,
-        () => verifyAcceptedOwner(accepted)
-      )
+      await withRepositoryGitOperation(execution.path, 'read', read)
       if (this.deferredHistory.get(repository.id) === deferred) {
         this.deferredHistory.delete(repository.id)
       }
@@ -348,10 +262,8 @@ export class AssistedCommitReaders {
       if (accepted !== undefined) {
         const stale = assistedCommitErrorCauses(error).some(
           cause =>
-            (cause instanceof AssistedCommitPushError &&
-              cause.publicationStale) ||
-            (cause instanceof GitError &&
-              cause.result.gitError === DugiteError.NotAGitRepository)
+            cause instanceof GitError &&
+            cause.result.gitError === DugiteError.NotAGitRepository
         )
         if (stale && this.deferredHistory.get(repository.id) === deferred) {
           this.deferredHistory.delete(repository.id)
@@ -437,24 +349,16 @@ export class AssistedCommitReaders {
     }
     const assistedRun = currentRun
     return this.read(repository, assistedRun, () =>
-      withRepositoryGitOperation(
-        assistedRun?.finalized &&
-          assistedRun.pushDestination?.kind === 'configured'
-          ? assistedRun.pushDestination.path
-          : repository.path,
-        'read',
-        () =>
-          this.loadStatusCore(
-            repository,
-            clearPartialState && !excludeNewFiles,
-            propagateErrors,
-            assistedRun,
-            excludeNewFiles,
-            load,
-            publish
-          ),
-        false,
-        () => verifyAcceptedOwner(assistedRun)
+      withRepositoryGitOperation(repository.path, 'read', () =>
+        this.loadStatusCore(
+          repository,
+          clearPartialState && !excludeNewFiles,
+          propagateErrors,
+          assistedRun,
+          excludeNewFiles,
+          load,
+          publish
+        )
       )
     )
   }
