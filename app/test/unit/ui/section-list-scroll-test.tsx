@@ -94,12 +94,16 @@ afterEach(() => {
   }
 })
 
-function renderSectionList(rowCount: ReadonlyArray<number>) {
+function renderSectionList(
+  rowCount: ReadonlyArray<number>,
+  setScrollTop?: number
+) {
   return render(
     <SectionList
       rowCount={rowCount}
       rowHeight={ROW_HEIGHT}
       selectedRows={[]}
+      setScrollTop={setScrollTop}
       rowRenderer={(indexPath: RowIndexPath) => (
         <div>{`row ${indexPath.section}-${indexPath.row}`}</div>
       )}
@@ -140,5 +144,34 @@ describe('SectionList scrolling', () => {
         'a per-section grid was left independently scrollable (overflow-y: auto)'
       )
     }
+  })
+
+  it('renders every row when a restored scroll position exceeds the content', async () => {
+    // setScrollTop restores a position saved while the list was longer, so it
+    // can exceed the height of the content it's restored into. A list this
+    // short never scrolls, so no scroll event arrives to correct it, and an
+    // offset past the end leaves react-virtualized rendering only the final
+    // row at the bottom of an empty pane. See #22619.
+    const rowCount = 5
+    const { container } = renderSectionList([rowCount], LIST_HEIGHT * 4)
+
+    await waitFor(() => {
+      assert.ok(
+        container.querySelector('.ReactVirtualized__Grid[role="listbox"]') !==
+          null,
+        'expected the section grid to render'
+      )
+    })
+
+    const grid = container.querySelector(
+      '.ReactVirtualized__Grid[role="listbox"]'
+    )
+    const renderedRows = grid?.firstElementChild?.childElementCount ?? 0
+
+    assert.strictEqual(
+      renderedRows,
+      rowCount,
+      `expected all ${rowCount} rows to render, got ${renderedRows}`
+    )
   })
 })
