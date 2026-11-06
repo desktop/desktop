@@ -59,6 +59,15 @@ export function useRepoRulesLogic(
   return true
 }
 
+export function canBypassRuleset(
+  ruleset: IAPIRepoRuleset | undefined
+): boolean {
+  return (
+    ruleset?.current_user_can_bypass === 'always' ||
+    ruleset?.current_user_can_bypass === 'exempt'
+  )
+}
+
 /**
  * Parses the GitHub API response for a branch's repo rules into a more useable
  * format.
@@ -83,8 +92,7 @@ export async function parseRepoRules(
     // since the rule will not exist in the API response if it's not enforced, we know
     // we're always assigning either 'bypass' or true below. therefore, we only need
     // to check if the existing value is true, otherwise it can always be overridden.
-    const enforced =
-      ruleset.current_user_can_bypass === 'always' ? 'bypass' : true
+    const enforced = canBypassRuleset(ruleset) ? 'bypass' : true
 
     switch (rule.type) {
       case APIRepoRuleType.Update:
