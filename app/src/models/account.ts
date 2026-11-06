@@ -122,10 +122,21 @@ export class Account {
    * hostname without the protocol and/or path.
    */
   public get friendlyEndpoint(): string {
-    return (this._friendlyEndpoint ??= isDotComAccount(this)
-      ? 'GitHub.com'
-      : new URL(getHTMLURL(this.endpoint)).hostname)
+    return (this._friendlyEndpoint ??= getFriendlyEndpoint(this.endpoint))
   }
+}
+
+/**
+ * Get a human-friendly description of an API endpoint.
+ *
+ * The GitHub.com API endpoint returns the string 'GitHub.com' whereas
+ * GitHub Enterprise endpoints return the hostname without the protocol
+ * and/or path.
+ */
+export function getFriendlyEndpoint(endpoint: string): string {
+  return endpoint === getDotComAPIEndpoint()
+    ? 'GitHub.com'
+    : new URL(getHTMLURL(endpoint)).hostname
 }
 
 /**
