@@ -92,7 +92,16 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
     }
 
     if (!hasCopilotModelPickerItems(copilotModels, byokProviders)) {
-      return <p>No Copilot models available.</p>
+      return (
+        <>
+          <p>No Copilot models available.</p>
+          {this.props.showBYOKSettings && (
+            <LinkButton onClick={this.props.onConfigureCustomProviders}>
+              Configure custom providers…
+            </LinkButton>
+          )}
+        </>
+      )
     }
 
     return (
