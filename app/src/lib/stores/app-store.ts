@@ -5870,6 +5870,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const branch = await gitStore.performFailableOperation(async () => {
+      await gitStore.loadRemotes()
       const status = await this._loadStatus(repository, false, true)
       if (
         branchRef === null ||
@@ -5880,7 +5881,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
           'Commits were saved locally, but the branch changed before automatic push. Review the current branch and use Push.'
         )
       }
-      await gitStore.loadRemotes()
       const branch = this.getBranchToPush(repository)
       if (branch === undefined) {
         throw new Error(

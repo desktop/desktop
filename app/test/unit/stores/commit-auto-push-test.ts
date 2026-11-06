@@ -339,6 +339,37 @@ describe('automatic commit publication uses ordinary Push', () => {
       )
     })
 
+    it(`${mode} checks the branch after awaited remote loading at handoff`, async t => {
+      const h = await setup(t, mode)
+      const store = h.appStore['gitStoreCache'].get(h.repository)
+      const load = store.loadRemotes.bind(store)
+      const handoff = h.appStore['pushAfterCommit'].bind(h.appStore)
+      let handingOff = false
+      let changed = false
+      h.appStore['pushAfterCommit'] = (...args) => {
+        handingOff = true
+        return handoff(...args)
+      }
+      t.mock.method(store, 'loadRemotes', async () => {
+        await load()
+        if (handingOff && !changed) {
+          changed = true
+          await fixtures.rawGit(h.repository, [
+            'checkout',
+            '-b',
+            'changed-before-handoff',
+          ])
+        }
+      })
+      const push = t.mock.method(h.appStore, '_push')
+      await h.commit()
+      assert.strictEqual(push.mock.callCount(), 0)
+      assert.strictEqual(await h.remote.tip(), h.remote.originalTip)
+      assert.strictEqual(await fixtures.count(h.repository), 2)
+      assert.strictEqual(changed, true)
+      assert.match(h.failures[0].message, /saved locally.*branch changed/)
+    })
+
     it(`${mode} counts an acknowledged push once even if its follow-up refresh fails`, async t => {
       const h = await setup(t, mode)
       h.appStore['refreshBranchProtectionState'] = async () => {
@@ -477,7 +508,11 @@ describe('automatic commit publication uses ordinary Push', () => {
   })
 
   for (const mode of ['manual', 'copilot'] as const) {
-    it(`${mode} skips auto-push while accepted local readers still need refresh`, async t => {
+    it(`${mode} skips auto-push ${
+      mode === 'copilot'
+        ? 'while accepted local readers still need refresh'
+        : 'when preference is off'
+    }`, async t => {
       const h = await setup(t, mode)
       if (mode === 'copilot') {
         const finish = h.assisted.readers.finish.bind(h.assisted.readers)

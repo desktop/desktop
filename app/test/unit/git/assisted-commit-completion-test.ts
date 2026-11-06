@@ -2,7 +2,7 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import { existsSync } from 'fs'
-import { readFile, stat, utimes, writeFile } from 'fs/promises'
+import { readFile, rename, stat, symlink, utimes, writeFile } from 'fs/promises'
 import { join } from 'path'
 import {
   acceptVerifiedAssistedCommitTransaction,
@@ -16,8 +16,33 @@ import {
   indexPath,
   count,
 } from '../../helpers/assisted-commit'
+import { createTempDirectory } from '../../helpers/temp'
 
 describe('assisted local completion fence', () => {
+  it('refuses a substituted selected-path symlink ancestor before local acceptance', async t => {
+    const repository = await seed(t, { 'directory/selected': 'before\n' })
+    await writeFile(join(repository.path, 'directory', 'selected'), 'after\n')
+    const result = await single(repository, await request(repository))
+    const saved = join(await createTempDirectory(t), 'saved')
+    const parent = join(repository.path, 'directory')
+    await rename(parent, saved)
+    await symlink(saved, parent, __WIN32__ ? 'junction' : 'dir')
+    await assert.rejects(
+      acceptVerifiedAssistedCommitTransaction(result, () =>
+        assert.fail('Must not accept')
+      ),
+      error =>
+        error instanceof AssistedCommitError &&
+        error.code === 'selection-changed'
+    )
+    await rollbackAssistedCommitTransaction(result)
+    assert.strictEqual(await count(repository), 1)
+    assert.strictEqual(
+      await readFile(join(parent, 'selected'), 'utf8'),
+      'after\n'
+    )
+  })
+
   it('keeps rollback available when cancellation wins before local acceptance', async t => {
     const repository = await seed(t, { selected: 'before\n' })
     await writeFile(join(repository.path, 'selected'), 'after\n')

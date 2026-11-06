@@ -839,7 +839,7 @@ export async function executeAssistedCommitPlan(
 }
 
 /**
- * Roll back a completed local run that has not crossed the caller's push boundary.
+ * Roll back a completed local run that has not crossed local acceptance.
  *
  * Successful execution leaves no private files. Recovery tokens also retain
  * failed owned-resource cleanup until retry succeeds. The original index backup
@@ -1021,8 +1021,8 @@ export async function acceptVerifiedAssistedCommitTransaction(
 /**
  * Accept completed local commits and release the in-memory rollback capability.
  *
- * Call when returning to ready state or immediately before starting a push, after
- * checking cancellation. This performs no Git operation and is safe to call twice.
+ * Call after verified local acceptance and its final cancellation check.
+ * This performs no Git operation and is safe to call twice.
  */
 export function finalizeAssistedCommitTransaction(
   result: AssistedCommitRecoveryCapability
