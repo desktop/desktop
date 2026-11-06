@@ -503,6 +503,18 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['Codeium'],
   },
   {
+    name: 'Antigravity IDE',
+    registryKeys: [
+      // x64 version of Antigravity IDE (user)
+      CurrentUserUninstallKey('{AA73B3E3-C6C8-45C8-B1DC-4AE56C751432}_is1'),
+      // ARM64 version of Antigravity IDE (user)
+      CurrentUserUninstallKey('{057BEF68-E891-4AD8-871C-3C9893C9F8A7}_is1'),
+    ],
+    executableShimPaths: [['Antigravity IDE.exe']],
+    displayNamePrefixes: ['Antigravity IDE'],
+    publishers: ['Google'],
+  },
+  {
     name: 'Zed',
     registryKeys: [
       CurrentUserUninstallKey('{2DB0DA96-CA55-49BB-AF4F-64AF36A86712}_is1'),
