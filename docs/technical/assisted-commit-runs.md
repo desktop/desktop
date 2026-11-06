@@ -494,10 +494,9 @@ logging it without skipping draft/options/status/history success bookkeeping.
 **Push after committing** lives in both Manual and Copilot commit options menus,
 beside sign-off, bypass commit hooks and allow-empty (and co-authors in Copilot
 mode). It defaults off. AppStore/Dispatcher save only a boolean under
-`assisted-commit-push-<repository ID>`; missing or invalid values mean off.
-The historical storage key is intentionally retained as the single authoritative
-setting, now named `pushAfterCommit` in application state. Existing assisted
-opt-ins therefore also enable automatic push for ordinary manual commits.
+`automatic-commit-push-<repository ID>`; missing or invalid values mean off.
+This is the single authoritative setting, named `pushAfterCommit` in application
+state. The unreleased assisted-only key is not read or migrated.
 Changing modes does not change or copy the preference.
 Aliases, metadata refreshes, path moves and rebuilt caches retain that ID's
 choice. Other repository IDs keep their own choice; no unreleased global setting

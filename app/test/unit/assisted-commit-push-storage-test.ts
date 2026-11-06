@@ -26,20 +26,36 @@ describe('shared repository commit push preference', () => {
     )
   })
 
-  it('uses the original saved opt-in in both modes without a parallel setting', () => {
+  it('uses one automatic push setting in both modes', () => {
     const repo = repository(1)
-    localStorage.setItem('assisted-commit-push-1', 'true')
+    localStorage.setItem('automatic-commit-push-1', 'true')
     const cache = createTestRepositoryStateCache()
     for (const commitMode of ['manual', 'copilot'] as const) {
       cache.updateChangesState(repo, () => ({ commitMode }))
       assert.strictEqual(cache.get(repo).changesState.pushAfterCommit, true)
     }
     storePushAfterCommit(repo, false)
-    assert.strictEqual(localStorage.getItem('assisted-commit-push-1'), 'false')
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), 'false')
     assert.strictEqual(
       createTestRepositoryStateCache().get(repo).changesState.pushAfterCommit,
       false
     )
+  })
+
+  it('ignores the unreleased assisted preference without migrating it', () => {
+    const repo = repository(1)
+    localStorage.setItem('assisted-commit-push-1', 'true')
+    assert.strictEqual(getPushAfterCommit(repo), false)
+    assert.strictEqual(
+      createTestRepositoryStateCache().get(repo).changesState.pushAfterCommit,
+      false
+    )
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), null)
+    storePushAfterCommit(repo, true)
+    storePushAfterCommit(repo, false)
+    assert.strictEqual(getPushAfterCommit(repo), false)
+    assert.strictEqual(localStorage.getItem('automatic-commit-push-1'), 'false')
+    assert.strictEqual(localStorage.getItem('assisted-commit-push-1'), 'true')
   })
 
   it('durably remembers independent opt-in for two repositories across cache reconstruction', () => {
@@ -87,7 +103,7 @@ describe('shared repository commit push preference', () => {
 
   it('treats every missing or invalid stored value as off', () => {
     for (const value of ['', '1', 'yes', 'TRUE', 'false', '{"enabled":true}']) {
-      localStorage.setItem('assisted-commit-push-1', value)
+      localStorage.setItem('automatic-commit-push-1', value)
       assert.strictEqual(getPushAfterCommit(repository(1)), false)
       assert.strictEqual(
         createTestRepositoryStateCache().get(repository(1)).changesState
@@ -139,12 +155,12 @@ describe('shared repository commit push preference', () => {
       'another-placeholder'
     )
     const cache = createTestRepositoryStateCache()
-    localStorage.setItem('assisted-commit-push--1', 'true')
+    localStorage.setItem('automatic-commit-push--1', 'true')
     assert.strictEqual(getPushAfterCommit(first), false)
     storePushAfterCommit(first, true)
-    localStorage.removeItem('assisted-commit-push--1')
+    localStorage.removeItem('automatic-commit-push--1')
     storePushAfterCommit(first, true)
-    assert.strictEqual(localStorage.getItem('assisted-commit-push--1'), null)
+    assert.strictEqual(localStorage.getItem('automatic-commit-push--1'), null)
     cache.updateChangesState(first, () => ({ pushAfterCommit: true }))
     assert.strictEqual(cache.get(second).changesState.pushAfterCommit, false)
   })
