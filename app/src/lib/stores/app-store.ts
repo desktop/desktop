@@ -342,6 +342,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
+import { monitorWorktrees } from './helpers/worktree-monitor'
 import {
   enableCopilotConflictResolution,
   enableCopilotAppHandoff,
@@ -643,6 +644,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
   private currentBranchPruner: BranchPruner | null = null
+
+  /** Stops monitoring the worktrees of the selected repository, if running. */
+  private stopWorktreeMonitor: (() => void) | null = null
 
   private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
@@ -2370,6 +2374,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopPullRequestUpdater()
     this._clearBanner()
     this.stopBackgroundPruner()
+    this.stopMonitoringWorktrees()
 
     if (repository == null) {
       return Promise.resolve(null)
@@ -2469,11 +2474,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
     this.stopBackgroundPruner()
+    this.stopMonitoringWorktrees()
 
     this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.startPullRequestUpdater(repository)
 
     this.startBackgroundPruner(repository)
+    this.startMonitoringWorktrees(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
 
@@ -2505,6 +2512,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.currentBranchPruner = pruner
     this.currentBranchPruner.start()
+  }
+
+  private stopMonitoringWorktrees() {
+    this.stopWorktreeMonitor?.()
+    this.stopWorktreeMonitor = null
+  }
+
+  /**
+   * Refresh the repository when other tools, such as the GitHub Copilot app or
+   * the Git CLI, add or remove its worktrees, rather than only once the window
+   * regains focus.
+   */
+  private startMonitoringWorktrees(repository: Repository) {
+    this.stopMonitoringWorktrees()
+
+    if (!enableWorktreeSupport()) {
+      return
+    }
+
+    this.stopWorktreeMonitor = monitorWorktrees(
+      repository.resolvedGitDir,
+      () => {
+        const selectedRepository = this.selectedRepository
+
+        if (
+          selectedRepository instanceof Repository &&
+          selectedRepository.id === repository.id
+        ) {
+          this._refreshOrRecoverRepository(selectedRepository).catch(e =>
+            log.error('Failed to refresh the repository for its worktrees', e)
+          )
+        }
+      }
+    )
   }
 
   public async _refreshIssues(repository: Repository) {
@@ -4877,6 +4918,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // N.B: RepositoryIndicatorUpdater.prototype.start is
       // idempotent.
       this.repositoryIndicatorUpdater.start()
+    }
+
+    // The worktree monitor only looks for worktrees being added or removed,
+    // every few seconds, so make sure the list is current whenever it's shown,
+    // including worktrees that have since been moved or switched branches.
+    const repository = this.selectedRepository
+    if (
+      foldout.type === FoldoutType.Worktree &&
+      repository instanceof Repository &&
+      !repository.missing
+    ) {
+      await withRepositoryGitOperation(repository.path, 'read', () =>
+        this._refreshWorktrees(repository)
+      ).catch(e => log.error('Failed to refresh worktrees', e))
     }
   }
 
