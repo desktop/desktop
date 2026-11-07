@@ -68,7 +68,15 @@ async function _resolveWithin(
   const realRoot = await realpath(normalizedRoot)
   const realResolved = await realpath(resolved)
 
-  return realResolved.startsWith(realRoot) ? resolved : null
+  // Compare complete path components rather than a raw string prefix. A
+  // sibling such as `/tmp/repo-sibling` must not be treated as a child of
+  // `/tmp/repo` merely because it shares the same character prefix.
+  const rootPrefix = realRoot.endsWith(Path.sep)
+    ? realRoot
+    : `${realRoot}${Path.sep}`
+  return realResolved === realRoot || realResolved.startsWith(rootPrefix)
+    ? resolved
+    : null
 }
 
 /**
