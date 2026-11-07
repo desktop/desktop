@@ -9,7 +9,10 @@ import {
 } from '@github/copilot-sdk'
 import { getCopilotRuntimePath } from '../../src/lib/copilot-runtime'
 import { AccountsStore } from '../../src/lib/stores/accounts-store'
-import { createCopilotTokenProvider } from '../../src/lib/stores/copilot-store'
+import {
+  createCopilotTokenProvider,
+  getCopilotProxyEnvironment,
+} from '../../src/lib/stores/copilot-store'
 import { Account } from '../../src/models/account'
 import {
   createCopilotInMemorySessionFsProvider,
@@ -153,6 +156,77 @@ it('passes a fractional Desktop token lifetime through native runtime validation
     )
     assert.ok(requests.length > 0)
     assert.ok(requests.every(value => value === `Bearer ${account.token}`))
+  } finally {
+    await client.stop()
+  }
+})
+
+it('forwards only non-empty proxy settings to the Copilot runtime', () => {
+  const env = getCopilotProxyEnvironment({
+    HTTP_PROXY: 'http://proxy.example:80',
+    https_proxy: 'http://proxy.example:443',
+    ALL_PROXY: '',
+    NO_PROXY: 'localhost,.example',
+    GITHUB_TOKEN: 'do-not-forward',
+    PATH: '/synthetic/bin',
+  })
+  assert.deepStrictEqual(env, {
+    HTTP_PROXY: 'http://proxy.example:80',
+    https_proxy: 'http://proxy.example:443',
+    NO_PROXY: 'localhost,.example',
+  })
+})
+
+it('routes Copilot runtime token validation through the forwarded proxy', async t => {
+  const tunnels: string[] = []
+  const proxy = createServer()
+  proxy.on('connect', (request, socket) => {
+    tunnels.push(request.url ?? '')
+    socket.end('HTTP/1.1 502 Bad Gateway\r\n\r\n')
+  })
+  await new Promise<void>(resolve => proxy.listen(0, '127.0.0.1', resolve))
+  t.after(() => new Promise<void>(resolve => proxy.close(() => resolve())))
+  const address = proxy.address()
+  assert.ok(address !== null && typeof address !== 'string')
+  const { client, directory } = await createClient(
+    t,
+    getCopilotProxyEnvironment({
+      HTTPS_PROXY: `http://127.0.0.1:${address.port}`,
+    })
+  )
+  const accountsStore = new AccountsStore(
+    new InMemoryStore(),
+    new AsyncInMemoryStore()
+  )
+  const account = new Account(
+    'octocat',
+    'https://api.github.com',
+    'test-access',
+    [],
+    '',
+    1,
+    'Octocat'
+  )
+  await accountsStore.addAccount(account, {
+    accessToken: account.token,
+    refreshToken: 'test-refresh',
+    expiresAt: Date.now() + 2 * 60 * 60 * 1000 + 500,
+  })
+  const provider = createCopilotTokenProvider(accountsStore, account)
+  assert.ok(provider)
+
+  try {
+    await assert.rejects(
+      client.createSession({
+        model: 'auto',
+        configDirectory: directory,
+        enableSessionStore: false,
+        createSessionFsProvider: createCopilotInMemorySessionFsProvider,
+        gitHubTokenProvider: provider,
+        onPermissionRequest: async () => ({ kind: 'reject' }),
+      })
+    )
+    assert.ok(tunnels.includes('api.github.com:443'))
   } finally {
     await client.stop()
   }

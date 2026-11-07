@@ -340,6 +340,31 @@ export function getCopilotGHHost(account: Account): string | undefined {
   return isGHE(account.endpoint) && host ? host.replace(/^api\./, '') : host
 }
 
+const CopilotProxyEnvironmentKeys = [
+  'HTTP_PROXY',
+  'http_proxy',
+  'HTTPS_PROXY',
+  'https_proxy',
+  'ALL_PROXY',
+  'all_proxy',
+  'NO_PROXY',
+  'no_proxy',
+]
+
+/** Proxy settings for the runtime, since the SDK replaces (not merges) an explicit env. */
+export function getCopilotProxyEnvironment(
+  environment: NodeJS.ProcessEnv = process.env
+): Record<string, string> {
+  const proxyEnvironment: Record<string, string> = {}
+  for (const key of CopilotProxyEnvironmentKeys) {
+    const value = environment[key]
+    if (value !== undefined && value !== '') {
+      proxyEnvironment[key] = value
+    }
+  }
+  return proxyEnvironment
+}
+
 const CopilotTokenRefreshMarginMs = 60 * 60 * 1000
 const CopilotTokenLifetimeBufferMs = 60 * 1000
 const CopilotTokenRoundingBufferMs = 1000
@@ -1022,6 +1047,7 @@ export class CopilotStore extends BaseStore {
         path: runtimePath,
       }),
       env: {
+        ...getCopilotProxyEnvironment(),
         ...options.env,
         GH_HOST: getCopilotGHHost(account),
         GITHUB_COPILOT_INTEGRATION_ID: `copilot-desktop${
