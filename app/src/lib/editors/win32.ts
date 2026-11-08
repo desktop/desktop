@@ -516,7 +516,7 @@ const editors: WindowsExternalEditor[] = [
     ],
     executableShimPaths: [['Antigravity IDE.exe']],
     displayNamePrefixes: ['Antigravity IDE'],
-    publishers: ['Google'],
+    publishers: ['Google', 'Google LLC', 'Google Inc.'],
   },
   {
     name: 'Zed',
