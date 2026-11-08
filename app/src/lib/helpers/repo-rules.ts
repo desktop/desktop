@@ -1,8 +1,7 @@
-import { RE2JS } from 're2js'
+import { toMatcher } from '../../../../rust/web/src/upstream/repo-rules-matcher'
 import {
   RepoRulesInfo,
   IRepoRulesMetadataRule,
-  RepoRulesMetadataMatcher,
   RepoRuleEnforced,
 } from '../../models/repo-rules'
 import {
@@ -178,45 +177,4 @@ function toHumanDescription(apiParams: IAPIRepoRuleMetadataParameters): string {
   }
 
   return description + `"${apiParams.pattern}"`
-}
-
-/**
- * Converts the given metadata rule into a matcher function that uses regex to test the rule.
- */
-function toMatcher(
-  rule: IAPIRepoRuleMetadataParameters | undefined
-): RepoRulesMetadataMatcher {
-  if (!rule) {
-    return () => false
-  }
-
-  let regex: RE2JS
-
-  switch (rule.operator) {
-    case APIRepoRuleMetadataOperator.StartsWith:
-      regex = RE2JS.compile(`^${RE2JS.quote(rule.pattern)}`)
-      break
-
-    case APIRepoRuleMetadataOperator.EndsWith:
-      regex = RE2JS.compile(`${RE2JS.quote(rule.pattern)}$`)
-      break
-
-    case APIRepoRuleMetadataOperator.Contains:
-      regex = RE2JS.compile(`.*${RE2JS.quote(rule.pattern)}.*`)
-      break
-
-    case APIRepoRuleMetadataOperator.RegexMatch:
-      regex = RE2JS.compile(rule.pattern)
-      break
-  }
-
-  if (regex) {
-    if (rule.negate) {
-      return (toMatch: string) => !regex.test(toMatch)
-    } else {
-      return (toMatch: string) => regex.test(toMatch)
-    }
-  } else {
-    return () => false
-  }
 }

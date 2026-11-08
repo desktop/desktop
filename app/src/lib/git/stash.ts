@@ -16,15 +16,14 @@ import { Branch } from '../../models/branch'
 import { createLogParser } from './git-delimiter-parser'
 import { coerceToString } from './coerce-to-string'
 
-export const DesktopStashEntryMarker = '!!GitHub_Desktop'
-
-/**
- * RegEx for determining if a stash entry is created by Desktop
- *
- * This is done by looking for a magic string with the following
- * format: `!!GitHub_Desktop<branch>`
- */
-const desktopStashEntryMessageRe = /!!GitHub_Desktop<(.+)>$/
+import {
+  createDesktopStashMessage,
+  extractBranchFromMessage,
+} from '../../../../rust/web/src/upstream/stash-metadata'
+export {
+  DesktopStashEntryMarker,
+  createDesktopStashMessage,
+} from '../../../../rust/web/src/upstream/stash-metadata'
 
 type StashResult = {
   /** The stash entries created by Desktop */
@@ -130,11 +129,6 @@ export async function getLastDesktopStashEntryForBranch(
   return (
     stash.desktopEntries.find(stash => stash.branchName === branchName) || null
   )
-}
-
-/** Creates a stash entry message that indicates the entry was created by Desktop */
-export function createDesktopStashMessage(branchName: string) {
-  return `${DesktopStashEntryMarker}<${branchName}>`
 }
 
 /**
@@ -268,11 +262,6 @@ export async function popStashEntry(
       return Promise.reject(e)
     })
   }
-}
-
-function extractBranchFromMessage(message: string): string | null {
-  const match = desktopStashEntryMessageRe.exec(message)
-  return match === null || match[1].length === 0 ? null : match[1]
 }
 
 /** Get the files that were changed in the given stash commit */

@@ -28,7 +28,10 @@ const commonConfig: webpack.Configuration = {
     rules: [
       {
         test: /\.tsx?$/,
-        include: path.resolve(__dirname, 'src'),
+        include: [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, '../rust/web/src/upstream'),
+        ],
         use: [
           {
             loader: 'ts-loader',
@@ -47,6 +50,8 @@ const commonConfig: webpack.Configuration = {
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
+    // Shared migrated components must use the legacy app's React instance.
+    modules: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
   },
   node: {
     __dirname: false,
