@@ -237,6 +237,29 @@ impl Session {
             }))
     }
 
+    /// Read one verified-host repository using this session's captured credential.
+    pub(crate) async fn repository_by_identity(
+        &self,
+        identity: &RepositoryIdentity,
+    ) -> Result<std::result::Result<Value, Failure>> {
+        identity.validate()?;
+        anyhow::ensure!(
+            identity.host == self.repository.host,
+            "GitHub repository host changed"
+        );
+        let arguments = request_arguments(identity, Request::Repository)?;
+        let output = match private_command(&self.path, &arguments, Credentials::Pinned(&self.token))
+            .await?
+        {
+            Ok(output) => output,
+            Err(failure) => return Ok(Err(failure)),
+        };
+        if output.code != 0 {
+            return Ok(Err(Failure::GhExit { code: output.code }));
+        }
+        Ok(response(Request::Repository, &output.stdout))
+    }
+
     /// Encode a broker-authorized Git response without exposing the captured token.
     pub(crate) fn git_credential_response(&self, username: &str) -> Result<Vec<u8>> {
         anyhow::ensure!(valid_login(username), "Invalid Git credential username");

@@ -28,7 +28,7 @@ function button(container, label) {
   )
 }
 
-test('served localhost client reviews publication and acknowledges durable history over WebSocket', async () => {
+test('served localhost client reviews verified continuation and acknowledges history over WebSocket', async () => {
   const temporary = await mkdtemp(
       path.join(os.tmpdir(), 'desktop-publish-client-')
     ),
@@ -36,7 +36,8 @@ test('served localhost client reviews publication and acknowledges durable histo
     config = path.join(temporary, 'registry.json'),
     tools = path.join(temporary, 'bin'),
     log = path.join(temporary, 'gh-log'),
-    gitLog = path.join(temporary, 'git-log')
+    gitLog = path.join(temporary, 'git-log'),
+    providerFile = path.join(temporary, 'provider.json')
   const programs = spawnSync(
     'python3',
     [
@@ -55,6 +56,7 @@ test('served localhost client reviews publication and acknowledges durable histo
     GH_CONFIG_DIR: path.join(temporary, 'gh-config'),
     PUBLISH_CLIENT_LOG: log,
     PUBLISH_CLIENT_GIT_LOG: gitLog,
+    PUBLISH_CLIENT_PROVIDER: providerFile,
     PATH: [tools, process.env.PATH].join(path.delimiter),
   }
   for (const name of [
@@ -105,13 +107,23 @@ if args[:2]==['auth','status']:
 if args[:2]==['auth','token']:
  print(${JSON.stringify(token)});sys.exit(0)
 if args[:1]==['api']:
- if '--method' not in args or args[args.index('--method')+1]!='GET':sys.exit(91)
  if any(os.environ.get(k)!=${JSON.stringify(
    token
  )} for k in ['GH_TOKEN','GITHUB_TOKEN','GH_ENTERPRISE_TOKEN','GITHUB_ENTERPRISE_TOKEN']):sys.exit(92)
+ if '--method' not in args:sys.exit(91)
+ method=args[args.index('--method')+1]
+ from pathlib import Path
+ provider=json.loads(Path(os.environ['PUBLISH_CLIENT_PROVIDER']).read_text())
+ if method=='POST':
+  if not provider['allow_post'] or args[-3:]!=['/user/repos','--input','-']:sys.exit(91)
+  body=json.load(sys.stdin)
+  if body!={'name':'my-repository','description':'','private':True}:sys.exit(94)
+  print(json.dumps(provider['repository']));sys.exit(0)
+ if method!='GET':sys.exit(91)
  endpoint=args[-1]
  if endpoint=='/user':print(json.dumps({'login':'alice','id':101}));sys.exit(0)
  if endpoint.startswith('/user/orgs?'):print(json.dumps([{'login':'ExampleOrg','id':987}]));sys.exit(0)
+ if endpoint=='/repos/alice/my-repository':print(json.dumps(provider['repository']));sys.exit(0)
 sys.exit(93)
 `,
       { mode: 0o700 }
@@ -147,6 +159,59 @@ os.execv(real,[real,*args])
       { env, encoding: 'utf8' }
     )
     assert.equal(seed.status, 0, seed.stderr)
+    const providerRepository = {
+      id: 8001,
+      name: 'my-repository',
+      full_name: 'alice/my-repository',
+      owner: { login: 'alice', id: 101 },
+      html_url: 'https://github.com/alice/my-repository',
+      clone_url: 'https://github.com/alice/my-repository.git',
+      private: true,
+    }
+    const provider = async (allowPost, repository = providerRepository) =>
+      writeFile(
+        providerFile,
+        JSON.stringify({ allow_post: allowPost, repository }),
+        { mode: 0o600 }
+      )
+    await provider(true)
+    const proposal = [
+      '--effective',
+      '--owner',
+      'alice',
+      '--name',
+      'my-repository',
+    ]
+    const readPreview = spawnSync(
+      binary,
+      ['-C', repo, '--config', config, 'publish', 'preview', ...proposal],
+      { env, encoding: 'utf8' }
+    )
+    assert.equal(readPreview.status, 0, readPreview.stderr)
+    const create = spawnSync(
+      binary,
+      [
+        '-C',
+        repo,
+        '--config',
+        config,
+        'publish',
+        'create',
+        ...proposal,
+        '--basis',
+        JSON.parse(readPreview.stdout).basis,
+        '--acknowledge-partial',
+      ],
+      { env, encoding: 'utf8' }
+    )
+    assert.equal(create.status, 0, create.stderr)
+    const created = JSON.parse(create.stdout)
+    assert.equal(created.phase, 'created')
+    const createdId = created.receipt_id
+    assert.equal(typeof createdId, 'string')
+    // All later requests must be GET; the setup POST was handled entirely by the fake gh executable.
+    await provider(false)
+    await writeFile(log, '', { mode: 0o600 })
     const hash = value => createHash('sha256').update(value).digest('hex'),
       namespace = hash(config),
       repositoryId = hash(repo),
@@ -291,6 +356,51 @@ os.execv(real,[real,*args])
     )
     assert(view.textContent.includes('Inspect GitHub before acknowledging'))
     assert(view.textContent.includes('Repository URL is unavailable'))
+    assert(!button(view, 'Review continuation ' + receiptId))
+    await until(
+      () => button(view, 'Review continuation ' + createdId),
+      () => 'created receipt missing: ' + view.textContent
+    )
+    button(view, 'Review continuation ' + createdId).click()
+    await until(
+      () => view.querySelector('[aria-label="Continuation review"]'),
+      () => 'continuation unavailable: ' + view.textContent
+    )
+    const continuation = view.querySelector(
+      '[aria-label="Continuation review"]'
+    )
+    assert.equal(
+      continuation.querySelector('a').href,
+      'https://github.com/alice/my-repository'
+    )
+    assert(continuation.textContent.includes('Verified account: alice'))
+    assert(continuation.textContent.includes('not executed by this review'))
+    assert.deepEqual(
+      calls.find(call => call.method === 'publish_continue_preview').receipt_id,
+      createdId
+    )
+    assert(
+      !calls.some(call =>
+        ['publish_create', 'publish_continue', 'publish'].includes(call.method)
+      )
+    )
+    assert.deepEqual(await snapshot(), before)
+    await provider(false, {
+      ...providerRepository,
+      html_url: 'https://evil.invalid/alice/my-repository',
+    })
+    button(view, 'Review continuation ' + createdId).click()
+    await until(
+      () => view.textContent.includes('Could not verify the continuation'),
+      () => 'unsafe URL was not rejected: ' + view.textContent
+    )
+    assert(!view.querySelector('[aria-label="Continuation review"]'))
+    assert(!view.textContent.includes('evil.invalid'))
+    assert.deepEqual(await snapshot(), before)
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue_preview').length,
+      2
+    )
     assert.equal(
       JSON.parse(await readFile(receiptPath, 'utf8')).acknowledged,
       false
@@ -322,6 +432,12 @@ os.execv(real,[real,*args])
     assert(
       ghCalls.some(
         args => args[0] === 'api' && args.at(-1).startsWith('/user/orgs?')
+      )
+    )
+    assert(
+      ghCalls.some(
+        args =>
+          args[0] === 'api' && args.at(-1) === '/repos/alice/my-repository'
       )
     )
     assert(

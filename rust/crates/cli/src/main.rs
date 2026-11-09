@@ -121,6 +121,8 @@ enum PublishAction {
         #[arg(long)]
         acknowledge_partial: bool,
     },
+    /// Review a confirmed remote before continuing publication.
+    ContinuePreview { receipt_id: String },
     /// Inspect durable records of publication attempts.
     History,
     /// Acknowledge a publication record without retrying or deleting it.
@@ -863,6 +865,7 @@ async fn run(mut cli: Cli) -> Result<()> {
                         acknowledge_partial,
                     }
                 }
+                PublishAction::ContinuePreview { receipt_id } => Operation::PublishContinuePreview { receipt_id },
                 PublishAction::History => Operation::PublishHistory {},
                 PublishAction::Acknowledge { receipt_id } => Operation::AcknowledgePublish { receipt_id },
             };

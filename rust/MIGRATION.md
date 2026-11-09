@@ -1720,8 +1720,11 @@ registry before its fixed GitHub POST. The registry blocks a second attempt
 after an uncertain or confirmed outcome, including after acknowledgement. It
 checks saved record, worktree and common Git directory identities, and reports
 an interrupted or unverified response as uncertain. The CLI requires explicit
-acknowledgement of its partial scope. Origin setup, account association, pushes,
-URL recovery and reconciliation remain open. Preview and creation currently
+acknowledgement of its partial scope. For confirmed creations with durable identity, a read-only continuation review
+revalidates actor, owner, remote numeric ID and HTTPS URL and rechecks the
+repository and account witnesses; older receipts without identity and unknown
+outcomes are not adopted. Origin setup, account association, pushes and
+reconciliation remain open. Preview and creation currently
 fail closed on non-Unix platforms pending equivalent directory identity checks.
 
 ## Other legacy boundaries

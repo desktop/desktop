@@ -244,22 +244,13 @@ impl Repository {
     /// the shared repository lock; the registry lock serializes other processes.
     pub(crate) async fn prepare_publish_receipt(
         &self,
-        host: &str,
-        owner: &str,
-        name: &str,
+        identity: crate::registry::PublicationIdentity,
     ) -> Result<String> {
-        crate::github::validate_repository(&format!("{host}/{owner}/{name}"))?;
+        identity.validate()?;
         let Some((root, scope, registry, path)) = self.publish_receipt_scope().await? else {
             anyhow::bail!("Save the repository before publishing")
         };
-        let destination_hash = format!(
-            "{:x}",
-            Sha256::digest(serde_json::to_vec(&(
-                host.to_ascii_lowercase(),
-                owner.to_ascii_lowercase(),
-                name.to_ascii_lowercase()
-            ))?)
-        );
+        let destination_hash = identity.destination_hash()?;
         cancellation::blocking(move || {
             registry.publication_store(&path, &root, &scope.common_dir, true, |data| {
                 ensure!(
@@ -290,8 +281,45 @@ impl Repository {
                         destination_hash,
                         remote_id: None,
                         acknowledged: false,
+                        identity: Some(identity),
                     });
                 Ok(id)
+            })
+        })
+        .await
+    }
+
+    /// Read only an authoritative, verified-created receipt for the same saved record.
+    pub(crate) async fn publish_created_intent(
+        &self,
+        id: &str,
+    ) -> Result<crate::registry::PublicationIntent> {
+        ensure!(valid_id(id), "Invalid publication receipt ID");
+        let (root, scope, registry, path) = self
+            .publish_receipt_scope()
+            .await?
+            .context("Save the repository before reviewing publication")?;
+        let id = id.to_owned();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &scope.common_dir, false, |data| {
+                ensure!(
+                    crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                    "Saved repository changed"
+                );
+                let item = data
+                    .publication_intents
+                    .iter()
+                    .find(|item| {
+                        item.id == id
+                            && matches_scope(item, &scope)
+                            && item.record_id == scope.record_id
+                    })
+                    .context("Publication receipt is unavailable for this saved repository")?;
+                ensure!(
+                    item.phase == "created" && item.remote_id.is_some() && item.identity.is_some(),
+                    "Only a verified created repository with retained identity can be reviewed"
+                );
+                Ok(item.clone())
             })
         })
         .await

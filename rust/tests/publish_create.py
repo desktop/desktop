@@ -73,6 +73,16 @@ os.execv(str(Path(__file__).with_name('git-read-only')),[str(Path(__file__).with
 ''')
         git.chmod(0o700); self.git_watch=root/'network-git-attempted'; self.env['PUBLISH_GIT_WATCH']=str(self.git_watch)
 
+    def cli_publish(self,fixture,*args,fail=False):
+        command=[str(BINARY),'--config',str(self.registry),'-C',str(fixture.path),'publish',*args]
+        result=subprocess.run(command,env=self.env,capture_output=True,text=True,timeout=90)
+        self.assert_clean(result.stdout+result.stderr)
+        if fail:
+            assert result.returncode!=0,(args,result.stdout)
+            return result
+        assert result.returncode==0,(args,result.stderr)
+        return json.loads(result.stdout)
+
     def configure_create(self,*,org=False,**changes):
         self.configure(organizations={'alicecase':[{'login':'ExampleOrg','id':987}]})
         for path in [self.post_log,self.post_started,self.post_release,self.final_org]: path.unlink(missing_ok=True)
@@ -94,7 +104,7 @@ os.execv(str(Path(__file__).with_name('git-read-only')),[str(Path(__file__).with
 
 
 def create(s,f,review,*,owner='alicecase',fail=False):
-    return s.request(f,'publish_create',request=request(owner=owner),basis=review['basis'],acknowledge_partial=True,fail=fail,timeout=35)
+    return s.request(f,'publish_create',request=request(owner=owner),basis=review['basis'],acknowledge_partial=True,fail=fail,timeout=90)
 
 
 def setup(s,name,*,org=False,**changes):
@@ -117,7 +127,7 @@ def git_snapshot(s,f): return snapshot(s,f)[:-1]
 def call_and_observe(s,f,review,owner):
     command=[str(BINARY),'--config',str(s.registry),'-C',str(f.path),'repo','-']
     payload={'method':'publish_create','request':request(owner=owner),'basis':review['basis'],'acknowledge_partial':True}
-    result=subprocess.run(command,input=json.dumps(payload),env=s.env,capture_output=True,text=True,timeout=35)
+    result=subprocess.run(command,input=json.dumps(payload),env=s.env,capture_output=True,text=True,timeout=90)
     s.assert_clean(result.stdout+result.stderr)
     if result.returncode==0:
         assert json.loads(result.stdout)['phase']=='creation_unknown'

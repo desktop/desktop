@@ -463,6 +463,9 @@ impl Repository {
                     .publish_create(&request, &basis, acknowledge_partial)
                     .await;
             }
+            Operation::PublishContinuePreview { receipt_id } => {
+                return self.publish_continue_preview(&receipt_id).await;
+            }
             Operation::PublishHistory {} => return self.publish_history().await,
             Operation::AcknowledgePublish { receipt_id } => {
                 return self.acknowledge_publish(&receipt_id).await;
@@ -661,6 +664,7 @@ impl Repository {
             | PublishContext { .. }
             | PublishPreview { .. }
             | PublishCreate { .. }
+            | PublishContinuePreview { .. }
             | PublishHistory {}
             | AcknowledgePublish { .. }
             | PublishOrganizations { .. }

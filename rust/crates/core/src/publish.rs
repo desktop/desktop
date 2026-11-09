@@ -383,6 +383,148 @@ impl Repository {
     pub(crate) async fn publish_preview(&self, request: &PublishPreviewRequest) -> Result<Value> {
         Ok(self.publish_preview_plan(request).await?.view)
     }
+    /// Review a previously confirmed creation; no local or remote mutation occurs.
+    pub(crate) async fn publish_continue_preview(&self, receipt_id: &str) -> Result<Value> {
+        let intent = self.publish_created_intent(receipt_id).await?;
+        let identity = intent
+            .identity
+            .as_ref()
+            .context("Publication identity is unavailable")?;
+        identity.validate()?;
+        let remote_id = intent
+            .remote_id
+            .context("Publication identity is unavailable")?;
+        let state = self.account_store_state().await?;
+        ensure!(
+            state.view.saved && state.view.basis == identity.account_basis,
+            "Repository account changed since creation; reconcile before continuing"
+        );
+        let remotes = self.publish_remote_witness().await?;
+        ensure!(
+            !remotes.0.split(|b| *b == b'\n').any(|r| r == b"origin"),
+            "An origin remote exists; reconcile before continuing"
+        );
+        let git = self.publish_git_witness().await?;
+        ensure!(
+            directory_fingerprint(&git)? == identity.source_fingerprint,
+            "Repository identity changed since creation; reconcile before continuing"
+        );
+        let default_branch = if remotes.0.is_empty() {
+            None
+        } else {
+            Some(serde_json::to_value(
+                self.branch_policy()
+                    .await
+                    .map_err(|_| anyhow::anyhow!("Cannot determine the default branch"))?
+                    .default_branch,
+            )?)
+        };
+        let (organizations, session, actor_login, actor_id) = self
+            .publish_organizations_session(&identity.host, identity.target.clone())
+            .await?;
+        ensure!(
+            actor_id == identity.actor_id
+                && actor_login.eq_ignore_ascii_case(&identity.actor_login),
+            "GitHub account changed since creation"
+        );
+        let organization = !identity.owner.eq_ignore_ascii_case(&identity.actor_login);
+        if organization {
+            let rows = organizations["organizations"]
+                .as_array()
+                .context("Invalid organization catalog")?;
+            ensure!(
+                rows.iter()
+                    .any(|row| row["id"].as_u64() == Some(identity.owner_id)
+                        && row["login"]
+                            .as_str()
+                            .is_some_and(|login| login.eq_ignore_ascii_case(&identity.owner))),
+                "GitHub organization changed since creation"
+            );
+        }
+        ensure_safe_identity(&session, &actor_login, identity)?;
+        let repository = RepositoryIdentity {
+            host: identity.host.to_ascii_lowercase(),
+            owner: identity.owner.to_ascii_lowercase(),
+            name: identity.name.to_ascii_lowercase(),
+        };
+        let value = session
+            .repository_by_identity(&repository)
+            .await?
+            .map_err(|_| anyhow::anyhow!("Cannot verify the created GitHub repository"))?;
+        let private = value["private"]
+            .as_bool()
+            .context("Invalid GitHub repository response")?;
+        ensure!(
+            validate_created_repository(
+                &value,
+                &identity.host,
+                &identity.owner,
+                identity.owner_id,
+                &identity.name,
+                private
+            ) == Some(remote_id),
+            "Created GitHub repository identity changed"
+        );
+        let plan = PublishPlan {
+            view: Value::Null,
+            session,
+            state_basis: state.view.basis.clone(),
+            remotes,
+            git,
+            default_branch,
+            actor_login,
+            actor_id,
+            owner_login: identity.owner.clone(),
+            owner_id: identity.owner_id,
+            organization,
+        };
+        self.verify_publish_plan(&plan).await?;
+        let fresh = self.publish_created_intent(receipt_id).await?;
+        ensure!(
+            serde_json::to_vec(&fresh)? == serde_json::to_vec(&intent)?,
+            "Publication recovery state changed; reload before continuing"
+        );
+        self.ensure_publish_witness(&plan.state_basis, &plan.remotes)
+            .await?;
+        ensure!(
+            self.publish_git_witness().await? == plan.git,
+            "Repository publication state changed; reload before continuing"
+        );
+        let basis = format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&(
+                &intent,
+                &plan.state_basis,
+                &plan.remotes,
+                &plan.git,
+                &plan.default_branch,
+                private,
+            ))?)
+        );
+        let url = format!(
+            "https://{}/{}/{}",
+            identity.host, identity.owner, identity.name
+        );
+        let result = json!({"basis":basis,"phase":"created","url":url,
+            "actor":{"login":identity.actor_login,"id":identity.actor_id},
+            "owner":{"login":identity.owner,"id":identity.owner_id},"private":private,
+            "can_continue":false,"reason":"Adding origin, account association and pushes are not implemented yet"});
+        let encoded = serde_json::to_vec(&result)?;
+        let redacted = plan.session.redact_output_for_login(
+            crate::process::RawOutput {
+                code: 0,
+                stdout: encoded.clone(),
+                stderr: Vec::new(),
+            },
+            &plan.actor_login,
+        );
+        ensure!(
+            redacted.stdout == encoded,
+            "Cannot safely display publication review"
+        );
+        Ok(result)
+    }
+
     pub(crate) async fn publish_create(
         &self,
         request: &PublishPreviewRequest,
@@ -403,9 +545,20 @@ impl Repository {
             initial.view["can_create"] == true,
             "Publication recovery is unavailable or a previous creation is unresolved"
         );
-        let id = self
-            .prepare_publish_receipt(&request.host, &initial.owner_login, &request.name)
-            .await?;
+        let identity = crate::registry::PublicationIdentity {
+            host: request.host.to_ascii_lowercase(),
+            owner: initial.owner_login.clone(),
+            name: request.name.clone(),
+            actor_login: initial.actor_login.clone(),
+            actor_id: initial.actor_id,
+            owner_id: initial.owner_id,
+            target: request.target.clone(),
+            account_basis: initial.state_basis.clone(),
+            source_fingerprint: directory_fingerprint(&initial.git)?,
+        };
+        identity.validate()?;
+        ensure_safe_identity(&initial.session, &initial.actor_login, &identity)?;
+        let id = self.prepare_publish_receipt(identity).await?;
         // A persisted unknown outcome always blocks replay, even if revalidation fails before the POST.
         let plan = match self.publish_preview_plan(request).await {
             Ok(plan) if plan.view["basis"] == basis => plan,
@@ -705,6 +858,38 @@ impl Repository {
             organization: owner_kind == "organization",
         })
     }
+}
+
+fn directory_fingerprint(git: &PublishGitWitness) -> Result<String> {
+    Ok(format!(
+        "{:x}",
+        Sha256::digest(serde_json::to_vec(&git.physical_directories)?)
+    ))
+}
+
+fn ensure_safe_identity(
+    session: &Session,
+    actor_login: &str,
+    identity: &crate::registry::PublicationIdentity,
+) -> Result<()> {
+    let url = format!(
+        "https://{}/{}/{}",
+        identity.host, identity.owner, identity.name
+    );
+    let encoded = serde_json::to_vec(&(identity, url))?;
+    let output = session.redact_output_for_login(
+        crate::process::RawOutput {
+            code: 0,
+            stdout: encoded.clone(),
+            stderr: Vec::new(),
+        },
+        actor_login,
+    );
+    ensure!(
+        output.stdout == encoded,
+        "Cannot safely store publication identity"
+    );
+    Ok(())
 }
 
 fn unknown_creation(id: &str, error: &'static str) -> Value {

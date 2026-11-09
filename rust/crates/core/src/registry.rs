@@ -41,6 +41,75 @@ pub(crate) struct PublicationIntent {
     pub destination_hash: String,
     pub remote_id: Option<u64>,
     pub acknowledged: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<PublicationIdentity>,
+}
+
+/// Private, previously reviewed source and destination; never serialized in public views.
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PublicationIdentity {
+    pub host: String,
+    pub owner: String,
+    pub name: String,
+    pub actor_login: String,
+    pub actor_id: u64,
+    pub owner_id: u64,
+    pub target: crate::AccountTarget,
+    pub account_basis: String,
+    pub source_fingerprint: String,
+}
+impl PublicationIdentity {
+    pub(crate) fn validate(&self) -> Result<()> {
+        crate::github::validate_repository(&format!("{}/{}/{}", self.host, self.owner, self.name))
+            .map_err(|_| anyhow::anyhow!("Invalid publication identity"))?;
+        anyhow::ensure!(
+            self.host == self.host.to_ascii_lowercase()
+                && self.host.len() <= 253
+                && self.owner.len() <= 256
+                && self.name.len() <= 100
+                && !self.actor_login.is_empty()
+                && self.actor_login.len() <= 256
+                && !self.actor_login.starts_with('-')
+                && !matches!(self.actor_login.as_str(), "." | "..")
+                && self
+                    .actor_login
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b"-_.[]".contains(&b))
+                && [&self.account_basis, &self.source_fingerprint]
+                    .iter()
+                    .all(|hash| hash.len() == 64
+                        && hash
+                            .bytes()
+                            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
+                && (1..=9_007_199_254_740_991).contains(&self.actor_id)
+                && (1..=9_007_199_254_740_991).contains(&self.owner_id)
+                && (!self.owner.eq_ignore_ascii_case(&self.actor_login)
+                    || self.owner_id == self.actor_id),
+            "Invalid publication identity"
+        );
+        match &self.target {
+            crate::AccountTarget::Effective {} => {}
+            crate::AccountTarget::Assigned { host, login } => anyhow::ensure!(
+                host.eq_ignore_ascii_case(&self.host)
+                    && login.eq_ignore_ascii_case(&self.actor_login),
+                "Invalid publication account"
+            ),
+            crate::AccountTarget::None {} => anyhow::bail!("Invalid publication account"),
+        }
+        Ok(())
+    }
+    pub(crate) fn destination_hash(&self) -> Result<String> {
+        use sha2::{Digest, Sha256};
+        Ok(format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&(
+                self.host.to_ascii_lowercase(),
+                self.owner.to_ascii_lowercase(),
+                self.name.to_ascii_lowercase()
+            ))?)
+        ))
+    }
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -177,6 +246,13 @@ impl SavedRepositories {
                                     .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))),
                 "Invalid publication ledger"
             );
+            if let Some(identity) = &intent.identity {
+                identity.validate()?;
+                anyhow::ensure!(
+                    identity.destination_hash()? == intent.destination_hash,
+                    "Invalid publication ledger"
+                );
+            }
         }
         Ok(())
     }
@@ -789,6 +865,36 @@ mod tests {
     }
 
     #[test]
+    fn publication_identity_requires_matching_actor_and_reviewed_source() {
+        let mut identity = PublicationIdentity {
+            host: "github.com".into(),
+            owner: "Alice".into(),
+            name: "project".into(),
+            actor_login: "Alice".into(),
+            actor_id: 42,
+            owner_id: 42,
+            target: crate::AccountTarget::Assigned {
+                host: "github.com".into(),
+                login: "Alice".into(),
+            },
+            account_basis: "a".repeat(64),
+            source_fingerprint: "b".repeat(64),
+        };
+        assert!(identity.validate().is_ok());
+        let hash = identity.destination_hash().unwrap();
+        identity.owner = "ALICE".into();
+        assert_eq!(identity.destination_hash().unwrap(), hash);
+        identity.owner_id = 43;
+        assert!(identity.validate().is_err());
+        identity.owner_id = 42;
+        identity.target = crate::AccountTarget::None {};
+        assert!(identity.validate().is_err());
+        identity.target = crate::AccountTarget::Effective {};
+        identity.source_fingerprint = "invalid".into();
+        assert!(identity.validate().is_err());
+    }
+
+    #[test]
     fn publication_ledger_is_persistent_but_omitted_from_public_views() {
         let fixture = RegistryFixture::new();
         let path = fixture.directory.join("repo");
@@ -804,6 +910,7 @@ mod tests {
             destination_hash: "c".repeat(64),
             remote_id: Some(8_765_432_109_876_543),
             acknowledged: false,
+            identity: None,
         });
         fs::write(&fixture.registry.path, serde_json::to_vec(&data).unwrap()).unwrap();
         let loaded = fixture.registry.read().unwrap();

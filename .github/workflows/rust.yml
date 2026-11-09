@@ -95,6 +95,7 @@ jobs:
           python3 rust/tests/publish_create.py
           python3 rust/tests/publish_ledger_visibility.py
           python3 rust/tests/publish_preview_cancel.py
+          python3 rust/tests/publish_continue.py
           python3 rust/tests/git_credentials.py
           python3 rust/tests/upstream_setup.py
           python3 rust/tests/branch_name_rules.py

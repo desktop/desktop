@@ -48,6 +48,14 @@ type Review = {
   }>
   readonly pushStatus: string
 }
+type Continuation = {
+  readonly receiptId: string
+  readonly url: string
+  readonly actor: { readonly login: string; readonly id: number }
+  readonly owner: { readonly login: string; readonly id: number }
+  readonly private: boolean
+  readonly reason: string
+}
 type Receipt = {
   readonly id: string
   readonly phase: string
@@ -152,6 +160,29 @@ function context(value: unknown): value is Context {
     nullable(value.reason)
   )
 }
+function continuationUrl(value: unknown, owner: string): string | null {
+  if (!short(value)) return null
+  try {
+    const url = new URL(value)
+    const parts = url.pathname.split('/')
+    if (
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      parts.length !== 3 ||
+      !parts[1] ||
+      !parts[2] ||
+      parts[1].toLowerCase() !== owner.toLowerCase() ||
+      !/^[A-Za-z0-9_.-]+$/.test(parts[2])
+    )
+      return null
+    return url.href
+  } catch {
+    return null
+  }
+}
 function keyForTarget(value: Target) {
   return value.mode === 'effective' ? 'effective' : accountKey(value)
 }
@@ -180,6 +211,10 @@ export function PublishRepository({
   const [review, setReview] = React.useState<Review | null>(null)
   const [history, setHistory] = React.useState<Receipt[] | null>(null)
   const [historyMessage, setHistoryMessage] = React.useState('')
+  const [continuation, setContinuation] = React.useState<Continuation | null>(
+    null
+  )
+  const [continuationMessage, setContinuationMessage] = React.useState('')
   const loaded = React.useRef(false)
   const [message, setMessage] = React.useState(''),
     [orgMessage, setOrgMessage] = React.useState('')
@@ -201,6 +236,8 @@ export function PublishRepository({
     setReview(null)
     setHistory(null)
     setHistoryMessage('')
+    setContinuation(null)
+    setContinuationMessage('')
     loaded.current = false
     setMessage('')
     setOrgMessage('')
@@ -222,6 +259,8 @@ export function PublishRepository({
       setReview(null)
       setHistory(null)
       setHistoryMessage('')
+      setContinuation(null)
+      setContinuationMessage('')
       const wasRunning = running.current !== null
       epoch.current++
       running.current = null
@@ -391,6 +430,8 @@ export function PublishRepository({
     })
   }
   async function loadHistory(generation: number) {
+    setContinuation(null)
+    setContinuationMessage('')
     setHistory(null)
     setHistoryMessage('')
     const value = await request('publish_history', {})
@@ -406,6 +447,8 @@ export function PublishRepository({
     setHistory(value.receipts)
   }
   async function acknowledge(generation: number, id: string) {
+    setContinuation(null)
+    setContinuationMessage('')
     try {
       const value = await request('acknowledge_publish', { receipt_id: id })
       if (generation !== epoch.current) return
@@ -429,6 +472,48 @@ export function PublishRepository({
       )
     }
   }
+  async function reviewContinuation(generation: number, id: string) {
+    setContinuation(null)
+    setContinuationMessage('')
+    try {
+      const value = await request('publish_continue_preview', {
+        receipt_id: id,
+      })
+      if (generation !== epoch.current) return
+      if (
+        !record(value) ||
+        !short(value.basis) ||
+        value.phase !== 'created' ||
+        value.can_continue !== false ||
+        !short(value.reason) ||
+        !record(value.actor) ||
+        !short(value.actor.login) ||
+        !Number.isSafeInteger(value.actor.id) ||
+        Number(value.actor.id) <= 0 ||
+        !record(value.owner) ||
+        !short(value.owner.login) ||
+        !Number.isSafeInteger(value.owner.id) ||
+        Number(value.owner.id) <= 0 ||
+        typeof value.private !== 'boolean'
+      )
+        throw new Error('Invalid continuation response')
+      const url = continuationUrl(value.url, value.owner.login as string)
+      if (!url) throw new Error('Invalid continuation URL')
+      setContinuation({
+        receiptId: id,
+        url,
+        actor: value.actor as Continuation['actor'],
+        owner: value.owner as Continuation['owner'],
+        private: value.private,
+        reason: value.reason,
+      })
+    } catch {
+      if (generation !== epoch.current) return
+      setContinuationMessage(
+        'Could not verify the continuation. This review made no changes; inspect the history and try again when available.'
+      )
+    }
+  }
   const cleaned = sanitizedRepositoryName(name)
   return (
     <details className="publish-repository">
@@ -447,6 +532,8 @@ export function PublishRepository({
             orgEpoch.current++
             setHistory(null)
             setHistoryMessage('')
+            setContinuation(null)
+            setContinuationMessage('')
             setHost(event.currentTarget.value)
             setAvailable(null)
             setTarget(null)
@@ -482,6 +569,8 @@ export function PublishRepository({
                 orgEpoch.current++
                 setHistory(null)
                 setHistoryMessage('')
+                setContinuation(null)
+                setContinuationMessage('')
                 setOrganizations([])
                 setOrganizationActor(null)
                 setOwner(null)
@@ -634,6 +723,7 @@ export function PublishRepository({
           Load publication history
         </button>
         {historyMessage && <p role="status">{historyMessage}</p>}
+        {continuationMessage && <p role="status">{continuationMessage}</p>}
         {history &&
           (history.length === 0 ? (
             <p>No publication receipts.</p>
@@ -651,6 +741,43 @@ export function PublishRepository({
                     <p>Repository URL is unavailable.</p>
                   )}
                   {row.error && <p>{row.error}</p>}
+                  {row.phase === 'created' && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void run(generation =>
+                          reviewContinuation(generation, row.id)
+                        )
+                      }
+                    >
+                      Review continuation {row.id}
+                    </button>
+                  )}
+                  {continuation?.receiptId === row.id && (
+                    <section aria-label="Continuation review">
+                      <p>
+                        Verified repository:{' '}
+                        <a
+                          href={continuation.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {continuation.url}
+                        </a>
+                      </p>
+                      <p>
+                        Verified account: {continuation.actor.login} · Owner:{' '}
+                        {continuation.owner.login} ·{' '}
+                        {continuation.private ? 'Private' : 'Public'}
+                      </p>
+                      <p>
+                        Review only: origin, account association and pushes are
+                        not executed by this review.
+                      </p>
+                      <p>{continuation.reason}</p>
+                    </section>
+                  )}
                   {row.acknowledged ? (
                     <p>Reviewed.</p>
                   ) : (

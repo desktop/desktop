@@ -473,6 +473,7 @@ creating a remote repository or pushing commits:
 ./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --effective
 ./target/debug/desktop-rs -C /path/to/repo publish preview --login Alice --owner Alice --name project
 ./target/debug/desktop-rs -C /path/to/repo publish history
+./target/debug/desktop-rs -C /path/to/repo publish continue-preview RECEIPT_ID
 ./target/debug/desktop-rs -C /path/to/repo publish acknowledge RECEIPT_ID
 ```
 
@@ -496,7 +497,10 @@ the same request values in preview and creation:
 ```
 
 Once creation starts, its durable record prevents another attempt even after
-acknowledgement. Automatic reconciliation and a recoverable URL are not yet
+acknowledgement. For a confirmed creation with recorded identity,
+`continue-preview` rechecks the account, repository ID and HTTPS URL, then
+shows what was verified without changing the repository. Older records without
+identity cannot use this review. Automatic reconciliation is not yet
 implemented. An interrupted or unverified response remains `creation_unknown`;
 inspect GitHub and history before taking further action. This operation requires
 a private registry outside the worktree and Git directories. The safe registry
@@ -1467,6 +1471,7 @@ python tests/publish_receipts.py
 python tests/publish_create.py
 python tests/publish_ledger_visibility.py
 python tests/publish_preview_cancel.py
+python tests/publish_continue.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

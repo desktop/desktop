@@ -631,3 +631,200 @@ test('malformed partial creation status is rejected before displaying a review',
     dom.window.close()
   }
 })
+
+test('created receipts offer a verified read-only continuation review', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    calls = [],
+    id = '12345678-1234-4234-8234-123456789abc',
+    unknown = '12345678-1234-4234-8234-123456789abd'
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+            {
+              id: unknown,
+              phase: 'creation_unknown',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        return {
+          basis: 'basis',
+          phase: 'created',
+          url: 'https://github.com/ExampleOrg/repo',
+          actor: { login: 'alice', id: 101 },
+          owner: { login: 'ExampleOrg', id: 987 },
+          private: true,
+          can_continue: false,
+          reason: 'Origin and pushes are not implemented',
+        }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    assert(!button('Review continuation ' + unknown))
+    assert(root.textContent.includes('Inspect GitHub before acknowledging'))
+    button('Review continuation ' + id).click()
+    await until(() => root.querySelector('[aria-label="Continuation review"]'))
+    const review = root.querySelector('[aria-label="Continuation review"]')
+    assert.equal(
+      review.querySelector('a').href,
+      'https://github.com/ExampleOrg/repo'
+    )
+    assert(review.textContent.includes('Verified account: alice'))
+    assert(review.textContent.includes('Owner: ExampleOrg'))
+    assert(review.textContent.includes('Private'))
+    assert(review.textContent.includes('not executed by this review'))
+    assert(review.textContent.includes('Origin and pushes are not implemented'))
+    assert.deepEqual(
+      calls.find(call => call.method === 'publish_continue_preview').parameters,
+      { receipt_id: id }
+    )
+    assert(
+      !calls.some(call =>
+        ['publish_create', 'publish_continue', 'publish'].includes(call.method)
+      )
+    )
+    assert(!button('Continue publication'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('continuation rejects unsafe URL and retains the receipt without replay', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    calls = [],
+    id = '12345678-1234-4234-8234-123456789abc'
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        return {
+          basis: 'basis',
+          phase: 'created',
+          url: 'https://github.com/alice/repo?token=secret',
+          actor: { login: 'alice', id: 101 },
+          owner: { login: 'alice', id: 101 },
+          private: true,
+          can_continue: false,
+          reason: 'Not implemented',
+        }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    await until(() =>
+      root.textContent.includes('Could not verify the continuation')
+    )
+    assert(button('Review continuation ' + id))
+    assert(button('Acknowledge ' + id))
+    assert(!root.querySelector('[aria-label="Continuation review"]'))
+    assert(!root.textContent.includes('token=secret'))
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue_preview').length,
+      1
+    )
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('continuation replies cannot cross a repository or account change', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    calls = [],
+    first = deferred(),
+    second = deferred(),
+    id = '12345678-1234-4234-8234-123456789abc'
+  const response = {
+    basis: 'basis',
+    phase: 'created',
+    url: 'https://github.com/alice/repo',
+    actor: { login: 'alice', id: 101 },
+    owner: { login: 'alice', id: 101 },
+    private: true,
+    can_continue: false,
+    reason: 'Not implemented',
+  }
+  let count = 0
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        return ++count === 1 ? first.promise : second.promise
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    panel.setBasis('two')
+    first.resolve(response)
+    await new Promise(resolve => setTimeout(resolve, 40))
+    assert(!root.querySelector('[aria-label="Continuation review"]'))
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    panel.setRoot('second')
+    second.resolve(response)
+    await new Promise(resolve => setTimeout(resolve, 40))
+    assert(!root.querySelector('[aria-label="Continuation review"]'))
+    assert(!root.textContent.includes('alice/repo'))
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue_preview').length,
+      2
+    )
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
