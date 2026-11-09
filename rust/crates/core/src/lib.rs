@@ -452,6 +452,7 @@ impl Repository {
                 return self.setup_upstream(basis.as_deref()).await;
             }
             Operation::PublishContext { host } => return self.publish_context(&host).await,
+            Operation::PublishPreview { request } => return self.publish_preview(&request).await,
             Operation::PublishOrganizations { host, target } => {
                 return self.publish_organizations(&host, target).await;
             }
@@ -644,6 +645,7 @@ impl Repository {
             | BranchNameRules { .. }
             | RepositoryContext
             | PublishContext { .. }
+            | PublishPreview { .. }
             | PublishOrganizations { .. }
             | RepositoryAccount
             | RepositoryAccountCatalog

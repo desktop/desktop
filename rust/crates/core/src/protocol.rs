@@ -8,6 +8,18 @@ pub enum GitPath {
     Bytes { bytes: Vec<u8> },
 }
 
+/// Inputs explicitly reviewed before publishing a local repository.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PublishPreviewRequest {
+    pub host: String,
+    pub target: crate::AccountTarget,
+    pub owner: String,
+    pub name: String,
+    pub description: String,
+    pub private: bool,
+}
+
 /// Typed operations shared by the CLI, browser transport, and native shell.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "method", rename_all = "snake_case", deny_unknown_fields)]
@@ -79,6 +91,9 @@ pub enum Operation {
     PublishOrganizations {
         host: String,
         target: crate::AccountTarget,
+    },
+    PublishPreview {
+        request: PublishPreviewRequest,
     },
     RepositoryAccount,
     RepositoryAccountCatalog,

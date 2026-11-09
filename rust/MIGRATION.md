@@ -1686,6 +1686,23 @@ also pass. Publication preview, remote creation, durable phase receipts, saved
 repository/account revalidation, first push and partial-failure recovery remain
 open; no legacy-removal gate is closed by this preparation.
 
+## Read-only publication review
+
+A typed preview and CLI command bind the exact proposed host, account, owner,
+name, description and visibility to the verified actor and organization IDs,
+saved account state, remotes, Git configuration and planned branch tips. It
+rechecks local state after provider reads and orders a known default branch
+before the current branch. Unborn or detached repositories show no planned
+pushes. For a repository with a prior remote, the existing Desktop-compatible
+branch policy resolves remote HEAD and tracking. Credential reflection is
+rejected, and numeric IDs are limited to JavaScript-safe integers.
+
+The offline integration fixtures pass account, branch, concurrent-state and
+credential-reflection checks. The preview does not reserve a name or establish
+creation permissions. It
+returns `can_apply: false` while creation, durable receipts, account-bound
+first push and recovery are unimplemented. All removal gates remain open.
+
 ## Other legacy boundaries
 
 | Area                                                 | Current status                                                                                                                        |

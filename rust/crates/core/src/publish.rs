@@ -1,6 +1,6 @@
 //! Read-only preparation for publishing a local repository to GitHub.
 use crate::{
-    AccountTarget, Repository, RepositoryIdentity, args, cancellation,
+    AccountTarget, PublishPreviewRequest, Repository, RepositoryIdentity, args, cancellation,
     github_api::{self, ChosenAccount, MAX_PAGES, Request, Session},
 };
 use anyhow::{Context, Result, ensure};
@@ -9,7 +9,9 @@ use cap_std::{
     ambient_authority,
     fs::{Dir, OpenOptions},
 };
+use serde::Serialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{io::Read, path::Path};
 
 impl Repository {
@@ -78,6 +80,15 @@ impl Repository {
         host: &str,
         target: AccountTarget,
     ) -> Result<Value> {
+        let (result, _, _, _) = self.publish_organizations_session(host, target).await?;
+        Ok(result)
+    }
+
+    async fn publish_organizations_session(
+        &self,
+        host: &str,
+        target: AccountTarget,
+    ) -> Result<(Value, Session, String, u64)> {
         crate::github::validate_host(host)?;
         let host = host.to_ascii_lowercase();
         let state = self.account_store_state().await?;
@@ -142,7 +153,7 @@ impl Repository {
             .map_err(|_| anyhow::anyhow!("Cannot verify GitHub account"))?;
         let actor_id = actor["id"]
             .as_u64()
-            .filter(|id| *id > 0)
+            .filter(|id| (1..=9_007_199_254_740_991).contains(id))
             .context("Invalid GitHub account")?;
         let actor_login = actor["login"]
             .as_str()
@@ -180,7 +191,7 @@ impl Repository {
                     .context("Invalid GitHub organization")?;
                 let id = row["id"]
                     .as_u64()
-                    .filter(|id| *id > 0)
+                    .filter(|id| (1..=9_007_199_254_740_991).contains(id))
                     .context("Invalid GitHub organization")?;
                 ensure!(
                     !organizations
@@ -214,7 +225,7 @@ impl Repository {
         self.ensure_publish_witness(&state.view.basis, &remotes)
             .await?;
         organizations.sort_by_key(|(login, _)| login.to_ascii_lowercase());
-        let result = json!({"organizations":organizations.into_iter().map(|(login,id)| json!({"login":login,"id":id})).collect::<Vec<_>>(),"status":"available","reason":null});
+        let result = json!({"organizations":organizations.into_iter().map(|(login,id)| json!({"login":login,"id":id})).collect::<Vec<_>>(),"actor":{"login":actor_login,"id":actor_id},"status":"available","reason":null});
         let encoded = serde_json::to_vec(&result)?;
         let redacted = session.redact_output_for_login(
             crate::process::RawOutput {
@@ -228,8 +239,267 @@ impl Repository {
             redacted.stdout == encoded,
             "Cannot safely display GitHub organizations"
         );
+        Ok((result, session, actor_login, actor_id))
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Serialize)]
+struct PublishGitWitness {
+    configuration: Vec<u8>,
+    default_branch: Vec<u8>,
+    references: Vec<u8>,
+    head_ref: Vec<u8>,
+    head_oid: Vec<u8>,
+    head_ref_code: i32,
+    head_oid_code: i32,
+}
+
+impl Repository {
+    async fn publish_git_witness(&self) -> Result<PublishGitWitness> {
+        // These private witnesses may contain credentials. Never return or log them.
+        let configuration = self
+            .run(&args(&[
+                "config",
+                "--null",
+                "--includes",
+                "--show-origin",
+                "--show-scope",
+                "--list",
+            ]))
+            .await?;
+        let default_branch = self
+            .run(&args(&[
+                "config",
+                "--global",
+                "--null",
+                "--get",
+                "init.defaultBranch",
+            ]))
+            .await?;
+        let references = self
+            .run(&args(&[
+                "for-each-ref",
+                "--format=%(refname)%00%(objectname)",
+                "refs/heads/",
+                "refs/remotes/",
+            ]))
+            .await?;
+        let head_ref = self
+            .run(&args(&["symbolic-ref", "--quiet", "HEAD"]))
+            .await?;
+        let head_oid = self
+            .run(&args(&["rev-parse", "--verify", "--quiet", "HEAD"]))
+            .await?;
+        ensure!(
+            configuration.code == 0
+                && matches!(default_branch.code, 0 | 1)
+                && references.code == 0
+                && matches!(head_ref.code, 0 | 1)
+                && matches!(head_oid.code, 0 | 1),
+            "Cannot inspect repository publication state"
+        );
+        ensure!(
+            configuration.stdout.len() <= 4 * 1024 * 1024
+                && references.stdout.len() <= 4 * 1024 * 1024,
+            "Repository publication state is too large to review"
+        );
+        Ok(PublishGitWitness {
+            configuration: configuration.stdout,
+            default_branch: default_branch.stdout,
+            references: references.stdout,
+            head_ref: head_ref.stdout,
+            head_oid: head_oid.stdout,
+            head_ref_code: head_ref.code,
+            head_oid_code: head_oid.code,
+        })
+    }
+
+    pub(crate) async fn publish_preview(&self, request: &PublishPreviewRequest) -> Result<Value> {
+        crate::github::validate_host(&request.host)?;
+        crate::github::validate_repository(&format!("{}/{}", request.owner, request.name))?;
+        ensure!(
+            request.name.len() <= 100 && request.owner.len() <= 256,
+            "Invalid repository name or owner"
+        );
+        crate::github::validate_text(&request.description)?;
+        let state = self.account_store_state().await?;
+        ensure!(state.view.saved, "Save the repository before publishing");
+        let remotes = self.publish_remote_witness().await?;
+        ensure!(
+            !remotes.0.split(|b| *b == b'\n').any(|r| r == b"origin"),
+            "An origin remote already exists"
+        );
+        let git = self.publish_git_witness().await?;
+        let has_remotes = !remotes.0.is_empty();
+        let default_branch = if has_remotes {
+            Some(serde_json::to_value(
+                self.branch_policy()
+                    .await
+                    .map_err(|_| anyhow::anyhow!("Cannot determine the default branch"))?
+                    .default_branch,
+            )?)
+        } else {
+            None
+        };
+        let (organizations, session, actor_login, actor_id) = self
+            .publish_organizations_session(&request.host, request.target.clone())
+            .await?;
+        let (owner_login, owner_id, owner_kind) =
+            if request.owner.eq_ignore_ascii_case(&actor_login) {
+                (actor_login.clone(), actor_id, "personal")
+            } else {
+                let rows = organizations["organizations"]
+                    .as_array()
+                    .context("Invalid organization catalog")?;
+                let row = rows
+                    .iter()
+                    .find(|row| {
+                        row["login"]
+                            .as_str()
+                            .is_some_and(|login| login.eq_ignore_ascii_case(&request.owner))
+                    })
+                    .context("Selected organization is unavailable")?;
+                (
+                    row["login"]
+                        .as_str()
+                        .context("Invalid organization")?
+                        .to_owned(),
+                    row["id"].as_u64().context("Invalid organization")?,
+                    "organization",
+                )
+            };
+        self.ensure_publish_witness(&state.view.basis, &remotes)
+            .await?;
+        ensure!(
+            self.publish_git_witness().await? == git,
+            "Repository publication state changed; reload before retrying"
+        );
+        let fresh_default_branch = if has_remotes {
+            Some(serde_json::to_value(
+                self.branch_policy()
+                    .await
+                    .map_err(|_| anyhow::anyhow!("Cannot determine the default branch"))?
+                    .default_branch,
+            )?)
+        } else {
+            None
+        };
+        ensure!(
+            fresh_default_branch == default_branch,
+            "Default branch changed; reload before retrying"
+        );
+        self.ensure_publish_witness(&state.view.basis, &remotes)
+            .await?;
+        ensure!(
+            self.publish_git_witness().await? == git,
+            "Repository publication state changed; reload before retrying"
+        );
+        let (push_status, pushes) = publish_push_plan(&git, default_branch.as_ref())?;
+        let basis = format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&(
+                request,
+                &state.view.basis,
+                &remotes,
+                &git,
+                &default_branch,
+                &actor_login,
+                actor_id,
+                &owner_login,
+                owner_id,
+                owner_kind,
+            ))?)
+        );
+        let result = json!({"basis":basis,"can_apply":false,"reason":"Publishing is not implemented yet",
+            "actor":{"login":actor_login,"id":actor_id},
+            "owner":{"login":owner_login,"id":owner_id,"kind":owner_kind},
+            "pushes":pushes,"push_status":push_status});
+        let encoded = serde_json::to_vec(&result)?;
+        let redacted = session.redact_output_for_login(
+            crate::process::RawOutput {
+                code: 0,
+                stdout: encoded.clone(),
+                stderr: Vec::new(),
+            },
+            &actor_login,
+        );
+        ensure!(
+            redacted.stdout == encoded,
+            "Cannot safely display publication review"
+        );
         Ok(result)
     }
+}
+
+fn publish_push_plan(
+    git: &PublishGitWitness,
+    selected_default: Option<&Value>,
+) -> Result<(&'static str, Vec<Value>)> {
+    if git.head_oid_code != 0 {
+        return Ok(("unborn", Vec::new()));
+    }
+    if git.head_ref_code != 0 {
+        return Ok(("detached", Vec::new()));
+    }
+    let head = std::str::from_utf8(&git.head_ref)?
+        .strip_suffix('\n')
+        .context("Invalid HEAD reference")?;
+    let branch = head
+        .strip_prefix("refs/heads/")
+        .context("HEAD does not reference a local branch")?;
+    let oid = std::str::from_utf8(&git.head_oid)?
+        .strip_suffix('\n')
+        .context("Invalid HEAD object")?;
+    ensure!(
+        !oid.is_empty() && oid.bytes().all(|b| b.is_ascii_hexdigit()),
+        "Invalid HEAD object"
+    );
+    let default_name = if git.default_branch.is_empty() {
+        "main"
+    } else {
+        std::str::from_utf8(
+            git.default_branch
+                .strip_suffix(&[0])
+                .context("Invalid default branch")?,
+        )?
+    };
+    let fallback_ref = format!("refs/heads/{default_name}");
+    let chosen = match selected_default {
+        None => Some((default_name, fallback_ref.as_str())),
+        Some(Value::Null) => None,
+        Some(value) => Some((
+            value["name"].as_str().context("Invalid default branch")?,
+            value["reference"]
+                .as_str()
+                .context("Invalid default branch")?,
+        )),
+    };
+    let mut pushes = Vec::new();
+    for row in git
+        .references
+        .split(|b| *b == b'\n')
+        .filter(|row| !row.is_empty())
+    {
+        let separator = row
+            .iter()
+            .position(|b| *b == 0)
+            .context("Invalid local branch data")?;
+        let reference = &row[..separator];
+        let value = &row[separator + 1..];
+        if let Some((default_name, default_ref)) = chosen
+            && reference == default_ref.as_bytes()
+            && default_name != branch
+        {
+            let value = std::str::from_utf8(value)?;
+            ensure!(
+                !value.is_empty() && value.bytes().all(|b| b.is_ascii_hexdigit()),
+                "Invalid branch object"
+            );
+            pushes.push(json!({"branch":default_name,"oid":value,"role":"default"}));
+        }
+    }
+    pushes.push(json!({"branch":branch,"oid":oid,"role":"current"}));
+    Ok(("planned", pushes))
 }
 
 fn read_description(path: &Path) -> Result<String> {
@@ -270,6 +540,45 @@ fn read_description(path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn push_review_preserves_default_order_and_skips_unborn_or_detached() {
+        let mut git = PublishGitWitness {
+            configuration: Vec::new(),
+            default_branch: b"main\0".to_vec(),
+            references: b"refs/heads/main\0abcd\nrefs/heads/topic\0beef\n".to_vec(),
+            head_ref: b"refs/heads/topic\n".to_vec(),
+            head_oid: b"beef\n".to_vec(),
+            head_ref_code: 0,
+            head_oid_code: 0,
+        };
+        let (status, pushes) = publish_push_plan(&git, None).unwrap();
+        assert_eq!(status, "planned");
+        assert_eq!(
+            pushes,
+            vec![
+                json!({"branch":"main","oid":"abcd","role":"default"}),
+                json!({"branch":"topic","oid":"beef","role":"current"})
+            ]
+        );
+        let chosen = json!({"name":"tracked","reference":"refs/heads/tracked","local":true});
+        git.references
+            .extend_from_slice(b"refs/heads/tracked\0cafe\n");
+        let selected = publish_push_plan(&git, Some(&chosen)).unwrap().1;
+        assert_eq!(
+            selected[0],
+            json!({"branch":"tracked","oid":"cafe","role":"default"})
+        );
+        let no_default = publish_push_plan(&git, Some(&Value::Null)).unwrap().1;
+        assert_eq!(no_default.len(), 1);
+        git.head_ref = b"refs/heads/main\n".to_vec();
+        git.head_oid = b"abcd\n".to_vec();
+        assert_eq!(publish_push_plan(&git, None).unwrap().1.len(), 1);
+        git.head_ref_code = 1;
+        assert_eq!(publish_push_plan(&git, None).unwrap(), ("detached", vec![]));
+        git.head_oid_code = 1;
+        assert_eq!(publish_push_plan(&git, None).unwrap(), ("unborn", vec![]));
+    }
+
     #[test]
     fn descriptions_preserve_user_text_and_never_follow_links_or_wait_for_fifos() {
         let root = std::env::temp_dir().join(format!(

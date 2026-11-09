@@ -471,13 +471,18 @@ creating a remote repository or pushing commits:
 ./target/debug/desktop-rs -C /path/to/repo publish context --host github.com
 ./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --login Alice
 ./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --effective
+./target/debug/desktop-rs -C /path/to/repo publish preview --login Alice --owner Alice --name project
 ```
 
 The context includes the local name and Git description, stored accounts and
 whether an origin exists. The description reader does not follow symlinks or
 wait on named pipes. Organization listing uses the explicitly chosen account,
-verifies its identity and is bounded to 1,600 entries. Creation, first push and
-recovery of partially completed publication remain migration work.
+verifies its identity and is bounded to 1,600 entries. A preview requires a
+saved repository and explicit account; it reviews the verified owner and
+planned branches while detecting account, repository and configuration changes.
+It neither reserves the name nor verifies permission to create a repository.
+`can_apply` remains false: creation, first push and recovery of partially
+completed publication remain migration work.
 
 ## Saved repository accounts
 
@@ -1438,6 +1443,7 @@ python tests/conflict_undo.py
 python tests/management.py
 python tests/repositories.py
 python tests/publish_context.py
+python tests/publish_preview.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

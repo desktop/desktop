@@ -70,6 +70,28 @@ enum PublishAction {
         #[arg(long, conflicts_with = "login")]
         effective: bool,
     },
+    /// Review the proposed publication without creating a remote repository.
+    Preview {
+        #[arg(long, default_value = "github.com")]
+        host: String,
+        #[arg(
+            long,
+            conflicts_with = "effective",
+            required_unless_present = "effective"
+        )]
+        login: Option<String>,
+        #[arg(long, conflicts_with = "login")]
+        effective: bool,
+        #[arg(long)]
+        owner: String,
+        #[arg(long)]
+        name: String,
+        #[arg(long, default_value = "")]
+        description: String,
+        /// Propose a public repository (private by default).
+        #[arg(long)]
+        public: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -779,6 +801,19 @@ async fn run(mut cli: Cli) -> Result<()> {
                         }
                     };
                     Operation::PublishOrganizations { host, target }
+                }
+                PublishAction::Preview { host, login, effective, owner, name, description, public } => {
+                    let target = if effective {
+                        desktop_core::AccountTarget::Effective {}
+                    } else {
+                        desktop_core::AccountTarget::Assigned {
+                            host: host.clone(),
+                            login: login.context("Select an account with --login or --effective")?,
+                        }
+                    };
+                    Operation::PublishPreview { request: desktop_core::PublishPreviewRequest {
+                        host, target, owner, name, description, private: !public,
+                    }}
                 }
             };
             run_operation(&cli.repo, &repository_scope, operation, true).await
