@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { SignInResult } from '../../lib/stores/sign-in-store'
-import { Account, isSameAccount } from '../../models/account'
+import {
+  Account,
+  getFriendlyEndpoint,
+  isSameAccount,
+} from '../../models/account'
 import { PopupType } from '../../models/popup'
 import {
   RepositoryWithGitHubRepository,
@@ -136,6 +140,7 @@ export class RepositoryAccountDialog extends React.Component<
 
   public render() {
     const requiresSignIn = this.requiresSignIn
+    const friendlyEndpoint = getFriendlyEndpoint(this.endpoint)
     return (
       <Dialog
         id="repository-account"
@@ -148,7 +153,7 @@ export class RepositoryAccountDialog extends React.Component<
             <>
               <p>
                 {this.props.repository.name} is assigned to @
-                {this.props.repository.login} on {this.endpoint}. Sign in to
+                {this.props.repository.login} on {friendlyEndpoint}. Sign in to
                 continue using this account.
               </p>
               <Button onClick={this.onChooseAnotherAccount}>
@@ -160,7 +165,7 @@ export class RepositoryAccountDialog extends React.Component<
               <p>
                 Choose the account to use for GitHub API requests and HTTPS
                 authentication for {this.props.repository.name} on{' '}
-                {this.endpoint}. This does not change your Git author name or
+                {friendlyEndpoint}. This does not change your Git author name or
                 email.
               </p>
               <Select
