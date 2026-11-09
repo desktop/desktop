@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { getDotComAPIEndpoint } from '../../lib/api'
+import memoizeOne from 'memoize-one'
 import { SignInResult } from '../../lib/stores/sign-in-store'
 import {
   Account,
@@ -11,11 +11,11 @@ import {
   RepositoryWithGitHubRepository,
   getRepositoryAccountIdentity,
 } from '../../models/repository'
+import { AccountPicker } from '../account-picker'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { Select } from '../lib/select'
 
 interface IRepositoryAccountDialogProps {
   readonly repository: RepositoryWithGitHubRepository
@@ -27,7 +27,7 @@ interface IRepositoryAccountDialogProps {
 
 interface IRepositoryAccountDialogState {
   readonly choosingAnotherAccount: boolean
-  readonly selectedAccount: Account | undefined
+  readonly selectedAccount: Account | null
 }
 
 /** Requests an identity for a repository without persisting the choice. */
@@ -35,16 +35,25 @@ export class RepositoryAccountDialog extends React.Component<
   IRepositoryAccountDialogProps,
   IRepositoryAccountDialogState
 > {
+  private getEndpointAccounts = memoizeOne(
+    (accounts: ReadonlyArray<Account>, endpoint: string) =>
+      accounts.filter(a => a.endpoint === endpoint)
+  )
+
   public constructor(props: IRepositoryAccountDialogProps) {
     super(props)
     this.state = {
       choosingAnotherAccount: false,
-      selectedAccount: undefined,
+      selectedAccount: null,
     }
   }
 
   private get endpoint() {
     return this.props.repository.gitHubRepository.endpoint
+  }
+
+  private get accounts() {
+    return this.getEndpointAccounts(this.props.accounts, this.endpoint)
   }
 
   private get requiresSignIn() {
@@ -67,24 +76,8 @@ export class RepositoryAccountDialog extends React.Component<
     this.setState({ choosingAnotherAccount: true })
   }
 
-  private onAccountChanged = (event: React.FormEvent<HTMLSelectElement>) => {
-    const login = event.currentTarget.value
-    this.setState({
-      selectedAccount: this.accounts.find(a => a.login === login),
-    })
-  }
-
-  private onSignInResult = (result: SignInResult) => {
-    if (result.kind !== 'success') {
-      return
-    }
-
-    this.props.dispatcher.closePopup(PopupType.SignIn)
-    if (result.account.endpoint !== this.endpoint) {
-      return
-    }
-
-    this.setState({ selectedAccount: result.account })
+  private onSelectedAccountChanged = (selectedAccount: Account) => {
+    this.setState({ selectedAccount })
   }
 
   private onAssignedAccountSignInResult = (result: SignInResult) => {
@@ -103,39 +96,54 @@ export class RepositoryAccountDialog extends React.Component<
     }
   }
 
-  private onSignIn = () => {
-    const { dispatcher, repository } = this.props
-    if (this.requiresSignIn && repository.login !== null) {
-      dispatcher.showAccountSignInDialog(
-        this.endpoint,
-        repository.login,
-        this.onAssignedAccountSignInResult
-      )
-    } else if (this.endpoint === getDotComAPIEndpoint()) {
-      dispatcher.showDotComSignInDialog(this.onSignInResult)
-    } else {
-      dispatcher.showEnterpriseSignInDialog(this.endpoint, this.onSignInResult)
-    }
-  }
-
   private onSubmit = () => {
+    const { dispatcher, repository } = this.props
     if (this.requiresSignIn) {
-      this.onSignIn()
-    } else if (this.state.selectedAccount !== undefined) {
+      if (repository.login !== null) {
+        dispatcher.showAccountSignInDialog(
+          this.endpoint,
+          repository.login,
+          this.onAssignedAccountSignInResult
+        )
+      }
+    } else if (this.state.selectedAccount !== null) {
       this.complete(this.state.selectedAccount)
     }
   }
 
-  private get accounts() {
-    const accounts = this.props.accounts.filter(
-      a => a.endpoint === this.endpoint
+  private renderRequiresSignIn(friendlyEndpoint: string) {
+    return (
+      <>
+        <p>
+          {this.props.repository.name} is assigned to @
+          {this.props.repository.login} on {friendlyEndpoint}. Sign in to
+          continue using this account.
+        </p>
+        {this.accounts.length > 0 && (
+          <Button onClick={this.onChooseAnotherAccount}>
+            Choose another account
+          </Button>
+        )}
+      </>
     )
-    const selected = this.state.selectedAccount
-    // Sign-in can finish before the updated accounts reach this dialog.
-    return selected !== undefined &&
-      !accounts.some(a => a.login === selected.login)
-      ? [...accounts, selected]
-      : accounts
+  }
+
+  private renderChooseAccount(friendlyEndpoint: string) {
+    return (
+      <>
+        <p>
+          Choose the account to use for GitHub API requests and HTTPS
+          authentication for {this.props.repository.name} on {friendlyEndpoint}.
+          This does not change your Git author name or email.
+        </p>
+        <AccountPicker
+          accounts={this.accounts}
+          selectedAccount={this.state.selectedAccount}
+          onSelectedAccountChanged={this.onSelectedAccountChanged}
+          openButtonClassName="dialog-preferred-focus"
+        />
+      </>
+    )
   }
 
   public render() {
@@ -149,48 +157,15 @@ export class RepositoryAccountDialog extends React.Component<
         onSubmit={this.onSubmit}
       >
         <DialogContent>
-          {requiresSignIn ? (
-            <>
-              <p>
-                {this.props.repository.name} is assigned to @
-                {this.props.repository.login} on {friendlyEndpoint}. Sign in to
-                continue using this account.
-              </p>
-              <Button onClick={this.onChooseAnotherAccount}>
-                Choose another account
-              </Button>
-            </>
-          ) : (
-            <>
-              <p>
-                Choose the account to use for GitHub API requests and HTTPS
-                authentication for {this.props.repository.name} on{' '}
-                {friendlyEndpoint}. This does not change your Git author name or
-                email.
-              </p>
-              <Select
-                label="Account"
-                value={this.state.selectedAccount?.login ?? ''}
-                onChange={this.onAccountChanged}
-              >
-                <option value="">Choose an account</option>
-                {this.accounts.map(account => (
-                  <option key={account.login} value={account.login}>
-                    @{account.login}
-                  </option>
-                ))}
-              </Select>
-              <Button onClick={this.onSignIn}>
-                Sign in to another account
-              </Button>
-            </>
-          )}
+          {requiresSignIn
+            ? this.renderRequiresSignIn(friendlyEndpoint)
+            : this.renderChooseAccount(friendlyEndpoint)}
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={requiresSignIn ? 'Sign in' : 'Use account'}
             okButtonDisabled={
-              !requiresSignIn && this.state.selectedAccount === undefined
+              !requiresSignIn && this.state.selectedAccount === null
             }
           />
         </DialogFooter>
