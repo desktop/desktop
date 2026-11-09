@@ -480,6 +480,7 @@ wait on named pipes. Organization listing uses the explicitly chosen account,
 verifies its identity and is bounded to 1,600 entries. A preview requires a
 saved repository and explicit account; it reviews the verified owner and
 planned branches while detecting account, repository and configuration changes.
+The management panel also exposes this read-only review in the localhost UI.
 It neither reserves the name nor verifies permission to create a repository.
 `can_apply` remains false: creation, first push and recovery of partially
 completed publication remain migration work.

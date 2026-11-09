@@ -1697,6 +1697,7 @@ pushes. For a repository with a prior remote, the existing Desktop-compatible
 branch policy resolves remote HEAD and tracking. Credential reflection is
 rejected, and numeric IDs are limited to JavaScript-safe integers.
 
+The localhost management panel exposes the same review without write controls.
 The offline integration fixtures pass account, branch, concurrent-state and
 credential-reflection checks. The preview does not reserve a name or establish
 creation permissions. It

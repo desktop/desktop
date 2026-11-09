@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 import { Form } from './upstream/form'
 import { RepositoryContext } from './repository-context'
 import { RepositoryAccount } from './repository-account'
+import { PublishRepository } from './publish-repository'
 import {
   EditorSettings,
   ExternalEditor,
@@ -363,6 +364,13 @@ function ManagementPanel({
             onBusy={setBusy}
             request={services.request}
             onChanged={services.onChanged}
+          />
+          <PublishRepository
+            root={root}
+            accountBasis={accountBasis}
+            busy={busy}
+            onBusy={setBusy}
+            request={services.request}
           />
           <RepositoryContext
             accountBasis={accountBasis}

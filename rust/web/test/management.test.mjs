@@ -183,3 +183,102 @@ test('settings, worktrees, and submodules issue typed requests without forcing d
     dom.window.close()
   }
 })
+
+test('repository management exposes read-only publication review', async () => {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', {
+    url: 'http://127.0.0.1:9418',
+    pretendToBeVisual: true,
+  })
+  globalThis.MessageChannel = undefined
+  globalThis.window = dom.window
+  globalThis.document = dom.window.document
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: dom.window.navigator,
+  })
+  const { mountManagement } = await import('../panels.js'),
+    root = document.querySelector('#root'),
+    calls = []
+  const panel = mountManagement(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'get_preferences')
+        return { version: 1, theme: 'system', poll_interval_ms: 2000 }
+      if (method === 'publish_context')
+        return {
+          host: 'github.com',
+          name: 'example',
+          description: '',
+          private: true,
+          accounts: [],
+          assignment: { mode: 'effective' },
+          origin_exists: false,
+          status: 'available',
+          reason: null,
+        }
+      if (method === 'publish_organizations')
+        return {
+          organizations: [],
+          actor: { login: 'alice', id: 1 },
+          status: 'available',
+          reason: null,
+        }
+      if (method === 'publish_preview')
+        return {
+          basis: 'basis',
+          can_apply: false,
+          reason: 'Publishing is not implemented yet',
+          actor: { login: 'alice', id: 1 },
+          owner: { login: 'alice', id: 1, kind: 'personal' },
+          pushes: [],
+          push_status: 'unborn',
+        }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+    onPreferences() {},
+    async openWorktree() {},
+  })
+  const button = text =>
+    [...root.querySelectorAll('button')].find(node => node.textContent === text)
+  try {
+    await waitFor(() => !button('Save preferences').disabled)
+    assert(!root.querySelector('.publish-repository'))
+    panel.setRepository('repo')
+    assert(root.querySelector('.publish-repository'))
+    assert(root.textContent.includes('Publication is not available yet'))
+    button('Load publishing options').click()
+    await waitFor(
+      () =>
+        button('Review publication') && !button('Review publication').disabled
+    )
+    button('Review publication').click()
+    await waitFor(() => root.querySelector('[aria-label="Publication review"]'))
+    assert(root.textContent.includes('alice/example'))
+    assert.deepEqual(
+      calls.find(call => call.method === 'publish_preview').parameters.request,
+      {
+        host: 'github.com',
+        target: { mode: 'effective' },
+        owner: 'alice',
+        name: 'example',
+        description: '',
+        private: true,
+      }
+    )
+    assert(!button('Publish repository'))
+    assert(!button('Review publication history'))
+    assert(
+      !calls.some(call =>
+        ['publish', 'publish_history', 'acknowledge_publish'].includes(
+          call.method
+        )
+      )
+    )
+    panel.setRepository(null)
+    assert(!root.querySelector('.publish-repository'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})

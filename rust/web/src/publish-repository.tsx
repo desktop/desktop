@@ -1,0 +1,512 @@
+import * as React from 'react'
+import { sanitizedRepositoryName } from './upstream/sanitized-repository-name'
+
+type Target =
+  | { readonly mode: 'effective' }
+  | { readonly mode: 'assigned'; readonly host: string; readonly login: string }
+type Request = {
+  readonly host: string
+  readonly target: Target
+  readonly owner: string
+  readonly name: string
+  readonly description: string
+  readonly private: boolean
+}
+type Account = {
+  readonly host: string
+  readonly login: string
+  readonly state: string
+}
+type Context = {
+  readonly host: string
+  readonly name: string
+  readonly description: string
+  readonly private: boolean
+  readonly accounts: ReadonlyArray<Account>
+  readonly assignment: {
+    readonly mode: string
+    readonly host?: string
+    readonly login?: string
+  }
+  readonly origin_exists: boolean
+  readonly status: string
+  readonly reason: string | null
+}
+type Review = {
+  readonly basis: string
+  readonly can_apply: boolean
+  readonly reason: string | null
+  readonly request: Request
+  readonly actorLogin: string
+  readonly owner: { readonly login: string; readonly kind: string }
+  readonly pushes: ReadonlyArray<{
+    readonly branch: string
+    readonly oid: string
+    readonly role: string
+  }>
+  readonly pushStatus: string
+}
+type Props = {
+  readonly root: string
+  readonly accountBasis?: string
+  readonly busy: boolean
+  readonly onBusy: (busy: boolean) => void
+  readonly request: (
+    method: string,
+    parameters: Record<string, unknown>
+  ) => Promise<unknown>
+}
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+function short(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length > 0 &&
+    value.length <= 4096 &&
+    !/[\u0000-\u001f\u007f]/.test(value)
+  )
+}
+function nullable(value: unknown): value is string | null {
+  return (
+    value === null ||
+    (typeof value === 'string' &&
+      value.length <= 16384 &&
+      !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value))
+  )
+}
+function account(value: unknown): value is Account {
+  return (
+    record(value) &&
+    short(value.host) &&
+    short(value.login) &&
+    short(value.state)
+  )
+}
+function context(value: unknown): value is Context {
+  return (
+    record(value) &&
+    short(value.host) &&
+    typeof value.name === 'string' &&
+    typeof value.description === 'string' &&
+    typeof value.private === 'boolean' &&
+    Array.isArray(value.accounts) &&
+    value.accounts.length <= 128 &&
+    value.accounts.every(
+      entry =>
+        account(entry) &&
+        entry.host.toLowerCase() === String(value.host).toLowerCase()
+    ) &&
+    new Set(value.accounts.map(entry => accountKey(entry))).size ===
+      value.accounts.length &&
+    record(value.assignment) &&
+    ['effective', 'none', 'assigned'].includes(String(value.assignment.mode)) &&
+    (value.assignment.mode !== 'assigned' ||
+      (short(value.assignment.host) && short(value.assignment.login))) &&
+    typeof value.origin_exists === 'boolean' &&
+    ['available', 'unavailable'].includes(String(value.status)) &&
+    nullable(value.reason)
+  )
+}
+function keyForTarget(value: Target) {
+  return value.mode === 'effective' ? 'effective' : accountKey(value)
+}
+function accountKey(value: { host: string; login: string }) {
+  return JSON.stringify([value.host.toLowerCase(), value.login.toLowerCase()])
+}
+/** Review publication options for an existing local repository. */
+export function PublishRepository({
+  root,
+  accountBasis,
+  busy,
+  onBusy,
+  request,
+}: Props) {
+  const [host, setHost] = React.useState('github.com')
+  const [available, setAvailable] = React.useState<Context | null>(null)
+  const [name, setName] = React.useState(''),
+    [description, setDescription] = React.useState('')
+  const [isPrivate, setPrivate] = React.useState(true),
+    [target, setTarget] = React.useState<Target | null>(null)
+  const [organizations, setOrganizations] = React.useState<string[]>([]),
+    [owner, setOwner] = React.useState<string | null>(null),
+    [organizationActor, setOrganizationActor] = React.useState<string | null>(
+      null
+    )
+  const [review, setReview] = React.useState<Review | null>(null)
+  const loaded = React.useRef(false)
+  const [message, setMessage] = React.useState(''),
+    [orgMessage, setOrgMessage] = React.useState('')
+  const epoch = React.useRef(0),
+    orgEpoch = React.useRef(0),
+    running = React.useRef<number | null>(null)
+  React.useLayoutEffect(() => {
+    epoch.current++
+    orgEpoch.current++
+    running.current = null
+    setAvailable(null)
+    setTarget(null)
+    setOrganizations([])
+    setOrganizationActor(null)
+    setOwner(null)
+    setName('')
+    setDescription('')
+    setPrivate(true)
+    setReview(null)
+    loaded.current = false
+    setMessage('')
+    setOrgMessage('')
+    return () => {
+      epoch.current++
+      orgEpoch.current++
+    }
+  }, [root])
+  const previousBasis = React.useRef(accountBasis)
+  React.useEffect(() => {
+    if (previousBasis.current !== accountBasis) {
+      previousBasis.current = accountBasis
+      orgEpoch.current++
+      setAvailable(null)
+      setTarget(null)
+      setOrganizations([])
+      setOrganizationActor(null)
+      setOwner(null)
+      setReview(null)
+      const wasRunning = running.current !== null
+      epoch.current++
+      running.current = null
+      if (wasRunning) onBusy(false)
+    }
+  }, [accountBasis])
+  const targetKey = target ? keyForTarget(target) : ''
+  React.useEffect(() => {
+    const generation = ++orgEpoch.current
+    setOrganizations([])
+    setOrganizationActor(null)
+    setOwner(null)
+    setOrgMessage('')
+    if (!target) return
+    void request('publish_organizations', {
+      host: host.trim().toLowerCase(),
+      target,
+    })
+      .then(value => {
+        if (generation !== orgEpoch.current) return
+        if (
+          !record(value) ||
+          !Array.isArray(value.organizations) ||
+          !value.organizations.every(row => record(row) && short(row.login)) ||
+          !['available', 'unavailable'].includes(String(value.status)) ||
+          !nullable(value.reason) ||
+          (value.status === 'available' &&
+            (!record(value.actor) ||
+              !short(value.actor.login) ||
+              !Number.isSafeInteger(value.actor.id) ||
+              Number(value.actor.id) <= 0 ||
+              (target.mode === 'assigned' &&
+                value.actor.login.toLowerCase() !==
+                  target.login.toLowerCase())))
+        )
+          throw new Error('Invalid organization response')
+        if (value.status === 'available' && record(value.actor))
+          setOrganizationActor(value.actor.login as string)
+        setOrganizations(
+          value.organizations
+            .map(row => row.login)
+            .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+        )
+        if (value.status !== 'available')
+          setOrgMessage(value.reason || 'Organizations are unavailable.')
+      })
+      .catch(error => {
+        if (generation === orgEpoch.current)
+          setOrgMessage(error instanceof Error ? error.message : String(error))
+      })
+    return () => {
+      orgEpoch.current++
+    }
+  }, [root, targetKey])
+  function invalidate() {
+    setReview(null)
+    setMessage('')
+  }
+  async function run(task: (generation: number) => Promise<void>) {
+    const generation = epoch.current
+    if (busy || running.current === generation) return
+    running.current = generation
+    onBusy(true)
+    try {
+      await task(generation)
+    } catch (error) {
+      if (generation === epoch.current)
+        setMessage(error instanceof Error ? error.message : String(error))
+    } finally {
+      if (running.current === generation) running.current = null
+      if (generation === epoch.current) onBusy(false)
+    }
+  }
+  function selectedRequest(): Request | null {
+    const clean = sanitizedRepositoryName(name)
+    return target && organizationActor && clean
+      ? {
+          host: host.trim().toLowerCase(),
+          target,
+          owner: owner || organizationActor,
+          name: clean,
+          description,
+          private: isPrivate,
+        }
+      : null
+  }
+  async function load(generation: number) {
+    const value = await request('publish_context', { host: host.trim() })
+    if (generation !== epoch.current) return
+    if (
+      !context(value) ||
+      value.host.toLowerCase() !== host.trim().toLowerCase()
+    )
+      throw new Error('Invalid publishing options response')
+    setAvailable(value)
+    if (!loaded.current) {
+      setName(value.name)
+      setDescription(value.description)
+      setPrivate(value.private)
+      loaded.current = true
+    }
+    setReview(null)
+    setMessage(value.reason || '')
+    const signedIn = value.accounts.filter(entry => entry.state === 'success')
+    const retained =
+      value.assignment.mode === 'assigned'
+        ? signedIn.find(
+            entry =>
+              entry.host.toLowerCase() ===
+                String(value.assignment.host).toLowerCase() &&
+              entry.login.toLowerCase() ===
+                String(value.assignment.login).toLowerCase()
+          )
+        : undefined
+    setTarget(
+      retained
+        ? { mode: 'assigned', host: retained.host, login: retained.login }
+        : value.assignment.mode === 'effective'
+        ? { mode: 'effective' }
+        : null
+    )
+  }
+  async function preview(generation: number) {
+    const selected = selectedRequest()
+    if (!selected) return
+    const value = await request('publish_preview', { request: selected })
+    if (generation !== epoch.current) return
+    if (
+      !record(value) ||
+      !short(value.basis) ||
+      typeof value.can_apply !== 'boolean' ||
+      !nullable(value.reason) ||
+      !record(value.actor) ||
+      !short(value.actor.login) ||
+      !Number.isSafeInteger(value.actor.id) ||
+      Number(value.actor.id) <= 0 ||
+      !record(value.owner) ||
+      !short(value.owner.login) ||
+      !Number.isSafeInteger(value.owner.id) ||
+      Number(value.owner.id) <= 0 ||
+      !['personal', 'organization'].includes(String(value.owner.kind)) ||
+      !Array.isArray(value.pushes) ||
+      value.pushes.length > 2 ||
+      !value.pushes.every(
+        push =>
+          record(push) &&
+          short(push.branch) &&
+          short(push.oid) &&
+          ['default', 'current'].includes(String(push.role))
+      ) ||
+      !['planned', 'unborn', 'detached'].includes(String(value.push_status))
+    )
+      throw new Error('Invalid publication review')
+    setReview({
+      basis: value.basis,
+      can_apply: value.can_apply,
+      reason: value.reason,
+      request: selected,
+      actorLogin: value.actor.login as string,
+      owner: value.owner as Review['owner'],
+      pushes: value.pushes as Review['pushes'],
+      pushStatus: value.push_status as string,
+    })
+  }
+  const cleaned = sanitizedRepositoryName(name)
+  return (
+    <details className="publish-repository">
+      <summary>Review publication</summary>
+      <p>
+        Publication is not available yet. This review does not create a
+        repository or push branches.
+      </p>
+      <label>
+        GitHub host{' '}
+        <input
+          value={host}
+          disabled={busy}
+          onChange={event => {
+            orgEpoch.current++
+            setHost(event.currentTarget.value)
+            setAvailable(null)
+            setTarget(null)
+            setOrganizations([])
+            setOrganizationActor(null)
+            setOwner(null)
+            invalidate()
+          }}
+        />
+      </label>
+      <button
+        type="button"
+        disabled={busy || !host.trim()}
+        onClick={() => void run(load)}
+      >
+        Load publishing options
+      </button>
+      {available && (
+        <React.Fragment>
+          {available.origin_exists && (
+            <p>This repository already has an origin remote.</p>
+          )}
+          <label>
+            Account{' '}
+            <select
+              value={target ? keyForTarget(target) : ''}
+              disabled={busy}
+              onChange={event => {
+                const selected = event.currentTarget.value
+                const found = available.accounts.find(
+                  entry => accountKey(entry) === selected
+                )
+                orgEpoch.current++
+                setOrganizations([])
+                setOrganizationActor(null)
+                setOwner(null)
+                setTarget(
+                  selected === 'effective'
+                    ? { mode: 'effective' }
+                    : found
+                    ? { mode: 'assigned', host: found.host, login: found.login }
+                    : null
+                )
+                invalidate()
+              }}
+            >
+              <option value="">Choose an account</option>
+              <option value="effective">Current GitHub CLI credential</option>
+              {available.accounts.map(entry => (
+                <option
+                  key={accountKey(entry)}
+                  value={accountKey(entry)}
+                  disabled={entry.state !== 'success'}
+                >
+                  {entry.login} ({entry.host})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Name{' '}
+            <input
+              value={name}
+              disabled={busy}
+              onChange={event => {
+                setName(event.currentTarget.value)
+                invalidate()
+              }}
+            />
+          </label>
+          {name !== cleaned && <p>Will be created as {cleaned}</p>}
+          <label>
+            Description{' '}
+            <input
+              value={description}
+              disabled={busy}
+              onChange={event => {
+                setDescription(event.currentTarget.value)
+                invalidate()
+              }}
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              disabled={busy}
+              onChange={event => {
+                setPrivate(event.currentTarget.checked)
+                invalidate()
+              }}
+            />{' '}
+            Keep this code private
+          </label>
+          {organizations.length > 0 && (
+            <label>
+              Organization{' '}
+              <select
+                value={owner || ''}
+                disabled={busy}
+                onChange={event => {
+                  setOwner(event.currentTarget.value || null)
+                  invalidate()
+                }}
+              >
+                <option value="">None</option>
+                {organizations.map(login => (
+                  <option key={login} value={login}>
+                    {login}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {orgMessage && <p role="status">{orgMessage}</p>}
+          <button
+            type="button"
+            disabled={
+              busy ||
+              available.origin_exists ||
+              available.status !== 'available' ||
+              !selectedRequest()
+            }
+            onClick={() => void run(preview)}
+          >
+            Review publication
+          </button>
+          {review && (
+            <section aria-label="Publication review">
+              <p>
+                {review.owner.login}/{review.request.name} ·{' '}
+                {review.request.private ? 'Private' : 'Public'}
+              </p>
+              <p>
+                Account: {review.actorLogin} · Owner: {review.owner.kind}
+              </p>
+              {review.pushes.length > 0 ? (
+                <ul>
+                  {review.pushes.map(push => (
+                    <li key={push.role}>
+                      {push.role}: {push.branch} ({push.oid})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No branches to push ({review.pushStatus}).</p>
+              )}
+              <p>
+                Creation permissions and name availability are not reserved.
+              </p>
+              {review.reason && <p>{review.reason}</p>}
+            </section>
+          )}
+        </React.Fragment>
+      )}
+      {message && <p role="status">{message}</p>}
+    </details>
+  )
+}
