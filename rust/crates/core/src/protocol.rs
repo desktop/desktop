@@ -95,6 +95,11 @@ pub enum Operation {
     PublishPreview {
         request: PublishPreviewRequest,
     },
+    PublishCreate {
+        request: PublishPreviewRequest,
+        basis: String,
+        acknowledge_partial: bool,
+    },
     PublishHistory {},
     AcknowledgePublish {
         receipt_id: String,

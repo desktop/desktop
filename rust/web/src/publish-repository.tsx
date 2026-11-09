@@ -35,6 +35,8 @@ type Context = {
 type Review = {
   readonly basis: string
   readonly can_apply: boolean
+  readonly can_create: boolean
+  readonly create_reason: string
   readonly reason: string | null
   readonly request: Request
   readonly actorLogin: string
@@ -56,7 +58,8 @@ type Receipt = {
 const phaseDescriptions: Record<string, string> = {
   creation_unknown:
     'Repository creation could not be confirmed. Inspect GitHub before acknowledging.',
-  created: 'The remote repository was created.',
+  created:
+    'Remote repository creation was confirmed. No subsequent origin setup, account assignment, or push is recorded.',
   origin_unknown:
     'The origin configuration could not be confirmed. Inspect the local repository.',
   origin_added: 'The origin remote was added.',
@@ -350,6 +353,8 @@ export function PublishRepository({
       !record(value) ||
       !short(value.basis) ||
       typeof value.can_apply !== 'boolean' ||
+      typeof value.can_create !== 'boolean' ||
+      !short(value.create_reason) ||
       !nullable(value.reason) ||
       !record(value.actor) ||
       !short(value.actor.login) ||
@@ -375,6 +380,8 @@ export function PublishRepository({
     setReview({
       basis: value.basis,
       can_apply: value.can_apply,
+      can_create: value.can_create,
+      create_reason: value.create_reason,
       reason: value.reason,
       request: selected,
       actorLogin: value.actor.login as string,
@@ -427,8 +434,9 @@ export function PublishRepository({
     <details className="publish-repository">
       <summary>Review publication</summary>
       <p>
-        Publication is not available yet. This review does not create a
-        repository or push branches.
+        Full publication is not available. This screen only reviews. The CLI can
+        create the remote repository when its safety checks pass; it does not
+        configure origin, assign an account, or push branches.
       </p>
       <label>
         GitHub host{' '}
@@ -511,7 +519,7 @@ export function PublishRepository({
               }}
             />
           </label>
-          {name !== cleaned && <p>Will be created as {cleaned}</p>}
+          {name !== cleaned && <p>Repository name to review: {cleaned}</p>}
           <label>
             Description{' '}
             <input
@@ -578,20 +586,32 @@ export function PublishRepository({
                 Account: {review.actorLogin} · Owner: {review.owner.kind}
               </p>
               {review.pushes.length > 0 ? (
-                <ul>
-                  {review.pushes.map(push => (
-                    <li key={push.role}>
-                      {push.role}: {push.branch} ({push.oid})
-                    </li>
-                  ))}
-                </ul>
+                <React.Fragment>
+                  <p>
+                    Planned branches for a future push; no branches are pushed
+                    by this review or by the current CLI create.
+                  </p>
+                  <ul>
+                    {review.pushes.map(push => (
+                      <li key={push.role}>
+                        {push.role}: {push.branch} ({push.oid})
+                      </li>
+                    ))}
+                  </ul>
+                </React.Fragment>
               ) : (
-                <p>No branches to push ({review.pushStatus}).</p>
+                <p>No branch pushes are planned ({review.pushStatus}).</p>
               )}
               <p>
-                Creation permissions and name availability are not reserved.
+                The name is not reserved and creation permissions have not been
+                verified.
               </p>
               {review.reason && <p>{review.reason}</p>}
+              <p>
+                CLI remote creation:{' '}
+                {review.can_create ? 'available' : 'unavailable'}.
+              </p>
+              <p>{review.create_reason}</p>
             </section>
           )}
         </React.Fragment>
@@ -600,8 +620,11 @@ export function PublishRepository({
         <h3>Publication history</h3>
         <p>
           Receipts record the last known phase. A repository URL may not be
-          available. Acknowledging a receipt records your review; it does not
-          retry publication.
+          available. History is scoped to the selected repository and registry;
+          an empty history does not prove a remote does not exist. Acknowledging
+          a receipt records your review; it does not retry publication. A prior
+          attempt can block another even after acknowledgement; automatic
+          reconciliation is not yet implemented.
         </p>
         <button
           type="button"

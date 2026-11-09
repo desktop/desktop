@@ -92,6 +92,35 @@ enum PublishAction {
         #[arg(long)]
         public: bool,
     },
+    /// Create only the reviewed remote; origin and pushes are not implemented.
+    Create {
+        #[arg(long, default_value = "github.com")]
+        host: String,
+        #[arg(
+            long,
+            conflicts_with = "effective",
+            required_unless_present = "effective"
+        )]
+        login: Option<String>,
+        #[arg(long, conflicts_with = "login")]
+        effective: bool,
+        #[arg(long)]
+        owner: String,
+        #[arg(long)]
+        name: String,
+        #[arg(long, default_value = "")]
+        description: String,
+        #[arg(long)]
+        public: bool,
+        /// Basis returned by a matching publication preview.
+        #[arg(long)]
+        basis: String,
+        /// Acknowledge remote-only creation: origin and pushes are pending. Once started,
+        /// it blocks another attempt, even after acknowledgement; reconciliation and a recoverable
+        /// URL are not implemented yet.
+        #[arg(long)]
+        acknowledge_partial: bool,
+    },
     /// Inspect durable records of publication attempts.
     History,
     /// Acknowledge a publication record without retrying or deleting it.
@@ -819,6 +848,21 @@ async fn run(mut cli: Cli) -> Result<()> {
                         host, target, owner, name, description, private: !public,
                     }}
                 }
+                PublishAction::Create { host, login, effective, owner, name, description, public, basis, acknowledge_partial } => {
+                    let target = if effective {
+                        desktop_core::AccountTarget::Effective {}
+                    } else {
+                        desktop_core::AccountTarget::Assigned {
+                            host: host.clone(),
+                            login: login.context("Select an account with --login or --effective")?,
+                        }
+                    };
+                    Operation::PublishCreate {
+                        request: desktop_core::PublishPreviewRequest { host, target, owner, name, description, private: !public },
+                        basis,
+                        acknowledge_partial,
+                    }
+                }
                 PublishAction::History => Operation::PublishHistory {},
                 PublishAction::Acknowledge { receipt_id } => Operation::AcknowledgePublish { receipt_id },
             };
@@ -879,14 +923,14 @@ async fn run(mut cli: Cli) -> Result<()> {
                     registry.forget(&path.canonicalize().unwrap_or(path))?
                 }
             };
-            println!("{}", serde_json::to_string(&data)?);
+            println!("{}", serde_json::to_string(&data.public_view()?)?);
             Ok(())
         }
         Action::Init { path } => {
             let repo = desktop_core::initialize(&path).await?;
             println!(
                 "{}",
-                serde_json::to_string(&registry(cli.config)?.add(repo.path().to_owned(), true)?)?
+                serde_json::to_string(&registry(cli.config)?.add(repo.path().to_owned(), true)?.public_view()?)?
             );
             Ok(())
         }
@@ -894,7 +938,7 @@ async fn run(mut cli: Cli) -> Result<()> {
             let repo = desktop_core::clone_repository(&url, &path).await?;
             println!(
                 "{}",
-                serde_json::to_string(&registry(cli.config)?.add(repo.path().to_owned(), true)?)?
+                serde_json::to_string(&registry(cli.config)?.add(repo.path().to_owned(), true)?.public_view()?)?
             );
             Ok(())
         }
@@ -970,7 +1014,7 @@ async fn run(mut cli: Cli) -> Result<()> {
                     let snapshot=existing.execute(Operation::Snapshot).await?;
                     anyhow::ensure!(snapshot["head"]==plan["target"]["oid"] && snapshot["branch"]==plan["target"]["branch"],"Registered worktree changed; review checkout again");
                     repository.open_worktree(git_path(path)).await?;
-                    let selected=registry(cli.config)?.read()?;
+                    let selected=registry(cli.config)?.read()?.public_view()?;
                     println!("{}",serde_json::to_string(&serde_json::json!({"code":0,"worktree_selected":selected}))?);
                     return Ok(());
                 }

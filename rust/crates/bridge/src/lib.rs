@@ -464,16 +464,19 @@ async fn execute(
             state.preferences.send_replace(updated.clone());
             Ok(serde_json::to_value(updated)?)
         }
-        ApplicationOperation::Management(ListRepositories) => Ok(serde_json::to_value(
-            cancellation::blocking(move || registry.read()).await?,
-        )?),
-        ApplicationOperation::Management(ForgetRepository { path }) => Ok(serde_json::to_value(
+        ApplicationOperation::Management(ListRepositories) => {
+            cancellation::blocking(move || registry.read())
+                .await?
+                .public_view()
+        }
+        ApplicationOperation::Management(ForgetRepository { path }) => {
             cancellation::blocking(move || {
                 let path = desktop_core::directory_path(path)?;
                 registry.forget(&path.canonicalize().unwrap_or(path))
             })
-            .await?,
-        )?),
+            .await?
+            .public_view()
+        }
         ApplicationOperation::Management(OpenWorktree { path }) => {
             let mut current = cancellation::wait(state.repo.lock()).await?;
             let source = current

@@ -22,6 +22,25 @@ pub struct SavedRepositories {
     pub repositories: Vec<PathBuf>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub records: Vec<SavedRepositoryRecord>,
+    /// Authoritative publication intents survive removal of a saved record.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(crate) publication_intents: Vec<PublicationIntent>,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PublicationIntent {
+    pub id: String,
+    pub repository_id: String,
+    /// Canonical common Git directory links related worktrees.
+    #[serde(default)]
+    pub common_id: String,
+    pub record_id: String,
+    pub phase: String,
+    /// Digest only: user input or credentials never appear in registry output.
+    pub destination_hash: String,
+    pub remote_id: Option<u64>,
+    pub acknowledged: bool,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -61,6 +80,15 @@ fn legacy_id(path: &Path) -> String {
 }
 
 impl SavedRepositories {
+    /// Public repository listings exclude private, authoritative recovery state.
+    pub fn public_view(&self) -> Result<serde_json::Value> {
+        let mut view = serde_json::to_value(self)?;
+        view.as_object_mut()
+            .context("Invalid saved repository view")?
+            .remove("publication_intents");
+        Ok(view)
+    }
+
     fn validate(&self) -> Result<()> {
         use std::collections::HashSet;
         let mut paths = HashSet::new();
@@ -102,6 +130,53 @@ impl SavedRepositories {
                     "Invalid saved repository record identity"
                 );
             }
+        }
+        anyhow::ensure!(
+            self.publication_intents.len() <= 1000,
+            "Invalid publication ledger"
+        );
+        let mut intent_ids = HashSet::new();
+        let mut intent_repositories = HashSet::new();
+        for intent in &self.publication_intents {
+            let valid_hash = intent.repository_id.len() == 64
+                && intent
+                    .repository_id
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b));
+            let valid_receipt =
+                uuid::Uuid::parse_str(&intent.id).is_ok_and(|id| id.to_string() == intent.id);
+            anyhow::ensure!(
+                valid_hash
+                    && valid_receipt
+                    && (intent.common_id.is_empty()
+                        || (intent.common_id.len() == 64
+                            && intent
+                                .common_id
+                                .bytes()
+                                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))))
+                    && intent_ids.insert(&intent.id)
+                    && intent_repositories.insert(&intent.repository_id)
+                    && matches!(intent.phase.as_str(), "creation_unknown" | "created")
+                    && ((intent.phase == "created") == intent.remote_id.is_some())
+                    && intent
+                        .remote_id
+                        .is_none_or(|id| id > 0 && id <= 9_007_199_254_740_991)
+                    && intent.destination_hash.len() == 64
+                    && intent
+                        .destination_hash
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                    && (uuid::Uuid::parse_str(&intent.record_id)
+                        .is_ok_and(|id| id.to_string() == intent.record_id)
+                        || intent
+                            .record_id
+                            .strip_prefix("legacy-")
+                            .is_some_and(|value| value.len() == 64
+                                && value
+                                    .bytes()
+                                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))),
+                "Invalid publication ledger"
+            );
         }
         Ok(())
     }
@@ -383,6 +458,190 @@ impl Registry {
             },
         )
     }
+    /// Publication intents live in the private registry, not in an untrusted Git directory.
+    /// Use the same lock filename as ordinary updates, but open every file without
+    /// following symlinks and replace the registry relative to the checked directory.
+    pub(crate) fn publication_store<T>(
+        &self,
+        repository: &Path,
+        git_directory: &Path,
+        common_directory: &Path,
+        write: bool,
+        work: impl FnOnce(&mut SavedRepositories) -> Result<T>,
+    ) -> Result<T> {
+        use cap_fs_ext::{DirExt, FollowSymlinks, OpenOptionsFollowExt};
+        use cap_std::{
+            ambient_authority,
+            fs::{Dir, OpenOptions},
+        };
+        use std::io::{Read, Write};
+        let parent = self.path.parent().context("Invalid publication registry")?;
+        let canonical = parent
+            .canonicalize()
+            .context("Invalid publication registry")?;
+        let worktree = repository.canonicalize().context("Invalid repository")?;
+        let git = git_directory
+            .canonicalize()
+            .context("Invalid Git directory")?;
+        let common = common_directory
+            .canonicalize()
+            .context("Invalid Git common directory")?;
+        anyhow::ensure!(
+            canonical == parent
+                && !canonical.starts_with(&worktree)
+                && !canonical.starts_with(&git)
+                && !canonical.starts_with(&common),
+            "Publication registry must be outside the repository"
+        );
+        // Resolve every component through an already-open directory, preventing
+        // a symlink replacement between validation and opening the registry.
+        #[cfg(unix)]
+        let dir = {
+            use std::path::Component;
+            let mut directory = Dir::open_ambient_dir("/", ambient_authority())?;
+            for component in parent.components() {
+                match component {
+                    Component::RootDir => {}
+                    Component::Normal(name) => {
+                        directory = directory
+                            .open_dir_nofollow(name)
+                            .map_err(|_| anyhow::anyhow!("Invalid publication registry"))?
+                    }
+                    _ => anyhow::bail!("Invalid publication registry"),
+                }
+            }
+            use std::os::unix::fs::MetadataExt;
+            let metadata = directory.open(".")?.into_std().metadata()?;
+            anyhow::ensure!(
+                metadata.uid() == unsafe { libc::geteuid() } && metadata.mode() & 0o022 == 0,
+                "Publication registry directory must be private"
+            );
+            directory
+        };
+        #[cfg(not(unix))]
+        let dir: Dir = { anyhow::bail!("Publication registry is unavailable on this platform") };
+        let file_name = self
+            .path
+            .file_name()
+            .context("Invalid publication registry")?;
+        let lock_path = self.path.with_extension("lock");
+        let lock_name = lock_path
+            .file_name()
+            .context("Invalid publication registry")?;
+        let mut lock_options = OpenOptions::new();
+        lock_options
+            .read(true)
+            .write(true)
+            .follow(FollowSymlinks::No);
+        #[cfg(unix)]
+        {
+            use cap_std::fs::OpenOptionsExt;
+            lock_options.custom_flags(libc::O_NONBLOCK);
+        }
+        let lock = dir.open_with(lock_name, &lock_options)?.into_std();
+        anyhow::ensure!(
+            lock.metadata()?.is_file(),
+            "Invalid publication registry lock"
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            anyhow::ensure!(
+                lock.metadata()?.nlink() == 1
+                    && lock.metadata()?.uid() == unsafe { libc::geteuid() }
+                    && lock.metadata()?.mode() & 0o077 == 0,
+                "Invalid publication registry lock"
+            );
+        }
+        loop {
+            crate::cancellation::Cancellation::current().check()?;
+            match lock.try_lock() {
+                Ok(()) => break,
+                Err(std::fs::TryLockError::WouldBlock) => {
+                    std::thread::sleep(std::time::Duration::from_millis(10))
+                }
+                Err(std::fs::TryLockError::Error(_)) => {
+                    anyhow::bail!("Cannot lock publication registry")
+                }
+            }
+        }
+        let mut options = OpenOptions::new();
+        options.read(true).follow(FollowSymlinks::No);
+        #[cfg(unix)]
+        {
+            use cap_std::fs::OpenOptionsExt;
+            options.custom_flags(libc::O_NONBLOCK);
+        }
+        let mut file = dir.open_with(file_name, &options)?.into_std();
+        let metadata = file.metadata()?;
+        anyhow::ensure!(metadata.is_file(), "Invalid publication registry");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            anyhow::ensure!(
+                metadata.nlink() == 1
+                    && metadata.uid() == unsafe { libc::geteuid() }
+                    && metadata.mode() & 0o077 == 0,
+                "Publication registry must be private"
+            );
+        }
+        let mut bytes = Vec::new();
+        Read::by_ref(&mut file)
+            .take(16 * 1024 * 1024 + 1)
+            .read_to_end(&mut bytes)?;
+        anyhow::ensure!(
+            bytes.len() <= 16 * 1024 * 1024,
+            "Publication registry is too large"
+        );
+        let mut data: SavedRepositories = serde_json::from_slice(&bytes)
+            .map_err(|_| anyhow::anyhow!("Invalid publication registry"))?;
+        anyhow::ensure!(data.version == 1, "Invalid publication registry");
+        data.validate()?;
+        let result = work(&mut data)?;
+        if write {
+            data.validate()?;
+            let encoded = serde_json::to_vec_pretty(&data)?;
+            anyhow::ensure!(
+                encoded.len() <= 16 * 1024 * 1024,
+                "Publication registry is too large"
+            );
+            let tmp = format!(".publication-{}.tmp", uuid::Uuid::new_v4());
+            let mut options = OpenOptions::new();
+            options
+                .write(true)
+                .create_new(true)
+                .follow(FollowSymlinks::No);
+            #[cfg(unix)]
+            {
+                use cap_std::fs::OpenOptionsExt;
+                options.mode(0o600).custom_flags(libc::O_NONBLOCK);
+            }
+            let saved = (|| -> Result<()> {
+                let mut output = dir.open_with(&tmp, &options)?;
+                output.write_all(&encoded)?;
+                output.write_all(b"\n")?;
+                output.sync_all()?;
+                dir.rename(&tmp, &dir, file_name)?;
+                dir.open(".")?.into_std().sync_all()?;
+                Ok(())
+            })();
+            if saved.is_err() {
+                let _ = dir.remove_file(&tmp);
+            }
+            saved.map_err(|_| anyhow::anyhow!("Cannot persist publication registry"))?;
+        }
+        Ok(result)
+    }
+
+    pub(crate) fn publication_record_matches(
+        data: &SavedRepositories,
+        id: &str,
+        path: &Path,
+    ) -> bool {
+        data.record_by_id(id)
+            .is_some_and(|record| record.path == path)
+    }
+
     pub fn preferences(&self) -> crate::PreferencesStore {
         crate::PreferencesStore::new(self.path.with_extension("preferences.json"))
     }
@@ -527,6 +786,46 @@ mod tests {
                 },
             )
             .unwrap()
+    }
+
+    #[test]
+    fn publication_ledger_is_persistent_but_omitted_from_public_views() {
+        let fixture = RegistryFixture::new();
+        let path = fixture.directory.join("repo");
+        fixture.registry.add(path.clone(), true).unwrap();
+        let record = fixture.registry.record_for_path(&path).unwrap().unwrap();
+        let mut data = fixture.registry.read().unwrap();
+        data.publication_intents.push(PublicationIntent {
+            id: uuid::Uuid::new_v4().to_string(),
+            repository_id: "a".repeat(64),
+            common_id: "b".repeat(64),
+            record_id: record.id,
+            phase: "created".into(),
+            destination_hash: "c".repeat(64),
+            remote_id: Some(8_765_432_109_876_543),
+            acknowledged: false,
+        });
+        fs::write(&fixture.registry.path, serde_json::to_vec(&data).unwrap()).unwrap();
+        let loaded = fixture.registry.read().unwrap();
+        assert_eq!(loaded.publication_intents.len(), 1);
+        let persisted = serde_json::to_value(&loaded).unwrap();
+        let view = loaded.public_view().unwrap();
+        assert!(persisted.get("publication_intents").is_some());
+        assert!(view.get("publication_intents").is_none());
+        for key in ["version", "selected", "repositories", "records"] {
+            assert_eq!(view.get(key), persisted.get(key));
+        }
+        assert!(!view.to_string().contains("8765432109876543"));
+        fixture.registry.forget(&path).unwrap();
+        let retained = fixture.registry.read().unwrap();
+        assert_eq!(retained.publication_intents.len(), 1);
+        assert!(
+            retained
+                .public_view()
+                .unwrap()
+                .get("publication_intents")
+                .is_none()
+        );
     }
 
     #[test]

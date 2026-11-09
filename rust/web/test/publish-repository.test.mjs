@@ -147,6 +147,8 @@ test('review requires an explicit account and ignores stale organizations', asyn
         return {
           basis: 'review-basis',
           can_apply: true,
+          can_create: true,
+          create_reason: 'Remote creation only',
           reason: null,
           actor: { login: 'Bob', id: 2 },
           owner: { login: 'Acme', id: 42, kind: 'organization' },
@@ -194,7 +196,9 @@ test('review requires an explicit account and ignores stale organizations', asyn
     input('Organization', 'Acme')
     input('Name', 'my repo')
     input('Description', 'literal $(text)')
-    await until(() => root.textContent.includes('Will be created as my-repo'))
+    await until(() =>
+      root.textContent.includes('Repository name to review: my-repo')
+    )
     button('Review publication').click()
     await until(() => root.querySelector('[aria-label="Publication review"]'))
     assert.deepEqual(
@@ -209,7 +213,9 @@ test('review requires an explicit account and ignores stale organizations', asyn
       }
     )
     assert(root.textContent.includes('Acme/my-repo'))
-    assert(root.textContent.includes('Publication is not available yet'))
+    assert(root.textContent.includes('CLI remote creation: available.'))
+    assert(root.textContent.includes('Remote creation only'))
+    assert(root.textContent.includes('Full publication is not available'))
     assert(!button('Publish repository'))
     assert(button('Load publication history'))
     assert(
@@ -304,7 +310,9 @@ test('preview shows the backend plan but cannot publish while writes are unavail
         return {
           basis: 'review-basis',
           can_apply: false,
-          reason: 'Publication is not available yet',
+          can_create: false,
+          create_reason: 'Creation blocked by an earlier attempt',
+          reason: 'Full publication is not available',
           actor: { login: 'Alice', id: 1 },
           owner: { login: 'Alice', id: 1, kind: 'personal' },
           pushes: [
@@ -328,7 +336,11 @@ test('preview shows the backend plan but cannot publish while writes are unavail
     assert(root.textContent.includes('Alice/local-repo'))
     assert(root.textContent.includes('default: main (abc123)'))
     assert(root.textContent.includes('current: topic (def456)'))
-    assert(root.textContent.includes('Publication is not available yet'))
+    assert(root.textContent.includes('CLI remote creation: unavailable.'))
+    assert(root.textContent.includes('Creation blocked by an earlier attempt'))
+    assert(root.textContent.includes('Planned branches for a future push'))
+    assert(root.textContent.includes('no branches are pushed'))
+    assert(root.textContent.includes('Full publication is not available'))
     assert.equal(calls.filter(call => call.method === 'publish').length, 0)
   } finally {
     panel.dispose()
@@ -380,6 +392,8 @@ test('personal owner is the verified effective actor and preview waits for it', 
         return {
           basis: 'basis',
           can_apply: false,
+          can_create: false,
+          create_reason: 'Creation blocked by an earlier attempt',
           reason: 'Not implemented',
           actor: { login: 'verified-user', id: 15 },
           owner: { login: 'verified-user', id: 15, kind: 'personal' },
@@ -465,6 +479,12 @@ test('publication history explains uncertain phases and acknowledges only explic
   try {
     assert(root.textContent.includes('A repository URL may not be available'))
     assert(root.textContent.includes('does not retry publication'))
+    assert(root.textContent.includes('even after acknowledgement'))
+    assert(
+      root.textContent.includes(
+        'automatic reconciliation is not yet implemented'
+      )
+    )
     button('Load publication history').click()
     await until(() => button('Acknowledge ' + id))
     assert(root.textContent.includes('creation_unknown'))
@@ -559,6 +579,53 @@ test('lost acknowledgement invalidates history without replay and repository or 
     await new Promise(resolve => setTimeout(resolve, 40))
     assert(!button('Acknowledge ' + id))
     assert(!root.textContent.includes('origin_unknown'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('malformed partial creation status is rejected before displaying a review', async () => {
+  const { dom, root, button, field } = setup(),
+    { mount } = await source(),
+    calls = []
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_context')
+        return { ...options, accounts: [], assignment: { mode: 'effective' } }
+      if (method === 'publish_organizations')
+        return {
+          organizations: [],
+          actor: { login: 'Alice', id: 1 },
+          status: 'available',
+          reason: null,
+        }
+      if (method === 'publish_preview')
+        return {
+          basis: 'basis',
+          can_apply: false,
+          can_create: 'yes',
+          create_reason: 'available',
+          reason: null,
+          actor: { login: 'Alice', id: 1 },
+          owner: { login: 'Alice', id: 1, kind: 'personal' },
+          pushes: [],
+          push_status: 'unborn',
+        }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publishing options').click()
+    await until(
+      () => field('Account') && !button('Review publication').disabled
+    )
+    button('Review publication').click()
+    await until(() => root.textContent.includes('Invalid publication review'))
+    assert(!root.querySelector('[aria-label="Publication review"]'))
+    assert(!calls.some(call => call.method === 'publish_create'))
   } finally {
     panel.dispose()
     dom.window.close()

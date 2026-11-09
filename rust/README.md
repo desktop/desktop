@@ -484,12 +484,24 @@ saved repository and explicit account; it reviews the verified owner and
 planned branches while detecting account, repository and configuration changes.
 The management panel also exposes this read-only review in the localhost UI.
 It neither reserves the name nor verifies permission to create a repository.
-`can_apply` remains false: creation, first push and recovery of partially
-completed publication remain migration work. The history and acknowledge
-commands provide a local foundation for recovery records. Acknowledging is
-idempotent and never retries a publication; current operations do not yet create
-records, and history deliberately withholds their URLs. The management panel
-also supports history and explicit acknowledgement without replay.
+`can_apply` remains false because full publication is not implemented. The
+management panel supports history and acknowledgement without replay.
+
+A separate, explicitly partial CLI operation can create only the remote after
+review; it does not add `origin`, assign an account or push branches. Use exactly
+the same request values in preview and creation:
+
+```sh
+./target/debug/desktop-rs -C /path/to/repo publish create --login Alice --owner Alice --name project --basis REVIEW_BASIS --acknowledge-partial
+```
+
+Once creation starts, its durable record prevents another attempt even after
+acknowledgement. Automatic reconciliation and a recoverable URL are not yet
+implemented. An interrupted or unverified response remains `creation_unknown`;
+inspect GitHub and history before taking further action. This operation requires
+a private registry outside the worktree and Git directories. The safe registry
+implementation currently supports Unix. Preview and creation fail closed on
+non-Unix platforms until equivalent directory identity checks are implemented.
 
 ## Saved repository accounts
 
@@ -1452,6 +1464,9 @@ python tests/repositories.py
 python tests/publish_context.py
 python tests/publish_preview.py
 python tests/publish_receipts.py
+python tests/publish_create.py
+python tests/publish_ledger_visibility.py
+python tests/publish_preview_cancel.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

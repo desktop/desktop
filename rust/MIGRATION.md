@@ -1700,9 +1700,10 @@ rejected, and numeric IDs are limited to JavaScript-safe integers.
 The localhost management panel exposes the same review without write controls.
 The offline integration fixtures pass account, branch, concurrent-state and
 credential-reflection checks. The preview does not reserve a name or establish
-creation permissions. It
-returns `can_apply: false` while creation, durable receipts, account-bound
-first push and recovery are unimplemented. All removal gates remain open.
+creation permissions. It returns `can_apply: false` while full publication,
+account-bound first push and reconciliation remain unimplemented. A separate
+`can_create` describes availability of remote-only creation. All removal gates
+remain open.
 
 ## Publication recovery records
 
@@ -1714,8 +1715,14 @@ fixture covers namespace and record isolation, corrupted and oversized files,
 symlinks, FIFOs, credential reflection and a concurrent registry replacement.
 The localhost panel can display and acknowledge recovery records without
 replaying publication; its WebSocket integration uses a synthetic receipt.
-No current operation creates these records or performs the publication POST;
-creation, first push and recovery orchestration remain open.
+The remote-only create command persists an authoritative intent in the private
+registry before its fixed GitHub POST. The registry blocks a second attempt
+after an uncertain or confirmed outcome, including after acknowledgement. It
+checks saved record, worktree and common Git directory identities, and reports
+an interrupted or unverified response as uncertain. The CLI requires explicit
+acknowledgement of its partial scope. Origin setup, account association, pushes,
+URL recovery and reconciliation remain open. Preview and creation currently
+fail closed on non-Unix platforms pending equivalent directory identity checks.
 
 ## Other legacy boundaries
 

@@ -313,6 +313,60 @@ impl Session {
         Ok(self.redact_output(output))
     }
 
+    /// Send the one fixed repository-creation request with this captured token.
+    /// The caller persists an uncertain receipt before invoking this method.
+    pub(crate) async fn create_repository(
+        &self,
+        owner: &str,
+        name: &str,
+        description: &str,
+        private: bool,
+        organization: bool,
+    ) -> Result<std::result::Result<Value, Failure>> {
+        crate::github::validate_repository(&format!("{owner}/{name}"))?;
+        let endpoint = if organization {
+            format!("/orgs/{owner}/repos")
+        } else {
+            "/user/repos".into()
+        };
+        let arguments = crate::args(&[
+            "api",
+            "--method",
+            "POST",
+            "--hostname",
+            &self.repository.host,
+            "--header",
+            "Accept: application/vnd.github+json",
+            &endpoint,
+            "--input",
+            "-",
+        ]);
+        let input = serde_json::to_vec(
+            &serde_json::json!({"name":name,"description":description,"private":private}),
+        )?;
+        let cancellation = Cancellation::current();
+        cancellation.check()?;
+        let output =
+            process::run_gh_private_input(&self.path, &arguments, Some(input), Some(&self.token))
+                .await;
+        cancellation.check()?;
+        let output = match output {
+            Ok(output) => output,
+            Err(_) => return Ok(Err(Failure::Transport)),
+        };
+        if output.code != 0 {
+            return Ok(Err(Failure::GhExit { code: output.code }));
+        }
+        if output.stdout.len() > MAX_JSON_BYTES {
+            return Ok(Err(Failure::ResponseLimit));
+        }
+        let value = match serde_json::from_slice(&output.stdout) {
+            Ok(value) => value,
+            Err(_) => return Ok(Err(Failure::InvalidResponse)),
+        };
+        Ok(Ok(value))
+    }
+
     /// Read the host's native gh protocol preference without an API credential.
     /// This fixed config command does not resolve a repository or run Git.
     pub(crate) async fn git_protocol(&self) -> Result<String> {

@@ -454,6 +454,15 @@ impl Repository {
             }
             Operation::PublishContext { host } => return self.publish_context(&host).await,
             Operation::PublishPreview { request } => return self.publish_preview(&request).await,
+            Operation::PublishCreate {
+                request,
+                basis,
+                acknowledge_partial,
+            } => {
+                return self
+                    .publish_create(&request, &basis, acknowledge_partial)
+                    .await;
+            }
             Operation::PublishHistory {} => return self.publish_history().await,
             Operation::AcknowledgePublish { receipt_id } => {
                 return self.acknowledge_publish(&receipt_id).await;
@@ -651,6 +660,7 @@ impl Repository {
             | RepositoryContext
             | PublishContext { .. }
             | PublishPreview { .. }
+            | PublishCreate { .. }
             | PublishHistory {}
             | AcknowledgePublish { .. }
             | PublishOrganizations { .. }

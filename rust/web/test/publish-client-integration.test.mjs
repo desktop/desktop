@@ -262,7 +262,7 @@ os.execv(real,[real,*args])
       () => view.querySelector('[aria-label="Publication review"]'),
       () => 'preview unavailable: ' + view.textContent
     )
-    assert(view.textContent.includes('Publication is not available yet'))
+    assert(view.textContent.includes('Full publication is not available'))
     assert(view.textContent.includes('alice/my-repository'))
     assert(view.textContent.includes('main'))
     assert(!button(view, 'Publish repository'))

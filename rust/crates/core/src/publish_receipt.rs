@@ -60,6 +60,8 @@ struct Receipt {
 #[derive(Clone)]
 struct Scope {
     repository_id: String,
+    common_id: String,
+    common_dir: std::path::PathBuf,
     namespace: String,
     record_id: String,
 }
@@ -190,7 +192,176 @@ fn history(root: &Path, scope: &Scope) -> Result<Value> {
     rows.sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
     Ok(json!({"receipts":rows}))
 }
+fn matches_scope(intent: &crate::registry::PublicationIntent, scope: &Scope) -> bool {
+    intent.repository_id == scope.repository_id
+        || intent.record_id == scope.record_id
+        || (!intent.common_id.is_empty() && intent.common_id == scope.common_id)
+}
+
+// An older authoritative entry without a common-directory witness blocks new
+// creation conservatively, but is not exposed in unrelated repository history.
+fn blocks_scope(intent: &crate::registry::PublicationIntent, scope: &Scope) -> bool {
+    intent.common_id.is_empty() || matches_scope(intent, scope)
+}
+
+fn intent_view(intent: &crate::registry::PublicationIntent) -> Value {
+    json!({"id":intent.id,"phase":intent.phase,"url":null,"error":null,"acknowledged":intent.acknowledged})
+}
+
 impl Repository {
+    /// A dry-run never creates or repairs the authoritative store.
+    pub(crate) async fn publish_creation_available(&self) -> Result<bool> {
+        let Some((root, scope, registry, path)) = self.publish_receipt_scope().await? else {
+            return Ok(false);
+        };
+        let result = cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &scope.common_dir, false, |data| {
+                ensure!(
+                    crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                    "Saved repository changed"
+                );
+                let old = history(&root, &scope)?;
+                Ok(old["receipts"]
+                    .as_array()
+                    .is_some_and(|rows| rows.is_empty())
+                    && !data
+                        .publication_intents
+                        .iter()
+                        .any(|item| blocks_scope(item, &scope)))
+            })
+        })
+        .await;
+        match result {
+            Ok(value) => Ok(value),
+            Err(_) => {
+                crate::cancellation::Cancellation::current().check()?;
+                Ok(false)
+            }
+        }
+    }
+
+    /// Persist the unknown outcome before any network mutation. The caller owns
+    /// the shared repository lock; the registry lock serializes other processes.
+    pub(crate) async fn prepare_publish_receipt(
+        &self,
+        host: &str,
+        owner: &str,
+        name: &str,
+    ) -> Result<String> {
+        crate::github::validate_repository(&format!("{host}/{owner}/{name}"))?;
+        let Some((root, scope, registry, path)) = self.publish_receipt_scope().await? else {
+            anyhow::bail!("Save the repository before publishing")
+        };
+        let destination_hash = format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&(
+                host.to_ascii_lowercase(),
+                owner.to_ascii_lowercase(),
+                name.to_ascii_lowercase()
+            ))?)
+        );
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &scope.common_dir, true, |data| {
+                ensure!(
+                    crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                    "Saved repository changed"
+                );
+                ensure!(
+                    history(&root, &scope)?["receipts"]
+                        .as_array()
+                        .is_some_and(|rows| rows.is_empty()),
+                    "Publication requires reconciliation"
+                );
+                ensure!(
+                    !data
+                        .publication_intents
+                        .iter()
+                        .any(|item| blocks_scope(item, &scope)),
+                    "Publication requires reconciliation"
+                );
+                let id = uuid::Uuid::new_v4().to_string();
+                data.publication_intents
+                    .push(crate::registry::PublicationIntent {
+                        id: id.clone(),
+                        repository_id: scope.repository_id.clone(),
+                        common_id: scope.common_id.clone(),
+                        record_id: scope.record_id.clone(),
+                        phase: "creation_unknown".into(),
+                        destination_hash,
+                        remote_id: None,
+                        acknowledged: false,
+                    });
+                Ok(id)
+            })
+        })
+        .await
+    }
+
+    /// Ensure that the authoritative unknown outcome is still durable before POST.
+    pub(crate) async fn ensure_publish_receipt(&self, id: &str) -> Result<()> {
+        ensure!(valid_id(id), "Invalid publication receipt");
+        let registry = self
+            .account_registry()
+            .context("Missing repository registry")?
+            .clone();
+        let root = self.git_directory().await?;
+        let common = self.common_directory().await?;
+        let path = self.path().to_owned();
+        let repository_id = self.id();
+        let id = id.to_owned();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &common, false, |data| {
+                ensure!(
+                    data.publication_intents.iter().any(|item| item.id == id
+                        && item.repository_id == repository_id
+                        && item.phase == "creation_unknown"
+                        && crate::Registry::publication_record_matches(
+                            data,
+                            &item.record_id,
+                            &path
+                        )),
+                    "Publication recovery state changed"
+                );
+                Ok(())
+            })
+        })
+        .await
+    }
+
+    /// Confirm only the numeric identity validated against the response by the caller.
+    pub(crate) async fn finish_publish_receipt(&self, id: &str, remote_id: u64) -> Result<Value> {
+        ensure!(
+            valid_id(id) && remote_id > 0 && remote_id <= 9_007_199_254_740_991,
+            "Invalid publication receipt"
+        );
+        let registry = self
+            .account_registry()
+            .context("Missing repository registry")?
+            .clone();
+        let root = self.git_directory().await?;
+        let common = self.common_directory().await?;
+        let path = self.path().to_owned();
+        let repository_id = self.id();
+        let id = id.to_owned();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &common, true, |data| {
+                let item = data
+                    .publication_intents
+                    .iter_mut()
+                    .find(|item| item.id == id && item.repository_id == repository_id)
+                    .context("Publication receipt does not exist")?;
+                ensure!(
+                    item.phase == "creation_unknown",
+                    "Publication receipt already completed"
+                );
+                item.phase = "created".into();
+                item.remote_id = Some(remote_id);
+                Ok(json!({"receipt":intent_view(item)}))
+            })
+        })
+        .await
+    }
+
     async fn publish_receipt_scope(
         &self,
     ) -> Result<
@@ -209,8 +380,14 @@ impl Repository {
             .account_registry()
             .context("Missing repository registry")?
             .clone();
+        let common_dir = self.common_directory().await?;
         let scope = Scope {
             repository_id: self.id(),
+            common_id: format!(
+                "{:x}",
+                Sha256::digest(common_dir.as_os_str().as_encoded_bytes())
+            ),
+            common_dir,
             namespace: registry.namespace_id(),
             record_id: record.id,
         };
@@ -226,7 +403,31 @@ impl Repository {
             return Ok(json!({"receipts":[]}));
         };
         cancellation::blocking(move || {
-            registry.with_record_lock(&scope.record_id, &path, || history(&root, &scope))
+            registry.publication_store(&path, &root, &scope.common_dir, false, |data| {
+                ensure!(
+                    crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                    "Saved repository changed"
+                );
+                let mut result = history(&root, &scope)?;
+                let rows = result["receipts"]
+                    .as_array_mut()
+                    .context("Invalid publication history")?;
+                // Local files are untrusted. A forged UUID must never create a
+                // contradictory second row for an authoritative intent.
+                rows.retain(|row| {
+                    !row["id"]
+                        .as_str()
+                        .is_some_and(|id| data.publication_intents.iter().any(|item| item.id == id))
+                });
+                rows.extend(
+                    data.publication_intents
+                        .iter()
+                        .filter(|item| matches_scope(item, &scope))
+                        .map(intent_view),
+                );
+                rows.sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
+                Ok(result)
+            })
         })
         .await
     }
@@ -239,6 +440,32 @@ impl Repository {
             .context("Save the repository before acknowledging publication")?;
         let id = id.to_owned();
         cancellation::blocking(move || {
+            let authoritative =
+                registry.publication_store(&path, &root, &scope.common_dir, false, |data| {
+                    ensure!(
+                        crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                        "Saved repository changed"
+                    );
+                    Ok(data
+                        .publication_intents
+                        .iter()
+                        .any(|item| matches_scope(item, &scope) && item.id == id))
+                })?;
+            if authoritative {
+                return registry.publication_store(&path, &root, &scope.common_dir, true, |data| {
+                    ensure!(
+                        crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                        "Saved repository changed"
+                    );
+                    let item = data
+                        .publication_intents
+                        .iter_mut()
+                        .find(|item| matches_scope(item, &scope) && item.id == id)
+                        .context("Publication receipt does not exist")?;
+                    item.acknowledged = true;
+                    Ok(json!({"receipt":intent_view(item)}))
+                });
+            }
             registry.with_record_lock(&scope.record_id, &path, || {
                 let dir =
                     open_directory(&root, &scope)?.context("Publication receipt does not exist")?;
@@ -261,6 +488,8 @@ mod tests {
     fn scope() -> Scope {
         Scope {
             repository_id: "root".into(),
+            common_id: "common".into(),
+            common_dir: std::path::PathBuf::from("/common"),
             namespace: "namespace".into(),
             record_id: "record".into(),
         }

@@ -227,6 +227,8 @@ test('repository management exposes read-only publication review', async () => {
         return {
           basis: 'basis',
           can_apply: false,
+          can_create: true,
+          create_reason: 'Remote creation only',
           reason: 'Publishing is not implemented yet',
           actor: { login: 'alice', id: 1 },
           owner: { login: 'alice', id: 1, kind: 'personal' },
@@ -246,7 +248,7 @@ test('repository management exposes read-only publication review', async () => {
     assert(!root.querySelector('.publish-repository'))
     panel.setRepository('repo')
     assert(root.querySelector('.publish-repository'))
-    assert(root.textContent.includes('Publication is not available yet'))
+    assert(root.textContent.includes('Full publication is not available'))
     button('Load publishing options').click()
     await waitFor(
       () =>

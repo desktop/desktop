@@ -245,6 +245,7 @@ impl Repository {
 
 #[derive(Clone, PartialEq, Eq, Serialize)]
 struct PublishGitWitness {
+    physical_directories: Vec<PublishDirectoryIdentity>,
     configuration: Vec<u8>,
     default_branch: Vec<u8>,
     references: Vec<u8>,
@@ -254,9 +255,73 @@ struct PublishGitWitness {
     head_oid_code: i32,
 }
 
+#[derive(Clone, PartialEq, Eq, Serialize)]
+struct PublishDirectoryIdentity {
+    path: Vec<u8>,
+    device: u64,
+    inode: u64,
+}
+
+#[cfg(unix)]
+fn publish_directory_identities(
+    paths: Vec<std::path::PathBuf>,
+) -> Result<Vec<PublishDirectoryIdentity>> {
+    use std::os::unix::fs::MetadataExt;
+    paths
+        .into_iter()
+        .map(|path| {
+            let canonical = path
+                .canonicalize()
+                .map_err(|_| anyhow::anyhow!("Cannot verify repository directory identity"))?;
+            let metadata = std::fs::metadata(&canonical)
+                .map_err(|_| anyhow::anyhow!("Cannot verify repository directory identity"))?;
+            ensure!(
+                metadata.is_dir(),
+                "Cannot verify repository directory identity"
+            );
+            Ok(PublishDirectoryIdentity {
+                path: canonical.as_os_str().as_encoded_bytes().to_vec(),
+                device: metadata.dev(),
+                inode: metadata.ino(),
+            })
+        })
+        .collect()
+}
+#[cfg(not(unix))]
+fn publish_directory_identities(
+    _: Vec<std::path::PathBuf>,
+) -> Result<Vec<PublishDirectoryIdentity>> {
+    anyhow::bail!("Repository directory identity cannot be verified on this platform")
+}
+
+struct PublishPlan {
+    view: Value,
+    session: Session,
+    state_basis: String,
+    remotes: (Vec<u8>, Vec<u8>),
+    git: PublishGitWitness,
+    default_branch: Option<Value>,
+    actor_login: String,
+    actor_id: u64,
+    owner_login: String,
+    owner_id: u64,
+    organization: bool,
+}
+
 impl Repository {
     async fn publish_git_witness(&self) -> Result<PublishGitWitness> {
         // These private witnesses may contain credentials. Never return or log them.
+        let git_dir = self
+            .git_directory()
+            .await
+            .map_err(|_| anyhow::anyhow!("Cannot verify repository directory identity"))?;
+        let common_dir = self
+            .common_directory()
+            .await
+            .map_err(|_| anyhow::anyhow!("Cannot verify repository directory identity"))?;
+        let paths = vec![self.path().to_owned(), git_dir, common_dir];
+        let physical_directories =
+            cancellation::blocking(move || publish_directory_identities(paths)).await?;
         let configuration = self
             .run(&args(&[
                 "config",
@@ -304,6 +369,7 @@ impl Repository {
             "Repository publication state is too large to review"
         );
         Ok(PublishGitWitness {
+            physical_directories,
             configuration: configuration.stdout,
             default_branch: default_branch.stdout,
             references: references.stdout,
@@ -315,6 +381,191 @@ impl Repository {
     }
 
     pub(crate) async fn publish_preview(&self, request: &PublishPreviewRequest) -> Result<Value> {
+        Ok(self.publish_preview_plan(request).await?.view)
+    }
+    pub(crate) async fn publish_create(
+        &self,
+        request: &PublishPreviewRequest,
+        basis: &str,
+        acknowledge_partial: bool,
+    ) -> Result<Value> {
+        ensure!(
+            acknowledge_partial,
+            "Acknowledge that only the remote repository will be created"
+        );
+        let _lock = self.stash_lock().await?;
+        let initial = self.publish_preview_plan(request).await?;
+        ensure!(
+            initial.view["basis"] == basis,
+            "Publication review changed; reload before retrying"
+        );
+        ensure!(
+            initial.view["can_create"] == true,
+            "Publication recovery is unavailable or a previous creation is unresolved"
+        );
+        let id = self
+            .prepare_publish_receipt(&request.host, &initial.owner_login, &request.name)
+            .await?;
+        // A persisted unknown outcome always blocks replay, even if revalidation fails before the POST.
+        let plan = match self.publish_preview_plan(request).await {
+            Ok(plan) if plan.view["basis"] == basis => plan,
+            _ => {
+                cancellation::Cancellation::current().check()?;
+                return Ok(unknown_creation(
+                    &id,
+                    "Publication state changed before creation; inspect recovery history",
+                ));
+            }
+        };
+        if self.verify_publish_plan(&plan).await.is_err()
+            || self.ensure_publish_receipt(&id).await.is_err()
+        {
+            cancellation::Cancellation::current().check()?;
+            return Ok(unknown_creation(
+                &id,
+                "Publication state changed before creation; inspect recovery history",
+            ));
+        }
+        cancellation::Cancellation::current().mark_remote_mutation();
+        let response = match plan
+            .session
+            .create_repository(
+                &plan.owner_login,
+                &request.name,
+                &request.description,
+                request.private,
+                plan.organization,
+            )
+            .await
+        {
+            Ok(Ok(value)) => value,
+            Ok(Err(_)) => {
+                cancellation::Cancellation::current().check()?;
+                return Ok(unknown_creation(
+                    &id,
+                    "Repository creation was not confirmed; inspect recovery history",
+                ));
+            }
+            Err(_) => {
+                cancellation::Cancellation::current().check()?;
+                return Ok(unknown_creation(
+                    &id,
+                    "Repository creation was interrupted; inspect recovery history",
+                ));
+            }
+        };
+        let Some(remote_id) = validate_created_repository(
+            &response,
+            &request.host,
+            &plan.owner_login,
+            plan.owner_id,
+            &request.name,
+            request.private,
+        ) else {
+            cancellation::Cancellation::current().check()?;
+            return Ok(unknown_creation(
+                &id,
+                "Repository creation response was not verified; inspect recovery history",
+            ));
+        };
+        match self.finish_publish_receipt(&id, remote_id).await {
+            Ok(_) => Ok(json!({"phase":"created","receipt_id":id,"url":null,
+                "error":"The remote repository was created; origin and pushes are not implemented"})),
+            Err(_) => {
+                cancellation::Cancellation::current().check()?;
+                Ok(unknown_creation(
+                    &id,
+                    "Repository creation was received but recovery storage failed; inspect history",
+                ))
+            }
+        }
+    }
+
+    async fn verify_publish_plan(&self, plan: &PublishPlan) -> Result<()> {
+        let actor = plan
+            .session
+            .get(Request::User)
+            .await?
+            .map_err(|_| anyhow::anyhow!("Cannot verify GitHub account"))?;
+        ensure!(
+            actor["id"].as_u64() == Some(plan.actor_id)
+                && actor["login"]
+                    .as_str()
+                    .is_some_and(|login| login.eq_ignore_ascii_case(&plan.actor_login)),
+            "GitHub account changed"
+        );
+        if plan.organization {
+            let mut found = false;
+            let mut complete = false;
+            for page in 1..=MAX_PAGES {
+                let value = plan
+                    .session
+                    .get(Request::UserOrganizations { page })
+                    .await?
+                    .map_err(|_| anyhow::anyhow!("Cannot verify GitHub organization"))?;
+                let rows = value.as_array().context("Invalid organization catalog")?;
+                for row in rows {
+                    let same_name = row["login"]
+                        .as_str()
+                        .is_some_and(|login| login.eq_ignore_ascii_case(&plan.owner_login));
+                    let same_id = row["id"].as_u64() == Some(plan.owner_id);
+                    if same_name || same_id {
+                        ensure!(
+                            same_name && same_id && !found,
+                            "GitHub organization changed"
+                        );
+                        found = true;
+                    }
+                }
+                if rows.len() < 100 {
+                    complete = true;
+                    break;
+                }
+            }
+            ensure!(complete && found, "GitHub organization changed");
+            let actor = plan
+                .session
+                .get(Request::User)
+                .await?
+                .map_err(|_| anyhow::anyhow!("Cannot verify GitHub account"))?;
+            ensure!(
+                actor["id"].as_u64() == Some(plan.actor_id)
+                    && actor["login"]
+                        .as_str()
+                        .is_some_and(|login| login.eq_ignore_ascii_case(&plan.actor_login)),
+                "GitHub account changed"
+            );
+        }
+        self.ensure_publish_witness(&plan.state_basis, &plan.remotes)
+            .await?;
+        ensure!(
+            self.publish_git_witness().await? == plan.git,
+            "Repository publication state changed"
+        );
+        let current_default = if plan.remotes.0.is_empty() {
+            None
+        } else {
+            Some(serde_json::to_value(
+                self.branch_policy()
+                    .await
+                    .map_err(|_| anyhow::anyhow!("Cannot determine default branch"))?
+                    .default_branch,
+            )?)
+        };
+        ensure!(
+            current_default == plan.default_branch,
+            "Default branch changed"
+        );
+        self.ensure_publish_witness(&plan.state_basis, &plan.remotes)
+            .await?;
+        ensure!(
+            self.publish_git_witness().await? == plan.git,
+            "Repository publication state changed"
+        );
+        Ok(())
+    }
+
+    async fn publish_preview_plan(&self, request: &PublishPreviewRequest) -> Result<PublishPlan> {
         crate::github::validate_host(&request.host)?;
         crate::github::validate_repository(&format!("{}/{}", request.owner, request.name))?;
         ensure!(
@@ -410,7 +661,20 @@ impl Repository {
                 owner_kind,
             ))?)
         );
-        let result = json!({"basis":basis,"can_apply":false,"reason":"Publishing is not implemented yet",
+        let can_create = match self.publish_creation_available().await {
+            Ok(available) => available,
+            Err(_) => {
+                cancellation::Cancellation::current().check()?;
+                false
+            }
+        };
+        let create_reason = if can_create {
+            "Only the remote repository can be created; origin and pushes are not implemented. An attempt blocks further attempts even after acknowledgement; reconciliation and recovery of its URL are not implemented. Permissions and name availability are not verified."
+        } else {
+            "Creation is unavailable because recovery storage is unsafe or a previous creation is unresolved. Origin and pushes are not implemented."
+        };
+        let result = json!({"basis":basis,"can_apply":false,"reason":"Full publication is not implemented yet",
+            "can_create":can_create,"create_reason":create_reason,
             "actor":{"login":actor_login,"id":actor_id},
             "owner":{"login":owner_login,"id":owner_id,"kind":owner_kind},
             "pushes":pushes,"push_status":push_status});
@@ -427,8 +691,58 @@ impl Repository {
             redacted.stdout == encoded,
             "Cannot safely display publication review"
         );
-        Ok(result)
+        Ok(PublishPlan {
+            view: result,
+            session,
+            state_basis: state.view.basis,
+            remotes,
+            git,
+            default_branch,
+            actor_login,
+            actor_id,
+            owner_login,
+            owner_id,
+            organization: owner_kind == "organization",
+        })
     }
+}
+
+fn unknown_creation(id: &str, error: &'static str) -> Value {
+    json!({"phase":"creation_unknown","receipt_id":id,"url":null,"error":error})
+}
+
+fn validate_created_repository(
+    value: &Value,
+    host: &str,
+    owner: &str,
+    owner_id: u64,
+    name: &str,
+    private: bool,
+) -> Option<u64> {
+    let id = value["id"]
+        .as_u64()
+        .filter(|id| (1..=9_007_199_254_740_991).contains(id))?;
+    let full_name = format!("{owner}/{name}");
+    let html = format!("https://{host}/{full_name}");
+    let clone = format!("{html}.git");
+    (value["name"]
+        .as_str()
+        .is_some_and(|v| v.eq_ignore_ascii_case(name))
+        && value["full_name"]
+            .as_str()
+            .is_some_and(|v| v.eq_ignore_ascii_case(&full_name))
+        && value["owner"]["login"]
+            .as_str()
+            .is_some_and(|v| v.eq_ignore_ascii_case(owner))
+        && value["owner"]["id"].as_u64() == Some(owner_id)
+        && value["private"].as_bool() == Some(private)
+        && value["html_url"]
+            .as_str()
+            .is_some_and(|v| v.eq_ignore_ascii_case(&html))
+        && value["clone_url"]
+            .as_str()
+            .is_some_and(|v| v.eq_ignore_ascii_case(&clone)))
+    .then_some(id)
 }
 
 fn publish_push_plan(
@@ -541,8 +855,59 @@ fn read_description(path: &Path) -> Result<String> {
 mod tests {
     use super::*;
     #[test]
+    #[cfg(unix)]
+    fn directory_witness_changes_when_same_path_is_replaced() {
+        let base = std::env::temp_dir().join(format!("publish-identity-{}", uuid::Uuid::new_v4()));
+        let original = base.join("repository");
+        std::fs::create_dir_all(&original).unwrap();
+        let before = publish_directory_identities(vec![original.clone()]).unwrap();
+        std::fs::rename(&original, base.join("old-repository")).unwrap();
+        std::fs::create_dir(&original).unwrap();
+        let after = publish_directory_identities(vec![original]).unwrap();
+        assert!(before != after);
+        std::fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn creation_response_binds_owner_identity_visibility_and_exact_https_urls() {
+        let mut value = json!({"id":123,"name":"project","full_name":"alice/project",
+            "owner":{"login":"alice","id":42},"private":true,
+            "html_url":"https://github.com/alice/project",
+            "clone_url":"https://github.com/alice/project.git"});
+        assert_eq!(
+            validate_created_repository(&value, "github.com", "alice", 42, "project", true),
+            Some(123)
+        );
+        for (key, bad) in [
+            ("id", json!(0)),
+            ("name", json!("other")),
+            ("full_name", json!("mallory/project")),
+            ("private", json!(false)),
+            ("html_url", json!("https://alice@github.com/alice/project")),
+            (
+                "clone_url",
+                json!("https://github.com/alice/project.git?token=secret"),
+            ),
+        ] {
+            let previous = value[key].clone();
+            value[key] = bad;
+            assert!(
+                validate_created_repository(&value, "github.com", "alice", 42, "project", true)
+                    .is_none()
+            );
+            value[key] = previous;
+        }
+        value["owner"]["id"] = json!(43);
+        assert!(
+            validate_created_repository(&value, "github.com", "alice", 42, "project", true)
+                .is_none()
+        );
+    }
+
+    #[test]
     fn push_review_preserves_default_order_and_skips_unborn_or_detached() {
         let mut git = PublishGitWitness {
+            physical_directories: Vec::new(),
             configuration: Vec::new(),
             default_branch: b"main\0".to_vec(),
             references: b"refs/heads/main\0abcd\nrefs/heads/topic\0beef\n".to_vec(),
