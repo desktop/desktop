@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { JSDOM } from 'jsdom'
+import { build } from 'esbuild'
+import { fileURLToPath } from 'node:url'
 import { nameRules } from './name-rules-fixture.mjs'
 async function until(check) {
   for (let n = 0; n < 200; n++) {
@@ -96,6 +98,14 @@ test('rename requires review, passes its basis, preserves recovery notices and o
     value(dom, root.querySelector('input'), 'renamed')
     submit(dom, root)
     await until(() => button(root, 'Confirm branch rename'))
+    assert.deepEqual(
+      [
+        ...root.querySelectorAll(
+          '[aria-label="Branch rename review"] .ref-component'
+        ),
+      ].map(node => node.textContent),
+      ['main', 'renamed', 'a'.repeat(40)]
+    )
     assert.equal(
       calls.filter(call => call.method === 'rename_branch').length,
       0
@@ -574,6 +584,46 @@ test('rename rules refuse blocked names, allow disclosed bypass, preserve uncert
     )
   } finally {
     panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('shared and legacy Ref render identical, escaped references', async () => {
+  const built = await build({
+    stdin: {
+      contents: `import * as React from 'react'; import * as ReactDOM from 'react-dom';
+        import {Ref as Shared} from './upstream/ref';
+        import {Ref as Legacy} from '../../../app/src/ui/lib/ref';
+        export function render(container, label, legacy) {
+          ReactDOM.render(React.createElement(legacy ? Legacy : Shared, null, label), container)
+        }`,
+      resolveDir: fileURLToPath(new URL('../src', import.meta.url)),
+      loader: 'tsx',
+    },
+    bundle: true,
+    write: false,
+    platform: 'browser',
+    format: 'esm',
+    define: { 'process.env.NODE_ENV': '"production"' },
+  })
+  const { render } = await import(
+    `data:text/javascript;base64,${Buffer.from(
+      built.outputFiles[0].text
+    ).toString('base64')}`
+  )
+  const dom = setup(),
+    container = dom.window.document.querySelector('#root')
+  try {
+    for (const legacy of [false, true]) {
+      render(container, '<img src=x>', legacy)
+      assert.equal(container.textContent, '<img src=x>')
+      assert.equal(container.querySelector('img'), null)
+      assert.equal(
+        container.querySelector('em.ref-component').textContent,
+        '<img src=x>'
+      )
+    }
+  } finally {
     dom.window.close()
   }
 })

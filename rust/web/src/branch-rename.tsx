@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Form } from './upstream/form'
+import { Ref } from './upstream/ref'
 import { INameRulesPolicy, NameRules, optionalNameRules } from './name-rules'
 import { IBranchPermissions, isBranchPermissions } from './branch-policy'
 
@@ -227,8 +228,9 @@ export function BranchRename({
       {review && (
         <div role="group" aria-label="Branch rename review">
           <p>
-            {review.name} → {review.new_name} at {review.oid}. Move{' '}
-            {review.saved_stashes.length} saved change sets with this branch.
+            <Ref>{review.name}</Ref> → <Ref>{review.new_name}</Ref> at{' '}
+            <Ref>{review.oid}</Ref>. Move {review.saved_stashes.length} saved
+            change sets with this branch.
           </p>
           {review.destination_stashes.length > 0 && (
             <p>

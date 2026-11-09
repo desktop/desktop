@@ -556,3 +556,13 @@ mark {
     flex-direction: column;
   }
 }
+
+/* Adapted from Desktop's app/styles/ui/_ref.scss. */
+.ref-component {
+  font-style: normal;
+  font-family: ui-monospace, monospace;
+  background: var(--panel-background);
+  border-radius: 4px;
+  padding: 1px 3px;
+  word-break: break-all;
+}

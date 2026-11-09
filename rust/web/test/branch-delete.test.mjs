@@ -129,6 +129,14 @@ test('deletion requires reviewed force/stash consent, restores without switching
     await until(() => root.querySelector('select').value === victim.ref)
     submit(dom, root)
     await until(() => button(root, 'Delete reviewed branch'))
+    assert.deepEqual(
+      [
+        ...root.querySelectorAll(
+          '[aria-label="Branch deletion review"] > p .ref-component'
+        ),
+      ].map(node => node.textContent),
+      ['victim', oid]
+    )
     assert(button(root, 'Delete reviewed branch').disabled)
     input(root, 'Delete this branch even though').click()
     assert(button(root, 'Delete reviewed branch').disabled)

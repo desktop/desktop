@@ -51,3 +51,7 @@ The legacy `CommitAttribution` component is shared with commit history. Its
 input type was narrowed to the author name it actually renders, so callers do
 not need to invent avatar metadata; rendering behavior is unchanged. The legacy
 entrypoint re-exports the shared component.
+
+The unchanged `Ref` component now marks branch names and commit IDs in review
+views. The legacy entrypoint re-exports it; browser styling adapts Desktop's
+`app/styles/ui/_ref.scss` to the shared light and dark theme variables.

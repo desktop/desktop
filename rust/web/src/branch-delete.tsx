@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Form } from './upstream/form'
+import { Ref } from './upstream/ref'
 import { Row } from './upstream/row'
 import { IBranchPermissions, isBranchPermissions } from './branch-policy'
 import { IRemoteDeletionReview, isRemoteDeletionReview } from './remote-delete'
@@ -387,7 +388,8 @@ export function BranchDelete({
       {value && (
         <article aria-label="Branch deletion review">
           <p>
-            Delete {value.branch.name} at {value.branch.oid}.
+            Delete <Ref>{value.branch.name}</Ref> at{' '}
+            <Ref>{value.branch.oid}</Ref>.
           </p>
           <p>
             A recovery ref retains its tip and local branch settings. Saved
@@ -396,8 +398,8 @@ export function BranchDelete({
           {value.upstream && (
             <aside aria-label="Upstream deletion review">
               <p>
-                Also delete {value.upstream.reference} from{' '}
-                {value.upstream.remote}, across{' '}
+                Also delete <Ref>{value.upstream.reference}</Ref> from{' '}
+                <Ref>{value.upstream.remote}</Ref>, across{' '}
                 {value.upstream.endpoints.length} push destination(s).
               </p>
               <ol>
