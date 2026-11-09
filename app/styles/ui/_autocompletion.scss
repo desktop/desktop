@@ -140,14 +140,15 @@
 
     &.unknown {
       .username {
+        padding-right: 2px;
         font-style: italic;
       }
 
       .description {
-        @include ellipsis;
         color: var(--text-secondary-color);
         font-style: italic;
         font-size: var(--font-size-sm);
+        white-space: nowrap;
       }
     }
 

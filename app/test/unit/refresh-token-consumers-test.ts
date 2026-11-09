@@ -6,7 +6,15 @@ import { AccountRequiresSignInError } from '../../src/lib/credential-sessions'
 import { createCopilotTokenProvider } from '../../src/lib/stores/copilot-store'
 import { createCredentialHelperTrampolineHandler } from '../../src/lib/trampoline/trampoline-credential-helper'
 import { TrampolineCommandIdentifier } from '../../src/lib/trampoline/trampoline-command'
-import { getHasRejectedCredentialsForEndpoint } from '../../src/lib/trampoline/trampoline-environment'
+import {
+  getHasRejectedCredentialsForEndpoint,
+  withTrampolineEnv,
+} from '../../src/lib/trampoline/trampoline-environment'
+import { Repository } from '../../src/models/repository'
+import { GitHubRepository } from '../../src/models/github-repository'
+import { Owner } from '../../src/models/owner'
+import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
+import { TestRepositoriesDatabase } from '../helpers/databases'
 import { trampolineUIHelper } from '../../src/lib/trampoline/trampoline-ui-helper'
 import { parseCredential } from '../../src/lib/git/credential'
 import {
@@ -52,15 +60,60 @@ async function setup(
   return { store, renewals: () => renewals }
 }
 
-function getCredential(store: AccountsStore, trampolineToken = 'test') {
-  const handler = createCredentialHelperTrampolineHandler(store)
-  return handler({
-    identifier: TrampolineCommandIdentifier.CredentialHelper,
-    trampolineToken,
-    parameters: ['get'],
-    environmentVariables: new Map(),
-    stdin: 'protocol=https\nhost=github.com\n\n',
-  })
+const repositoryPath = '/repository'
+
+class TestRepositoriesStore extends RepositoriesStore {
+  public getAll() {
+    return Promise.resolve([
+      new Repository(
+        repositoryPath,
+        1,
+        new GitHubRepository(
+          'repository',
+          new Owner('octocat', account.endpoint, 1),
+          1
+        ),
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        account.login
+      ),
+    ])
+  }
+}
+
+/**
+ * Ask the credential helper for the repository's credential inside a Git
+ * operation's trampoline environment, then let `inspect` read state that only
+ * lasts for that operation.
+ */
+function getCredential(
+  store: AccountsStore,
+  inspect: (trampolineToken: string) => void = () => {}
+) {
+  const handler = createCredentialHelperTrampolineHandler(
+    store,
+    new TestRepositoriesStore(new TestRepositoriesDatabase())
+  )
+  return withTrampolineEnv(async env => {
+    const trampolineToken = new Map(Object.entries(env)).get(
+      'DESKTOP_TRAMPOLINE_TOKEN'
+    )
+    assert.equal(typeof trampolineToken, 'string')
+    const token = String(trampolineToken)
+    const result = await handler({
+      identifier: TrampolineCommandIdentifier.CredentialHelper,
+      trampolineToken: token,
+      parameters: ['get'],
+      environmentVariables: new Map(),
+      stdin: 'protocol=https\nhost=github.com\n\n',
+    })
+    inspect(token)
+    return result
+  }, repositoryPath)
 }
 
 describe('Refreshing Git credentials', () => {
@@ -113,24 +166,31 @@ describe('Refreshing Git credentials', () => {
     assert.deepEqual(await store.getAll(), [account])
   })
 
-  it('asks the user to sign in again when renewal is rejected', async t => {
+  it('signs the account out without prompting when renewal is rejected', async t => {
     const { store } = await setup(undefined, async () => {
       throw new OAuthRefreshRejectedError()
     })
     const prompt = t.mock.method(
       trampolineUIHelper,
-      'promptForGitHubSignIn',
+      'promptForRepositoryAccount',
       async () => undefined
     )
+    const invalidated = new Array<Account>()
+    store.onTokenInvalidated(a => invalidated.push(a))
 
-    const token = 'rejected-renewal'
-    assert.equal(await getCredential(store, token), undefined)
+    let rejected = false
+    const result = await getCredential(store, token => {
+      rejected = getHasRejectedCredentialsForEndpoint(
+        token,
+        'https://github.com/'
+      )
+    })
+    assert.equal(result, undefined)
     assert.deepEqual(await store.getAll(), [])
-    assert.equal(prompt.mock.callCount(), 1)
-    assert.equal(prompt.mock.calls[0].arguments[0], 'https://github.com/')
-    assert.ok(
-      getHasRejectedCredentialsForEndpoint(token, 'https://github.com/')
-    )
+    // Signing out offers to sign back in, so the helper doesn't prompt too.
+    assert.equal(invalidated.length, 1)
+    assert.equal(prompt.mock.callCount(), 0)
+    assert.ok(rejected)
   })
 })
 
@@ -145,6 +205,38 @@ describe('Refreshing Copilot session credentials', () => {
     await store.addAccount(account)
     assert.equal(createCopilotTokenProvider(store, account), undefined)
   })
+
+  for (const [endpoint, host] of [
+    ['https://api.github.com', 'https://github.com'],
+    ['https://api.octocat.ghe.com', 'https://octocat.ghe.com'],
+    ['https://github.example.com/api/v3', 'https://github.example.com'],
+  ]) {
+    it(`accepts the runtime's HTTPS credential host for ${endpoint}`, async () => {
+      const store = new AccountsStore(
+        new InMemoryStore(),
+        new AsyncInMemoryStore()
+      )
+      const hostedAccount = new Account(
+        account.login,
+        endpoint,
+        account.token,
+        [],
+        '',
+        account.id,
+        account.name
+      )
+      await store.addAccount(hostedAccount, {
+        ...renewed(),
+        accessToken: hostedAccount.token,
+      })
+      const provider = createCopilotTokenProvider(store, hostedAccount)
+      assert.ok(provider)
+
+      const result = await provider({ host, reason: 'initial' })
+      assert.ok(result.kind === 'token')
+      assert.equal(result.accessToken, hostedAccount.token)
+    })
+  }
 
   it('satisfies the SDK one-hour refresh margin without exporting refresh tokens', async () => {
     const { store, renewals } = await setup({
@@ -169,7 +261,7 @@ describe('Refreshing Copilot session credentials', () => {
     const { store, renewals } = await setup({
       accessToken: account.token,
       refreshToken: 'old-refresh',
-      expiresAt: now + 3661 * 1000,
+      expiresAt: now + 3662 * 1000,
     })
     const firstProvider = createCopilotTokenProvider(store, account)
     const secondProvider = createCopilotTokenProvider(store, account)
@@ -201,11 +293,11 @@ describe('Refreshing Copilot session credentials', () => {
     assert.ok(initialSecond.kind === 'token')
     assert.equal(refreshedFirst.accessToken, 'new-access')
     assert.equal(initialSecond.accessToken, refreshedFirst.accessToken)
-    assert.equal(first.expiresIn, 3601)
+    assert.equal(first.expiresIn, 3602)
     assert.equal(renewals(), 1)
   })
 
-  it('keeps fractional lifetimes above the SDK rejection boundary', async t => {
+  it('renews when rounding down would reach the SDK rejection boundary', async t => {
     t.mock.method(Date, 'now', () => now)
     const { store, renewals } = await setup({
       accessToken: account.token,
@@ -217,17 +309,34 @@ describe('Refreshing Copilot session credentials', () => {
 
     const result = await provider({ host: 'github.com', reason: 'initial' })
     assert.ok(result.kind === 'token')
-    assert.equal(result.accessToken, account.token)
-    assert.equal(result.expiresIn, 3600.5)
-    assert.equal(renewals(), 0)
+    assert.equal(result.accessToken, 'new-access')
+    assert.equal(result.expiresIn, 8 * 60 * 60 - 60)
+    assert.equal(renewals(), 1)
   })
 
-  it('renews at the inclusive SDK margin plus safety buffer', async t => {
+  it('reports whole seconds without overstating the buffered token lifetime', async t => {
     t.mock.method(Date, 'now', () => now)
     const { store, renewals } = await setup({
       accessToken: account.token,
       refreshToken: 'old-refresh',
-      expiresAt: now + 3660 * 1000,
+      expiresAt: now + 3_661_500,
+    })
+    const provider = createCopilotTokenProvider(store, account)
+    assert.ok(provider)
+
+    const result = await provider({ host: 'github.com', reason: 'initial' })
+    assert.ok(result.kind === 'token')
+    assert.equal(result.accessToken, account.token)
+    assert.equal(result.expiresIn, 3601)
+    assert.equal(renewals(), 0)
+  })
+
+  it('renews at the inclusive SDK margin plus safety and rounding buffers', async t => {
+    t.mock.method(Date, 'now', () => now)
+    const { store, renewals } = await setup({
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: now + 3661 * 1000,
     })
     const provider = createCopilotTokenProvider(store, account)
     assert.ok(provider)
@@ -239,24 +348,26 @@ describe('Refreshing Copilot session credentials', () => {
     assert.equal(renewals(), 1)
   })
 
-  it('rejects renewed credentials whose buffered lifetime is too short for the SDK', async t => {
-    t.mock.method(Date, 'now', () => now)
-    const { store, renewals } = await setup(undefined, async () => ({
-      ...renewed(),
-      expiresAt: now + 3660 * 1000,
-    }))
-    const provider = createCopilotTokenProvider(store, account)
-    assert.ok(provider)
+  for (const lifetime of [3660, 3660.5, NaN, Infinity]) {
+    it(`rejects renewed credentials with an unusable lifetime of ${lifetime} seconds`, async t => {
+      t.mock.method(Date, 'now', () => now)
+      const { store, renewals } = await setup(undefined, async () => ({
+        ...renewed(),
+        expiresAt: now + lifetime * 1000,
+      }))
+      const provider = createCopilotTokenProvider(store, account)
+      assert.ok(provider)
 
-    await assert.rejects(
-      async () => provider({ host: 'github.com', reason: 'initial' }),
-      {
-        message:
-          'GitHub returned credentials without enough lifetime for a Copilot session.',
-      }
-    )
-    assert.equal(renewals(), 1)
-  })
+      await assert.rejects(
+        async () => provider({ host: 'github.com', reason: 'initial' }),
+        {
+          message:
+            'GitHub returned credentials without enough lifetime for a Copilot session.',
+        }
+      )
+      assert.equal(renewals(), 1)
+    })
+  }
 
   it('rejects renewed credentials without a known lifetime', async () => {
     const { store } = await setup(undefined, async () => ({
@@ -423,10 +534,18 @@ describe('Refreshing Copilot session credentials', () => {
     const { store, renewals } = await setup()
     const provider = createCopilotTokenProvider(store, account)
     assert.ok(provider)
-    await assert.rejects(
-      async () => provider({ host: 'attacker.example', reason: 'initial' }),
-      /unexpected GitHub host/
-    )
+    for (const host of [
+      'attacker.example',
+      'https://attacker.example',
+      'http://github.com',
+      'https://github.com/attacker',
+      'https://github.com@attacker.example',
+    ]) {
+      await assert.rejects(
+        async () => provider({ host, reason: 'initial' }),
+        /unexpected GitHub host/
+      )
+    }
     assert.equal(renewals(), 0)
     await store.removeAccount(account)
     await assert.rejects(

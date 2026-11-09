@@ -5,7 +5,10 @@
     "noEmit": true,
     "target": "ES2021",
     "skipLibCheck": true,
-    "moduleResolution": "node"
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "strict": true,
+    "types": ["node"]
   },
-  "include": ["*.js", "test/*.js"]
+  "include": ["*.js", "tests/**/*.mjs"]
 }

@@ -88,7 +88,7 @@ The branch adds two ways to run the suite locally.
 ### Packaged mode
 
 ```bash
-yarn test:e2e:packaged
+npm run test:e2e:packaged
 ```
 
 This builds a packaged production app and then runs the E2E suite.
@@ -96,7 +96,7 @@ This builds a packaged production app and then runs the E2E suite.
 ### Unpackaged mode
 
 ```bash
-yarn test:e2e:unpackaged
+npm run test:e2e:unpackaged
 ```
 
 This builds a production-configured staged app in `out/` and runs the same E2E
@@ -108,10 +108,10 @@ stages the app without invoking the final packaging step.
 ### Default alias
 
 ```bash
-yarn test:e2e
+npm run test:e2e
 ```
 
-This remains the packaged path and is equivalent to `yarn test:e2e:packaged`.
+This remains the packaged path and is equivalent to `npm run test:e2e:packaged`.
 
 ## Smoke Repository Setup
 
@@ -185,7 +185,7 @@ It currently:
 - packages the app
 - installs the app on macOS and Windows
 - exports `DESKTOP_E2E_APP_PATH`
-- runs `yarn test:e2e:run:packaged`
+- runs `npm run test:e2e:run:packaged`
 - uploads `playwright-videos` as artifacts so traces and videos are retained
 
 The CI job intentionally tests production-like packaged or installed artifacts.
@@ -232,8 +232,8 @@ useful assertions.
 
 ## When To Use Which Mode
 
-- Use `yarn test:e2e:unpackaged` when iterating locally on the smoke suite or
+- Use `npm run test:e2e:unpackaged` when iterating locally on the smoke suite or
   nearby app behavior.
-- Use `yarn test:e2e:packaged` when you need parity with the packaged runtime.
+- Use `npm run test:e2e:packaged` when you need parity with the packaged runtime.
 - Rely on the CI `e2e-smoke` job for the final check against production-like
   packaged and installed artifacts.

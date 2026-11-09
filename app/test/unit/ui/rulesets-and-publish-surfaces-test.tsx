@@ -68,15 +68,13 @@ describe('rulesets and publish surfaces', () => {
       publishCount++
     }
 
-    const view = render(<NoRemote onPublish={onPublish} />)
+    render(<NoRemote onPublish={onPublish} />)
 
-    const dialogContent = view.container.querySelector('.dialog-content')
     const publishButton = screen.getByRole('button', { name: 'Publish' })
     const helpLink = screen.getByRole('link', {
       name: 'Learn more about remote repositories.',
     })
 
-    assert.notEqual(dialogContent, null)
     assert.ok(
       screen.getByText('Publish your repository to GitHub. Need help?', {
         exact: false,

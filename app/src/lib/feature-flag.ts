@@ -3,10 +3,10 @@ import { Account } from '../models/account'
 const Disable = false
 
 /**
- * Opt in new OAuth authorizations during development and preview testing.
- * Existing rotating credentials must keep renewing even when this is disabled.
+ * Opt in new OAuth authorizations for beta and development features.
+ * Other builds use Central's rollout; existing credentials keep renewing.
  */
-export const enableShortLivedTokens = () => enableDevelopmentFeatures()
+export const enableShortLivedTokens = () => enableBetaFeatures()
 
 /**
  * Enables the application to opt-in for preview features based on runtime
@@ -115,6 +115,12 @@ export const enableCopilotSdkCommitMessageGeneration = (account: Account) => {
     )
   )
 }
+
+/**
+ * Should we offer the Copilot-assisted commit mode, where Copilot splits the
+ * selected changes into commits and writes their messages?
+ */
+export const enableCopilotAssistedCommit = enableDevelopmentFeatures
 
 /** Should we enable Copilot-powered merge conflict resolution? */
 export const enableCopilotConflictResolution = () => true

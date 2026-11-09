@@ -36,14 +36,14 @@ on:
       AZURE_CODE_SIGNING_CLIENT_ID:
       DESKTOP_OAUTH_CLIENT_ID:
       DESKTOP_OAUTH_CLIENT_SECRET:
-      APPLE_ID:
-      APPLE_ID_PASSWORD:
-      APPLE_TEAM_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID:
+      GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
 
 env:
-  NODE_VERSION: 24.19.0
+  NODE_VERSION: 24.22.1
   DESKTOP_ERROR_REPORTING_ENDPOINT: ${{ inputs.error-reporting-endpoint }}
   DESKTOP_NON_FATAL_ERROR_REPORTING_ENDPOINT:
     ${{ inputs.non-fatal-error-reporting-endpoint }}
@@ -65,11 +65,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: yarn
-      - run: yarn
-      - run: yarn validate-electron-version
-      - run: yarn lint
-      - run: yarn validate-changelog
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+            vendor/*/package-lock.json
+      - run: npm ci
+      - run: npm run validate-electron-version
+      - run: npm run lint
+      - run: npm run validate-changelog
       - name: Ensure a clean working directory
         run: git diff --name-status --exit-code
   build:
@@ -81,10 +85,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14-xlarge, windows-2022]
+        os: [macos-15-xlarge, windows-2022]
         arch: [x64, arm64]
         include:
-          - os: macos-14-xlarge
+          - os: macos-15-xlarge
             friendlyName: macOS
           - os: windows-2022
             friendlyName: Windows
@@ -104,35 +108,74 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: Validate macOS version
         if: runner.os == 'macOS'
-        run: yarn validate-macos-version
+        run: npm run validate-macos-version
       - name: Run desktop-trampoline tests
         run: |
           cd vendor/desktop-trampoline
-          yarn install
-          yarn test
+          npm ci
+          npm test
+      - name: Validate notarization API-key secrets
+        if:
+          runner.os == 'macOS' && contains(fromJSON('["production", "beta",
+          "test"]'), inputs.environment)
+        shell: bash
+        env:
+          API_KEY_ID: ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          API_PRIVATE_KEY:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$API_KEY_ID" || -z "$API_ISSUER_ID" || -z "$API_PRIVATE_KEY" ]]; then
+            echo "::error::Set all three GATEWATCHER_APP_STORE_CONNECT_API secrets together for macOS release notarization."
+            exit 1
+          fi
+      - name: Set up notarization API key
+        if:
+          runner.os == 'macOS' && contains(fromJSON('["production", "beta",
+          "test"]'), inputs.environment)
+        id: notarization-key
+        uses: nodeselector/setup-apple-codesign@6b2173bdcb7dd4057e0396ccfa28ebfa4d90affa
+        with:
+          asset-type: app-store-connect-api-key
+          app-store-connect-api-key-key-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          app-store-connect-api-key-issuer-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          app-store-connect-api-key-base64-private-key:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
       - name: Build production app
-        run: yarn build:prod
+        run: npm run build:prod
         env:
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
           DESKTOP_OAUTH_CLIENT_SECRET:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_PATH:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-key-path }}
+          APPLE_API_KEY_ID:
+            ${{ steps.notarization-key.outputs.app-store-connect-api-key-key-id
+            }}
+          APPLE_API_ISSUER:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-issuer-id
+            }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
-        run: yarn test:setup
+        run: npm run test:setup
         env:
           npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: |
           (runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64')
-        run: yarn test:unit
+        run: npm run test:unit
       - name: Run script tests
-        run: yarn test:script
+        run: npm run test:script
+        env:
+          npm_config_arch: ${{ matrix.arch }}
       - if: runner.os == 'Windows'
         uses: ./.github/actions/setup-windows-signing
         with:
@@ -140,7 +183,7 @@ jobs:
           azure-client-id: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           azure-tenant-id: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
       - name: Package production app
-        run: yarn package
+        run: npm run package
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
@@ -168,7 +211,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14-xlarge
+          - os: macos-15-xlarge
             friendlyName: macOS
             arch: arm64
           - os: windows-2022
@@ -189,22 +232,59 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           arch: ${{ matrix.arch }}
           install-ffmpeg: 'true'
+      - name: Validate notarization API-key secrets
+        if:
+          runner.os == 'macOS' && contains(fromJSON('["production", "beta",
+          "test"]'), inputs.environment)
+        shell: bash
+        env:
+          API_KEY_ID: ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          API_PRIVATE_KEY:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$API_KEY_ID" || -z "$API_ISSUER_ID" || -z "$API_PRIVATE_KEY" ]]; then
+            echo "::error::Set all three GATEWATCHER_APP_STORE_CONNECT_API secrets together for macOS release notarization."
+            exit 1
+          fi
+      - name: Set up notarization API key
+        if:
+          runner.os == 'macOS' && contains(fromJSON('["production", "beta",
+          "test"]'), inputs.environment)
+        id: notarization-key
+        uses: nodeselector/setup-apple-codesign@6b2173bdcb7dd4057e0396ccfa28ebfa4d90affa
+        with:
+          asset-type: app-store-connect-api-key
+          app-store-connect-api-key-key-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_KEY_ID }}
+          app-store-connect-api-key-issuer-id:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_ISSUER_ID }}
+          app-store-connect-api-key-base64-private-key:
+            ${{ secrets.GATEWATCHER_APP_STORE_CONNECT_API_BASE64_PRIVATE_KEY }}
       - name: Build production app
-        run: yarn build:prod
+        run: npm run build:prod
         env:
           DESKTOP_E2E_UPDATES_URL: http://127.0.0.1:51789/update
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
           DESKTOP_OAUTH_CLIENT_SECRET:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY_PATH:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-key-path }}
+          APPLE_API_KEY_ID:
+            ${{ steps.notarization-key.outputs.app-store-connect-api-key-key-id
+            }}
+          APPLE_API_ISSUER:
+            ${{
+            steps.notarization-key.outputs.app-store-connect-api-key-issuer-id
+            }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
-        run: yarn test:setup
+        run: npm run test:setup
         env:
           npm_config_arch: ${{ matrix.arch }}
       - if: runner.os == 'Windows'
@@ -214,7 +294,7 @@ jobs:
           azure-client-id: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           azure-tenant-id: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
       - name: Package production app
-        run: yarn package
+        run: npm run package
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
@@ -273,7 +353,7 @@ jobs:
 
           Add-Content -Path $env:GITHUB_ENV -Value "DESKTOP_E2E_APP_PATH=$installedExe"
       - name: Run packaged E2E smoke tests
-        run: yarn test:e2e:run:packaged
+        run: npm run test:e2e:run:packaged
       - name: Upload E2E artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
