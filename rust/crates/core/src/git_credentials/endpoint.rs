@@ -154,11 +154,14 @@ impl Endpoint {
         let owner = owner.to_ascii_lowercase();
         let name = name.to_ascii_lowercase();
         let name = name.strip_suffix(".git").unwrap_or(&name).to_owned();
+        ensure!(
+            !owner.starts_with('-'),
+            "Invalid HTTPS credential repository owner"
+        );
         for component in [&owner, &name] {
             ensure!(
                 !component.is_empty()
                     && component.len() <= MAX_COMPONENT_BYTES
-                    && !component.starts_with('-')
                     && !matches!(component.as_str(), "." | "..")
                     && component
                         .bytes()
@@ -255,6 +258,19 @@ mod tests {
                 .host,
             "enterprise.example:8443"
         );
+    }
+
+    #[test]
+    fn leading_hyphen_repository_names_keep_exact_credential_scope() {
+        let expected = endpoint("https://github.com/owner/-repo.git");
+        assert_eq!(expected.identity().name, "-repo");
+        let context = CredentialContext::parse(
+            b"protocol=https\nhost=github.com\npath=owner/-repo.git/info/lfs\n\n",
+        )
+        .unwrap();
+        assert!(expected.same_repository(&Endpoint::from_credential(&context).unwrap()));
+        assert!(!expected.same_repository(&endpoint("https://github.com/owner/-repo-other.git")));
+        assert!(Endpoint::from_operation_url("https://github.com/-owner/repo").is_err());
     }
 
     #[test]

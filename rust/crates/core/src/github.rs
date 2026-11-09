@@ -525,15 +525,16 @@ pub(crate) fn validate_repository(repository: &str) -> Result<()> {
         }
         _ => bail!("repository must be [HOST/]OWNER/REPO"),
     };
-    if rest.iter().any(|part| {
-        part.is_empty()
-            || part.starts_with('-')
-            || *part == "."
-            || *part == ".."
-            || !part
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
-    }) {
+    if rest[0].starts_with('-')
+        || rest.iter().any(|part| {
+            part.is_empty()
+                || *part == "."
+                || *part == ".."
+                || !part
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+        })
+    {
         bail!("invalid repository identifier");
     }
     Ok(())
@@ -566,13 +567,18 @@ mod tests {
     }
     #[test]
     fn validates_repository_and_host_arguments() {
-        for value in ["owner/repo", "enterprise.example:8443/owner/repo"] {
+        for value in [
+            "owner/repo",
+            "owner/--help",
+            "enterprise.example:8443/owner/-repo",
+        ] {
             assert!(validate_repository(value).is_ok());
         }
         for value in [
             "--help",
             "https://github.com/owner/repo",
             "--repo/value",
+            "-owner/repo",
             "host:0/owner/repo",
             "owner/../repo",
         ] {

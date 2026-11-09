@@ -228,6 +228,20 @@ mod tests {
     }
 
     #[test]
+    fn accepts_leading_hyphens_in_repository_names() {
+        for remote in [
+            "https://github.com/owner/-repo.git",
+            "https://github.com/owner/%2drepo.git",
+            "git@github.com:owner/-repo.git",
+        ] {
+            let identity = Identity::from_url(remote).unwrap();
+            assert_eq!(identity.name, "-repo");
+            assert_eq!(identity.selector(), "github.com/owner/-repo");
+        }
+        assert!(Identity::from_url("https://github.com/-owner/repo.git").is_err());
+    }
+
+    #[test]
     fn credentials_and_url_parameters_are_not_identity_or_selector() {
         let identity = Identity::from_url("https://private:password%40secret@GitHub.COM/Owner/Repo.git?token=secret#private-fragment").unwrap();
         assert_eq!(identity, dotcom());
@@ -291,7 +305,6 @@ mod tests {
             "https://github.com/owner/%2frepo",
             "https://github.com/owner/re%5cpo",
             "https://github.com/owner/re%00po",
-            "https://github.com/owner/%2doption",
             "https://github.com/owner/%252frepo",
             "https://github.com/owner/%zz",
             "https://github.com/owner/%",
