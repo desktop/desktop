@@ -267,7 +267,7 @@ test('repository management exposes read-only publication review', async () => {
       }
     )
     assert(!button('Publish repository'))
-    assert(!button('Review publication history'))
+    assert(button('Load publication history'))
     assert(
       !calls.some(call =>
         ['publish', 'publish_history', 'acknowledge_publish'].includes(

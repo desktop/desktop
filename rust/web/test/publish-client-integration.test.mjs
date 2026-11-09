@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { spawn, spawnSync } from 'node:child_process'
 import { once } from 'node:events'
+import { createHash, randomUUID } from 'node:crypto'
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -27,7 +28,7 @@ function button(container, label) {
   )
 }
 
-test('served localhost client previews publishing over WebSocket without mutations', async () => {
+test('served localhost client reviews publication and acknowledges durable history over WebSocket', async () => {
   const temporary = await mkdtemp(
       path.join(os.tmpdir(), 'desktop-publish-client-')
     ),
@@ -146,6 +147,38 @@ os.execv(real,[real,*args])
       { env, encoding: 'utf8' }
     )
     assert.equal(seed.status, 0, seed.stderr)
+    const hash = value => createHash('sha256').update(value).digest('hex'),
+      namespace = hash(config),
+      repositoryId = hash(repo),
+      record = JSON.parse(await readFile(config, 'utf8')).records.find(
+        row => row.path === repo
+      ),
+      receiptId = randomUUID(),
+      receiptDirectory = path.join(
+        repo,
+        '.git',
+        'desktop-publish-receipts',
+        hash(JSON.stringify([namespace, record.id]))
+      ),
+      receiptPath = path.join(receiptDirectory, receiptId + '.json')
+    await mkdir(receiptDirectory, { recursive: true, mode: 0o700 })
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        version: 1,
+        id: receiptId,
+        repository_id: repositoryId,
+        namespace,
+        record_id: record.id,
+        phase: 'creation_unknown',
+        host: 'github.com',
+        owner: 'alice',
+        name: 'my-repository',
+        error: 'network',
+        acknowledged: false,
+      }),
+      { mode: 0o600 }
+    )
     server = spawn(
       binary,
       ['-C', repo, '--config', config, 'serve', '--port', '0'],
@@ -233,7 +266,7 @@ os.execv(real,[real,*args])
     assert(view.textContent.includes('alice/my-repository'))
     assert(view.textContent.includes('main'))
     assert(!button(view, 'Publish repository'))
-    assert(!button(view, 'Review publication history'))
+    assert(button(view, 'Load publication history'))
     const preview = calls.find(call => call.method === 'publish_preview')
     assert.deepEqual(preview.request, {
       host: 'github.com',
@@ -250,6 +283,36 @@ os.execv(real,[real,*args])
         )
       )
     )
+    assert.deepEqual(await snapshot(), before)
+    button(view, 'Load publication history').click()
+    await until(
+      () => button(view, 'Acknowledge ' + receiptId),
+      () => 'history unavailable: ' + view.textContent
+    )
+    assert(view.textContent.includes('Inspect GitHub before acknowledging'))
+    assert(view.textContent.includes('Repository URL is unavailable'))
+    assert.equal(
+      JSON.parse(await readFile(receiptPath, 'utf8')).acknowledged,
+      false
+    )
+    button(view, 'Acknowledge ' + receiptId).click()
+    await until(
+      () => view.textContent.includes('Receipt acknowledged.'),
+      () => 'acknowledgement unavailable: ' + view.textContent
+    )
+    assert.equal(
+      JSON.parse(await readFile(receiptPath, 'utf8')).acknowledged,
+      true
+    )
+    assert.equal(
+      calls.filter(call => call.method === 'acknowledge_publish').length,
+      1
+    )
+    assert.deepEqual(
+      calls.find(call => call.method === 'acknowledge_publish').receipt_id,
+      receiptId
+    )
+    assert(!calls.some(call => call.method === 'publish'))
     assert.deepEqual(await snapshot(), before)
     const ghCalls = (await readFile(log, 'utf8'))
       .trim()

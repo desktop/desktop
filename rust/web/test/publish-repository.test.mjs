@@ -211,7 +211,7 @@ test('review requires an explicit account and ignores stale organizations', asyn
     assert(root.textContent.includes('Acme/my-repo'))
     assert(root.textContent.includes('Publication is not available yet'))
     assert(!button('Publish repository'))
-    assert(!button('Review publication history'))
+    assert(button('Load publication history'))
     assert(
       !calls.some(call =>
         ['publish', 'publish_history', 'acknowledge_publish'].includes(
@@ -418,6 +418,147 @@ test('personal owner is the verified effective actor and preview waits for it', 
       }
     )
     assert(!button('Publish repository'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('publication history explains uncertain phases and acknowledges only explicitly', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    calls = [],
+    id = '12345678-1234-4234-8234-123456789abc',
+    unreadable = '12345678-1234-4234-8234-123456789abd'
+  let acknowledged = false
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      const row = {
+        id,
+        phase: 'creation_unknown',
+        url: null,
+        error: null,
+        acknowledged,
+      }
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            row,
+            {
+              id: unreadable,
+              phase: 'unreadable',
+              url: null,
+              error: 'Cannot read publication receipt',
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'acknowledge_publish') {
+        acknowledged = true
+        return { receipt: { ...row, acknowledged: true } }
+      }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    assert(root.textContent.includes('A repository URL may not be available'))
+    assert(root.textContent.includes('does not retry publication'))
+    button('Load publication history').click()
+    await until(() => button('Acknowledge ' + id))
+    assert(root.textContent.includes('creation_unknown'))
+    assert(root.textContent.includes('Inspect GitHub before acknowledging'))
+    assert(root.textContent.includes('Repository URL is unavailable'))
+    assert(root.textContent.includes('private recovery metadata'))
+    assert(!button('Acknowledge ' + unreadable))
+    assert(!calls.some(call => call.method === 'acknowledge_publish'))
+    button('Acknowledge ' + id).click()
+    await until(() => root.textContent.includes('Receipt acknowledged.'))
+    assert.deepEqual(
+      calls
+        .filter(call => call.method === 'acknowledge_publish')
+        .map(call => call.parameters),
+      [{ receipt_id: id }]
+    )
+    assert(root.textContent.includes('Reviewed.'))
+    assert(!button('Acknowledge ' + id))
+    assert(!calls.some(call => call.method === 'publish'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('lost acknowledgement invalidates history without replay and repository or account changes fence replies', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    calls = [],
+    pending = deferred(),
+    pendingRoot = deferred(),
+    id = '12345678-1234-4234-8234-123456789abc'
+  let lost = true,
+    delayHistory = false
+  const row = {
+    id,
+    phase: 'origin_unknown',
+    url: null,
+    error: null,
+    acknowledged: false,
+  }
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return delayHistory === 2
+          ? pendingRoot.promise
+          : delayHistory
+          ? pending.promise
+          : { receipts: [row] }
+      if (method === 'acknowledge_publish' && lost) {
+        lost = false
+        throw new Error('lost response')
+      }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Acknowledge ' + id))
+    button('Acknowledge ' + id).click()
+    await until(() =>
+      root.textContent.includes('Acknowledgement status is uncertain')
+    )
+    assert(!button('Acknowledge ' + id))
+    assert.equal(
+      calls.filter(call => call.method === 'acknowledge_publish').length,
+      1
+    )
+    delayHistory = true
+    button('Load publication history').click()
+    await until(
+      () => calls.filter(call => call.method === 'publish_history').length === 2
+    )
+    panel.setBasis('two')
+    pending.resolve({ receipts: [row] })
+    await new Promise(resolve => setTimeout(resolve, 40))
+    assert(!button('Acknowledge ' + id))
+    assert(!root.textContent.includes('origin_unknown'))
+    assert.equal(
+      calls.filter(call => call.method === 'acknowledge_publish').length,
+      1
+    )
+    delayHistory = 2
+    button('Load publication history').click()
+    await until(
+      () => calls.filter(call => call.method === 'publish_history').length === 3
+    )
+    panel.setRoot('second')
+    pendingRoot.resolve({ receipts: [row] })
+    await new Promise(resolve => setTimeout(resolve, 40))
+    assert(!button('Acknowledge ' + id))
+    assert(!root.textContent.includes('origin_unknown'))
   } finally {
     panel.dispose()
     dom.window.close()

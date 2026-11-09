@@ -46,6 +46,47 @@ type Review = {
   }>
   readonly pushStatus: string
 }
+type Receipt = {
+  readonly id: string
+  readonly phase: string
+  readonly url: string | null
+  readonly error: string | null
+  readonly acknowledged: boolean
+}
+const phaseDescriptions: Record<string, string> = {
+  creation_unknown:
+    'Repository creation could not be confirmed. Inspect GitHub before acknowledging.',
+  created: 'The remote repository was created.',
+  origin_unknown:
+    'The origin configuration could not be confirmed. Inspect the local repository.',
+  origin_added: 'The origin remote was added.',
+  assignment_unknown:
+    'The account assignment could not be confirmed. Inspect the repository account.',
+  account_assigned: 'The repository account was assigned.',
+  push_default_unknown:
+    'The default branch push could not be confirmed. Inspect the remote branch.',
+  pushed_default: 'The default branch was pushed.',
+  push_current_unknown:
+    'The current branch push could not be confirmed. Inspect the remote branch.',
+  pushed_current: 'The current branch was pushed.',
+  complete: 'Publication completed.',
+  unreadable:
+    'This record could not be read. Inspect its private recovery metadata.',
+}
+function receipt(value: unknown): value is Receipt {
+  return (
+    record(value) &&
+    typeof value.id === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+      value.id
+    ) &&
+    typeof value.phase === 'string' &&
+    Object.prototype.hasOwnProperty.call(phaseDescriptions, value.phase) &&
+    nullable(value.url) &&
+    nullable(value.error) &&
+    typeof value.acknowledged === 'boolean'
+  )
+}
 type Props = {
   readonly root: string
   readonly accountBasis?: string
@@ -134,6 +175,8 @@ export function PublishRepository({
       null
     )
   const [review, setReview] = React.useState<Review | null>(null)
+  const [history, setHistory] = React.useState<Receipt[] | null>(null)
+  const [historyMessage, setHistoryMessage] = React.useState('')
   const loaded = React.useRef(false)
   const [message, setMessage] = React.useState(''),
     [orgMessage, setOrgMessage] = React.useState('')
@@ -153,6 +196,8 @@ export function PublishRepository({
     setDescription('')
     setPrivate(true)
     setReview(null)
+    setHistory(null)
+    setHistoryMessage('')
     loaded.current = false
     setMessage('')
     setOrgMessage('')
@@ -172,6 +217,8 @@ export function PublishRepository({
       setOrganizationActor(null)
       setOwner(null)
       setReview(null)
+      setHistory(null)
+      setHistoryMessage('')
       const wasRunning = running.current !== null
       epoch.current++
       running.current = null
@@ -336,6 +383,45 @@ export function PublishRepository({
       pushStatus: value.push_status as string,
     })
   }
+  async function loadHistory(generation: number) {
+    setHistory(null)
+    setHistoryMessage('')
+    const value = await request('publish_history', {})
+    if (generation !== epoch.current) return
+    if (
+      !record(value) ||
+      !Array.isArray(value.receipts) ||
+      value.receipts.length > 1000 ||
+      !value.receipts.every(receipt) ||
+      new Set(value.receipts.map(row => row.id)).size !== value.receipts.length
+    )
+      throw new Error('Invalid publication history')
+    setHistory(value.receipts)
+  }
+  async function acknowledge(generation: number, id: string) {
+    try {
+      const value = await request('acknowledge_publish', { receipt_id: id })
+      if (generation !== epoch.current) return
+      if (
+        !record(value) ||
+        !receipt(value.receipt) ||
+        value.receipt.id !== id ||
+        !value.receipt.acknowledged
+      )
+        throw new Error('Invalid acknowledgement response')
+      const updated = value.receipt
+      setHistory(
+        current => current?.map(row => (row.id === id ? updated : row)) || null
+      )
+      setHistoryMessage('Receipt acknowledged. No publication was retried.')
+    } catch {
+      if (generation !== epoch.current) return
+      setHistory(null)
+      setHistoryMessage(
+        'Acknowledgement status is uncertain. Reload publication history before taking further action.'
+      )
+    }
+  }
   const cleaned = sanitizedRepositoryName(name)
   return (
     <details className="publish-repository">
@@ -351,6 +437,8 @@ export function PublishRepository({
           disabled={busy}
           onChange={event => {
             orgEpoch.current++
+            setHistory(null)
+            setHistoryMessage('')
             setHost(event.currentTarget.value)
             setAvailable(null)
             setTarget(null)
@@ -384,6 +472,8 @@ export function PublishRepository({
                   entry => accountKey(entry) === selected
                 )
                 orgEpoch.current++
+                setHistory(null)
+                setHistoryMessage('')
                 setOrganizations([])
                 setOrganizationActor(null)
                 setOwner(null)
@@ -506,6 +596,60 @@ export function PublishRepository({
           )}
         </React.Fragment>
       )}
+      <section aria-label="Publication history">
+        <h3>Publication history</h3>
+        <p>
+          Receipts record the last known phase. A repository URL may not be
+          available. Acknowledging a receipt records your review; it does not
+          retry publication.
+        </p>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void run(loadHistory)}
+        >
+          Load publication history
+        </button>
+        {historyMessage && <p role="status">{historyMessage}</p>}
+        {history &&
+          (history.length === 0 ? (
+            <p>No publication receipts.</p>
+          ) : (
+            <ul>
+              {history.map(row => (
+                <li key={row.id}>
+                  <p>
+                    Receipt: {row.id} · Phase: {row.phase}
+                  </p>
+                  <p>{phaseDescriptions[row.phase]}</p>
+                  {row.url ? (
+                    <p>Repository URL: {row.url}</p>
+                  ) : (
+                    <p>Repository URL is unavailable.</p>
+                  )}
+                  {row.error && <p>{row.error}</p>}
+                  {row.acknowledged ? (
+                    <p>Reviewed.</p>
+                  ) : (
+                    row.phase !== 'unreadable' && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                          void run(generation =>
+                            acknowledge(generation, row.id)
+                          )
+                        }
+                      >
+                        Acknowledge {row.id}
+                      </button>
+                    )
+                  )}
+                </li>
+              ))}
+            </ul>
+          ))}
+      </section>
       {message && <p role="status">{message}</p>}
     </details>
   )

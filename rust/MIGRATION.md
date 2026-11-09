@@ -1712,6 +1712,8 @@ files, and acknowledgement writes atomically while the saved registry record is
 locked. URLs are withheld until their provenance can be verified. The offline
 fixture covers namespace and record isolation, corrupted and oversized files,
 symlinks, FIFOs, credential reflection and a concurrent registry replacement.
+The localhost panel can display and acknowledge recovery records without
+replaying publication; its WebSocket integration uses a synthetic receipt.
 No current operation creates these records or performs the publication POST;
 creation, first push and recovery orchestration remain open.
 

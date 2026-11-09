@@ -488,7 +488,8 @@ It neither reserves the name nor verifies permission to create a repository.
 completed publication remain migration work. The history and acknowledge
 commands provide a local foundation for recovery records. Acknowledging is
 idempotent and never retries a publication; current operations do not yet create
-records, and history deliberately withholds their URLs.
+records, and history deliberately withholds their URLs. The management panel
+also supports history and explicit acknowledgement without replay.
 
 ## Saved repository accounts
 
