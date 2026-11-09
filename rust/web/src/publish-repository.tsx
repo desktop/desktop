@@ -50,11 +50,44 @@ type Review = {
 }
 type Continuation = {
   readonly receiptId: string
+  readonly basis: string
+  readonly canContinue: boolean
   readonly url: string
   readonly actor: { readonly login: string; readonly id: number }
   readonly owner: { readonly login: string; readonly id: number }
   readonly private: boolean
   readonly reason: string
+}
+type ContinuationResult = {
+  readonly receipt_id: string
+  readonly phase: string
+  readonly url: string | null
+  readonly error: string | null
+  readonly message?: string
+}
+const continuationPhases = new Set([
+  'created',
+  'origin_unknown',
+  'origin_added',
+  'assignment_unknown',
+  'account_assigned',
+  'state_unknown',
+])
+function continuationResult(
+  value: unknown,
+  id: string,
+  reviewedUrl: string
+): value is ContinuationResult {
+  return (
+    record(value) &&
+    value.receipt_id === id &&
+    typeof value.phase === 'string' &&
+    continuationPhases.has(value.phase) &&
+    nullable(value.error) &&
+    (value.url === null || value.url === reviewedUrl) &&
+    (value.message === undefined || short(value.message)) &&
+    (value.phase !== 'account_assigned' || value.error === null)
+  )
 }
 type Receipt = {
   readonly id: string
@@ -103,6 +136,7 @@ type Props = {
   readonly accountBasis?: string
   readonly busy: boolean
   readonly onBusy: (busy: boolean) => void
+  readonly onChanged: () => Promise<void>
   readonly request: (
     method: string,
     parameters: Record<string, unknown>
@@ -195,6 +229,7 @@ export function PublishRepository({
   accountBasis,
   busy,
   onBusy,
+  onChanged,
   request,
 }: Props) {
   const [host, setHost] = React.useState('github.com')
@@ -215,16 +250,23 @@ export function PublishRepository({
     null
   )
   const [continuationMessage, setContinuationMessage] = React.useState('')
+  const [continuationConsent, setContinuationConsent] = React.useState(false)
+  const [continuationOutcome, setContinuationOutcome] =
+    React.useState<ContinuationResult | null>(null)
+  const [continuationUncertain, setContinuationUncertain] =
+    React.useState(false)
   const loaded = React.useRef(false)
   const [message, setMessage] = React.useState(''),
     [orgMessage, setOrgMessage] = React.useState('')
   const epoch = React.useRef(0),
     orgEpoch = React.useRef(0),
-    running = React.useRef<number | null>(null)
+    running = React.useRef<number | null>(null),
+    writing = React.useRef<number | null>(null)
   React.useLayoutEffect(() => {
     epoch.current++
     orgEpoch.current++
     running.current = null
+    writing.current = null
     setAvailable(null)
     setTarget(null)
     setOrganizations([])
@@ -238,6 +280,9 @@ export function PublishRepository({
     setHistoryMessage('')
     setContinuation(null)
     setContinuationMessage('')
+    setContinuationConsent(false)
+    setContinuationOutcome(null)
+    setContinuationUncertain(false)
     loaded.current = false
     setMessage('')
     setOrgMessage('')
@@ -257,14 +302,16 @@ export function PublishRepository({
       setOrganizationActor(null)
       setOwner(null)
       setReview(null)
-      setHistory(null)
-      setHistoryMessage('')
       setContinuation(null)
-      setContinuationMessage('')
-      const wasRunning = running.current !== null
-      epoch.current++
-      running.current = null
-      if (wasRunning) onBusy(false)
+      setContinuationConsent(false)
+      if (writing.current === null) {
+        setHistory(null)
+        setHistoryMessage('')
+        const wasRunning = running.current !== null
+        epoch.current++
+        running.current = null
+        if (wasRunning) onBusy(false)
+      }
     }
   }, [accountBasis])
   const targetKey = target ? keyForTarget(target) : ''
@@ -431,6 +478,7 @@ export function PublishRepository({
   }
   async function loadHistory(generation: number) {
     setContinuation(null)
+    setContinuationConsent(false)
     setContinuationMessage('')
     setHistory(null)
     setHistoryMessage('')
@@ -445,6 +493,7 @@ export function PublishRepository({
     )
       throw new Error('Invalid publication history')
     setHistory(value.receipts)
+    setContinuationUncertain(false)
   }
   async function acknowledge(generation: number, id: string) {
     setContinuation(null)
@@ -474,6 +523,8 @@ export function PublishRepository({
   }
   async function reviewContinuation(generation: number, id: string) {
     setContinuation(null)
+    setContinuationConsent(false)
+    setContinuationOutcome(null)
     setContinuationMessage('')
     try {
       const value = await request('publish_continue_preview', {
@@ -484,7 +535,7 @@ export function PublishRepository({
         !record(value) ||
         !short(value.basis) ||
         value.phase !== 'created' ||
-        value.can_continue !== false ||
+        typeof value.can_continue !== 'boolean' ||
         !short(value.reason) ||
         !record(value.actor) ||
         !short(value.actor.login) ||
@@ -501,17 +552,79 @@ export function PublishRepository({
       if (!url) throw new Error('Invalid continuation URL')
       setContinuation({
         receiptId: id,
+        basis: value.basis as string,
+        canContinue: value.can_continue as boolean,
         url,
         actor: value.actor as Continuation['actor'],
         owner: value.owner as Continuation['owner'],
         private: value.private,
         reason: value.reason,
       })
-    } catch {
+    } catch (error) {
       if (generation !== epoch.current) return
+      const reason =
+        error instanceof Error && short(error.message)
+          ? error.message
+          : 'The review is unavailable.'
       setContinuationMessage(
-        'Could not verify the continuation. This review made no changes; inspect the history and try again when available.'
+        `Could not verify the continuation: ${reason} This review made no changes; inspect the history and try again when available.`
       )
+    }
+  }
+  async function applyContinuation(generation: number) {
+    const captured = continuation
+    if (
+      !captured ||
+      !captured.canContinue ||
+      !continuationConsent ||
+      continuationUncertain
+    )
+      return
+    writing.current = generation
+    setContinuation(null)
+    setContinuationConsent(false)
+    setContinuationOutcome(null)
+    setContinuationMessage('')
+    try {
+      const value = await request('publish_continue', {
+        receipt_id: captured.receiptId,
+        basis: captured.basis,
+        acknowledge_partial: true,
+      })
+      if (generation !== epoch.current) return
+      if (!continuationResult(value, captured.receiptId, captured.url))
+        throw new Error('Invalid continuation result')
+      setContinuationOutcome(value)
+      if (value.phase === 'account_assigned' && value.error === null) {
+        setContinuationMessage(
+          'Origin and account are configured. No branches were pushed.'
+        )
+      } else {
+        setContinuationUncertain(true)
+        setContinuationMessage(
+          'The operation stopped. Inspect publication history before taking further action; no retry was sent.'
+        )
+      }
+      setHistory(null)
+    } catch {
+      if (generation === epoch.current) {
+        setHistory(null)
+        setContinuationUncertain(true)
+        setContinuationMessage(
+          'The result is uncertain. Reload publication history before taking further action; no retry was sent.'
+        )
+      }
+    } finally {
+      try {
+        if (generation === epoch.current) await onChanged()
+      } catch {
+        if (generation === epoch.current)
+          setContinuationMessage(
+            current =>
+              current + ' Repository refresh failed; reload the repository.'
+          )
+      }
+      if (writing.current === generation) writing.current = null
     }
   }
   const cleaned = sanitizedRepositoryName(name)
@@ -519,9 +632,9 @@ export function PublishRepository({
     <details className="publish-repository">
       <summary>Review publication</summary>
       <p>
-        Full publication is not available. This screen only reviews. The CLI can
-        create the remote repository when its safety checks pass; it does not
-        configure origin, assign an account, or push branches.
+        Full publication is not available. The CLI can create the remote
+        repository when its safety checks pass. A separate reviewed step can
+        configure origin and assign an account; neither step pushes branches.
       </p>
       <label>
         GitHub host{' '}
@@ -722,6 +835,34 @@ export function PublishRepository({
         >
           Load publication history
         </button>
+        {continuationOutcome && (
+          <div aria-label="Continuation result">
+            <p>
+              Receipt: {continuationOutcome.receipt_id} · Phase:{' '}
+              {continuationOutcome.phase}
+            </p>
+            <p>
+              {phaseDescriptions[continuationOutcome.phase] ||
+                'The operation state could not be confirmed.'}
+            </p>
+            {continuationOutcome.url && (
+              <p>
+                Repository:{' '}
+                <a
+                  href={continuationOutcome.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {continuationOutcome.url}
+                </a>
+              </p>
+            )}
+            {continuationOutcome.error && <p>{continuationOutcome.error}</p>}
+            {continuationOutcome.message && (
+              <p>{continuationOutcome.message}</p>
+            )}
+          </div>
+        )}
         {historyMessage && <p role="status">{historyMessage}</p>}
         {continuationMessage && <p role="status">{continuationMessage}</p>}
         {history &&
@@ -776,6 +917,31 @@ export function PublishRepository({
                         not executed by this review.
                       </p>
                       <p>{continuation.reason}</p>
+                      {continuation.canContinue && !continuationUncertain && (
+                        <React.Fragment>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={continuationConsent}
+                              disabled={busy}
+                              onChange={event =>
+                                setContinuationConsent(
+                                  event.currentTarget.checked
+                                )
+                              }
+                            />
+                            I understand this adds origin and assigns the
+                            verified account; no branches will be pushed.
+                          </label>
+                          <button
+                            type="button"
+                            disabled={busy || !continuationConsent}
+                            onClick={() => void run(applyContinuation)}
+                          >
+                            Add origin and assign account
+                          </button>
+                        </React.Fragment>
+                      )}
                     </section>
                   )}
                   {row.acknowledged ? (

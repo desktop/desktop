@@ -40,6 +40,36 @@ pub async fn run_git(
     run_command(path, command, args, input, 2 * 1024 * 1024, None).await
 }
 
+/// Parse supplied config bytes without discovering a repository or loading user configuration.
+#[cfg(unix)]
+pub(crate) async fn parse_git_config(bytes: Vec<u8>) -> Result<RawOutput> {
+    let mut command = Command::new("git");
+    command
+        .env("GIT_DIR", "/dev/null")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_SYSTEM", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_COUNT", "0")
+        .env_remove("GIT_WORK_TREE")
+        .env_remove("GIT_COMMON_DIR")
+        .env_remove("GIT_CONFIG")
+        .env_remove("GIT_CONFIG_PARAMETERS")
+        .env("GIT_TERMINAL_PROMPT", "0");
+    run_command(
+        &std::env::temp_dir(),
+        command,
+        &crate::args(&["config", "--file", "-", "--no-includes", "--null", "--list"]),
+        Some(bytes),
+        2 * 1024 * 1024,
+        None,
+    )
+    .await
+}
+#[cfg(not(unix))]
+pub(crate) async fn parse_git_config(_: Vec<u8>) -> Result<RawOutput> {
+    anyhow::bail!("Git configuration cannot be verified on this platform")
+}
+
 /// Typed commits contain message options, never pathspec operands. Do not leak
 /// our direct-file literal mode into user hooks or Git LFS post-commit hooks.
 pub async fn run_commit(path: &Path, args: &[OsString]) -> Result<RawOutput> {

@@ -123,6 +123,15 @@ enum PublishAction {
     },
     /// Review a confirmed remote before continuing publication.
     ContinuePreview { receipt_id: String },
+    /// Configure origin and associate the reviewed account; pushing is not implemented.
+    Continue {
+        receipt_id: String,
+        #[arg(long)]
+        basis: String,
+        /// Acknowledge that this step does not push branches.
+        #[arg(long)]
+        acknowledge_partial: bool,
+    },
     /// Inspect durable records of publication attempts.
     History,
     /// Acknowledge a publication record without retrying or deleting it.
@@ -236,6 +245,22 @@ enum Action {
         basis: String,
         #[arg(long)]
         allow_markers: bool,
+    },
+    /// Merge a branch or commit into the current branch.
+    Merge { branch: String },
+    /// Rebase the current branch onto a branch or commit.
+    Rebase { branch: String },
+    /// Cherry-pick a commit, selecting a merge parent when needed.
+    CherryPick {
+        commit: String,
+        #[arg(long)]
+        mainline: Option<u32>,
+    },
+    /// Revert a commit, selecting a merge parent when needed.
+    Revert {
+        commit: String,
+        #[arg(long)]
+        mainline: Option<u32>,
     },
     /// Continue, abort, skip, or quit an operation of the given kind.
     Recover { kind: String, action: String },
@@ -866,6 +891,7 @@ async fn run(mut cli: Cli) -> Result<()> {
                     }
                 }
                 PublishAction::ContinuePreview { receipt_id } => Operation::PublishContinuePreview { receipt_id },
+                PublishAction::Continue { receipt_id, basis, acknowledge_partial } => Operation::PublishContinue { receipt_id, basis, acknowledge_partial },
                 PublishAction::History => Operation::PublishHistory {},
                 PublishAction::Acknowledge { receipt_id } => Operation::AcknowledgePublish { receipt_id },
             };
@@ -960,6 +986,10 @@ async fn run(mut cli: Cli) -> Result<()> {
         Action::BranchNameRules { name } => run_operation(&cli.repo, &repository_scope,Operation::BranchNameRules { name },true).await,
         Action::Conflict { path } => run_operation(&cli.repo, &repository_scope,Operation::ConflictDetail{path:git_path(path)},true).await,
         Action::ResolveConflict { path,choice,basis } => run_operation(&cli.repo, &repository_scope,serde_json::from_value(serde_json::json!({"method":"resolve_conflict","path":git_path(path),"choice":choice,"basis":basis}))?,true).await,
+        Action::Merge { branch } => run_operation(&cli.repo, &repository_scope, Operation::Merge { branch }, true).await,
+        Action::Rebase { branch } => run_operation(&cli.repo, &repository_scope, Operation::Rebase { branch }, true).await,
+        Action::CherryPick { commit, mainline } => run_operation(&cli.repo, &repository_scope, Operation::CherryPick { commit, mainline }, true).await,
+        Action::Revert { commit, mainline } => run_operation(&cli.repo, &repository_scope, Operation::Revert { commit, mainline }, true).await,
         Action::Recover { kind,action } => run_operation(&cli.repo, &repository_scope,serde_json::from_value(serde_json::json!({"method":"recover","kind":kind,"action":action}))?,true).await,
         Action::Snapshot => run_operation(&cli.repo, &repository_scope, Operation::Snapshot, true).await,
         Action::Stage { paths } => {
@@ -1186,6 +1216,12 @@ async fn run_operation(
     operation: Operation,
     json: bool,
 ) -> Result<()> {
+    if matches!(
+        &operation,
+        Operation::PublishContinuePreview { .. } | Operation::PublishContinue { .. }
+    ) {
+        desktop_core::publication_config_preflight(repo).await?;
+    }
     let output = match operation {
         Operation::LfsToolStatus => desktop_core::lfs_tool_status(repo).await?,
         Operation::LfsInstall {

@@ -828,3 +828,274 @@ test('continuation replies cannot cross a repository or account change', async (
     dom.window.close()
   }
 })
+
+test('origin and account require explicit consent, keep busy during account changes, and never push', async () => {
+  const { dom, root, button, field } = setup(),
+    { mount } = await source(),
+    calls = [],
+    pending = deferred(),
+    id = '12345678-1234-4234-8234-123456789abc'
+  let changed = 0
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        return {
+          basis: 'reviewed-basis',
+          phase: 'created',
+          url: 'https://github.com/alice/repo',
+          actor: { login: 'alice', id: 101 },
+          owner: { login: 'alice', id: 101 },
+          private: true,
+          can_continue: true,
+          reason: 'This adds origin and assigns the account; no push',
+        }
+      if (method === 'publish_continue') return pending.promise
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {
+      changed++
+    },
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    await until(() => button('Add origin and assign account'))
+    assert(button('Add origin and assign account').disabled)
+    assert(!calls.some(call => call.method === 'publish_continue'))
+    field('I understand').click()
+    assert(!button('Add origin and assign account').disabled)
+    button('Add origin and assign account').click()
+    await until(() => calls.some(call => call.method === 'publish_continue'))
+    assert.deepEqual(
+      calls.find(call => call.method === 'publish_continue').parameters,
+      {
+        receipt_id: id,
+        basis: 'reviewed-basis',
+        acknowledge_partial: true,
+      }
+    )
+    panel.setBasis('two')
+    await new Promise(resolve => setTimeout(resolve, 40))
+    assert(button('Load publication history').disabled)
+    pending.resolve({
+      phase: 'account_assigned',
+      receipt_id: id,
+      url: 'https://github.com/alice/repo',
+      error: null,
+      message: 'Origin and account are configured; pushing is not implemented',
+    })
+    await until(
+      () =>
+        root.textContent.includes('No branches were pushed.') && changed === 1
+    )
+    assert(root.textContent.includes('Phase: account_assigned'))
+    assert.equal(
+      root.querySelector('[aria-label="Continuation result"] a').href,
+      'https://github.com/alice/repo'
+    )
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue').length,
+      1
+    )
+    assert(
+      !calls.some(call =>
+        ['publish_create', 'push', 'publish'].includes(call.method)
+      )
+    )
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('uncertain continuation preserves the phase and cannot replay without a new history review', async () => {
+  const { dom, root, button, field } = setup(),
+    { mount } = await source(),
+    calls = [],
+    id = '12345678-1234-4234-8234-123456789abc'
+  let phase = 'created',
+    historyReads = 0
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history') {
+        historyReads++
+        return {
+          receipts: [
+            { id, phase, url: null, error: null, acknowledged: false },
+          ],
+        }
+      }
+      if (method === 'publish_continue_preview')
+        return {
+          basis: 'basis',
+          phase: 'created',
+          url: 'https://github.com/alice/repo',
+          actor: { login: 'alice', id: 101 },
+          owner: { login: 'alice', id: 101 },
+          private: false,
+          can_continue: true,
+          reason: 'No push',
+        }
+      if (method === 'publish_continue') {
+        phase = 'assignment_unknown'
+        return {
+          phase,
+          receipt_id: id,
+          url: null,
+          error: 'Inspect recovery history',
+        }
+      }
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {
+      throw new Error('refresh failed')
+    },
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    await until(() => field('I understand'))
+    field('I understand').click()
+    button('Add origin and assign account').click()
+    await until(() => root.textContent.includes('Repository refresh failed'))
+    assert(root.textContent.includes('Phase: assignment_unknown'))
+    assert(root.textContent.includes('Inspect recovery history'))
+    assert(root.textContent.includes('no retry was sent'))
+    assert(!button('Add origin and assign account'))
+    assert.equal(historyReads, 1)
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue').length,
+      1
+    )
+    button('Load publication history').click()
+    await until(
+      () =>
+        historyReads === 2 && root.textContent.includes('assignment_unknown')
+    )
+    assert(!button('Review continuation ' + id))
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue').length,
+      1
+    )
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('lost continuation result is uncertain and is never automatically retried', async () => {
+  const { dom, root, button, field } = setup(),
+    { mount } = await source(),
+    calls = [],
+    id = '12345678-1234-4234-8234-123456789abc'
+  const panel = mount(root, {
+    async request(method, parameters) {
+      calls.push({ method, parameters })
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        return {
+          basis: 'basis',
+          phase: 'created',
+          url: 'https://github.com/alice/repo',
+          actor: { login: 'alice', id: 101 },
+          owner: { login: 'alice', id: 101 },
+          private: true,
+          can_continue: true,
+          reason: 'No push',
+        }
+      if (method === 'publish_continue') throw new Error('connection lost')
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    await until(() => field('I understand'))
+    field('I understand').click()
+    button('Add origin and assign account').click()
+    await until(() => root.textContent.includes('The result is uncertain'))
+    assert(!button('Add origin and assign account'))
+    assert(!button('Review continuation ' + id))
+    assert.equal(
+      calls.filter(call => call.method === 'publish_continue').length,
+      1
+    )
+    assert.equal(
+      calls.filter(call => call.method === 'publish_history').length,
+      1
+    )
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})
+
+test('continuation review exposes a safe backend preflight reason', async () => {
+  const { dom, root, button } = setup(),
+    { mount } = await source(),
+    id = '12345678-1234-4234-8234-123456789abc'
+  const panel = mount(root, {
+    async request(method) {
+      if (method === 'publish_history')
+        return {
+          receipts: [
+            {
+              id,
+              phase: 'created',
+              url: null,
+              error: null,
+              acknowledged: false,
+            },
+          ],
+        }
+      if (method === 'publish_continue_preview')
+        throw new Error('System Git configuration cannot be inspected safely')
+      throw new Error('Unexpected request: ' + method)
+    },
+    async onChanged() {},
+  })
+  try {
+    button('Load publication history').click()
+    await until(() => button('Review continuation ' + id))
+    button('Review continuation ' + id).click()
+    await until(() =>
+      root.textContent.includes(
+        'System Git configuration cannot be inspected safely'
+      )
+    )
+    assert(button('Review continuation ' + id))
+    assert(!button('Add origin and assign account'))
+  } finally {
+    panel.dispose()
+    dom.window.close()
+  }
+})

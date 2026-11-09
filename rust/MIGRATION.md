@@ -1697,7 +1697,8 @@ pushes. For a repository with a prior remote, the existing Desktop-compatible
 branch policy resolves remote HEAD and tracking. Credential reflection is
 rejected, and numeric IDs are limited to JavaScript-safe integers.
 
-The localhost management panel exposes the same review without write controls.
+The localhost management panel exposes the review and a separately confirmed
+origin/account step that does not push.
 The offline integration fixtures pass account, branch, concurrent-state and
 credential-reflection checks. The preview does not reserve a name or establish
 creation permissions. It returns `can_apply: false` while full publication,
@@ -1723,9 +1724,13 @@ an interrupted or unverified response as uncertain. The CLI requires explicit
 acknowledgement of its partial scope. For confirmed creations with durable identity, a read-only continuation review
 revalidates actor, owner, remote numeric ID and HTTPS URL and rechecks the
 repository and account witnesses; older receipts without identity and unknown
-outcomes are not adopted. Origin setup, account association, pushes and
-reconciliation remain open. Preview and creation currently
-fail closed on non-Unix platforms pending equivalent directory identity checks.
+outcomes are not adopted. A reviewed continuation can add a verified HTTPS
+`origin` and associate the chosen account, with durable phases before each
+effect. It rejects unsafe Git config files, includes, URL rewrites and existing
+origin settings; it performs no push. Independent writers that ignore Git's
+config lock are not reserved by that lock. Account-bound pushes and explicit
+reconciliation remain open. Preview and creation currently fail closed on
+non-Unix platforms pending equivalent directory identity checks.
 
 ## Other legacy boundaries
 

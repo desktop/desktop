@@ -2,7 +2,8 @@
 
 Rust replacement for GitHub Desktop's backend, CLI, and platform transports. The
 full migration is active. The original Electron app remains until the
-replacement passes the removal gates in [MIGRATION.md](MIGRATION.md). Upstream
+replacement passes the removal gates in [MIGRATION.md](MIGRATION.md). Remaining
+headless and platform work is tracked in [TODO.md](TODO.md). Upstream
 is https://github.com/desktop/desktop at
 `1bfab971ad2d373d5ef996dda2b894232658f8f6`. The upstream MIT license applies.
 Bundled browser dependencies and moved source notices are preserved in
@@ -502,7 +503,20 @@ acknowledgement. For a confirmed creation with recorded identity,
 shows what was verified without changing the repository. Older records without
 identity cannot use this review. Automatic reconciliation is not yet
 implemented. An interrupted or unverified response remains `creation_unknown`;
-inspect GitHub and history before taking further action. This operation requires
+inspect GitHub and history before taking further action. With a confirmed
+creation, the reviewed continuation can add `origin` and associate the selected
+account; it does not push branches:
+
+```sh
+GIT_CONFIG_NOSYSTEM=1 ./target/debug/desktop-rs -C /path/to/repo publish continue-preview RECEIPT_ID
+GIT_CONFIG_NOSYSTEM=1 ./target/debug/desktop-rs -C /path/to/repo publish continue RECEIPT_ID --basis CONTINUATION_BASIS --acknowledge-partial
+```
+
+The continuation rejects Git config includes, URL rewrites, existing origin
+settings, unsafe config files and unsupported Git environment overrides. Use
+`GIT_CONFIG_NOSYSTEM=1` or an explicitly specified safe `GIT_CONFIG_SYSTEM`.
+A partial or interrupted result needs inspection and is never automatically
+replayed. These operations require
 a private registry outside the worktree and Git directories. The safe registry
 implementation currently supports Unix. Preview and creation fail closed on
 non-Unix platforms until equivalent directory identity checks are implemented.
@@ -1448,6 +1462,7 @@ python tests/lifecycle.py
 python tests/cancellation.py
 python tests/signals.py
 python tests/workflows.py
+python tests/direct_git_cli.py
 python tests/stashes.py
 python tests/branch_rename.py
 python tests/branch_create.py
@@ -1472,6 +1487,7 @@ python tests/publish_create.py
 python tests/publish_ledger_visibility.py
 python tests/publish_preview_cancel.py
 python tests/publish_continue.py
+python tests/publish_origin.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

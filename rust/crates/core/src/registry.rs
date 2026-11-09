@@ -225,8 +225,18 @@ impl SavedRepositories {
                                 .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))))
                     && intent_ids.insert(&intent.id)
                     && intent_repositories.insert(&intent.repository_id)
-                    && matches!(intent.phase.as_str(), "creation_unknown" | "created")
-                    && ((intent.phase == "created") == intent.remote_id.is_some())
+                    && matches!(
+                        intent.phase.as_str(),
+                        "creation_unknown"
+                            | "created"
+                            | "origin_unknown"
+                            | "origin_added"
+                            | "assignment_unknown"
+                            | "account_assigned"
+                    )
+                    && ((intent.phase != "creation_unknown") == intent.remote_id.is_some())
+                    && (matches!(intent.phase.as_str(), "creation_unknown" | "created")
+                        || intent.identity.is_some())
                     && intent
                         .remote_id
                         .is_none_or(|id| id > 0 && id <= 9_007_199_254_740_991)
@@ -272,7 +282,7 @@ impl SavedRepositories {
                 }),
         )
     }
-    fn record_by_id(&self, id: &str) -> Option<SavedRepositoryRecord> {
+    pub(crate) fn record_by_id(&self, id: &str) -> Option<SavedRepositoryRecord> {
         self.records
             .iter()
             .find(|record| record.id == id)
@@ -285,7 +295,7 @@ impl SavedRepositories {
                     .and_then(|path| self.record_for_path(path))
             })
     }
-    fn persist_record(&mut self, record: SavedRepositoryRecord) {
+    pub(crate) fn persist_record(&mut self, record: SavedRepositoryRecord) {
         if let Some(saved) = self.records.iter_mut().find(|saved| saved.id == record.id) {
             *saved = record;
         } else {

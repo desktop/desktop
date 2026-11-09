@@ -82,6 +82,7 @@ jobs:
           python3 rust/tests/cancellation.py
           python3 rust/tests/signals.py
           python3 rust/tests/workflows.py
+          python3 rust/tests/direct_git_cli.py
           python3 rust/tests/stashes.py
           python3 rust/tests/branch_rename.py
           python3 rust/tests/branch_create.py
@@ -96,6 +97,7 @@ jobs:
           python3 rust/tests/publish_ledger_visibility.py
           python3 rust/tests/publish_preview_cancel.py
           python3 rust/tests/publish_continue.py
+          python3 rust/tests/publish_origin.py
           python3 rust/tests/git_credentials.py
           python3 rust/tests/upstream_setup.py
           python3 rust/tests/branch_name_rules.py

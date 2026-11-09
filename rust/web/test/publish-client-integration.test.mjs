@@ -167,6 +167,8 @@ os.execv(real,[real,*args])
       html_url: 'https://github.com/alice/my-repository',
       clone_url: 'https://github.com/alice/my-repository.git',
       private: true,
+      fork: false,
+      parent: null,
     }
     const provider = async (allowPost, repository = providerRepository) =>
       writeFile(
@@ -424,6 +426,57 @@ os.execv(real,[real,*args])
     )
     assert(!calls.some(call => call.method === 'publish'))
     assert.deepEqual(await snapshot(), before)
+    await provider(false)
+    button(view, 'Review continuation ' + createdId).click()
+    await until(
+      () =>
+        view.querySelector('[aria-label="Continuation review"]') &&
+        button(view, 'Add origin and assign account'),
+      () => 'reviewed origin step unavailable: ' + view.textContent
+    )
+    const consent = [...view.querySelectorAll('label')]
+      .find(label =>
+        label.textContent.includes('I understand this adds origin')
+      )
+      ?.querySelector('input')
+    assert(consent)
+    assert(button(view, 'Add origin and assign account').disabled)
+    assert(!calls.some(call => call.method === 'publish_continue'))
+    consent.click()
+    assert(!button(view, 'Add origin and assign account').disabled)
+    const lastReview = calls
+      .filter(call => call.method === 'publish_continue_preview')
+      .at(-1)
+    const basis = replies.find(reply => reply.id === lastReview.id)?.result
+      ?.basis
+    assert.equal(typeof basis, 'string')
+    button(view, 'Add origin and assign account').click()
+    await until(
+      () => view.textContent.includes('No branches were pushed.'),
+      () => 'origin step failed: ' + view.textContent
+    )
+    const applied = calls.filter(call => call.method === 'publish_continue')
+    assert.equal(applied.length, 1)
+    assert.equal(applied[0].receipt_id, createdId)
+    assert.equal(applied[0].basis, basis)
+    assert.equal(applied[0].acknowledge_partial, true)
+    assert.equal(
+      git('config', '--get', 'remote.origin.url').trim(),
+      'https://github.com/alice/my-repository.git'
+    )
+    const after = await snapshot()
+    for (const key of ['head', 'index', 'file', 'refs'])
+      assert.deepEqual(after[key], before[key])
+    const recordAfter = JSON.parse(after.registry).records.find(
+      row => row.path === repo
+    )
+    assert.equal(recordAfter.account.assignment.mode, 'effective')
+    assert(view.textContent.includes('Phase: account_assigned'))
+    assert(
+      !calls.some(call =>
+        ['publish_create', 'push', 'publish'].includes(call.method)
+      )
+    )
     const ghCalls = (await readFile(log, 'utf8'))
       .trim()
       .split('\n')

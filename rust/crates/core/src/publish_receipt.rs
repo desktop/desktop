@@ -325,6 +325,149 @@ impl Repository {
         .await
     }
 
+    /// Read a phase only from the authoritative private ledger, never local receipts.
+    pub(crate) async fn publication_intent_phase(&self, id: &str) -> Result<Option<String>> {
+        ensure!(valid_id(id), "Invalid publication receipt ID");
+        let (root, scope, registry, path) = self
+            .publish_receipt_scope()
+            .await?
+            .context("Saved repository is unavailable")?;
+        let id = id.to_owned();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &scope.common_dir, false, |data| {
+                ensure!(
+                    crate::Registry::publication_record_matches(data, &scope.record_id, &path),
+                    "Saved repository changed"
+                );
+                Ok(data
+                    .publication_intents
+                    .iter()
+                    .find(|item| item.id == id && matches_scope(item, &scope))
+                    .map(|item| item.phase.clone()))
+            })
+        })
+        .await
+    }
+
+    /// Persist a publication phase only while the original account record remains unchanged.
+    pub(crate) async fn transition_publish_intent(
+        &self,
+        expected: &crate::registry::PublicationIntent,
+        account: &crate::registry::SavedRepositoryRecord,
+        phase: &'static str,
+    ) -> Result<crate::registry::PublicationIntent> {
+        ensure!(
+            matches!(
+                (expected.phase.as_str(), phase),
+                ("created", "origin_unknown")
+                    | ("origin_unknown", "origin_added")
+                    | ("origin_added", "assignment_unknown")
+            ),
+            "Invalid publication phase transition"
+        );
+        let registry = self
+            .account_registry()
+            .context("Missing repository registry")?
+            .clone();
+        let root = self.git_directory().await?;
+        let common = self.common_directory().await?;
+        let path = self.path().to_owned();
+        let expected = expected.clone();
+        let account = account.clone();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &common, true, |data| {
+                let record = data
+                    .record_by_id(&account.id)
+                    .context("Saved repository changed")?;
+                ensure!(
+                    record.path == path
+                        && serde_json::to_vec(&record.account)?
+                            == serde_json::to_vec(&account.account)?,
+                    "Repository account changed; inspect publication history"
+                );
+                let item = data
+                    .publication_intents
+                    .iter_mut()
+                    .find(|item| item.id == expected.id)
+                    .context("Publication recovery state changed")?;
+                ensure!(
+                    serde_json::to_vec(&*item)? == serde_json::to_vec(&expected)?,
+                    "Publication recovery state changed"
+                );
+                item.phase = phase.into();
+                Ok(item.clone())
+            })
+        })
+        .await
+    }
+
+    /// Commit the account replacement and the confirmed phase in one registry transaction.
+    pub(crate) async fn assign_publish_account(
+        &self,
+        expected: &crate::registry::PublicationIntent,
+        account: &crate::registry::SavedRepositoryRecord,
+        replacement: crate::StoredAccount,
+        expected_config: &crate::publish_origin::OriginConfigSnapshot,
+    ) -> Result<crate::registry::PublicationIntent> {
+        ensure!(
+            expected.phase == "assignment_unknown",
+            "Invalid publication phase transition"
+        );
+        replacement.validate()?;
+        ensure!(
+            replacement.revision
+                == account
+                    .account
+                    .revision
+                    .checked_add(1)
+                    .context("Account revision overflow")?,
+            "Invalid publication account revision"
+        );
+        let registry = self
+            .account_registry()
+            .context("Missing repository registry")?
+            .clone();
+        let root = self.git_directory().await?;
+        let common = self.common_directory().await?;
+        let path = self.path().to_owned();
+        let expected = expected.clone();
+        let account = account.clone();
+        let expected_config = expected_config.clone();
+        cancellation::blocking(move || {
+            registry.publication_store(&path, &root, &common, true, |data| {
+                ensure!(
+                    crate::publish_origin::capture(&path)? == expected_config,
+                    "Git configuration changed; inspect publication history"
+                );
+                let mut record = data
+                    .record_by_id(&account.id)
+                    .context("Saved repository changed")?;
+                ensure!(
+                    record.path == path
+                        && serde_json::to_vec(&record.account)?
+                            == serde_json::to_vec(&account.account)?,
+                    "Repository account changed; inspect publication history"
+                );
+                let position = data
+                    .publication_intents
+                    .iter()
+                    .position(|item| item.id == expected.id)
+                    .context("Publication recovery state changed")?;
+                ensure!(
+                    serde_json::to_vec(&data.publication_intents[position])?
+                        == serde_json::to_vec(&expected)?,
+                    "Publication recovery state changed"
+                );
+                record.account = replacement;
+                data.persist_record(record);
+                let item = &mut data.publication_intents[position];
+                item.phase = "account_assigned".into();
+                Ok(item.clone())
+            })
+        })
+        .await
+    }
+
     /// Ensure that the authoritative unknown outcome is still durable before POST.
     pub(crate) async fn ensure_publish_receipt(&self, id: &str) -> Result<()> {
         ensure!(valid_id(id), "Invalid publication receipt");

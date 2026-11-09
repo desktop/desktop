@@ -255,6 +255,18 @@ struct PublishGitWitness {
     head_oid_code: i32,
 }
 
+impl PublishGitWitness {
+    fn same_except_configuration(&self, other: &Self) -> bool {
+        self.physical_directories == other.physical_directories
+            && self.default_branch == other.default_branch
+            && self.references == other.references
+            && self.head_ref == other.head_ref
+            && self.head_oid == other.head_oid
+            && self.head_ref_code == other.head_ref_code
+            && self.head_oid_code == other.head_oid_code
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Serialize)]
 struct PublishDirectoryIdentity {
     path: Vec<u8>,
@@ -306,6 +318,18 @@ struct PublishPlan {
     owner_login: String,
     owner_id: u64,
     organization: bool,
+}
+
+struct ContinuePlan {
+    view: Value,
+    intent: crate::registry::PublicationIntent,
+    identity: crate::registry::PublicationIdentity,
+    account: crate::registry::SavedRepositoryRecord,
+    verified: PublishPlan,
+    config: crate::publish_origin::OriginConfigSnapshot,
+    effective_config: Vec<u8>,
+    clone_url: String,
+    is_non_fork: bool,
 }
 
 impl Repository {
@@ -385,12 +409,24 @@ impl Repository {
     }
     /// Review a previously confirmed creation; no local or remote mutation occurs.
     pub(crate) async fn publish_continue_preview(&self, receipt_id: &str) -> Result<Value> {
+        Ok(self.publish_continue_plan(receipt_id).await?.view)
+    }
+    async fn publish_continue_plan(&self, receipt_id: &str) -> Result<ContinuePlan> {
+        let path = self.path().to_owned();
+        let config = cancellation::blocking(move || crate::publish_origin::capture(&path)).await?;
+        let effective_config =
+            crate::publish_origin::inspect_semantics(self.path(), &config).await?;
         let intent = self.publish_created_intent(receipt_id).await?;
         let identity = intent
             .identity
-            .as_ref()
+            .clone()
             .context("Publication identity is unavailable")?;
         identity.validate()?;
+        let clone_url = format!(
+            "https://{}/{}/{}.git",
+            identity.host, identity.owner, identity.name
+        );
+        crate::publish_origin::validate_candidate(&config, &clone_url).await?;
         let remote_id = intent
             .remote_id
             .context("Publication identity is unavailable")?;
@@ -441,7 +477,7 @@ impl Repository {
                 "GitHub organization changed since creation"
             );
         }
-        ensure_safe_identity(&session, &actor_login, identity)?;
+        ensure_safe_identity(&session, &actor_login, &identity)?;
         let repository = RepositoryIdentity {
             host: identity.host.to_ascii_lowercase(),
             owner: identity.owner.to_ascii_lowercase(),
@@ -454,6 +490,7 @@ impl Repository {
         let private = value["private"]
             .as_bool()
             .context("Invalid GitHub repository response")?;
+        let is_non_fork = value["fork"].as_bool() == Some(false);
         ensure!(
             validate_created_repository(
                 &value,
@@ -498,17 +535,35 @@ impl Repository {
                 &plan.remotes,
                 &plan.git,
                 &plan.default_branch,
+                &config,
+                &effective_config,
                 private,
+                is_non_fork,
             ))?)
         );
         let url = format!(
             "https://{}/{}/{}",
             identity.host, identity.owner, identity.name
         );
+        let path = self.path().to_owned();
+        ensure!(
+            cancellation::blocking(move || crate::publish_origin::capture(&path)).await? == config,
+            "Git configuration changed; reload before continuing"
+        );
+        ensure!(
+            crate::publish_origin::inspect_semantics(self.path(), &config).await?
+                == effective_config,
+            "Git configuration changed; reload before continuing"
+        );
+        let reason = if is_non_fork {
+            "This step adds origin and associates the account; pushing is not implemented."
+        } else {
+            "The repository is not verified as a non-fork; continuing is unavailable."
+        };
         let result = json!({"basis":basis,"phase":"created","url":url,
             "actor":{"login":identity.actor_login,"id":identity.actor_id},
             "owner":{"login":identity.owner,"id":identity.owner_id},"private":private,
-            "can_continue":false,"reason":"Adding origin, account association and pushes are not implemented yet"});
+            "can_continue":is_non_fork,"reason":reason});
         let encoded = serde_json::to_vec(&result)?;
         let redacted = plan.session.redact_output_for_login(
             crate::process::RawOutput {
@@ -522,7 +577,239 @@ impl Repository {
             redacted.stdout == encoded,
             "Cannot safely display publication review"
         );
-        Ok(result)
+        let account = state
+            .record
+            .context("Saved repository account is unavailable")?;
+        Ok(ContinuePlan {
+            view: result,
+            intent,
+            identity,
+            account,
+            verified: plan,
+            config,
+            effective_config,
+            clone_url,
+            is_non_fork,
+        })
+    }
+
+    async fn verify_continue_remote(&self, plan: &ContinuePlan) -> Result<()> {
+        let identity = &plan.identity;
+        let repository = RepositoryIdentity {
+            host: identity.host.to_ascii_lowercase(),
+            owner: identity.owner.to_ascii_lowercase(),
+            name: identity.name.to_ascii_lowercase(),
+        };
+        let value = plan
+            .verified
+            .session
+            .repository_by_identity(&repository)
+            .await?
+            .map_err(|_| anyhow::anyhow!("Cannot verify the created GitHub repository"))?;
+        let private = value["private"]
+            .as_bool()
+            .context("Invalid GitHub repository response")?;
+        ensure!(
+            plan.view["private"].as_bool() == Some(private)
+                && value["fork"].as_bool() == Some(false)
+                && validate_created_repository(
+                    &value,
+                    &identity.host,
+                    &identity.owner,
+                    identity.owner_id,
+                    &identity.name,
+                    private
+                ) == plan.intent.remote_id,
+            "Created GitHub repository identity changed"
+        );
+        Ok(())
+    }
+
+    /// Prove that the exact reviewed origin is the only local configuration change.
+    async fn verify_added_origin(
+        &self,
+        plan: &ContinuePlan,
+    ) -> Result<(
+        crate::repository_context::Binding,
+        crate::publish_origin::OriginConfigSnapshot,
+    )> {
+        crate::publication_config_preflight(self.path()).await?;
+        let path = self.path().to_owned();
+        let snapshot =
+            cancellation::blocking(move || crate::publish_origin::capture(&path)).await?;
+        ensure!(
+            plan.config.matches_added_origin(&snapshot, &plan.clone_url),
+            "Git configuration changed; inspect publication history"
+        );
+        crate::publish_origin::inspect_added_origin(
+            self.path(),
+            &plan.effective_config,
+            &plan.clone_url,
+        )
+        .await?;
+        ensure!(
+            self.account_store_state().await?.view.basis == plan.verified.state_basis,
+            "Repository account changed; inspect publication history"
+        );
+        let remotes = self.publish_remote_witness().await?;
+        ensure!(
+            remotes_with_only_added_origin(&plan.verified.remotes, &remotes, &plan.clone_url),
+            "Repository remotes changed; inspect publication history"
+        );
+        let git = self.publish_git_witness().await?;
+        ensure!(
+            plan.verified.git.same_except_configuration(&git),
+            "Repository state changed; inspect publication history"
+        );
+        let binding = self.fetch_binding(Some("origin".into())).await?;
+        let expected = RepositoryIdentity {
+            host: plan.identity.host.to_ascii_lowercase(),
+            owner: plan.identity.owner.to_ascii_lowercase(),
+            name: plan.identity.name.to_ascii_lowercase(),
+        };
+        ensure!(
+            binding.remote.as_deref() == Some("origin")
+                && binding.identity.as_ref() == Some(&expected),
+            "Origin destination changed; inspect publication history"
+        );
+        let path = self.path().to_owned();
+        ensure!(
+            cancellation::blocking(move || crate::publish_origin::capture(&path)).await?
+                == snapshot,
+            "Git configuration changed; inspect publication history"
+        );
+        Ok((binding, snapshot))
+    }
+
+    pub(crate) async fn publish_continue(
+        &self,
+        receipt_id: &str,
+        basis: &str,
+        acknowledge_partial: bool,
+    ) -> Result<Value> {
+        ensure!(
+            acknowledge_partial,
+            "Acknowledge that pushing is not implemented"
+        );
+        let _lock = self.stash_lock().await?;
+        let plan = self.publish_continue_plan(receipt_id).await?;
+        ensure!(
+            plan.view["basis"] == basis,
+            "Publication review changed; reload before continuing"
+        );
+        ensure!(
+            plan.is_non_fork,
+            "The created repository is not verified as a non-fork"
+        );
+        // Persist an uncertain phase before touching Git configuration.
+        let mut intent = self
+            .transition_publish_intent(&plan.intent, &plan.account, "origin_unknown")
+            .await?;
+        let result: Result<()> = async {
+            let path = self.path().to_owned();
+            let config = plan.config.clone();
+            let lock = cancellation::blocking(move || {
+                crate::publish_origin::OriginLock::acquire(&path, &config)
+            })
+            .await?;
+            self.verify_publish_plan(&plan.verified).await?;
+            self.verify_continue_remote(&plan).await?;
+            crate::publication_config_preflight(self.path()).await?;
+            ensure!(
+                crate::publish_origin::inspect_semantics(self.path(), &plan.config).await?
+                    == plan.effective_config,
+                "Git configuration changed; inspect publication history"
+            );
+            let path = self.path().to_owned();
+            let config = plan.config.clone();
+            let url = plan.clone_url.clone();
+            cancellation::blocking(move || lock.commit(&path, &config, &url)).await?;
+            let (binding, post_config) = self.verify_added_origin(&plan).await?;
+            self.verify_publish_actor(&plan.verified).await?;
+            self.verify_continue_remote(&plan).await?;
+            let (fresh_binding, fresh_config) = self.verify_added_origin(&plan).await?;
+            ensure!(
+                binding.fingerprint == fresh_binding.fingerprint && post_config == fresh_config,
+                "Origin changed; inspect publication history"
+            );
+            intent = self
+                .transition_publish_intent(&intent, &plan.account, "origin_added")
+                .await?;
+            intent = self
+                .transition_publish_intent(&intent, &plan.account, "assignment_unknown")
+                .await?;
+            let path = self.path().to_owned();
+            let expected = post_config.clone();
+            let _config_lock = cancellation::blocking(move || {
+                crate::publish_origin::OriginLock::acquire(&path, &expected)
+            })
+            .await?;
+            self.verify_publish_actor(&plan.verified).await?;
+            self.verify_continue_remote(&plan).await?;
+            let (final_binding, final_config) = self.verify_added_origin(&plan).await?;
+            ensure!(
+                binding.fingerprint == final_binding.fingerprint && post_config == final_config,
+                "Origin changed; inspect publication history"
+            );
+            let mut replacement = plan.account.account.clone();
+            replacement.revision = replacement
+                .revision
+                .checked_add(1)
+                .context("Account revision overflow")?;
+            replacement.assignment = match &plan.identity.target {
+                AccountTarget::Effective {} => crate::AccountAssignment::Effective {},
+                AccountTarget::Assigned { .. } => crate::AccountAssignment::Assigned {
+                    host: plan.identity.host.clone(),
+                    login: plan.identity.actor_login.clone(),
+                    id: plan.identity.actor_id,
+                },
+                AccountTarget::None {} => anyhow::bail!("Publication account is unavailable"),
+            };
+            replacement.source_remote = Some("origin".into());
+            replacement.association = Some(crate::ScopedAssociation {
+                remote_name: Some("origin".into()),
+                fingerprint: binding.fingerprint,
+                metadata: crate::RepositoryMetadata {
+                    identity: RepositoryIdentity {
+                        host: plan.identity.host.to_ascii_lowercase(),
+                        owner: plan.identity.owner.to_ascii_lowercase(),
+                        name: plan.identity.name.to_ascii_lowercase(),
+                    },
+                    is_fork: false,
+                    parent: None,
+                    updated_at_secs: std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)?
+                        .as_secs(),
+                },
+            });
+            self.assign_publish_account(&intent, &plan.account, replacement, &post_config)
+                .await?;
+            Ok(())
+        }
+        .await;
+        match result {
+            Ok(()) => Ok(json!({"phase":"account_assigned","receipt_id":receipt_id,
+                "url":plan.view["url"],"error":null,"message":"Origin and account are configured; pushing is not implemented"})),
+            Err(_) => {
+                cancellation::Cancellation::current().check()?;
+                let safe = crate::publication_config_preflight(self.path())
+                    .await
+                    .is_ok();
+                cancellation::Cancellation::current().check()?;
+                let phase = if safe {
+                    self.publication_intent_phase(receipt_id)
+                        .await
+                        .ok()
+                        .flatten()
+                } else {
+                    None
+                }
+                .unwrap_or_else(|| "state_unknown".into());
+                cancellation::Cancellation::current().check()?;
+                Ok(json!({"phase":phase,"receipt_id":receipt_id,"url":null,
+                    "error":"Publication stopped; inspect recovery history before taking further action"}))
+            }
+        }
     }
 
     pub(crate) async fn publish_create(
@@ -634,7 +921,7 @@ impl Repository {
         }
     }
 
-    async fn verify_publish_plan(&self, plan: &PublishPlan) -> Result<()> {
+    async fn verify_publish_actor(&self, plan: &PublishPlan) -> Result<()> {
         let actor = plan
             .session
             .get(Request::User)
@@ -689,6 +976,11 @@ impl Repository {
                 "GitHub account changed"
             );
         }
+        Ok(())
+    }
+
+    async fn verify_publish_plan(&self, plan: &PublishPlan) -> Result<()> {
+        self.verify_publish_actor(plan).await?;
         self.ensure_publish_witness(&plan.state_basis, &plan.remotes)
             .await?;
         ensure!(
@@ -858,6 +1150,31 @@ impl Repository {
             organization: owner_kind == "organization",
         })
     }
+}
+
+fn remotes_with_only_added_origin(
+    before: &(Vec<u8>, Vec<u8>),
+    after: &(Vec<u8>, Vec<u8>),
+    url: &str,
+) -> bool {
+    fn partition(bytes: &[u8], marker: &[u8]) -> (Vec<u8>, Vec<u8>) {
+        let mut other = Vec::new();
+        let mut origin = Vec::new();
+        for line in bytes.split_inclusive(|b| *b == b'\n') {
+            if line.starts_with(marker) {
+                origin.extend_from_slice(line);
+            } else {
+                other.extend_from_slice(line);
+            }
+        }
+        (other, origin)
+    }
+    let (names, origin_names) = partition(&after.0, b"origin\n");
+    let (details, origin_details) = partition(&after.1, b"origin\t");
+    names == before.0
+        && details == before.1
+        && origin_names == b"origin\n"
+        && origin_details == format!("origin\t{url} (fetch)\norigin\t{url} (push)\n").as_bytes()
 }
 
 fn directory_fingerprint(git: &PublishGitWitness) -> Result<String> {
@@ -1039,6 +1356,29 @@ fn read_description(path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn added_origin_proof_rejects_extra_or_changed_destinations() {
+        let before = (b"upstream\n".to_vec(), b"upstream\thttps://example.test/a/b.git (fetch)\nupstream\thttps://example.test/a/b.git (push)\n".to_vec());
+        let url = "https://github.com/alice/repo.git";
+        let after = (
+            b"origin\nupstream\n".to_vec(),
+            format!(
+                "origin\t{url} (fetch)\norigin\t{url} (push)\n{}",
+                String::from_utf8_lossy(&before.1)
+            )
+            .into_bytes(),
+        );
+        assert!(remotes_with_only_added_origin(&before, &after, url));
+        let mut changed = after.clone();
+        changed
+            .1
+            .extend_from_slice(b"origin\thttps://wrong.invalid (push)\n");
+        assert!(!remotes_with_only_added_origin(&before, &changed, url));
+        let mut changed = after;
+        changed.0.extend_from_slice(b"other\n");
+        assert!(!remotes_with_only_added_origin(&before, &changed, url));
+    }
+
     #[test]
     #[cfg(unix)]
     fn directory_witness_changes_when_same_path_is_replaced() {

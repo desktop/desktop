@@ -103,6 +103,11 @@ pub enum Operation {
     PublishContinuePreview {
         receipt_id: String,
     },
+    PublishContinue {
+        receipt_id: String,
+        basis: String,
+        acknowledge_partial: bool,
+    },
     PublishHistory {},
     AcknowledgePublish {
         receipt_id: String,

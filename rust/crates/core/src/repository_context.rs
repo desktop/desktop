@@ -287,7 +287,7 @@ impl Repository {
         names.sort_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
         Ok(names)
     }
-    async fn fetch_binding(&self, remote: Option<String>) -> Result<Binding> {
+    pub(crate) async fn fetch_binding(&self, remote: Option<String>) -> Result<Binding> {
         let Some(name) = remote.as_deref() else {
             return Ok(Binding {
                 remote: None,

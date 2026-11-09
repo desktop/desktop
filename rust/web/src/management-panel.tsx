@@ -371,6 +371,7 @@ function ManagementPanel({
             busy={busy}
             onBusy={setBusy}
             request={services.request}
+            onChanged={services.onChanged}
           />
           <RepositoryContext
             accountBasis={accountBasis}

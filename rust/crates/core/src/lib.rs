@@ -32,6 +32,8 @@ pub use lfs_operations::{LfsTransferRequest, lfs_install, lfs_tool_status};
 mod paths;
 mod preferences;
 mod publish;
+mod publish_origin;
+pub use publish_origin::publication_config_preflight;
 mod publish_receipt;
 mod settings;
 mod storage;
@@ -206,6 +208,12 @@ impl Repository {
     pub async fn execute(&self, operation: Operation) -> Result<Value> {
         let _guard = cancellation::wait(self.gate.lock()).await?;
         cancellation::Cancellation::current().check()?;
+        if matches!(
+            operation,
+            Operation::PublishContinuePreview { .. } | Operation::PublishContinue { .. }
+        ) {
+            publication_config_preflight(&self.path).await?;
+        }
         git_credentials::scope(
             self,
             &operation,
@@ -466,6 +474,15 @@ impl Repository {
             Operation::PublishContinuePreview { receipt_id } => {
                 return self.publish_continue_preview(&receipt_id).await;
             }
+            Operation::PublishContinue {
+                receipt_id,
+                basis,
+                acknowledge_partial,
+            } => {
+                return self
+                    .publish_continue(&receipt_id, &basis, acknowledge_partial)
+                    .await;
+            }
             Operation::PublishHistory {} => return self.publish_history().await,
             Operation::AcknowledgePublish { receipt_id } => {
                 return self.acknowledge_publish(&receipt_id).await;
@@ -665,6 +682,7 @@ impl Repository {
             | PublishPreview { .. }
             | PublishCreate { .. }
             | PublishContinuePreview { .. }
+            | PublishContinue { .. }
             | PublishHistory {}
             | AcknowledgePublish { .. }
             | PublishOrganizations { .. }
