@@ -9,6 +9,9 @@ been replaced and verified. Items below are open work, not completed features.
 - [ ] Complete publication: push the default and current branches with the
       verified account, durable phase records and explicit recovery. Preserve
       detached and unborn behavior and never replay an uncertain mutation.
+- [ ] Complete publication push support for Git LFS and automatic upstream
+      configuration. The unfinished push implementation was set aside after it
+      caused a stack overflow on Termux; the stable core does not include it.
 - [ ] Add explicit reconciliation for uncertain publication phases and older
       receipts that do not contain enough verified identity to resume.
 - [ ] Support selected-account credentials for clone, new worktrees and

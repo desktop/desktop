@@ -1,3 +1,5 @@
 # Keep existing Termux builds and CLI paths usable during source migration.
 [build]
 target-dir = "rust/target"
+# Limit compiler parallelism on memory-constrained devices such as Termux.
+jobs = 1
