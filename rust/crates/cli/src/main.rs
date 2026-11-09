@@ -92,6 +92,10 @@ enum PublishAction {
         #[arg(long)]
         public: bool,
     },
+    /// Inspect durable records of publication attempts.
+    History,
+    /// Acknowledge a publication record without retrying or deleting it.
+    Acknowledge { receipt_id: String },
 }
 
 #[derive(Subcommand)]
@@ -815,6 +819,8 @@ async fn run(mut cli: Cli) -> Result<()> {
                         host, target, owner, name, description, private: !public,
                     }}
                 }
+                PublishAction::History => Operation::PublishHistory {},
+                PublishAction::Acknowledge { receipt_id } => Operation::AcknowledgePublish { receipt_id },
             };
             run_operation(&cli.repo, &repository_scope, operation, true).await
         },

@@ -472,6 +472,8 @@ creating a remote repository or pushing commits:
 ./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --login Alice
 ./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --effective
 ./target/debug/desktop-rs -C /path/to/repo publish preview --login Alice --owner Alice --name project
+./target/debug/desktop-rs -C /path/to/repo publish history
+./target/debug/desktop-rs -C /path/to/repo publish acknowledge RECEIPT_ID
 ```
 
 The context includes the local name and Git description, stored accounts and
@@ -483,7 +485,10 @@ planned branches while detecting account, repository and configuration changes.
 The management panel also exposes this read-only review in the localhost UI.
 It neither reserves the name nor verifies permission to create a repository.
 `can_apply` remains false: creation, first push and recovery of partially
-completed publication remain migration work.
+completed publication remain migration work. The history and acknowledge
+commands provide a local foundation for recovery records. Acknowledging is
+idempotent and never retries a publication; current operations do not yet create
+records, and history deliberately withholds their URLs.
 
 ## Saved repository accounts
 
@@ -1445,6 +1450,7 @@ python tests/management.py
 python tests/repositories.py
 python tests/publish_context.py
 python tests/publish_preview.py
+python tests/publish_receipts.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

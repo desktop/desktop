@@ -32,6 +32,7 @@ pub use lfs_operations::{LfsTransferRequest, lfs_install, lfs_tool_status};
 mod paths;
 mod preferences;
 mod publish;
+mod publish_receipt;
 mod settings;
 mod storage;
 pub use paths::directory_path;
@@ -453,6 +454,10 @@ impl Repository {
             }
             Operation::PublishContext { host } => return self.publish_context(&host).await,
             Operation::PublishPreview { request } => return self.publish_preview(&request).await,
+            Operation::PublishHistory {} => return self.publish_history().await,
+            Operation::AcknowledgePublish { receipt_id } => {
+                return self.acknowledge_publish(&receipt_id).await;
+            }
             Operation::PublishOrganizations { host, target } => {
                 return self.publish_organizations(&host, target).await;
             }
@@ -646,6 +651,8 @@ impl Repository {
             | RepositoryContext
             | PublishContext { .. }
             | PublishPreview { .. }
+            | PublishHistory {}
+            | AcknowledgePublish { .. }
             | PublishOrganizations { .. }
             | RepositoryAccount
             | RepositoryAccountCatalog

@@ -95,6 +95,10 @@ pub enum Operation {
     PublishPreview {
         request: PublishPreviewRequest,
     },
+    PublishHistory {},
+    AcknowledgePublish {
+        receipt_id: String,
+    },
     RepositoryAccount,
     RepositoryAccountCatalog,
     RepositoryAccountPreview {

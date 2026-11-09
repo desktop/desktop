@@ -1704,6 +1704,17 @@ creation permissions. It
 returns `can_apply: false` while creation, durable receipts, account-bound
 first push and recovery are unimplemented. All removal gates remain open.
 
+## Publication recovery records
+
+History and idempotent acknowledgement operate on scoped, bounded local
+records with fixed public phases and errors. Reads reject symlinks and special
+files, and acknowledgement writes atomically while the saved registry record is
+locked. URLs are withheld until their provenance can be verified. The offline
+fixture covers namespace and record isolation, corrupted and oversized files,
+symlinks, FIFOs, credential reflection and a concurrent registry replacement.
+No current operation creates these records or performs the publication POST;
+creation, first push and recovery orchestration remain open.
+
 ## Other legacy boundaries
 
 | Area                                                 | Current status                                                                                                                        |

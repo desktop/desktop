@@ -289,6 +289,25 @@ impl Registry {
         updated.context("Saved repository account was not updated")
     }
 
+    /// Keep a saved record stable while performing bounded local recovery I/O.
+    pub(crate) fn with_record_lock<T>(
+        &self,
+        id: &str,
+        path: &Path,
+        work: impl FnOnce() -> Result<T>,
+    ) -> Result<T> {
+        let _lock = crate::storage::lock(&self.path)?;
+        let record = self
+            .read()?
+            .record_by_id(id)
+            .context("Saved repository changed; select it again")?;
+        anyhow::ensure!(
+            record.path == path,
+            "Saved repository working tree changed; select it again"
+        );
+        work()
+    }
+
     /// Adopt an existing target record, otherwise relocate the source record intact.
     /// The caller must first verify native Git worktree membership.
     pub fn switch_worktree(
