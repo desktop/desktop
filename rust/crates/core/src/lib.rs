@@ -31,6 +31,7 @@ pub use lfs::LfsInstallScope;
 pub use lfs_operations::{LfsTransferRequest, lfs_install, lfs_tool_status};
 mod paths;
 mod preferences;
+mod publish;
 mod settings;
 mod storage;
 pub use paths::directory_path;
@@ -450,6 +451,10 @@ impl Repository {
             Operation::SetupUpstream { basis } => {
                 return self.setup_upstream(basis.as_deref()).await;
             }
+            Operation::PublishContext { host } => return self.publish_context(&host).await,
+            Operation::PublishOrganizations { host, target } => {
+                return self.publish_organizations(&host, target).await;
+            }
             Operation::RepositoryAccount => return self.repository_account().await,
             Operation::RepositoryAccountCatalog => return self.repository_account_catalog().await,
             Operation::RepositoryAccountPreview { target } => {
@@ -638,6 +643,8 @@ impl Repository {
             | BranchPolicy
             | BranchNameRules { .. }
             | RepositoryContext
+            | PublishContext { .. }
+            | PublishOrganizations { .. }
             | RepositoryAccount
             | RepositoryAccountCatalog
             | RepositoryAccountPreview { .. }

@@ -1669,6 +1669,23 @@ app's models/stores/UI/platform integrations also require audit.
 | `var.ts`                             | Pending semantic audit and replacement                                                                                                                                                                            |
 | `worktree.ts`                        | Partial: lifecycle, locks, prune and byte paths implemented/tested; repair/retry/import flows pending                                                                                                             |
 
+## Publication preparation
+
+Read-only publication context and organization listing are available through
+CLI and the typed protocol even when no origin exists. Account selection is
+explicit; organization pages are bounded and verified against the selected
+numeric actor, and account and remote changes invalidate an in-flight result.
+The description reader rejects symlinks and non-regular files without blocking.
+Provider responses that reflect credentials are rejected before exposure.
+
+The offline `publish_context.py` fixture passes CLI/protocol parity, effective
+credentials with an empty account catalog, actor and source races, numeric-ID
+checks, bounded pagination, encoded credential reflection, and corrupt unrelated
+legacy association data. Rust workspace tests, Clippy, formatting and build
+also pass. Publication preview, remote creation, durable phase receipts, saved
+repository/account revalidation, first push and partial-failure recovery remain
+open; no legacy-removal gate is closed by this preparation.
+
 ## Other legacy boundaries
 
 | Area                                                 | Current status                                                                                                                        |

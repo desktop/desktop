@@ -73,6 +73,13 @@ pub enum Operation {
     SetupUpstream {
         basis: Option<String>,
     },
+    PublishContext {
+        host: String,
+    },
+    PublishOrganizations {
+        host: String,
+        target: crate::AccountTarget,
+    },
     RepositoryAccount,
     RepositoryAccountCatalog,
     RepositoryAccountPreview {

@@ -89,6 +89,7 @@ jobs:
           python3 rust/tests/branch_policy.py
           python3 rust/tests/repository_context.py
           python3 rust/tests/repository_accounts.py
+          python3 rust/tests/publish_context.py
           python3 rust/tests/git_credentials.py
           python3 rust/tests/upstream_setup.py
           python3 rust/tests/branch_name_rules.py

@@ -51,6 +51,28 @@ enum AccountAction {
 }
 
 #[derive(Subcommand)]
+enum PublishAction {
+    /// Inspect publication defaults and available accounts without changing a repository.
+    Context {
+        #[arg(long, default_value = "github.com")]
+        host: String,
+    },
+    /// List organizations for a selected stored account or gh's effective credential.
+    Organizations {
+        #[arg(long, default_value = "github.com")]
+        host: String,
+        #[arg(
+            long,
+            conflicts_with = "effective",
+            required_unless_present = "effective"
+        )]
+        login: Option<String>,
+        #[arg(long, conflicts_with = "login")]
+        effective: bool,
+    },
+}
+
+#[derive(Subcommand)]
 enum Action {
     #[command(name = "__credential-helper", hide = true)]
     CredentialHelper { operation: String },
@@ -126,6 +148,11 @@ enum Action {
     Account {
         #[command(subcommand)]
         action: Option<AccountAction>,
+    },
+    /// Inspect a local repository before publishing it on GitHub.
+    Publish {
+        #[command(subcommand)]
+        action: PublishAction,
     },
     /// Inspect cached GitHub association and the fork contribution preference.
     RepositoryContext {
@@ -738,6 +765,23 @@ async fn run(mut cli: Cli) -> Result<()> {
                 },
             };
             run_operation(&cli.repo,&repository_scope,operation,true).await
+        },
+        Action::Publish { action } => {
+            let operation = match action {
+                PublishAction::Context { host } => Operation::PublishContext { host },
+                PublishAction::Organizations { host, login, effective } => {
+                    let target = if effective {
+                        desktop_core::AccountTarget::Effective {}
+                    } else {
+                        desktop_core::AccountTarget::Assigned {
+                            host: host.clone(),
+                            login: login.context("Select an account with --login or --effective")?,
+                        }
+                    };
+                    Operation::PublishOrganizations { host, target }
+                }
+            };
+            run_operation(&cli.repo, &repository_scope, operation, true).await
         },
         Action::Github { request } => {
             let request: desktop_core::GitHubRequest = parse_request(&request)?;

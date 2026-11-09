@@ -462,6 +462,23 @@ changes alphabetical remote order. A present origin still takes priority;
 removed or changed primary URLs require renewed verification. Older cache
 records recover their source from the stored fingerprint until refreshed.
 
+## Preparing a repository for publication
+
+The following commands inspect a repository and available GitHub owners without
+creating a remote repository or pushing commits:
+
+```sh
+./target/debug/desktop-rs -C /path/to/repo publish context --host github.com
+./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --login Alice
+./target/debug/desktop-rs -C /path/to/repo publish organizations --host github.com --effective
+```
+
+The context includes the local name and Git description, stored accounts and
+whether an origin exists. The description reader does not follow symlinks or
+wait on named pipes. Organization listing uses the explicitly chosen account,
+verifies its identity and is bounded to 1,600 entries. Creation, first push and
+recovery of partially completed publication remain migration work.
+
 ## Saved repository accounts
 
 ```sh
@@ -1420,6 +1437,7 @@ python tests/editor_conflicts.py
 python tests/conflict_undo.py
 python tests/management.py
 python tests/repositories.py
+python tests/publish_context.py
 python tests/github.py
 python tests/github_cli.py
 node --test tests/transport.test.mjs

@@ -23,6 +23,7 @@ const MAX_ACCOUNTS: usize = 128;
 pub(crate) enum Request<'a> {
     User,
     Repository,
+    UserOrganizations { page: u16 },
     Pull { number: u64 },
     BranchRules { branch: &'a str, page: u16 },
     Ruleset { id: u64 },
@@ -268,6 +269,30 @@ impl Session {
         for secret in secrets {
             output.stdout = redact_credential(output.stdout, &secret);
             output.stderr = redact_credential(output.stderr, &secret);
+        }
+        output
+    }
+
+    /// Also redact alternate Base64 encodings for a verified actor, including
+    /// sessions that did not originate from a named saved account.
+    pub(crate) fn redact_output_for_login(
+        &self,
+        output: process::RawOutput,
+        login: &str,
+    ) -> process::RawOutput {
+        use base64::Engine as _;
+        let mut output = self.redact_output(output);
+        let basic = format!("{login}:{}", self.token);
+        for engine in [
+            base64::engine::general_purpose::STANDARD,
+            base64::engine::general_purpose::STANDARD_NO_PAD,
+            base64::engine::general_purpose::URL_SAFE,
+            base64::engine::general_purpose::URL_SAFE_NO_PAD,
+        ] {
+            for encoded in [engine.encode(&self.token), engine.encode(&basic)] {
+                output.stdout = redact_credential(output.stdout, encoded.as_bytes());
+                output.stderr = redact_credential(output.stderr, encoded.as_bytes());
+            }
         }
         output
     }
@@ -597,6 +622,10 @@ fn request_arguments(
     let endpoint = match request {
         Request::User => "/user".into(),
         Request::Repository => repository_path(),
+        Request::UserOrganizations { page } => {
+            anyhow::ensure!((1..=MAX_PAGES).contains(&page), "Invalid GitHub API page");
+            format!("/user/orgs?per_page={PAGE_SIZE}&page={page}")
+        }
         Request::Pull { number } => {
             anyhow::ensure!(number > 0, "Invalid pull request number");
             format!("{}/pulls/{number}", repository_path())
@@ -765,7 +794,7 @@ fn response(request: Request<'_>, bytes: &[u8]) -> std::result::Result<Value, Fa
     }
     let value: Value = serde_json::from_slice(bytes).map_err(|_| Failure::InvalidResponse)?;
     match request {
-        Request::BranchRules { .. } => {
+        Request::BranchRules { .. } | Request::UserOrganizations { .. } => {
             let rows = value.as_array().ok_or(Failure::InvalidResponse)?;
             if rows.len() > PAGE_SIZE {
                 return Err(Failure::ResponseLimit);
@@ -1067,6 +1096,47 @@ mod tests {
         assert_eq!(output.code, 17);
         assert_eq!(output.stdout, b"prefix\xff [redacted] suffix\0");
         assert_eq!(output.stderr, b"[redacted] [redacted]\xfe");
+    }
+
+    #[test]
+    fn verified_actor_redacts_all_base64_credential_encodings() {
+        use base64::Engine as _;
+        let session = Session {
+            path: PathBuf::from("unused"),
+            repository: repository(),
+            token: "SyntheticAlphaToken123456".into(),
+            account: None,
+        };
+        let basic = format!("Alice:{}", session.token);
+        for engine in [
+            base64::engine::general_purpose::STANDARD,
+            base64::engine::general_purpose::STANDARD_NO_PAD,
+            base64::engine::general_purpose::URL_SAFE,
+            base64::engine::general_purpose::URL_SAFE_NO_PAD,
+        ] {
+            for encoded in [engine.encode(&session.token), engine.encode(&basic)] {
+                let output = session.redact_output_for_login(
+                    process::RawOutput {
+                        code: 0,
+                        stdout: encoded.as_bytes().to_vec(),
+                        stderr: encoded.as_bytes().to_vec(),
+                    },
+                    "Alice",
+                );
+                assert!(
+                    !output
+                        .stdout
+                        .windows(encoded.len())
+                        .any(|s| s == encoded.as_bytes())
+                );
+                assert!(
+                    !output
+                        .stderr
+                        .windows(encoded.len())
+                        .any(|s| s == encoded.as_bytes())
+                );
+            }
+        }
     }
 
     #[test]
