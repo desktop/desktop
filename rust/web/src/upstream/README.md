@@ -43,3 +43,6 @@ Image comparison components also moved from `app/src/ui/diff/image-diffs/`. The
 browser port validates raster image data and reports decode failures, handles
 container resizing without Node APIs, starts Swipe/Onion controls at 50%, and
 reports percentage size changes. DDS conversion remains unchanged.
+
+The repository-name sanitizer is shared with the legacy add/publish dialogs; the
+original entrypoint re-exports its unchanged implementation.
