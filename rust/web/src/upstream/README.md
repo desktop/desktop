@@ -46,3 +46,8 @@ reports percentage size changes. DDS conversion remains unchanged.
 
 The repository-name sanitizer is shared with the legacy add/publish dialogs; the
 original entrypoint re-exports its unchanged implementation.
+
+The legacy `CommitAttribution` component is shared with commit history. Its
+input type was narrowed to the author name it actually renders, so callers do
+not need to invent avatar metadata; rendering behavior is unchanged. The legacy
+entrypoint re-exports the shared component.

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Row } from './upstream/row'
+import { CommitAttribution } from './upstream/commit-attribution'
 import { Commit } from './upstream/models/commit'
 import { CommitIdentity } from './upstream/models/commit-identity'
 
@@ -261,7 +262,10 @@ function HistoryPanel({
               >
                 {commit.oid.slice(0, 7)} {commit.summary}
               </button>
-              <small>{ident(commit.author).toString()}</small>
+              <small>
+                <CommitAttribution avatarUsers={[commit.author]} />{' '}
+                {'<' + commit.author.email + '>'}
+              </small>
             </li>
           ))}
       </ol>
