@@ -1,0 +1,18 @@
+[package]
+name = "desktop-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "desktop-rs"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+desktop-core = { path = "../core" }
+desktop-bridge = { path = "../bridge" }
+serde_json.workspace = true
+serde.workspace = true
+tokio.workspace = true

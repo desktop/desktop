@@ -1,0 +1,2621 @@
+{
+  "version": 1,
+  "engine": "re2js@2.0.1",
+  "cases": [
+    {
+      "id": "no-rules",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-never",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-pull_requests_only",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-always",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": "bypass",
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-unexpected",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-missing-ruleset",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-missing-bypass-field",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-always-before-never",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-never-before-always",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "pattern-enforced-failure",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "pattern-always-failure",
+      "check": {
+        "status": "warning",
+        "message": "Branch name 'feature/topic' is restricted by repo rules, but you can bypass them. Proceed with caution!"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "bypass",
+        "failed": [],
+        "bypassed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 2
+          }
+        ]
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "pattern-pr-only-failure",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "pattern-missing-ruleset",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "pattern-missing-parameters",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "mixed-passing-enforced-and-failing-bypass",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "bypass",
+        "failed": [],
+        "bypassed": [
+          {
+            "description": "must start with \"allowed\"",
+            "rulesetId": 2
+          }
+        ]
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "mixed-missing-and-failing-bypass",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "bypass",
+        "failed": [],
+        "bypassed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 2
+          }
+        ]
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "mixed-missing-creation-and-failing-bypass",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "bypass",
+        "failed": [],
+        "bypassed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 2
+          }
+        ]
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-bypass-and-passing-enforced-pattern",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": "bypass",
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "creation-enforced-and-passing-bypass-pattern",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": true,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "duplicate-same-ruleset",
+      "check": {
+        "status": "warning",
+        "message": "Branch name 'feature/topic' is restricted by repo rules, but you can bypass them. Proceed with caution!"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "bypass",
+        "failed": [],
+        "bypassed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 2
+          },
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 2
+          }
+        ]
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-starts_with-match-negate-False",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-starts_with-match-negate-True",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'a.b[0]' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must not start with \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-starts_with-miss-negate-False",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'axb0' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must start with \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-starts_with-miss-negate-True",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-starts_with-empty-pattern",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/topic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-ends_with-match-negate-False",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-ends_with-match-negate-True",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'a.b[0]' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must not end with \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-ends_with-miss-negate-False",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'axb0' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must end with \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-ends_with-miss-negate-True",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-ends_with-empty-pattern",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/topic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-contains-match-negate-False",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-contains-match-negate-True",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'a.b[0]' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must not contain \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a.b%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-contains-miss-negate-False",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'axb0' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must contain \"a.b[0]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-contains-miss-negate-True",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/axb0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "literal-contains-empty-pattern",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/topic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "unknown-operator-negate-False",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must \"feature\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "unknown-operator-negate-True",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must not \"feature\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-ascii-word",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/abc_09"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-not-ascii-word",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'é' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^\\w+$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-not-ascii-word-negated",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-nonword",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-ascii-digit",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/123"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-arabic-digit",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name '٣' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^\\d+$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%D9%A3"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-digit-property",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%D9%A3"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-ascii-space",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%20"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-vertical-tab-space",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name '\u000b' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^\\s$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%0B"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-nbsp-space",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name ' ' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^\\s$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C2%A0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-nbsp-posix-space",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name ' ' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^[[:space:]]$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C2%A0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-ascii-boundary",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-nonascii-boundary",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'élan' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"\\bélan\\b\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9lan"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-ascii-boundary-nonascii-neighbors",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9foo%C3%A9"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-quoted-meta",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/.a%2B%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-quoted-open",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/.a%2B%5B0%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-quoted-escaped-end",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/xy"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-byte-escape-ascii",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-byte-escape-unicode",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%A9"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-greek",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%CE%B1%CE%B2"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-letters",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C3%B1%CE%B1%E4%B8%AD"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode-emoji-category",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-astral-dot",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-astral-dot-negated",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name '😀' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must not match the regular expression \"^.$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-astral-two-dots",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name '😀' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^..$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-astral-literal",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-astral-escape",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9F%98%80"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unicode16-letter",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%F0%9E%97%90"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-strict-end",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'foo\n' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"foo$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-strict-end-negated",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-multiline-end",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-strict-anchors",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-absolute-anchors",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-absolute-anchors-newline",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'foo\n' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"\\Afoo\\z\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-capital-Z",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\Z`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\Z`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/foo"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-multiline-search",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/bar%0Afoo%0Abaz"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-dot-newline",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name '\n' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^.$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-dotall-newline",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-negated-newline-class",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-ascii",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-null",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%00"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-three-digit",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C7%BF"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-leading-zero",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%3F7"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-single-digit-backref",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-backreference",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/aa"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-zero",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%00"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-octal-two-digit",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%0A"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-class-and-literal",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%26"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-class-intersection-miss",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'b' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"[a-z&&[^aeiou]]\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/b"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-class-intersection-literal-end",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/b%5D"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-class-difference-literal",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `a--`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `a--`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/-"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-class-union-literal",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%7C"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-casefold-kelvin",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%E2%84%AA"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-casefold-long-s",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C5%BF"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-casefold-ascii-word",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C5%BF"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-casefold-dotted-i",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'İ' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"(?i)^i$\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/%C4%B0"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-named-python",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-named-angle",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-lookahead",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid or unsupported Perl syntax: `(?=`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid or unsupported Perl syntax: `(?=`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-lookbehind",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid named capture: `(?<=a)b`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid named capture: `(?<=a)b`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/ab"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-invalid-open-paren",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-invalid-open-paren-negated",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-invalid-class",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ]: `[`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ]: `[`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-invalid-repeat",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing argument to repetition operator: `*`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing argument to repetition operator: `*`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-excessive-repeat",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid repeat count: `{1001}`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid repeat count: `{1001}`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unknown-property",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `\\p{NotAProperty}`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `\\p{NotAProperty}`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/a"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-unknown-escape",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\q`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\q`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/q"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "regex-empty-regex",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/topic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "invalid-regex-missing-ruleset",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "unrelated-rule-without-name-rule",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "unrelated-invalid-pattern-with-name-rule",
+      "check": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "parsed": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-no-account",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-non-github",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-no-assigned-account",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-wrong-assigned-account",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-private-free-owner",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "skip-private-missing-plan-owner",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "empty-name",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "private-collaborator-free-plan",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "owner-login-case-sensitive-plan-gate",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/TESTER/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "case-insensitive-account-assignment",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "endpoint-dotcom",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "endpoint-ghe",
+      "check": {
+        "status": "blocked",
+        "message": "Branch name 'feature/topic' is restricted by repo rules."
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "endpoint-ghes",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [],
+      "check_git_reads": []
+    },
+    {
+      "id": "api-error-network",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "api-error-not_found",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "api-error-rules_disabled",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "fail",
+        "failed": [
+          {
+            "description": "must match the regular expression \"^allowed/\"",
+            "rulesetId": 1
+          }
+        ],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/feature%2Ftopic"
+        }
+      ],
+      "check_git_reads": []
+    },
+    {
+      "id": "api-encoded-branch",
+      "check": {
+        "status": "pass"
+      },
+      "parsed": {
+        "creation_restricted": false,
+        "pattern_status": "pass",
+        "failed": [],
+        "bypassed": []
+      },
+      "api_calls": [
+        {
+          "method": "GET",
+          "path": "repos/owner/repo/rules/branches/release%2F%C3%B1%3F%23%25()'"
+        }
+      ],
+      "check_git_reads": []
+    }
+  ]
+}

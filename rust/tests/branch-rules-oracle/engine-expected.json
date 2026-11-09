@@ -1,0 +1,1221 @@
+{
+  "version": 1,
+  "engine": "re2js@2.0.1",
+  "cases": [
+    {
+      "id": "pattern-enforced-failure",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^allowed/",
+        "negate": false
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "mixed-passing-enforced-and-failing-bypass",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "feature",
+        "negate": false
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "mixed-passing-enforced-and-failing-bypass",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "allowed",
+        "negate": false
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-starts_with-match-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-starts_with-match-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-starts_with-miss-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-starts_with-miss-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-starts_with-empty-pattern",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "",
+        "negate": false
+      },
+      "branch": "topic",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-ends_with-match-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "ends_with",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-ends_with-match-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "ends_with",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-ends_with-miss-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "ends_with",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-ends_with-miss-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "ends_with",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-ends_with-empty-pattern",
+      "parameters": {
+        "name": "fixture",
+        "operator": "ends_with",
+        "pattern": "",
+        "negate": false
+      },
+      "branch": "topic",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-contains-match-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "contains",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-contains-match-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "contains",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "a.b[0]",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-contains-miss-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "contains",
+        "pattern": "a.b[0]",
+        "negate": false
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "literal-contains-miss-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "contains",
+        "pattern": "a.b[0]",
+        "negate": true
+      },
+      "branch": "axb0",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "literal-contains-empty-pattern",
+      "parameters": {
+        "name": "fixture",
+        "operator": "contains",
+        "pattern": "",
+        "negate": false
+      },
+      "branch": "topic",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "unknown-operator-negate-False",
+      "parameters": {
+        "name": "fixture",
+        "operator": "unknown",
+        "pattern": "feature",
+        "negate": false
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "unknown-operator-negate-True",
+      "parameters": {
+        "name": "fixture",
+        "operator": "unknown",
+        "pattern": "feature",
+        "negate": true
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-ascii-word",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\w+$",
+        "negate": false
+      },
+      "branch": "abc_09",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-unicode-not-ascii-word",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\w+$",
+        "negate": false
+      },
+      "branch": "é",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-unicode-not-ascii-word-negated",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\w+$",
+        "negate": true
+      },
+      "branch": "é",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-unicode-nonword",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\W+$",
+        "negate": false
+      },
+      "branch": "é",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-ascii-digit",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\d+$",
+        "negate": false
+      },
+      "branch": "123",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-arabic-digit",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\d+$",
+        "negate": false
+      },
+      "branch": "٣",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-unicode-digit-property",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\p{Nd}+$",
+        "negate": false
+      },
+      "branch": "٣",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-ascii-space",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\s$",
+        "negate": false
+      },
+      "branch": " ",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-vertical-tab-space",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\s$",
+        "negate": false
+      },
+      "branch": "\u000b",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-nbsp-space",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\s$",
+        "negate": false
+      },
+      "branch": " ",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-nbsp-posix-space",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^[[:space:]]$",
+        "negate": false
+      },
+      "branch": " ",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-ascii-boundary",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\bfoo\\b",
+        "negate": false
+      },
+      "branch": "foo",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-nonascii-boundary",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\bélan\\b",
+        "negate": false
+      },
+      "branch": "élan",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-ascii-boundary-nonascii-neighbors",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\bfoo\\b",
+        "negate": false
+      },
+      "branch": "éfooé",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-quoted-meta",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\Q.a+[0]\\E",
+        "negate": false
+      },
+      "branch": ".a+[0]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-quoted-open",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\Q.a+[0]",
+        "negate": false
+      },
+      "branch": ".a+[0]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-quoted-escaped-end",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\Qx\\E\\Qy\\E",
+        "negate": false
+      },
+      "branch": "xy",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-byte-escape-ascii",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\C",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      }
+    },
+    {
+      "id": "regex-byte-escape-unicode",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\C",
+        "negate": false
+      },
+      "branch": "é",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\C`"
+      }
+    },
+    {
+      "id": "regex-unicode-greek",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\p{Greek}+$",
+        "negate": false
+      },
+      "branch": "αβ",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-unicode-letters",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\p{L}+$",
+        "negate": false
+      },
+      "branch": "ñα中",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-unicode-emoji-category",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\p{So}$",
+        "negate": false
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-astral-dot",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^.$",
+        "negate": false
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-astral-dot-negated",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^.$",
+        "negate": true
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-astral-two-dots",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^..$",
+        "negate": false
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-astral-literal",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^😀$",
+        "negate": false
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-astral-escape",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\x{1f600}$",
+        "negate": false
+      },
+      "branch": "😀",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-unicode16-letter",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^\\p{L}$",
+        "negate": false
+      },
+      "branch": "𞗐",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-strict-end",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "foo$",
+        "negate": false
+      },
+      "branch": "foo\n",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-strict-end-negated",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "foo$",
+        "negate": true
+      },
+      "branch": "foo\n",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-multiline-end",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?m)foo$",
+        "negate": false
+      },
+      "branch": "foo\n",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-strict-anchors",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^foo$",
+        "negate": false
+      },
+      "branch": "foo",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-absolute-anchors",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\Afoo\\z",
+        "negate": false
+      },
+      "branch": "foo",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-absolute-anchors-newline",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\Afoo\\z",
+        "negate": false
+      },
+      "branch": "foo\n",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-capital-Z",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "foo\\Z",
+        "negate": false
+      },
+      "branch": "foo",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\Z`"
+      }
+    },
+    {
+      "id": "regex-multiline-search",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?m)^foo$",
+        "negate": false
+      },
+      "branch": "bar\nfoo\nbaz",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-dot-newline",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^.$",
+        "negate": false
+      },
+      "branch": "\n",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-dotall-newline",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?s)^.$",
+        "negate": false
+      },
+      "branch": "\n",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-negated-newline-class",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^[^x]$",
+        "negate": false
+      },
+      "branch": "\n",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-octal-ascii",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\141",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-octal-null",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\000",
+        "negate": false
+      },
+      "branch": "\u0000",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-octal-three-digit",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\777",
+        "negate": false
+      },
+      "branch": "ǿ",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-octal-leading-zero",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\0777",
+        "negate": false
+      },
+      "branch": "?7",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-single-digit-backref",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\1",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      }
+    },
+    {
+      "id": "regex-backreference",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(a)\\1",
+        "negate": false
+      },
+      "branch": "aa",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\1`"
+      }
+    },
+    {
+      "id": "regex-octal-zero",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\0",
+        "negate": false
+      },
+      "branch": "\u0000",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-octal-two-digit",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\12",
+        "negate": false
+      },
+      "branch": "\n",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-class-and-literal",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^[a&&b]$",
+        "negate": false
+      },
+      "branch": "&",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-class-intersection-miss",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "[a-z&&[^aeiou]]",
+        "negate": false
+      },
+      "branch": "b",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-class-intersection-literal-end",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "[a-z&&[^aeiou]]",
+        "negate": false
+      },
+      "branch": "b]",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-class-difference-literal",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^[a--b]$",
+        "negate": false
+      },
+      "branch": "-",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `a--`"
+      }
+    },
+    {
+      "id": "regex-class-union-literal",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^[a||b]$",
+        "negate": false
+      },
+      "branch": "|",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-casefold-kelvin",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?i)^k$",
+        "negate": false
+      },
+      "branch": "K",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-casefold-long-s",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?i)^s$",
+        "negate": false
+      },
+      "branch": "ſ",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-casefold-ascii-word",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?i)^\\w$",
+        "negate": false
+      },
+      "branch": "ſ",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-casefold-dotted-i",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?i)^i$",
+        "negate": false
+      },
+      "branch": "İ",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "regex-named-python",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?P<name>a)",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-named-angle",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?<name>a)",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "regex-lookahead",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?=a)",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid or unsupported Perl syntax: `(?=`"
+      }
+    },
+    {
+      "id": "regex-lookbehind",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(?<=a)b",
+        "negate": false
+      },
+      "branch": "ab",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid named capture: `(?<=a)b`"
+      }
+    },
+    {
+      "id": "regex-invalid-open-paren",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      }
+    },
+    {
+      "id": "regex-invalid-open-paren-negated",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(",
+        "negate": true
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      }
+    },
+    {
+      "id": "regex-invalid-class",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "[",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ]: `[`"
+      }
+    },
+    {
+      "id": "regex-invalid-repeat",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "*",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing argument to repetition operator: `*`"
+      }
+    },
+    {
+      "id": "regex-excessive-repeat",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "a{1001}",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid repeat count: `{1001}`"
+      }
+    },
+    {
+      "id": "regex-unknown-property",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\p{NotAProperty}",
+        "negate": false
+      },
+      "branch": "a",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid character class range: `\\p{NotAProperty}`"
+      }
+    },
+    {
+      "id": "regex-unknown-escape",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "\\q",
+        "negate": false
+      },
+      "branch": "q",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: invalid escape sequence: `\\q`"
+      }
+    },
+    {
+      "id": "regex-empty-regex",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "",
+        "negate": false
+      },
+      "branch": "topic",
+      "outcome": {
+        "matched": true
+      }
+    },
+    {
+      "id": "invalid-regex-missing-ruleset",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "(",
+        "negate": false
+      },
+      "branch": "feature/topic",
+      "outcome": {
+        "status": "error",
+        "name": "RE2JSSyntaxException",
+        "message": "error parsing regexp: missing closing ): `(`"
+      }
+    },
+    {
+      "id": "empty-name",
+      "parameters": {
+        "name": "fixture",
+        "operator": "regex",
+        "pattern": "^allowed/",
+        "negate": false
+      },
+      "branch": "",
+      "outcome": {
+        "matched": false
+      }
+    },
+    {
+      "id": "api-encoded-branch",
+      "parameters": {
+        "name": "fixture",
+        "operator": "starts_with",
+        "pattern": "release",
+        "negate": false
+      },
+      "branch": "release/ñ?#%()'",
+      "outcome": {
+        "matched": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "desktop-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-timeout=15000 test/build.test.mjs test/github-panel.test.mjs test/diff-panel.test.mjs test/history-recovery.test.mjs test/management.test.mjs test/repository-context.test.mjs test/repository-account.test.mjs test/discard-panel.test.mjs test/lfs-panel.test.mjs test/commit-panel.test.mjs test/lfs-initialization.test.mjs test/image-comparison.test.mjs test/editor-recovery.test.mjs test/stash-panel.test.mjs test/checkout-panel.test.mjs test/branch-rename.test.mjs test/branch-delete.test.mjs test/remote-delete.test.mjs",
+    "format": "prettier --check src test build.mjs client.js transport.js index.html styles.css package.json tsconfig.json",
+    "test:integration": "node --test --test-concurrency=1 --test-timeout=60000 test/client-integration.test.mjs test/editor-client-integration.test.mjs test/stash-client-integration.test.mjs test/checkout-client-integration.test.mjs test/upstream-client-integration.test.mjs test/name-rules-client-integration.test.mjs test/account-client-integration.test.mjs"
+  },
+  "dependencies": {
+    "parse-dds": "1.2.1",
+    "react": "16.14.0",
+    "react-dom": "16.14.0"
+  },
+  "devDependencies": {
+    "@types/parse-dds": "1.0.3",
+    "@types/react": "16.14.62",
+    "@types/react-dom": "16.9.25",
+    "esbuild": "0.27.0",
+    "jsdom": "26.1.0",
+    "prettier": "2.8.8",
+    "typescript": "5.9.3",
+    "ws": "8.22.1"
+  }
+}

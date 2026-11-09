@@ -1,0 +1,15 @@
+{
+  "name": "desktop-branch-rules-oracle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node oracle.mjs --check && node build-engine.mjs --check && node embedded-parity.mjs",
+    "build:engine": "node build-engine.mjs",
+    "check:engine": "node build-engine.mjs --check",
+    "record": "node oracle.mjs --record"
+  },
+  "dependencies": {
+    "re2js": "2.0.1",
+    "semver": "5.7.2"
+  }
+}

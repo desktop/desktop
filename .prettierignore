@@ -17,3 +17,7 @@ gemoji
 *.md
 app/static/logos/prod/**/*.json
 app/static/logos/dev/**/*.json
+
+rust/web/panels.js
+
+rust/crates/core/src/repo_rules/re2js.js

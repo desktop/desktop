@@ -1,0 +1,151 @@
+name: Rust migration
+on:
+  push:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/**'
+      - 'rust/**'
+      - 'app/webpack.common.ts'
+      - 'app/src/models/**'
+      - 'app/src/lib/git/interpret-trailers.ts'
+      - 'app/src/lib/git/stash.ts'
+      - 'app/src/lib/remove-remote-prefix.ts'
+      - 'app/src/lib/helpers/repo-rules.ts'
+      - 'app/src/models/diff/diff-line.ts'
+      - 'app/src/models/diff/raw-diff.ts'
+      - 'app/src/ui/diff/image-diffs/**'
+      - 'app/src/ui/lib/form.tsx'
+      - 'app/src/ui/lib/row.tsx'
+      - 'app/src/ui/lib/horizontal-rule.tsx'
+      - 'app/src/ui/lib/highlight-text.tsx'
+      - '.github/workflows/rust.yml'
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/**'
+      - 'rust/**'
+      - 'app/webpack.common.ts'
+      - 'app/src/models/**'
+      - 'app/src/lib/git/interpret-trailers.ts'
+      - 'app/src/lib/git/stash.ts'
+      - 'app/src/lib/remove-remote-prefix.ts'
+      - 'app/src/lib/helpers/repo-rules.ts'
+      - 'app/src/models/diff/diff-line.ts'
+      - 'app/src/models/diff/raw-diff.ts'
+      - 'app/src/ui/diff/image-diffs/**'
+      - 'app/src/ui/lib/form.tsx'
+      - 'app/src/ui/lib/row.tsx'
+      - 'app/src/ui/lib/horizontal-rule.tsx'
+      - 'app/src/ui/lib/highlight-text.tsx'
+      - '.github/workflows/rust.yml'
+permissions:
+  contents: read
+jobs:
+  headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: rust/web/package-lock.json
+      - name: Set up Rust
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add rustfmt clippy
+      - name: Build and validate standalone browser frontend
+        run: |
+          npm ci --prefix rust/web
+          npm --prefix rust/web run format
+          npm --prefix rust/web run typecheck
+          npm --prefix rust/web run build
+          npm --prefix rust/web test
+          npm ci --prefix rust/tests/branch-rules-oracle
+          npm --prefix rust/tests/branch-rules-oracle test
+          git diff --exit-code -- rust/web/panels.js
+      - name: Check Rust
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+          cargo build --workspace --locked
+      - name: Verify installed Git LFS
+        run: git lfs version
+      - name: Check repository and GitHub services offline
+        run: |
+          python3 rust/tests/smoke.py
+          python3 rust/tests/lifecycle.py
+          python3 rust/tests/cancellation.py
+          python3 rust/tests/signals.py
+          python3 rust/tests/workflows.py
+          python3 rust/tests/stashes.py
+          python3 rust/tests/branch_rename.py
+          python3 rust/tests/branch_create.py
+          python3 rust/tests/branch_refs.py
+          python3 rust/tests/branch_policy.py
+          python3 rust/tests/repository_context.py
+          python3 rust/tests/repository_accounts.py
+          python3 rust/tests/git_credentials.py
+          python3 rust/tests/upstream_setup.py
+          python3 rust/tests/branch_name_rules.py
+          python3 rust/tests/branch_delete.py
+          python3 rust/tests/remote_delete.py
+          python3 rust/tests/upstream_delete.py
+          python3 rust/tests/checkout.py
+          python3 rust/tests/checkout_native.py
+          python3 rust/tests/commit_review.py
+          python3 rust/tests/diffs.py
+          python3 rust/tests/discard.py
+          python3 rust/tests/discard_advanced.py
+          python3 rust/tests/discard_gc.py
+          python3 rust/tests/lfs.py
+          python3 rust/tests/lfs_diffs.py
+          python3 rust/tests/lfs_operations.py
+          python3 rust/tests/history_state.py
+          python3 rust/tests/editor_conflicts.py
+          python3 rust/tests/conflict_undo.py
+          python3 rust/tests/management.py
+          python3 rust/tests/repositories.py
+          python3 rust/tests/github.py
+          python3 rust/tests/github_cli.py
+          python3 rust/tests/github_create.py
+          python3 rust/tests/github_checkout_tracking.py
+          node --test rust/tests/transport.test.mjs
+          npm --prefix rust/web run test:integration
+
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Linux webview dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libdbus-1-dev libxdo-dev xvfb dbus-x11
+      - name: Set up Rust
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add clippy
+      - name: Compile native host
+        run: |
+          cargo clippy -p desktop-native --features native --all-targets --locked -- -D warnings
+          cargo test -p desktop-core -p desktop-native --features desktop-native/native --locked
+          cargo build -p desktop-native --features native --locked
+      - name: Exercise native webview on Linux
+        if: runner.os == 'Linux'
+        env:
+          GIT_CONFIG_NOSYSTEM: '1'
+          GIT_CONFIG_GLOBAL: ${{ runner.temp }}/desktop-native-global.gitconfig
+          WEBKIT_DISABLE_COMPOSITING_MODE: '1'
+          GDK_BACKEND: x11
+        run: |
+          dbus-run-session -- xvfb-run -a -s '-screen 0 1280x900x24' timeout 60s rust/target/debug/desktop-native --empty --config "$RUNNER_TEMP/desktop-native-smoke/repositories.json" --smoke-test

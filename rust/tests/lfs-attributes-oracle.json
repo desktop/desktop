@@ -1,0 +1,2264 @@
+{
+  "schema_version": 1,
+  "tool_versions": {
+    "git": "git version 2.56.0",
+    "git_lfs": "git-lfs/3.8.1 (GitHub; android arm64; go 1.27.3)"
+  },
+  "invocation": {
+    "program": "NATIVE_GIT_LFS",
+    "args": [
+      "track",
+      "--json"
+    ],
+    "cwd": "ROOT"
+  },
+  "environment": {
+    "GIT_CONFIG_GLOBAL": "ISOLATED_EMPTY_CONFIG",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_ATTR_NOSYSTEM": "1",
+    "core.attributesfile": "EXPLICIT_TEMPORARY_FILE",
+    "HOME": "UNCHANGED"
+  },
+  "compatibility_corrections": [
+    "Native Git LFS3.8.1 treats git var GIT_ATTR_SYSTEM exiting1 under GIT_ATTR_NOSYSTEM=1 as fatal; the oracle narrowly substitutes an isolated empty system attributes path for only that exact Git command.",
+    "The Rust reader intentionally honors GIT_ATTR_NOSYSTEM=1 by skipping the system file, and never writes lfs.repositoryformatversion during inspection."
+  ],
+  "normalization": {
+    "ROOT": "working tree root",
+    "COMMON": "common Git directory",
+    "pattern_order": "native exact array order; duplicates retained",
+    "sources": "only absolute ROOT/COMMON prefixes replaced; relative and empty source strings preserved"
+  },
+  "fixture_semantics": {
+    "files": "path or path_hex (native bytes), content or content_hex; optional tracked=true; path placeholders ROOT/COMMON expanded before write",
+    "config": "set local config values after expanding ROOT/COMMON; included config content expands only when expand_placeholders=true",
+    "setup": "optional linked_worktree, remove_working, remove_index, unset_config, conflict_index; all isolated fixture operations",
+    "layout": "Each case owns PARENT/root as ROOT; ordinary COMMON=ROOT/.git. Linked worktree cases use PARENT/main as the primary repository and COMMON=PARENT/main/.git, with linked ROOT directory named root."
+  },
+  "coverage_limits": [
+    "System attributes content is empty by explicit isolation; HOME/XDG default discovery intentionally not exercised.",
+    "Platform is Android/Linux native path behavior; Darwin/Windows case folding not covered."
+  ],
+  "cases": [
+    {
+      "name": "empty",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "root-basic",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.bin filter=lfs diff=lfs merge=lfs -text\n*.txt text\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "root-nested-info-global-order",
+      "files": [
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.root filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.nested filter=lfs -lockable\n"
+        },
+        {
+          "path": "ROOT/nested/deep/.gitattributes",
+          "content": "*.deep filter=lfs lockable\n"
+        },
+        {
+          "path": "COMMON/info/attributes",
+          "content": "*.info filter=lfs\n"
+        },
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": "*.global filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/deep/*.deep",
+            "source": "nested/deep/.gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "nested/*.nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": ".git/info/*.info",
+            "source": ".git/info/attributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.global",
+            "source": "",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "quoted-space-octal-hex-unicode",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "\"space pattern\" filter=lfs\n\"octal\\040space\" filter=lfs lockable\n\"hex\\x20space\" filter=lfs\n\"unicode\\u00e9.bin\" filter=lfs\n\"wide\\U0001f600.bin\" filter=lfs\n\"quote\\\"mark\" filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "space pattern",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "octal space",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "hex space",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "unicode\u00e9.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "wide\ud83d\ude00.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "quote\"mark",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "unquoted-space-tabs-backslashes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "space\\ pattern filter=lfs\n\tleading-tab filter=lfs\ninside\tpattern filter=lfs\ntab-attr\tfilter=lfs\nslash\\path filter=lfs\nkeep\\*star filter=lfs\nkeep\\?question filter=lfs\nkeep\\#hash filter=lfs\nkeep\\[bracket] filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "space/",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "leading-tab",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "inside\tpattern",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "slash/path",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "keep\\*star",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "keep\\?question",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "keep\\#hash",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "keep\\[bracket]",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "wildcards-and-path-prefixes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.bin filter=lfs\n**/assets/** filter=lfs\ndir/[ab]?.dat filter=lfs\n[unterminated filter=lfs\nfolder/ filter=lfs\n/rooted.bin filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.nested filter=lfs\n/rooted.nested filter=lfs\ndir/**/deep?.asset filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/*.nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "nested/rooted.nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "nested/dir/**/deep?.asset",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "**/assets/**",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "dir/[ab]?.dat",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "[unterminated",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "folder/",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "/rooted.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "duplicates-untracking-and-last-filter",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.dup filter=lfs\n*.dup filter=lfs lockable\n*.dup -filter\n*.dup !filter\n*.other filter=other\n*.flip filter=lfs filter=other\n*.last filter=other filter=lfs\n*.off filter=lfs -filter\n*.unset filter=lfs !filter\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.dup",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.dup",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "*.dup",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.dup",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.other",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.flip",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.last",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.off",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.unset",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "sticky-lockable-variants",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "a filter=lfs lockable -lockable\nb filter=lfs -lockable lockable\nc filter=lfs lockable !lockable\nd filter=lfs lockable=false\ne filter=lfs lockable=true\nf filter=lfs -lockable\ng filter=lfs !lockable\nh filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "a",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "b",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "c",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "d",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "e",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "f",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "g",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "h",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "root-macro-expansion",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "[attr]large filter=lfs diff=lfs merge=lfs -text lockable\n*.large large\n[attr]off -filter\n*.off off\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.large",
+            "source": ".gitattributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "*.off",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "macro-order-and-nonrecursive",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before later\n[attr]later filter=lfs\nafter later\n[attr]inner filter=lfs\n[attr]outer inner\n*.inner inner\n*.outer outer\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "after",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.inner",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "info-root-global-macro-precedence",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": "[attr]kind filter=other\n*.global kind\n"
+        },
+        {
+          "path": "COMMON/info/attributes",
+          "content": "[attr]kind filter=lfs lockable\n*.info kind\n"
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "[attr]kind -filter\n*.root kind\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.nested kind\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/*.nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": ".git/info/*.info",
+            "source": ".git/info/attributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": false
+          },
+          {
+            "pattern": "*.global",
+            "source": "",
+            "lockable": false,
+            "tracked": false
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "nested-macro-definitions-ignored",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "[attr]rootkind filter=lfs\n*.root rootkind\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "[attr]nestedkind filter=lfs\n*.nested nestedkind\n*.inherited rootkind\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "malformed-quote-drops-whole-file",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n\"unterminated filter=lfs\nafter filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "survives filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/survives",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "invalid-c-escape-drops-whole-file",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n\"bad\\qquote\" filter=lfs\nafter filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "empty-quoted-pattern",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n\"\" filter=lfs\nafter filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "before",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "after",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "malformed-posix-class-drops-whole-file",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n[[:notaclass:]] filter=lfs\nafter filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "accepted-final-hyphen-closed-glob",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n[a-] filter=lfs\nafter filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "before",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "[a-]",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "after",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "comments-blank-and-crlf",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "#comment filter=lfs\r\n  #indented filter=lfs\r\n\r\n actual filter=lfs\r\n\\#literal filter=lfs\r\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "actual",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "\\#literal",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "missing-working-tracked-root-attributes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.index-only filter=lfs\n",
+          "tracked": true
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.nested-working filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "remove_working": [
+          "ROOT/.gitattributes"
+        ]
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/*.nested-working",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "missing-working-tracked-nested-attributes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.root-working filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.index-only filter=lfs\n",
+          "tracked": true
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "remove_working": [
+          "ROOT/nested/.gitattributes"
+        ]
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.root-working",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "ignored-untracked-attributes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitignore",
+          "content": ".gitattributes\nnested/\n"
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.ignored-root filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.ignored-nested filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "ignored-but-tracked-attributes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitignore",
+          "content": ".gitattributes\nnested/\n"
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.tracked-root filter=lfs\n",
+          "tracked": true
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.tracked-nested filter=lfs\n",
+          "tracked": true
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/*.tracked-nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.tracked-root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "global-attributes-relative-inside-root",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/config/global.attrs",
+          "content": "*.relative filter=lfs\n"
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.root filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "config/global.attrs"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "config/*.relative",
+            "source": "config/global.attrs",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "global-attributes-relative-parent",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/../external.attrs",
+          "content": "*.parent-relative filter=lfs\n"
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.root filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "../external.attrs"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "../*.parent-relative",
+            "source": "../external.attrs",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "global-attributes-absolute",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/custom/global.attrs",
+          "content": "*.absolute filter=lfs lockable\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/custom/global.attrs"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.absolute",
+            "source": "",
+            "lockable": true,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "global-attributes-missing",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.root filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/missing.attrs"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.root",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "global-attributes-from-include",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/include.config",
+          "content": "[core]\n\tattributesfile = ROOT/custom/global.attrs\n",
+          "expand_placeholders": true
+        },
+        {
+          "path": "ROOT/custom/global.attrs",
+          "content": "*.included filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes",
+        "include.path": "ROOT/include.config"
+      },
+      "setup": {
+        "unset_config": [
+          "core.attributesfile"
+        ]
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.included",
+            "source": "",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "linked-worktree-common-info-and-root",
+      "files": [
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.worktree filter=lfs\n"
+        },
+        {
+          "path": "ROOT/nested/.gitattributes",
+          "content": "*.nested filter=lfs\n"
+        },
+        {
+          "path": "COMMON/info/attributes",
+          "content": "*.common-info filter=lfs lockable\n"
+        },
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": "*.global filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "linked_worktree": true
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested/*.nested",
+            "source": "nested/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.worktree",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.global",
+            "source": "",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "raw-byte-pattern-and-nested-source",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content_hex": "7261772dff2e62696e2066696c7465723d6c66730a2271756f7465642d5c3337372e62696e222066696c7465723d6c66730a226865782d5c7866662e62696e222066696c7465723d6c66730a"
+        },
+        {
+          "path_hex": "524f4f542f6e65737465642dfe2f2e67697461747472696275746573",
+          "content_hex": "2a2e6e65737465642066696c7465723d6c66730a"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "nested-\ufffd/*.nested",
+            "source": "nested-\ufffd/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "raw-\ufffd.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "quoted-\ufffd.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "hex-\ufffd.bin",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "tracked-index-conflict-duplicates",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.conflict-working filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "conflict_index": true
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.conflict-working",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.conflict-working",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "*.conflict-working",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "missing-index-existing-working-attributes",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.working-only filter=lfs\n",
+          "tracked": true
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "remove_index": [
+          "ROOT/.gitattributes"
+        ]
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "*.working-only",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "linked-worktree-private-info-not-common",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "*.worktree filter=lfs\n"
+        },
+        {
+          "path": "COMMON/info/attributes",
+          "content": "*.common-ignored filter=lfs\n"
+        },
+        {
+          "path": "COMMON/worktrees/root/info/attributes",
+          "content": "*.private-info filter=lfs lockable\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {
+        "linked_worktree": true
+      },
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "../main/.git/worktrees/root/info/*.private-info",
+            "source": "../main/.git/worktrees/root/info/attributes",
+            "lockable": true,
+            "tracked": true
+          },
+          {
+            "pattern": "*.worktree",
+            "source": ".gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "unclosed-final-hyphen-glob",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/.gitattributes",
+          "content": "before filter=lfs\n[a- filter=lfs\nafter filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    },
+    {
+      "name": "unstable-equal-length-source-order",
+      "files": [
+        {
+          "path": "ROOT/.oracle-global-attributes",
+          "content": ""
+        },
+        {
+          "path": "ROOT/a/.gitattributes",
+          "content": "*.a filter=lfs\n"
+        },
+        {
+          "path": "ROOT/bb/.gitattributes",
+          "content": "*.bb filter=lfs\n"
+        },
+        {
+          "path": "ROOT/c/.gitattributes",
+          "content": "*.c filter=lfs\n"
+        },
+        {
+          "path": "ROOT/dd/.gitattributes",
+          "content": "*.dd filter=lfs\n"
+        },
+        {
+          "path": "ROOT/e/.gitattributes",
+          "content": "*.e filter=lfs\n"
+        },
+        {
+          "path": "ROOT/ff/.gitattributes",
+          "content": "*.ff filter=lfs\n"
+        },
+        {
+          "path": "ROOT/g/.gitattributes",
+          "content": "*.g filter=lfs\n"
+        },
+        {
+          "path": "ROOT/hh/.gitattributes",
+          "content": "*.hh filter=lfs\n"
+        },
+        {
+          "path": "ROOT/i/.gitattributes",
+          "content": "*.i filter=lfs\n"
+        },
+        {
+          "path": "ROOT/jj/.gitattributes",
+          "content": "*.jj filter=lfs\n"
+        },
+        {
+          "path": "ROOT/k/.gitattributes",
+          "content": "*.k filter=lfs\n"
+        },
+        {
+          "path": "ROOT/ll/.gitattributes",
+          "content": "*.ll filter=lfs\n"
+        },
+        {
+          "path": "ROOT/m/.gitattributes",
+          "content": "*.m filter=lfs\n"
+        }
+      ],
+      "config": {
+        "lfs.repositoryformatversion": "0",
+        "core.attributesfile": "ROOT/.oracle-global-attributes"
+      },
+      "setup": {},
+      "expected": {
+        "code": 0,
+        "patterns": [
+          {
+            "pattern": "jj/*.jj",
+            "source": "jj/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "bb/*.bb",
+            "source": "bb/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "dd/*.dd",
+            "source": "dd/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "ff/*.ff",
+            "source": "ff/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "hh/*.hh",
+            "source": "hh/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "ll/*.ll",
+            "source": "ll/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "c/*.c",
+            "source": "c/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "e/*.e",
+            "source": "e/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "g/*.g",
+            "source": "g/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "i/*.i",
+            "source": "i/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "a/*.a",
+            "source": "a/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "k/*.k",
+            "source": "k/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          },
+          {
+            "pattern": "m/*.m",
+            "source": "m/.gitattributes",
+            "lockable": false,
+            "tracked": true
+          }
+        ],
+        "stderr": "",
+        "config_unchanged": true
+      }
+    }
+  ],
+  "version_cases": [
+    {
+      "name": "missing",
+      "config_before": [],
+      "config_after": [
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 1
+    },
+    {
+      "name": "empty",
+      "config_before": [
+        ""
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 2
+    },
+    {
+      "name": "zero",
+      "config_before": [
+        "0"
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 3
+    },
+    {
+      "name": "malformed",
+      "config_before": [
+        "not-a-version"
+      ],
+      "config_after": [
+        "not-a-version"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: not-a-version\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 3
+    },
+    {
+      "name": "future_one",
+      "config_before": [
+        "1"
+      ],
+      "config_after": [
+        "1"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 1\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 3
+    },
+    {
+      "name": "future_999",
+      "config_before": [
+        "999"
+      ],
+      "config_after": [
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 3
+    },
+    {
+      "name": "repeat_zero_future",
+      "config_before": [
+        "0",
+        "999"
+      ],
+      "config_after": [
+        "0",
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 3
+    },
+    {
+      "name": "repeat_future_zero",
+      "config_before": [
+        "999",
+        "0"
+      ],
+      "config_after": [
+        "999",
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 4
+    },
+    {
+      "name": "repeat_zero_empty",
+      "config_before": [
+        "0",
+        ""
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 5
+    },
+    {
+      "name": "repeat_future_empty_zero",
+      "config_before": [
+        "999",
+        "",
+        "0"
+      ],
+      "config_after": [
+        "999",
+        "",
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 6
+    },
+    {
+      "name": "repeat_zero_empty_future",
+      "config_before": [
+        "0",
+        "",
+        "999"
+      ],
+      "config_after": [
+        "0",
+        "",
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 6
+    },
+    {
+      "name": "repeat_empty_zero",
+      "config_before": [
+        "",
+        "0"
+      ],
+      "config_after": [
+        "",
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 7
+    },
+    {
+      "name": "space_zero",
+      "config_before": [
+        " 0 "
+      ],
+      "config_after": [
+        " 0 "
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 8
+    },
+    {
+      "name": "tab_zero",
+      "config_before": [
+        "\t0\t"
+      ],
+      "config_after": [
+        "\t0\t"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: \t0\t\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 8
+    },
+    {
+      "name": "spaces_only",
+      "config_before": [
+        "   "
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 9
+    },
+    {
+      "name": "newline_zero",
+      "config_before": [
+        "0\n"
+      ],
+      "config_after": [
+        "0\n"
+      ],
+      "code": 0,
+      "stdout_json": {
+        "patterns": []
+      },
+      "stdout_text": null,
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 10
+    },
+    {
+      "name": "leading_zero",
+      "config_before": [
+        "00"
+      ],
+      "config_after": [
+        "00"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 00\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 10
+    },
+    {
+      "name": "plus_zero",
+      "config_before": [
+        "+0"
+      ],
+      "config_after": [
+        "+0"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: +0\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 10
+    }
+  ],
+  "system_attributes_shim": {
+    "intercepted_native_argv": [
+      "-c",
+      "filter.lfs.smudge=",
+      "-c",
+      "filter.lfs.clean=",
+      "-c",
+      "filter.lfs.process=",
+      "-c",
+      "filter.lfs.required=false",
+      "var",
+      "GIT_ATTR_SYSTEM"
+    ],
+    "also_accepts_bare_var": true,
+    "result": "isolated empty system attributes file path",
+    "all_other_git_calls": "unmodified native Git",
+    "observed_pattern_case_intercepts": 34
+  },
+  "version_configuration_key": "lfs.repositoryformatversion",
+  "native_disabled_system_cases": [
+    {
+      "name": "missing",
+      "config_before": [],
+      "config_after": [
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "empty",
+      "config_before": [
+        ""
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "zero",
+      "config_before": [
+        "0"
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "malformed",
+      "config_before": [
+        "not-a-version"
+      ],
+      "config_after": [
+        "not-a-version"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: not-a-version\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "future_one",
+      "config_before": [
+        "1"
+      ],
+      "config_after": [
+        "1"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 1\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "future_999",
+      "config_before": [
+        "999"
+      ],
+      "config_after": [
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_zero_future",
+      "config_before": [
+        "0",
+        "999"
+      ],
+      "config_after": [
+        "0",
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_future_zero",
+      "config_before": [
+        "999",
+        "0"
+      ],
+      "config_after": [
+        "999",
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_zero_empty",
+      "config_before": [
+        "0",
+        ""
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_future_empty_zero",
+      "config_before": [
+        "999",
+        "",
+        "0"
+      ],
+      "config_after": [
+        "999",
+        "",
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_zero_empty_future",
+      "config_before": [
+        "0",
+        "",
+        "999"
+      ],
+      "config_after": [
+        "0",
+        "",
+        "999"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 999\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "repeat_empty_zero",
+      "config_before": [
+        "",
+        "0"
+      ],
+      "config_after": [
+        "",
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "space_zero",
+      "config_before": [
+        " 0 "
+      ],
+      "config_after": [
+        " 0 "
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "tab_zero",
+      "config_before": [
+        "\t0\t"
+      ],
+      "config_after": [
+        "\t0\t"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: \t0\t\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "spaces_only",
+      "config_before": [
+        "   "
+      ],
+      "config_after": [
+        "0"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": true,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "newline_zero",
+      "config_before": [
+        "0\n"
+      ],
+      "config_after": [
+        "0\n"
+      ],
+      "code": 2,
+      "stdout_json": null,
+      "stdout_text": "",
+      "stderr": "unable to list patterns: failed to call `git var GIT_ATTR_SYSTEM`: exit status 1\n",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "leading_zero",
+      "config_before": [
+        "00"
+      ],
+      "config_after": [
+        "00"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: 00\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    },
+    {
+      "name": "plus_zero",
+      "config_before": [
+        "+0"
+      ],
+      "config_after": [
+        "+0"
+      ],
+      "code": 128,
+      "stdout_json": null,
+      "stdout_text": "Unknown repository format version: +0\n",
+      "stderr": "",
+      "git_config_changed": false,
+      "system_attr_shim_calls": 0
+    }
+  ],
+  "version_notes": [
+    "Native Local format lookup trims leading/trailing ASCII spaces and LF, but not TAB: space-wrapped 0 and LF-wrapped0 are accepted without rewriting, TAB-wrapped0 is rejected.",
+    "Missing, empty, or ASCII-spaces-only values cause native format0 publication; Rust inspection intentionally treats these as logical0 without writing.",
+    "Exact string0 is supported; 00, +0, malformed and future versions are rejected. Repeated configuration values use the final scalar."
+  ]
+}

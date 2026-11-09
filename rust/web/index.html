@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Desktop · Repository</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <div><strong>Desktop</strong><span id="repository">Repository</span></div>
+      <p id="connection" role="status">Connecting…</p>
+      <button id="refresh" disabled>Refresh</button>
+      <button id="cancel-work" disabled>Cancel work</button>
+      <button id="reconnect" hidden>Reconnect</button>
+    </header>
+    <div id="lfs-initialization-root"></div>
+    <div id="recovery-root"></div>
+    <main>
+      <aside>
+        <h2>Repositories</h2>
+        <label
+          >Saved repositories<select id="repositories" disabled></select
+        ></label>
+        <button id="select-repository" disabled>Open selected</button>
+        <form id="open-repository">
+          <label
+            >Repository directory<input
+              name="path"
+              required
+              placeholder="/data/data/com.termux/files/home/project" /></label
+          ><button disabled>Open directory</button>
+        </form>
+        <details>
+          <summary>Create or clone</summary>
+          <form id="init-repository">
+            <label>New directory<input name="path" required /></label
+            ><button disabled>Initialize repository</button>
+          </form>
+          <form id="clone-repository">
+            <label>Clone URL<input name="url" required /></label
+            ><label>Destination directory<input name="path" required /></label
+            ><button disabled>Clone repository</button>
+          </form>
+        </details>
+        <h2>Current branch</h2>
+        <p id="branch">—</p>
+        <label>Branches<select id="branches" disabled></select></label>
+        <button id="checkout" disabled>Switch branch</button>
+        <form id="create-branch">
+          <label>New branch<input name="name" required /></label>
+          <label
+            >Start point<input
+              name="start_point"
+              placeholder="Current checkout"
+          /></label>
+          <label
+            ><input type="checkbox" name="no_track" /> No upstream
+            tracking</label
+          >
+          <label
+            ><input type="checkbox" name="checkout" checked /> Switch after
+            creating</label
+          >
+          <button disabled>Review new branch</button>
+        </form>
+        <h2>Synchronize</h2>
+        <label>Remote<input id="remote" value="origin" /></label>
+        <div class="button-row">
+          <button data-network="fetch" disabled>Fetch</button
+          ><button data-network="pull" disabled>Pull</button
+          ><button data-network="push" disabled>Push</button>
+        </div>
+        <p class="muted">Pull uses fast-forward only.</p>
+      </aside>
+      <section class="changes">
+        <nav aria-label="Repository views">
+          <button data-view="changes" disabled>Changes</button
+          ><button data-view="log" disabled>History</button
+          ><button data-view="tags" disabled>Tags</button
+          ><button data-view="remotes" disabled>Remotes</button>
+        </nav>
+        <h2>Working tree</h2>
+        <div id="files"></div>
+        <div id="commit-root"></div>
+      </section>
+      <section class="details">
+        <h2 id="detail-title">Repository</h2>
+        <div id="history-root"></div>
+        <div id="diff-root"></div>
+        <pre id="output" tabindex="0" aria-live="polite"></pre>
+      </section>
+    </main>
+    <div id="checkout-root"></div>
+    <div id="stash-root"></div>
+    <div id="discard-root"></div>
+    <div id="github-root"></div>
+    <div id="management-root"></div>
+    <div id="lfs-root"></div>
+    <script type="module" src="/client.js"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+[workspace]
+members = ["rust/crates/core", "rust/crates/cli", "rust/crates/bridge", "rust/crates/native"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[workspace.dependencies]
+anyhow = "1"
+axum = { version = "0.8", features = ["ws"] }
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "process", "io-util", "io-std", "net", "signal", "time", "sync", "fs"] }
+uuid = { version = "1", features = ["v4"] }
+sha2 = "0.10.9"
+base64 = "0.22.1"

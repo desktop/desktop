@@ -1,3 +1,23 @@
+# Desktop Rust migration
+
+This checkout is migrating GitHub Desktop to Rust, with a headless CLI and a
+localhost/WebSocket browser UI for Termux. The goal includes removal of the
+legacy Electron backend after its replacements are verified. An optional Wry/Tao
+host now loads the same UI on desktop targets; native runtime validation is pending.
+
+```sh
+cargo build --locked -j 1
+./rust/target/debug/desktop-rs serve --empty
+```
+
+See [Rust development and commands](rust/README.md) and the
+[full migration ledger](rust/MIGRATION.md). The standalone web frontend builds
+with `npm ci --prefix rust/web && npm --prefix rust/web run build`; Rust users can
+build with the checked-in browser bundle without installing Electron or Node.
+This is an in-progress fork, not an official GitHub Desktop release.
+
+---
+
 # [GitHub Desktop](https://desktop.github.com)
 
 [GitHub Desktop](https://desktop.github.com/) is an open-source [Electron](https://www.electronjs.org/)-based

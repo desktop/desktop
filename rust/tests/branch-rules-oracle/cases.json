@@ -1,0 +1,2929 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "no-rules",
+      "branch": "feature/topic",
+      "rules": [],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass",
+      "expected_pattern": "pass"
+    },
+    {
+      "id": "creation-never",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "creation-pull_requests_only",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "pull_requests_only"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "creation-always",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "creation-unexpected",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "unexpected"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "creation-missing-ruleset",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [],
+      "expected_check": "pass"
+    },
+    {
+      "id": "creation-missing-bypass-field",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "creation-always-before-never",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 2,
+          "type": "creation"
+        },
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        },
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "creation-never-before-always",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        },
+        {
+          "ruleset_id": 2,
+          "type": "creation"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        },
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "pattern-enforced-failure",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "fail"
+    },
+    {
+      "id": "pattern-always-failure",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "warning",
+      "expected_pattern": "bypass"
+    },
+    {
+      "id": "pattern-pr-only-failure",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "pull_requests_only"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "pattern-missing-ruleset",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [],
+      "expected_check": "pass",
+      "expected_pattern": "pass"
+    },
+    {
+      "id": "pattern-missing-parameters",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "mixed-passing-enforced-and-failing-bypass",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "feature",
+            "negate": false
+          }
+        },
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "allowed",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        },
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "bypass"
+    },
+    {
+      "id": "mixed-missing-and-failing-bypass",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 9,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        },
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "bypass"
+    },
+    {
+      "id": "mixed-missing-creation-and-failing-bypass",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 9,
+          "type": "creation"
+        },
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "bypass"
+    },
+    {
+      "id": "creation-bypass-and-passing-enforced-pattern",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 2,
+          "type": "creation"
+        },
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "feature",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        },
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "creation-enforced-and-passing-bypass-pattern",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "creation"
+        },
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "feature",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        },
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "blocked"
+    },
+    {
+      "id": "duplicate-same-ruleset",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        },
+        {
+          "ruleset_id": 2,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 2,
+          "current_user_can_bypass": "always"
+        }
+      ],
+      "expected_check": "warning"
+    },
+    {
+      "id": "literal-starts_with-match-negate-False",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-starts_with-match-negate-True",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-starts_with-miss-negate-False",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-starts_with-miss-negate-True",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-starts_with-empty-pattern",
+      "branch": "topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "literal-ends_with-match-negate-False",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "ends_with",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-ends_with-match-negate-True",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "ends_with",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-ends_with-miss-negate-False",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "ends_with",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-ends_with-miss-negate-True",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "ends_with",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-ends_with-empty-pattern",
+      "branch": "topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "ends_with",
+            "pattern": "",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "literal-contains-match-negate-False",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "contains",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-contains-match-negate-True",
+      "branch": "a.b[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "contains",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-contains-miss-negate-False",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "contains",
+            "pattern": "a.b[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-contains-miss-negate-True",
+      "branch": "axb0",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "contains",
+            "pattern": "a.b[0]",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ]
+    },
+    {
+      "id": "literal-contains-empty-pattern",
+      "branch": "topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "contains",
+            "pattern": "",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "unknown-operator-negate-False",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "unknown",
+            "pattern": "feature",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "fail"
+    },
+    {
+      "id": "unknown-operator-negate-True",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "unknown",
+            "pattern": "feature",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "blocked",
+      "expected_pattern": "fail"
+    },
+    {
+      "id": "regex-ascii-word",
+      "branch": "abc_09",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\w+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-not-ascii-word",
+      "branch": "é",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\w+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-not-ascii-word-negated",
+      "branch": "é",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\w+$",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-nonword",
+      "branch": "é",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\W+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-ascii-digit",
+      "branch": "123",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\d+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-arabic-digit",
+      "branch": "٣",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\d+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-digit-property",
+      "branch": "٣",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\p{Nd}+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-ascii-space",
+      "branch": " ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\s$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-vertical-tab-space",
+      "branch": "\u000b",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\s$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-nbsp-space",
+      "branch": " ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\s$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-nbsp-posix-space",
+      "branch": " ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^[[:space:]]$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-ascii-boundary",
+      "branch": "foo",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\bfoo\\b",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-nonascii-boundary",
+      "branch": "élan",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\bélan\\b",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-ascii-boundary-nonascii-neighbors",
+      "branch": "éfooé",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\bfoo\\b",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-quoted-meta",
+      "branch": ".a+[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\Q.a+[0]\\E",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-quoted-open",
+      "branch": ".a+[0]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\Q.a+[0]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-quoted-escaped-end",
+      "branch": "xy",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\Qx\\E\\Qy\\E",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-byte-escape-ascii",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\C",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-byte-escape-unicode",
+      "branch": "é",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\C",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-greek",
+      "branch": "αβ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\p{Greek}+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-letters",
+      "branch": "ñα中",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\p{L}+$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode-emoji-category",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\p{So}$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-astral-dot",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^.$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-astral-dot-negated",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^.$",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-astral-two-dots",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^..$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-astral-literal",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^😀$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-astral-escape",
+      "branch": "😀",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\x{1f600}$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unicode16-letter",
+      "branch": "𞗐",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^\\p{L}$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-strict-end",
+      "branch": "foo\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "foo$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-strict-end-negated",
+      "branch": "foo\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "foo$",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-multiline-end",
+      "branch": "foo\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?m)foo$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-strict-anchors",
+      "branch": "foo",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^foo$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-absolute-anchors",
+      "branch": "foo",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\Afoo\\z",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-absolute-anchors-newline",
+      "branch": "foo\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\Afoo\\z",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-capital-Z",
+      "branch": "foo",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "foo\\Z",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-multiline-search",
+      "branch": "bar\nfoo\nbaz",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?m)^foo$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-dot-newline",
+      "branch": "\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^.$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-dotall-newline",
+      "branch": "\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?s)^.$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-negated-newline-class",
+      "branch": "\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^[^x]$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-octal-ascii",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\141",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-octal-null",
+      "branch": "\u0000",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\000",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-octal-three-digit",
+      "branch": "ǿ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\777",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-octal-leading-zero",
+      "branch": "?7",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\0777",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-single-digit-backref",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\1",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-backreference",
+      "branch": "aa",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(a)\\1",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-octal-zero",
+      "branch": "\u0000",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\0",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-octal-two-digit",
+      "branch": "\n",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\12",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": true
+    },
+    {
+      "id": "regex-class-and-literal",
+      "branch": "&",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^[a&&b]$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-class-intersection-miss",
+      "branch": "b",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "[a-z&&[^aeiou]]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-class-intersection-literal-end",
+      "branch": "b]",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "[a-z&&[^aeiou]]",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-class-difference-literal",
+      "branch": "-",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^[a--b]$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-class-union-literal",
+      "branch": "|",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^[a||b]$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-casefold-kelvin",
+      "branch": "K",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?i)^k$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-casefold-long-s",
+      "branch": "ſ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?i)^s$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-casefold-ascii-word",
+      "branch": "ſ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?i)^\\w$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-casefold-dotted-i",
+      "branch": "İ",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?i)^i$",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-named-python",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?P<name>a)",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-named-angle",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?<name>a)",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-lookahead",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?=a)",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-lookbehind",
+      "branch": "ab",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(?<=a)b",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-invalid-open-paren",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-invalid-open-paren-negated",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(",
+            "negate": true
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-invalid-class",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "[",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-invalid-repeat",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "*",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-excessive-repeat",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "a{1001}",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unknown-property",
+      "branch": "a",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\p{NotAProperty}",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-unknown-escape",
+      "branch": "q",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "\\q",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "regex-empty-regex",
+      "branch": "topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "matcher_only": false
+    },
+    {
+      "id": "invalid-regex-missing-ruleset",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "(",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [],
+      "expected_check": "pass",
+      "expected_pattern": "pass"
+    },
+    {
+      "id": "unrelated-rule-without-name-rule",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "required_signatures"
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "unrelated-invalid-pattern-with-name-rule",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "feature",
+            "negate": false
+          }
+        },
+        {
+          "ruleset_id": 1,
+          "type": "commit_message_pattern",
+          "parameters": {
+            "operator": "regex",
+            "pattern": "(",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "error"
+    },
+    {
+      "id": "skip-no-account",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "account": null,
+      "expected_check": "pass"
+    },
+    {
+      "id": "skip-non-github",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "github": null,
+      "expected_check": "pass"
+    },
+    {
+      "id": "skip-no-assigned-account",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "assigned_login": null,
+      "expected_check": "pass"
+    },
+    {
+      "id": "skip-wrong-assigned-account",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "assigned_login": "someone-else",
+      "expected_check": "pass"
+    },
+    {
+      "id": "skip-private-free-owner",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "github": {
+        "isPrivate": true,
+        "owner": {
+          "login": "tester"
+        }
+      },
+      "account": {
+        "plan": "free"
+      },
+      "expected_check": "pass"
+    },
+    {
+      "id": "skip-private-missing-plan-owner",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "github": {
+        "isPrivate": true,
+        "owner": {
+          "login": "tester"
+        }
+      },
+      "account": {
+        "plan": null
+      },
+      "expected_check": "pass"
+    },
+    {
+      "id": "empty-name",
+      "branch": "",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    },
+    {
+      "id": "private-collaborator-free-plan",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "github": {
+        "isPrivate": true
+      },
+      "account": {
+        "plan": "free"
+      },
+      "expected_check": "blocked"
+    },
+    {
+      "id": "owner-login-case-sensitive-plan-gate",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "github": {
+        "isPrivate": true,
+        "owner": {
+          "login": "TESTER"
+        }
+      },
+      "account": {
+        "plan": "free"
+      },
+      "expected_check": "blocked"
+    },
+    {
+      "id": "case-insensitive-account-assignment",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "assigned_login": "TESTER",
+      "expected_check": "blocked"
+    },
+    {
+      "id": "endpoint-dotcom",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "account": {
+        "endpoint": "https://api.github.com"
+      },
+      "github": {
+        "endpoint": "https://api.github.com"
+      },
+      "expected_check": "blocked"
+    },
+    {
+      "id": "endpoint-ghe",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "account": {
+        "endpoint": "https://api.acme.ghe.com"
+      },
+      "github": {
+        "endpoint": "https://api.acme.ghe.com"
+      },
+      "expected_check": "blocked"
+    },
+    {
+      "id": "endpoint-ghes",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "account": {
+        "endpoint": "https://github.example/api/v3"
+      },
+      "github": {
+        "endpoint": "https://github.example/api/v3"
+      },
+      "expected_check": "pass"
+    },
+    {
+      "id": "api-error-network",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "api_error": "network",
+      "expected_check": "pass"
+    },
+    {
+      "id": "api-error-not_found",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "api_error": "not_found",
+      "expected_check": "pass"
+    },
+    {
+      "id": "api-error-rules_disabled",
+      "branch": "feature/topic",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "regex",
+            "pattern": "^allowed/",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "api_error": "rules_disabled",
+      "expected_check": "pass"
+    },
+    {
+      "id": "api-encoded-branch",
+      "branch": "release/ñ?#%()'",
+      "rules": [
+        {
+          "ruleset_id": 1,
+          "type": "branch_name_pattern",
+          "parameters": {
+            "name": "fixture",
+            "operator": "starts_with",
+            "pattern": "release",
+            "negate": false
+          }
+        }
+      ],
+      "rulesets": [
+        {
+          "id": 1,
+          "current_user_can_bypass": "never"
+        }
+      ],
+      "expected_check": "pass"
+    }
+  ]
+}

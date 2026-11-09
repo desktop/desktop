@@ -1,0 +1,29 @@
+[package]
+name = "desktop-native"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "desktop-native"
+path = "src/main.rs"
+
+[features]
+default = []
+native = ["dep:wry", "dep:tao", "dep:open", "dep:url"]
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+desktop-core = { path = "../core" }
+desktop-bridge = { path = "../bridge" }
+tokio.workspace = true
+
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
+wry = { version = "0.57.1", optional = true }
+tao = { version = "0.37.2", optional = true }
+open = { version = "5.3", optional = true }
+url = { version = "2.5", optional = true }
+
+[dev-dependencies]
+url = "2.5"

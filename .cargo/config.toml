@@ -1,0 +1,3 @@
+# Keep existing Termux builds and CLI paths usable during source migration.
+[build]
+target-dir = "rust/target"
