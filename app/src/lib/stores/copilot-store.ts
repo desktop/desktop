@@ -8,6 +8,7 @@ import {
   CopilotClientOptions,
 } from '@github/copilot-sdk'
 import { AccountsStore } from './accounts-store'
+import { getMigratedGHEEndpoint } from '../ghe-endpoint-migration'
 import { Account, isDotComAccount } from '../../models/account'
 import {
   ICopilotCommitMessage,
@@ -253,6 +254,53 @@ export type CopilotModelSelectionsByAccount = ReadonlyMap<
   string,
   CopilotModelSelections
 >
+
+/**
+ * Rewrite selections keyed on a legacy .ghe.com endpoint format (see
+ * `getMigratedGHEEndpoint`) to the canonical endpoint so that they keep
+ * matching `getCopilotAccountCacheKey` after the account's endpoint has been
+ * migrated. Selections already stored under the canonical key take precedence.
+ *
+ * Returns null if no selections needed migrating.
+ */
+export function migrateGHECopilotModelSelectionKeys(
+  selectionsByAccount: CopilotModelSelectionsByAccount
+): CopilotModelSelectionsByAccount | null {
+  const migrated = new Map(selectionsByAccount)
+  let changed = false
+
+  for (const [key, selections] of selectionsByAccount) {
+    const separator = key.indexOf(':')
+    if (separator === -1) {
+      continue
+    }
+
+    const id = key.substring(0, separator)
+    const endpoint = getMigratedGHEEndpointOrUndefined(
+      key.substring(separator + 1)
+    )
+    if (endpoint === undefined) {
+      continue
+    }
+
+    const canonicalKey = `${id}:${endpoint}`
+    migrated.delete(key)
+    if (!selectionsByAccount.has(canonicalKey)) {
+      migrated.set(canonicalKey, selections)
+    }
+    changed = true
+  }
+
+  return changed ? migrated : null
+}
+
+function getMigratedGHEEndpointOrUndefined(endpoint: string) {
+  try {
+    return getMigratedGHEEndpoint(endpoint)
+  } catch {
+    return undefined
+  }
+}
 
 /** Migrate legacy selections to each account, preserving existing overrides. */
 export function migrateCopilotModelSelectionsToAccounts(

@@ -178,12 +178,16 @@ export class PullRequestStore {
       const headRepository = await getRepo(record.head.repoId)
       const baseRepository = await getRepo(record.base.repoId)
 
-      if (headRepository === null) {
-        return fatalError("head repository can't be null")
-      }
-
-      if (baseRepository === null) {
-        return fatalError("base repository can't be null")
+      if (headRepository === null || baseRepository === null) {
+        // The pull request references a GitHub repository which no longer
+        // exists (e.g. one which was merged into a duplicate during a
+        // repositories database migration). Treat the cache as stale and let
+        // the next refresh fetch all pull requests again.
+        log.warn(
+          `Clearing cached pull requests for ${repository.fullName} which reference missing repositories`
+        )
+        await this.db.deleteAllPullRequestsInRepository(repository)
+        return []
       }
 
       result.push(

@@ -245,7 +245,7 @@ describe('AppStore repository accounts', () => {
   })
 
   describe('when no account is signed in for the endpoint', () => {
-    const gheEndpoint = 'https://api.company.ghe.com/'
+    const gheEndpoint = 'https://api.company.ghe.com'
 
     async function addGHERepository(path: string) {
       const gh = await stores.repositoriesStore.upsertGitHubRepository(
@@ -450,7 +450,7 @@ describe('AppStore repository accounts', () => {
     assert.equal(updated?.login, null)
     assert.equal(
       updated?.gitHubRepository?.endpoint,
-      'https://api.company.ghe.com/'
+      'https://api.company.ghe.com'
     )
   })
 
