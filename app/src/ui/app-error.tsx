@@ -242,17 +242,29 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderFooter(error: Error) {
+    const underlyingError = getUnderlyingError(error)
     if (isCloneError(error)) {
       return this.renderRetryCloneFooter()
     }
-
-    const underlyingError = getUnderlyingError(error)
 
     if (isGitError(underlyingError)) {
       const { gitError } = underlyingError.result
       if (gitError !== null && isAuthFailureError(gitError)) {
         return this.renderOpenPreferencesFooter()
       }
+    }
+
+    if (getRetryActionType(error) === RetryActionType.Push) {
+      return (
+        <DialogFooter>
+          <OkCancelButtonGroup
+            okButtonText="Retry push"
+            onOkButtonClick={this.onRetryAction}
+            cancelButtonText="Close"
+            onCancelButtonClick={this.onCloseButtonClick}
+          />
+        </DialogFooter>
+      )
     }
 
     return this.renderDefaultFooter()

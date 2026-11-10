@@ -149,8 +149,9 @@ interface ICommitMessageProps {
   /** Repository-owned preference. Omitted in manual-only contexts. */
   readonly commitMode?: CommitMode
   readonly onCommitModeChanged?: (mode: CommitMode) => void
-  readonly pushAfterAssistedCommit?: boolean
-  readonly onPushAfterAssistedCommitChanged?: (enabled: boolean) => void
+  readonly pushAfterCommit?: boolean
+  readonly canPushAfterCommit?: boolean
+  readonly onPushAfterCommitChanged?: (enabled: boolean) => void
   readonly repository: Repository
   readonly repositoryAccount: Account | null
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -167,7 +168,6 @@ interface ICommitMessageProps {
   ) => Promise<ICopilotAssistedCommitRequest>
   readonly onCancelCopilotAssistedCommits?: () => void
   readonly onRetryCopilotAssistedCommitRecovery?: () => void
-  readonly onRetryCopilotAssistedCommitPush?: () => void
   readonly onDismissCopilotAssistedCommitError?: () => void
   readonly onAssistedCommitErrorDetails?: () => void
   readonly shouldShowGenerateCommitMessageCallOut?: boolean
@@ -724,13 +724,6 @@ export class CommitMessage extends React.Component<
 
   /** Whether Copilot will be creating the commits. */
   private get isCopilotCommitMode() {
-    const state = this.props.assistedCommitState
-    if (
-      state?.kind === 'push-error' ||
-      (state?.kind === 'error' && state.pushed === true)
-    ) {
-      return true
-    }
     if (
       this.props.assistedCommitState !== undefined &&
       isAssistedCommitRepositoryLocked(this.props.assistedCommitState)
@@ -759,10 +752,6 @@ export class CommitMessage extends React.Component<
   private canCreateCopilotAssistedCommits() {
     return (
       this.isCopilotCommitMode &&
-      !(
-        this.props.assistedCommitState?.kind === 'error' &&
-        this.props.assistedCommitState.pushed === true
-      ) &&
       this.isCopilotAssistedCommitAvailable &&
       this.props.repositoryMutationBlocked !== true &&
       (this.props.anyFilesSelected || this.props.allowEmptyCommit) &&
@@ -777,7 +766,7 @@ export class CommitMessage extends React.Component<
       readonly request: ICopilotAssistedCommitRequest
       readonly repository: Repository
       readonly authors: string
-      readonly pushAfterAssistedCommit: boolean
+      readonly pushAfterCommit: boolean
     }
   ) {
     const currentRequest: ICopilotAssistedCommitRequest = {
@@ -792,8 +781,7 @@ export class CommitMessage extends React.Component<
       (!this.mounted ||
         this.props.repository.id !== pending.repository.id ||
         this.props.repository.path !== pending.repository.path ||
-        (this.props.pushAfterAssistedCommit === true) !==
-          pending.pushAfterAssistedCommit ||
+        (this.props.pushAfterCommit === true) !== pending.pushAfterCommit ||
         !assistedCommitRequestsEqual(pending.request, currentRequest) ||
         JSON.stringify(this.props.coAuthors) !== pending.authors)
     ) {
@@ -812,7 +800,7 @@ export class CommitMessage extends React.Component<
       request: freezeAssistedCommitRequest(currentRequest),
       repository: this.props.repository,
       authors: JSON.stringify(this.props.coAuthors),
-      pushAfterAssistedCommit: this.props.pushAfterAssistedCommit === true,
+      pushAfterCommit: this.props.pushAfterCommit === true,
     }
     let preflight = original
     if (
@@ -833,8 +821,7 @@ export class CommitMessage extends React.Component<
       if (
         !this.mounted ||
         this.props.repository.id !== original.repository.id ||
-        (this.props.pushAfterAssistedCommit === true) !==
-          original.pushAfterAssistedCommit ||
+        (this.props.pushAfterCommit === true) !== original.pushAfterCommit ||
         !assistedCommitRequestsEqual(currentRequest, {
           files: this.props.filesSelected,
           trailers: this.getCoAuthorTrailers(),
@@ -1462,8 +1449,7 @@ export class CommitMessage extends React.Component<
               !this.props.skipCommitHooks &&
               !this.props.signOffCommits &&
               !this.props.allowEmptyCommit &&
-              (!this.isCopilotCommitMode ||
-                this.props.pushAfterAssistedCommit !== true),
+              this.props.pushAfterCommit !== true,
           })}
           onClick={this.onCommitOptionsButtonClick}
           ariaLabel={ariaLabel}
@@ -1489,15 +1475,19 @@ export class CommitMessage extends React.Component<
 
     if (this.isCopilotCommitMode) {
       items.push(this.getAddRemoveCoAuthorsMenuItem(), { type: 'separator' })
-      if (this.props.onPushAfterAssistedCommitChanged !== undefined) {
-        items.push({
-          type: 'checkbox',
-          checked: this.props.pushAfterAssistedCommit === true,
-          enabled: !this.isBusy,
-          label: 'Push after committing',
-          action: this.onPushAfterAssistedCommitChanged,
-        })
-      }
+    }
+    if (this.props.onPushAfterCommitChanged !== undefined) {
+      items.push({
+        type: 'checkbox',
+        checked: this.props.pushAfterCommit === true,
+        enabled:
+          !this.isBusy &&
+          this.props.canPushAfterCommit !== false &&
+          this.props.commitToAmend === null &&
+          !this.props.repository.isTutorialRepository,
+        label: 'Push after committing',
+        action: this.onPushAfterCommitChanged,
+      })
     }
 
     if (enableHooksEnvironment()) {
@@ -1545,11 +1535,14 @@ export class CommitMessage extends React.Component<
     showContextualMenu(items)
   }
 
-  private onPushAfterAssistedCommitChanged = () => {
-    if (!this.isBusy) {
-      this.props.onPushAfterAssistedCommitChanged?.(
-        this.props.pushAfterAssistedCommit !== true
-      )
+  private onPushAfterCommitChanged = () => {
+    if (
+      !this.isBusy &&
+      this.props.canPushAfterCommit !== false &&
+      this.props.commitToAmend === null &&
+      !this.props.repository.isTutorialRepository
+    ) {
+      this.props.onPushAfterCommitChanged?.(this.props.pushAfterCommit !== true)
     }
   }
 
@@ -2278,7 +2271,6 @@ export class CommitMessage extends React.Component<
             runState={this.props.assistedCommitState}
             onCancel={this.props.onCancelCopilotAssistedCommits}
             onRetryRecovery={this.props.onRetryCopilotAssistedCommitRecovery}
-            onRetryPush={this.props.onRetryCopilotAssistedCommitPush}
             onDismissError={this.props.onDismissCopilotAssistedCommitError}
             onErrorDetails={this.props.onAssistedCommitErrorDetails}
           >

@@ -70,27 +70,30 @@ const result = await withAssistedCommitSnapshot(
 if (options.signal?.aborted) {
   await rollbackAssistedCommitTransaction(result, options)
 } else {
-  await verifyAssistedCommitTransaction(result, options)
-  // Immediately before push starts, or before returning to the ready state.
-  finalizeAssistedCommitTransaction(result)
+  await acceptVerifiedAssistedCommitTransaction(
+    result,
+    () => {
+      // Check current authorization and cancellation synchronously here.
+    },
+    options
+  )
 }
 ```
 
-For an opted-in push, the feature's `push.ts` owner instead calls
-`prepareAssistedCommitTransactionForPush` from the native push spawn preparation.
-It verifies the retained result and destination under real HEAD/ref/index fences,
-awaits owned fence cleanup, then returns a one-shot synchronous acceptance check.
-The backup remains reversible until that check runs immediately before native
-push invocation. A cleanup, selected-file, index, ref, authorization or signal
-failure cannot launch a push. Once invoked, finalization has revoked rollback:
-even an aborted hook or unknown remote outcome retains every created local commit.
-The surrounding Desktop lease, not native file locks, protects the full network
-operation and its ordinary post-push side effects. Push retry has its own frozen
-intent and never uses a recovery token.
+Local acceptance is identical whether or not automatic push is enabled.
+`acceptVerifiedAssistedCommitTransaction` verifies selected content, full HEAD and
+index under the existing native fences, and checks authorization/cancellation
+synchronously before acceptance. Fence cleanup must succeed before the caller
+marks the result accepted. This is the end of cancellation and rollback.
+The caller then settles required readers/cleanup and releases its Desktop lease
+before optionally invoking ordinary Push. No transaction capability, native lock
+or frozen destination spans authentication, pre-push hooks or network activity.
+Ordinary Push failures and retries keep local commits and never use a recovery
+token or rerun planning.
 
 Execution consumes the accepted snapshot and removes its private files. The
 opaque result retains an in-memory original-index backup for cancellation after
-the last local commit but before local acceptance or native push entry.
+the last local commit but before local acceptance.
 `rollbackAssistedCommitTransaction`
 rechecks ownership and restores only this run. `verifyAssistedCommitTransaction`
 rechecks retained success after caller-owned awaited steps, including selected
