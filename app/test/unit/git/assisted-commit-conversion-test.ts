@@ -686,7 +686,7 @@ describe('git/assisted-commit frozen conversion and attributes', () => {
       process.execPath,
       [
         'script/test.mjs',
-        'app/test/unit/git/assisted-commit-test.ts',
+        'app/test/unit/git/assisted-commit-conversion-test.ts',
         '--test-name-pattern=freezes inherited attribute source without remapping',
       ],
       {
