@@ -62,7 +62,8 @@ export class Terminal extends React.Component<TerminalProps> {
       // fix to default xterm behavior on Windows to allow Ctrl+C
       if (
         key.type === 'keydown' &&
-        key.ctrlKey && !key.altKey &&
+        key.ctrlKey &&
+        !key.altKey &&
         key.key.toLowerCase() === 'c' &&
         this.terminal?.hasSelection()
       ) {
