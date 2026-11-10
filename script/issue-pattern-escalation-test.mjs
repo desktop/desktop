@@ -63,10 +63,10 @@ describe('compiled issue pattern workflow', () => {
 
   it('only exposes proposal and no-op output handlers', () => {
     const configLine = compiled.match(
-      /^\s+GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: (".*")$/m
+      /GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG:\s*'([\s\S]*?)'/
     )
     assert.ok(configLine)
-    const config = JSON.parse(JSON.parse(configLine[1]))
+    const config = JSON.parse(configLine[1].replace(/\s*\n\s*/g, ' '))
     assert.deepEqual(Object.keys(config).sort(), ['create_issue', 'noop'])
     assert.equal(config.create_issue.max, 1)
     assert.deepEqual(config.create_issue.labels, ['priority-1'])
@@ -80,7 +80,7 @@ describe('compiled issue pattern workflow', () => {
     assert.ok(
       processPosition >= 0 && guardPosition < processPosition
     )
-    assert.match(compiled, /GH_AW_FAILURE_REPORT_AS_ISSUE: "false"/)
+    assert.match(compiled, /GH_AW_FAILURE_REPORT_AS_ISSUE: 'false'/)
     assert.doesNotMatch(compiled, /handle_detection_runs\.cjs/)
     assert.doesNotMatch(compiled, /create_report_incomplete_issue/)
     assert.match(

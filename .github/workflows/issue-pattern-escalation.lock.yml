@@ -49,15 +49,15 @@
 #   - ghcr.io/github/gh-aw-node@sha256:2c2ea524e648b91c8333ce246e3838fcf5b19ac70e45baac1a51b9207299749f
 #   - ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132
 
-name: "Review recurring issue patterns"
+name: 'Review recurring issue patterns'
 on:
   schedule:
-    - cron: "15 13 * * *"
+    - cron: '15 13 * * *'
   workflow_dispatch:
     inputs:
       aw_context:
-        default: ""
-        description: "Agent caller context (Reserved for Agentic Workflows)."
+        default: ''
+        description: 'Agent caller context (Reserved for Agentic Workflows).'
         required: false
         type: string
 
@@ -68,14 +68,22 @@ concurrency:
   cancel-in-progress: false
   group: issue-pattern-escalation
 
-run-name: "Review recurring issue patterns"
+run-name: 'Review recurring issue patterns'
 
 env:
-  OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT || vars.GH_AW_DEFAULT_OTLP_ENDPOINT }}
+  OTEL_EXPORTER_OTLP_ENDPOINT:
+    ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT || vars.GH_AW_DEFAULT_OTLP_ENDPOINT
+    }}
   OTEL_SERVICE_NAME: gh-aw.issue-pattern-escalation
-  OTEL_RESOURCE_ATTRIBUTES: 'gh-aw.workflow.name=Review%20recurring%20issue%20patterns,gh-aw.repository=${{ github.repository }},gh-aw.run.id=${{ github.run_id }},github.run_id=${{ github.run_id }},gh-aw.engine.id=copilot'
+  OTEL_RESOURCE_ATTRIBUTES:
+    'gh-aw.workflow.name=Review%20recurring%20issue%20patterns,gh-aw.repository=${{
+    github.repository }},gh-aw.run.id=${{ github.run_id }},github.run_id=${{
+    github.run_id }},gh-aw.engine.id=copilot'
   OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
-  GH_AW_OTLP_ENDPOINTS: '[{"url":"${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT || vars.GH_AW_DEFAULT_OTLP_ENDPOINT }}","headers":"${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}"}]'
+  GH_AW_OTLP_ENDPOINTS:
+    '[{"url":"${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT ||
+    vars.GH_AW_DEFAULT_OTLP_ENDPOINT }}","headers":"${{
+    secrets.GH_AW_DEFAULT_OTLP_HEADERS }}"}]'
   GH_AW_OTLP_IF_MISSING: ignore
 
 jobs:
@@ -87,26 +95,50 @@ jobs:
       actions: read
       contents: read
     env:
-      GH_AW_MAX_DAILY_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
+      GH_AW_MAX_DAILY_AI_CREDITS:
+        ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
     outputs:
       aw_context: ${{ steps.generate_aw_info.outputs.aw_context }}
-      comment_id: ""
-      comment_repo: ""
-      daily_ai_credits_estimated: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_estimated || '' }}
-      daily_ai_credits_exceeded: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_exceeded == 'true' }}
-      daily_ai_credits_guardrail_error: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_guardrail_error || '' }}
-      daily_ai_credits_guardrail_status: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_guardrail_status || '' }}
-      daily_ai_credits_threshold: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_threshold || '' }}
-      daily_ai_credits_total: ${{ steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_total || '' }}
+      comment_id: ''
+      comment_repo: ''
+      daily_ai_credits_estimated:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_estimated
+        || '' }}
+      daily_ai_credits_exceeded:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_exceeded
+        == 'true' }}
+      daily_ai_credits_guardrail_error:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_guardrail_error
+        || '' }}
+      daily_ai_credits_guardrail_status:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_guardrail_status
+        || '' }}
+      daily_ai_credits_threshold:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_threshold
+        || '' }}
+      daily_ai_credits_total:
+        ${{
+        steps.daily-ai-credits-workflow-guardrail.outputs.daily_ai_credits_total
+        || '' }}
       engine_id: ${{ steps.generate_aw_info.outputs.engine_id }}
-      lockdown_check_failed: ${{ steps.generate_aw_info.outputs.lockdown_check_failed == 'true' }}
+      lockdown_check_failed:
+        ${{ steps.generate_aw_info.outputs.lockdown_check_failed == 'true' }}
       model: ${{ steps.generate_aw_info.outputs.model }}
-      oauth_token_check_failed: ${{ steps.check-oauth-tokens.outputs.oauth_token_check_failed == 'true' }}
-      setup-parent-span-id: ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
+      oauth_token_check_failed:
+        ${{ steps.check-oauth-tokens.outputs.oauth_token_check_failed == 'true'
+        }}
+      setup-parent-span-id:
+        ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
       setup-span-id: ${{ steps.setup.outputs.span-id }}
       setup-trace-id: ${{ steps.setup.outputs.trace-id }}
-      stale_lock_file_failed: ${{ steps.check-lock-file.outputs.stale_lock_file_failed == 'true' }}
+      stale_lock_file_failed:
+        ${{ steps.check-lock-file.outputs.stale_lock_file_failed == 'true' }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -114,40 +146,47 @@ jobs:
         with:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
-          safe-output-artifact-client: ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
+          safe-output-artifact-client:
+            ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-pattern-escalation.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository
+            }}/.github/workflows/issue-pattern-escalation.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
           GH_AW_SETUP_AW_CONTEXT: ${{ inputs.aw_context }}
       - name: Mask OTLP telemetry headers
         run: bash "${RUNNER_TEMP}/gh-aw/actions/mask_otlp_headers.sh"
       - name: Generate agentic run info
         id: generate_aw_info
         env:
-          GH_AW_INFO_ENGINE_ID: "copilot"
-          GH_AW_INFO_ENGINE_NAME: "GitHub Copilot CLI"
-          GH_AW_INFO_MODEL: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AGENT_VERSION: "1.0.103"
-          GH_AW_INFO_CLI_VERSION: "v1.0.1"
-          GH_AW_INFO_WORKFLOW_NAME: "Review recurring issue patterns"
+          GH_AW_INFO_ENGINE_ID: 'copilot'
+          GH_AW_INFO_ENGINE_NAME: 'GitHub Copilot CLI'
+          GH_AW_INFO_MODEL:
+            ${{ vars.GH_AW_MODEL_AGENT_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AGENT_VERSION: '1.0.103'
+          GH_AW_INFO_CLI_VERSION: 'v1.0.1'
+          GH_AW_INFO_WORKFLOW_NAME: 'Review recurring issue patterns'
           GH_AW_INFO_WORKFLOW_ID: ${{ job.workflow_ref }}
-          GH_AW_INFO_EXPERIMENTAL: "false"
-          GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
-          GH_AW_INFO_STAGED: "false"
+          GH_AW_INFO_EXPERIMENTAL: 'false'
+          GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: 'true'
+          GH_AW_INFO_STAGED: 'false'
           GH_AW_INFO_ALLOWED_DOMAINS: '["defaults"]'
-          GH_AW_INFO_FIREWALL_ENABLED: "true"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_AWMG_VERSION: ""
-          GH_AW_INFO_FIREWALL_TYPE: "squid"
-          GH_AW_INFO_AGENT_RUNTIME: ""
-          GH_AW_INFO_ENGINE_HARNESS: "copilot-cli"
+          GH_AW_INFO_FIREWALL_ENABLED: 'true'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_AWMG_VERSION: ''
+          GH_AW_INFO_FIREWALL_TYPE: 'squid'
+          GH_AW_INFO_AGENT_RUNTIME: ''
+          GH_AW_INFO_ENGINE_HARNESS: 'copilot-cli'
           GH_AW_INFO_MODEL_CONFIG: '{"routing":{"enabled":false},"models":{"allowed":[],"blocked":[]},"max_ai_credits_source":"default"}'
-          GH_AW_INFO_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
-          GH_AW_COMPILED_STRICT: "true"
+          GH_AW_INFO_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_COMPILED_STRICT: 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -159,11 +198,13 @@ jobs:
             await main(core, context);
       - name: Restore daily AIC scan observations
         id: restore-daily-aic-cache-fallback
-        if: ${{ env.GH_AW_ADMISSION_RESULT != 'admitted' && env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
+        if:
+          ${{ env.GH_AW_ADMISSION_RESULT != 'admitted' &&
+          env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_HAS_SLASH_COMMAND: "false"
-          GH_AW_HAS_LABEL_COMMAND: "false"
+          GH_AW_HAS_SLASH_COMMAND: 'false'
+          GH_AW_HAS_LABEL_COMMAND: 'false'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -175,18 +216,25 @@ jobs:
             await main();
       - name: Check daily workflow token guardrail
         id: daily-ai-credits-workflow-guardrail
-        if: ${{ env.GH_AW_ADMISSION_RESULT != 'admitted' && env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
+        if:
+          ${{ env.GH_AW_ADMISSION_RESULT != 'admitted' &&
+          env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_WORKFLOW_ID: "issue-pattern-escalation"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GH_AW_WORKFLOW_DISPATCH_AW_CONTEXT: ${{ github.event.inputs.aw_context || '' }}
-          GH_AW_HAS_SLASH_COMMAND: "false"
-          GH_AW_HAS_LABEL_COMMAND: "false"
+          GH_AW_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_WORKFLOW_ID: 'issue-pattern-escalation'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
+          GH_AW_WORKFLOW_DISPATCH_AW_CONTEXT:
+            ${{ github.event.inputs.aw_context || '' }}
+          GH_AW_HAS_SLASH_COMMAND: 'false'
+          GH_AW_HAS_LABEL_COMMAND: 'false'
           GH_AW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_AW_MAX_DAILY_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_MAX_DAILY_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -197,7 +245,9 @@ jobs:
             const { main } = require(path.join(actionsDir, 'check_daily_aic_workflow_guardrail.cjs'));
             await main();
       - name: Publish daily AIC scan observations
-        if: always() && env.GH_AW_ADMISSION_RESULT != 'admitted' && env.GH_AW_MAX_DAILY_AI_CREDITS != ''
+        if:
+          always() && env.GH_AW_ADMISSION_RESULT != 'admitted' &&
+          env.GH_AW_MAX_DAILY_AI_CREDITS != ''
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -205,13 +255,15 @@ jobs:
           path: /tmp/gh-aw/agentic-workflow-usage-scan-v2.jsonl
           overwrite: true
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '3' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '3' }}
       - name: Check for OAuth tokens
         id: check-oauth-tokens
         run: bash "${RUNNER_TEMP}/gh-aw/actions/check_oauth_tokens.sh"
         env:
           GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
-          GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
       - name: Checkout .github and .agents folders
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -227,16 +279,16 @@ jobs:
           fetch-depth: 1
       - name: Save agent config folders for base branch restoration
         env:
-          GH_AW_AGENT_FOLDERS: ".agents .github"
-          GH_AW_AGENT_FILES: "AGENTS.md"
+          GH_AW_AGENT_FOLDERS: '.agents .github'
+          GH_AW_AGENT_FILES: 'AGENTS.md'
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/save_base_github_folders.sh"
       - name: Check workflow lock file
         id: check-lock-file
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_FILE: "issue-pattern-escalation.lock.yml"
-          GH_AW_CONTEXT_WORKFLOW_REF: "${{ github.workflow_ref }}"
+          GH_AW_WORKFLOW_FILE: 'issue-pattern-escalation.lock.yml'
+          GH_AW_CONTEXT_WORKFLOW_REF: '${{ github.workflow_ref }}'
         with:
           script: |
             const path = require('path');
@@ -248,10 +300,10 @@ jobs:
       - name: Check compile-agentic version
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_COMPILED_VERSION: "v1.0.1"
-          GH_AW_HAS_SAFE_OUTPUTS: "true"
-          GH_AW_BLOCKED_VERSION_REPORT_AS_ISSUE: "false"
-          GH_AW_WORKFLOW_NAME: "Review recurring issue patterns"
+          GH_AW_COMPILED_VERSION: 'v1.0.1'
+          GH_AW_HAS_SAFE_OUTPUTS: 'true'
+          GH_AW_BLOCKED_VERSION_REPORT_AS_ISSUE: 'false'
+          GH_AW_WORKFLOW_NAME: 'Review recurring issue patterns'
         with:
           script: |
             const path = require('path');
@@ -269,21 +321,60 @@ jobs:
           GH_AW_ACTIONS_DIR: ${{ runner.temp }}/gh-aw/actions
           GH_AW_PROMPT: ${{ runner.temp }}/gh-aw/aw-prompts/prompt.txt
           GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
-          GH_AW_PROMPT_CONFIG: "{\"items\":[{\"content_env\":\"GH_AW_PROMPT_CONTENT_0000\"},{\"file\":\"xpia.md\"},{\"file\":\"temp_folder_prompt.md\"},{\"file\":\"markdown.md\"},{\"file\":\"safe_outputs_mcp_transport_prompt.md\"},{\"file\":\"safe_outputs_prompt.md\"},{\"content_env\":\"GH_AW_PROMPT_CONTENT_0001\"},{\"content_env\":\"GH_AW_PROMPT_CONTENT_0002\"},{\"file\":\"mcp_cli_tools_with_safeoutputs_prompt.md\"},{\"content_env\":\"GH_AW_PROMPT_CONTENT_0003\"},{\"file\":\"github_mcp_tools_with_safeoutputs_prompt.md\"},{\"content_env\":\"GH_AW_PROMPT_CONTENT_0004\"},{\"content_env\":\"GH_AW_PROMPT_CONTENT_0005\"}],\"system_item_count\":12}"
-          GH_AW_EXPR_76DF9333: ${{ github.event.pull_request.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'pull_request' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_77C1A4D2: ${{ github.event.comment.id || fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').comment_id }}
-          GH_AW_EXPR_7C248226: ${{ github.event.issue.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'issue' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_C19C384F: ${{ github.event.discussion.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'discussion' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
+          GH_AW_PROMPT_CONFIG: '{"items":[{"content_env":"GH_AW_PROMPT_CONTENT_0000"},{"file":"xpia.md"},{"file":"temp_folder_prompt.md"},{"file":"markdown.md"},{"file":"safe_outputs_mcp_transport_prompt.md"},{"file":"safe_outputs_prompt.md"},{"content_env":"GH_AW_PROMPT_CONTENT_0001"},{"content_env":"GH_AW_PROMPT_CONTENT_0002"},{"file":"mcp_cli_tools_with_safeoutputs_prompt.md"},{"content_env":"GH_AW_PROMPT_CONTENT_0003"},{"file":"github_mcp_tools_with_safeoutputs_prompt.md"},{"content_env":"GH_AW_PROMPT_CONTENT_0004"},{"content_env":"GH_AW_PROMPT_CONTENT_0005"}],"system_item_count":12}'
+          GH_AW_EXPR_76DF9333:
+            ${{ github.event.pull_request.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'pull_request' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
+          GH_AW_EXPR_77C1A4D2:
+            ${{ github.event.comment.id ||
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').comment_id }}
+          GH_AW_EXPR_7C248226:
+            ${{ github.event.issue.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'issue' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
+          GH_AW_EXPR_C19C384F:
+            ${{ github.event.discussion.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'discussion' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
           GH_AW_PROMPT_CONTENT_0000: "<system>\n"
-          GH_AW_PROMPT_CONTENT_0001: "<safe-output-tools>\nTools: create_issue, noop(max:2)\n"
+          GH_AW_PROMPT_CONTENT_0001:
+            "<safe-output-tools>\nTools: create_issue, noop(max:2)\n"
           GH_AW_PROMPT_CONTENT_0002: "</safe-output-tools>\n"
-          GH_AW_PROMPT_CONTENT_0003: "<github-context>\nThe following GitHub context information is available for this workflow:\n{{#if github.actor}}\n- **actor**: __GH_AW_GITHUB_ACTOR__\n{{/if}}\n{{#if github.repository}}\n- **repository**: __GH_AW_GITHUB_REPOSITORY__\n{{/if}}\n{{#if github.workspace}}\n- **workspace**: __GH_AW_GITHUB_WORKSPACE__\n{{/if}}\n{{#if github.event.issue.number || (github.aw.context.item_type == 'issue' && github.aw.context.item_number)}}\n- **issue-number**: #__GH_AW_EXPR_7C248226__\n{{/if}}\n{{#if github.event.discussion.number || (github.aw.context.item_type == 'discussion' && github.aw.context.item_number)}}\n- **discussion-number**: #__GH_AW_EXPR_C19C384F__\n{{/if}}\n{{#if github.event.pull_request.number || (github.aw.context.item_type == 'pull_request' && github.aw.context.item_number)}}\n- **pull-request-number**: #__GH_AW_EXPR_76DF9333__\n{{/if}}\n{{#if github.event.comment.id || github.aw.context.comment_id}}\n- **comment-id**: __GH_AW_EXPR_77C1A4D2__\n{{/if}}\n{{#if github.run_id}}\n- **workflow-run-id**: __GH_AW_GITHUB_RUN_ID__\n{{/if}}\n</github-context>\n\n"
+          GH_AW_PROMPT_CONTENT_0003:
+            "<github-context>\nThe following GitHub context information is
+            available for this workflow:\n{{#if github.actor}}\n- **actor**:
+            __GH_AW_GITHUB_ACTOR__\n{{/if}}\n{{#if github.repository}}\n-
+            **repository**: __GH_AW_GITHUB_REPOSITORY__\n{{/if}}\n{{#if
+            github.workspace}}\n- **workspace**:
+            __GH_AW_GITHUB_WORKSPACE__\n{{/if}}\n{{#if github.event.issue.number
+            || (github.aw.context.item_type == 'issue' &&
+            github.aw.context.item_number)}}\n- **issue-number**:
+            #__GH_AW_EXPR_7C248226__\n{{/if}}\n{{#if
+            github.event.discussion.number || (github.aw.context.item_type ==
+            'discussion' && github.aw.context.item_number)}}\n-
+            **discussion-number**: #__GH_AW_EXPR_C19C384F__\n{{/if}}\n{{#if
+            github.event.pull_request.number || (github.aw.context.item_type ==
+            'pull_request' && github.aw.context.item_number)}}\n-
+            **pull-request-number**: #__GH_AW_EXPR_76DF9333__\n{{/if}}\n{{#if
+            github.event.comment.id || github.aw.context.comment_id}}\n-
+            **comment-id**: __GH_AW_EXPR_77C1A4D2__\n{{/if}}\n{{#if
+            github.run_id}}\n- **workflow-run-id**:
+            __GH_AW_GITHUB_RUN_ID__\n{{/if}}\n</github-context>\n\n"
           GH_AW_PROMPT_CONTENT_0004: "</system>\n"
-          GH_AW_PROMPT_CONTENT_0005: "{{#runtime-import .github/workflows/issue-pattern-escalation.md}}\n"
+          GH_AW_PROMPT_CONTENT_0005:
+            "{{#runtime-import .github/workflows/issue-pattern-escalation.md}}\n"
         with:
           script: |
             const { setupGlobals } = require(process.env.GH_AW_ACTIONS_DIR + '/setup_globals.cjs');
@@ -294,11 +385,11 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_PROMPT: ${{ runner.temp }}/gh-aw/aw-prompts/prompt.txt
-          GH_AW_ENGINE_ID: "copilot"
-          GH_AW_SUB_AGENT_DIR: ".github/agents"
-          GH_AW_SUB_AGENT_EXT: ".agent.md"
-          GH_AW_SKILL_DIR: ".github/skills"
-          GH_AW_SKILL_EXT: "/SKILL.md"
+          GH_AW_ENGINE_ID: 'copilot'
+          GH_AW_SUB_AGENT_DIR: '.github/agents'
+          GH_AW_SUB_AGENT_EXT: '.agent.md'
+          GH_AW_SKILL_DIR: '.github/skills'
+          GH_AW_SKILL_EXT: '/SKILL.md'
         with:
           script: |
             const path = require('path');
@@ -311,15 +402,35 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_PROMPT: ${{ runner.temp }}/gh-aw/aw-prompts/prompt.txt
-          GH_AW_EXPR_76DF9333: ${{ github.event.pull_request.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'pull_request' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_77C1A4D2: ${{ github.event.comment.id || fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').comment_id }}
-          GH_AW_EXPR_7C248226: ${{ github.event.issue.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'issue' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_C19C384F: ${{ github.event.discussion.number || (fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_type == 'discussion' && fromJSON(steps.generate_aw_info.outputs.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_76DF9333:
+            ${{ github.event.pull_request.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'pull_request' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
+          GH_AW_EXPR_77C1A4D2:
+            ${{ github.event.comment.id ||
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').comment_id }}
+          GH_AW_EXPR_7C248226:
+            ${{ github.event.issue.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'issue' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
+          GH_AW_EXPR_C19C384F:
+            ${{ github.event.discussion.number ||
+            (fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_type == 'discussion' &&
+            fromJSON(steps.generate_aw_info.outputs.aw_context ||
+            '{}').item_number) }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
-          GH_AW_MCP_CLI_SERVERS_LIST: "- `github` — run `github --help` to see available tools\n- `safeoutputs` — run `safeoutputs --help` to see available tools"
+          GH_AW_MCP_CLI_SERVERS_LIST:
+            "- `github` — run `github --help` to see available tools\n-
+            `safeoutputs` — run `safeoutputs --help` to see available tools"
         with:
           script: |
             const path = require('path');
@@ -358,7 +469,7 @@ jobs:
         if: success() || failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_SKILL_DIR: ".github/skills"
+          GH_AW_SKILL_DIR: '.github/skills'
         with:
           script: |
             const path = require('path');
@@ -374,7 +485,8 @@ jobs:
           name: info
           path: /tmp/gh-aw/aw_info.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
       - name: Stage prompt files for artifact upload
         run: |
           mkdir -p /tmp/gh-aw/aw-prompts
@@ -399,7 +511,8 @@ jobs:
             /tmp/gh-aw/.github/skills
             /tmp/gh-aw/skill_inventory.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '1' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '1' }}
 
   agent:
     name: agent
@@ -412,49 +525,77 @@ jobs:
       copilot-requests: write
       issues: read
     concurrency:
-      group: "gh-aw-copilot-${{ github.workflow }}"
+      group: 'gh-aw-copilot-${{ github.workflow }}'
       queue: max
     timeout-minutes: 60
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_AW_ASSETS_ALLOWED_EXTS: ""
-      GH_AW_ASSETS_BRANCH: ""
+      GH_AW_ASSETS_ALLOWED_EXTS: ''
+      GH_AW_ASSETS_BRANCH: ''
       GH_AW_ASSETS_MAX_SIZE_KB: 0
       GH_AW_MCP_LOG_DIR: /tmp/gh-aw/mcp-logs/safeoutputs
-      GH_AW_PR_HEAD_BASE_BRANCH: ""
-      GH_AW_PR_HEAD_BASE_PR_NUMBER: ""
-      GH_AW_PR_HEAD_BASE_REF: ""
-      GH_AW_PR_HEAD_BASE_REPO: ""
-      GH_AW_PR_HEAD_BASE_SHA: ""
-      GH_AW_PR_HEAD_REPO: ""
+      GH_AW_PR_HEAD_BASE_BRANCH: ''
+      GH_AW_PR_HEAD_BASE_PR_NUMBER: ''
+      GH_AW_PR_HEAD_BASE_REF: ''
+      GH_AW_PR_HEAD_BASE_REPO: ''
+      GH_AW_PR_HEAD_BASE_SHA: ''
+      GH_AW_PR_HEAD_REPO: ''
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
-      GH_AW_TARGET_REPO_SLUG: ""
+      GH_AW_TARGET_REPO_SLUG: ''
       GH_AW_WORKFLOW_ID_SANITIZED: issuepatternescalation
     outputs:
-      agentic_engine_timeout: ${{ steps.detect-agent-errors.outputs.agentic_engine_timeout || 'false' }}
-      ai_credits_rate_limit_error: ${{ steps.parse-mcp-gateway.outputs.ai_credits_rate_limit_error || 'false' }}
+      agentic_engine_timeout:
+        ${{ steps.detect-agent-errors.outputs.agentic_engine_timeout || 'false'
+        }}
+      ai_credits_rate_limit_error:
+        ${{ steps.parse-mcp-gateway.outputs.ai_credits_rate_limit_error ||
+        'false' }}
       aic: ${{ steps.parse-token-usage.outputs.aic }}
       ambient_context: ${{ steps.parse-token-usage.outputs.ambient_context }}
-      checkout_pr_invalidated: ${{ steps.checkout-pr.outputs.checkout_pr_invalidated || 'false' }}
-      checkout_pr_success: ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
+      checkout_pr_invalidated:
+        ${{ steps.checkout-pr.outputs.checkout_pr_invalidated || 'false' }}
+      checkout_pr_success:
+        ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
       has_patch: ${{ steps.collect_output.outputs.has_patch }}
-      http_400_response_error: ${{ steps.detect-agent-errors.outputs.http_400_response_error || 'false' }}
-      inference_access_error: ${{ steps.detect-agent-errors.outputs.inference_access_error || 'false' }}
-      invocation_cap_exceeded: ${{ steps.detect-agent-errors.outputs.invocation_cap_exceeded || 'false' }}
-      max_cache_misses_exceeded: ${{ steps.detect-agent-errors.outputs.max_cache_misses_exceeded || 'false' }}
-      mcp_policy_error: ${{ steps.detect-agent-errors.outputs.mcp_policy_error || 'false' }}
-      missing_model_pricing_error: ${{ steps.detect-agent-errors.outputs.missing_model_pricing_error || 'false' }}
-      missing_model_pricing_model_name: ${{ steps.detect-agent-errors.outputs.missing_model_pricing_model_name || '' }}
+      http_400_response_error:
+        ${{ steps.detect-agent-errors.outputs.http_400_response_error || 'false'
+        }}
+      inference_access_error:
+        ${{ steps.detect-agent-errors.outputs.inference_access_error || 'false'
+        }}
+      invocation_cap_exceeded:
+        ${{ steps.detect-agent-errors.outputs.invocation_cap_exceeded || 'false'
+        }}
+      max_cache_misses_exceeded:
+        ${{ steps.detect-agent-errors.outputs.max_cache_misses_exceeded ||
+        'false' }}
+      mcp_policy_error:
+        ${{ steps.detect-agent-errors.outputs.mcp_policy_error || 'false' }}
+      missing_model_pricing_error:
+        ${{ steps.detect-agent-errors.outputs.missing_model_pricing_error ||
+        'false' }}
+      missing_model_pricing_model_name:
+        ${{ steps.detect-agent-errors.outputs.missing_model_pricing_model_name
+        || '' }}
       model: ${{ needs.activation.outputs.model }}
-      model_endpoint_mismatch_error: ${{ steps.detect-agent-errors.outputs.model_endpoint_mismatch_error || 'false' }}
-      model_not_supported_error: ${{ steps.detect-agent-errors.outputs.model_not_supported_error || 'false' }}
+      model_endpoint_mismatch_error:
+        ${{ steps.detect-agent-errors.outputs.model_endpoint_mismatch_error ||
+        'false' }}
+      model_not_supported_error:
+        ${{ steps.detect-agent-errors.outputs.model_not_supported_error ||
+        'false' }}
       output: ${{ steps.collect_output.outputs.output }}
       output_types: ${{ steps.collect_output.outputs.output_types }}
-      setup-parent-span-id: ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
+      setup-parent-span-id:
+        ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
       setup-span-id: ${{ steps.setup.outputs.span-id }}
       setup-trace-id: ${{ steps.setup.outputs.trace-id }}
-      shell_expansion_guard_rejected: ${{ steps.detect-agent-errors.outputs.shell_expansion_guard_rejected || 'false' }}
-      unknown_model_ai_credits: ${{ steps.parse-mcp-gateway.outputs.unknown_model_ai_credits || 'false' }}
+      shell_expansion_guard_rejected:
+        ${{ steps.detect-agent-errors.outputs.shell_expansion_guard_rejected ||
+        'false' }}
+      unknown_model_ai_credits:
+        ${{ steps.parse-mcp-gateway.outputs.unknown_model_ai_credits || 'false'
+        }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -463,19 +604,25 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-pattern-escalation.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository
+            }}/.github/workflows/issue-pattern-escalation.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
           GH_AW_SETUP_AW_CONTEXT: ${{ inputs.aw_context }}
       - name: Set runtime paths
         id: set-runtime-paths
         env:
           GH_AW_RUNNER_TOOL_CACHE: ${{ runner.tool_cache }}
-        run: | # zizmor: ignore[github-env] - runner.tool_cache is set by GitHub Actions, not user input.
+        run:
+          | # zizmor: ignore[github-env] - runner.tool_cache is set by GitHub Actions, not user input.
           if [ -z "${RUNNER_TOOL_CACHE:-}" ]; then
             echo "RUNNER_TOOL_CACHE=${GH_AW_RUNNER_TOOL_CACHE}" >> "$GITHUB_ENV"
           fi
@@ -487,7 +634,8 @@ jobs:
       - name: Mask OTLP telemetry headers
         run: bash "${RUNNER_TEMP}/gh-aw/actions/mask_otlp_headers.sh"
       - name: Check OTLP telemetry configuration
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/check_otlp_default_credentials.sh"
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/check_otlp_default_credentials.sh"
       - name: Checkout repository (gh-aw default)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -532,18 +680,25 @@ jobs:
             const { main } = require(path.join(actionsDir, 'checkout_pr_branch.cjs'));
             await main();
       - name: Install GitHub Copilot CLI
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/install_copilot_cli.sh" 1.0.103 --checksums-sha256 26cd3e4b32cde498e4961fb4d48e7b85d7859fc69af1a645a19201fdd577bdb2 --prefer-toolcache
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/install_copilot_cli.sh" 1.0.103
+          --checksums-sha256
+          26cd3e4b32cde498e4961fb4d48e7b85d7859fc69af1a645a19201fdd577bdb2
+          --prefer-toolcache
         env:
           GH_HOST: github.com
           GH_AW_COPILOT_MIN_VERSION: 1.0.35
       - name: Install AWF binary
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.29.0 --rootless
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.29.0
+          --rootless
       - name: Determine automatic lockdown mode for GitHub MCP Server
         id: determine-automatic-lockdown
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
-          GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
           GH_AW_GITHUB_MIN_INTEGRITY: 'none'
           GH_AW_GITHUB_REPOS: '["desktop/desktop"]'
         with:
@@ -557,25 +712,33 @@ jobs:
         env:
           GH_AW_BLOCKED_USERS_VAR: ${{ vars.GH_AW_GITHUB_BLOCKED_USERS || '' }}
           GH_AW_TRUSTED_USERS_VAR: ${{ vars.GH_AW_GITHUB_TRUSTED_USERS || '' }}
-          GH_AW_APPROVAL_LABELS_VAR: ${{ vars.GH_AW_GITHUB_APPROVAL_LABELS || '' }}
+          GH_AW_APPROVAL_LABELS_VAR:
+            ${{ vars.GH_AW_GITHUB_APPROVAL_LABELS || '' }}
         run: bash "${RUNNER_TEMP}/gh-aw/actions/parse_guard_list.sh"
       - name: Restore agent config folders from base branch
         if: steps.checkout-pr.outcome == 'success'
         env:
-          GH_AW_AGENT_FOLDERS: ".agents .github"
-          GH_AW_AGENT_FILES: "AGENTS.md"
+          GH_AW_AGENT_FOLDERS: '.agents .github'
+          GH_AW_AGENT_FILES: 'AGENTS.md'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_base_github_folders.sh"
       - name: Restore inline sub-agents from activation artifact
         env:
-          GH_AW_SUB_AGENT_DIR: ".github/agents"
-          GH_AW_SUB_AGENT_EXT: ".agent.md"
+          GH_AW_SUB_AGENT_DIR: '.github/agents'
+          GH_AW_SUB_AGENT_EXT: '.agent.md'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_inline_sub_agents.sh"
       - name: Restore inline skills from activation artifact
         env:
-          GH_AW_SKILL_DIR: ".github/skills"
+          GH_AW_SKILL_DIR: '.github/skills'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_inline_skills.sh"
       - name: Download container images
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh" ghcr.io/github/gh-aw-firewall/agent:0.29.0@sha256:b14bd399376180b5649a9324be3b50fbfc82bfe8f0c80045840416b5a4e65b96 ghcr.io/github/gh-aw-firewall/api-proxy:0.29.0@sha256:baff00b856a4bdc93bce134928c70af3d3492f2e518757115042040674d56b0b ghcr.io/github/gh-aw-firewall/squid:0.29.0@sha256:6e0cbf7f980beb78b5461563a8164f6439ca959bc93733d5a6b52972e523ed50 ghcr.io/github/gh-aw-mcpg:v0.5.0@sha256:d3544a4222e7efeeeb38669d8a1af0c72691c55b8f6506b15aa5920f7f31b7bc ghcr.io/github/gh-aw-node@sha256:2c2ea524e648b91c8333ce246e3838fcf5b19ac70e45baac1a51b9207299749f ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh"
+          ghcr.io/github/gh-aw-firewall/agent:0.29.0@sha256:b14bd399376180b5649a9324be3b50fbfc82bfe8f0c80045840416b5a4e65b96
+          ghcr.io/github/gh-aw-firewall/api-proxy:0.29.0@sha256:baff00b856a4bdc93bce134928c70af3d3492f2e518757115042040674d56b0b
+          ghcr.io/github/gh-aw-firewall/squid:0.29.0@sha256:6e0cbf7f980beb78b5461563a8164f6439ca959bc93733d5a6b52972e523ed50
+          ghcr.io/github/gh-aw-mcpg:v0.5.0@sha256:d3544a4222e7efeeeb38669d8a1af0c72691c55b8f6506b15aa5920f7f31b7bc
+          ghcr.io/github/gh-aw-node@sha256:2c2ea524e648b91c8333ce246e3838fcf5b19ac70e45baac1a51b9207299749f
+          ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132
       - name: Prepare Safe Outputs Directories
         run: |
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
@@ -584,9 +747,11 @@ jobs:
       - name: Generate Safe Outputs Config
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_FILE_ROOT: "${{ runner.temp }}/gh-aw"
-          GH_AW_FILE_CONFIG: "{\"files\":[{\"path\":\"safeoutputs/config.json\",\"content_env\":\"GH_AW_SAFE_OUTPUTS_CONFIG\"}]}"
-          GH_AW_SAFE_OUTPUTS_CONFIG: "{\"create_issue\":{\"deduplicate_by_title\":true,\"labels\":[\"priority-1\"],\"max\":1,\"title_prefix\":\"[P1 pattern proposal] \"},\"noop\":{\"max\":2,\"report-as-issue\":\"false\"}}"
+          GH_AW_FILE_ROOT: '${{ runner.temp }}/gh-aw'
+          GH_AW_FILE_CONFIG: '{"files":[{"path":"safeoutputs/config.json","content_env":"GH_AW_SAFE_OUTPUTS_CONFIG"}]}'
+          GH_AW_SAFE_OUTPUTS_CONFIG:
+            '{"create_issue":{"deduplicate_by_title":true,"labels":["priority-1"],"max":1,"title_prefix":"[P1
+            pattern proposal] "},"noop":{"max":2,"report-as-issue":"false"}}'
         with:
           script: |
             const path = require('path');
@@ -671,14 +836,23 @@ jobs:
         id: start-mcp-gateway
         env:
           DEBUG: ${{ env.DEBUG || runner.debug == '1' && '*' || '' }}
-          GH_AW_GUARD_APPROVAL_LABELS: ${{ steps.parse-guard-vars.outputs.approval_labels }}
-          GH_AW_GUARD_BLOCKED_USERS: ${{ steps.parse-guard-vars.outputs.blocked_users }}
-          GH_AW_GUARD_TRUSTED_USERS: ${{ steps.parse-guard-vars.outputs.trusted_users }}
-          GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST: ${{ vars.GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST || 'true' }}
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_SAFE_OUTPUTS_CONFIG_PATH: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_CONFIG_PATH }}
-          GH_AW_SAFE_OUTPUTS_TOOLS_PATH: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_TOOLS_PATH }}
-          GH_AW_SINK_VISIBILITY: ${{ steps.determine-automatic-lockdown.outputs.visibility }}
+          GH_AW_GUARD_APPROVAL_LABELS:
+            ${{ steps.parse-guard-vars.outputs.approval_labels }}
+          GH_AW_GUARD_BLOCKED_USERS:
+            ${{ steps.parse-guard-vars.outputs.blocked_users }}
+          GH_AW_GUARD_TRUSTED_USERS:
+            ${{ steps.parse-guard-vars.outputs.trusted_users }}
+          GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST:
+            ${{ vars.GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST || 'true' }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS_CONFIG_PATH:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_CONFIG_PATH
+            }}
+          GH_AW_SAFE_OUTPUTS_TOOLS_PATH:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_TOOLS_PATH }}
+          GH_AW_SINK_VISIBILITY:
+            ${{ steps.determine-automatic-lockdown.outputs.visibility }}
           GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -802,8 +976,10 @@ jobs:
         id: mount-mcp-clis
         continue-on-error: true
         env:
-          MCP_GATEWAY_AGENT_ID: ${{ steps.start-mcp-gateway.outputs.gateway-agent-id }}
-          MCP_GATEWAY_DOMAIN: ${{ steps.start-mcp-gateway.outputs.gateway-domain }}
+          MCP_GATEWAY_AGENT_ID:
+            ${{ steps.start-mcp-gateway.outputs.gateway-agent-id }}
+          MCP_GATEWAY_DOMAIN:
+            ${{ steps.start-mcp-gateway.outputs.gateway-domain }}
           MCP_GATEWAY_PORT: ${{ steps.start-mcp-gateway.outputs.gateway-port }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -939,13 +1115,17 @@ jobs:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_DUMMY_BYOK: dummy-byok-key-for-offline-mode
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          COPILOT_MODEL: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
+          COPILOT_MODEL:
+            ${{ vars.GH_AW_MODEL_AGENT_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
           GH_AW_LLM_PROVIDER: github
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
           GH_AW_MAX_TURNS: ${{ vars.GH_AW_DEFAULT_MAX_TURNS || '' }}
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
           GH_AW_TIMEOUT_MINUTES: 20
           GH_AW_VERSION: v1.0.1
           GITHUB_API_URL: ${{ github.api_url }}
@@ -964,7 +1144,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           RUNNER_TEMP: ${{ runner.temp }}
           S2STOKENS: true
-          TRACEPARENT: ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' && env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01', env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) || '' }}
+          TRACEPARENT:
+            ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' &&
+            env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01',
+            env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) ||
+            '' }}
       - name: Log GitHub rate limits at agent end
         if: always()
         continue-on-error: true
@@ -983,7 +1167,8 @@ jobs:
         id: detect-agent-errors
         continue-on-error: true
         env:
-          GH_AW_AGENTIC_EXECUTION_OUTCOME: ${{ steps.agentic_execution.outcome }}
+          GH_AW_AGENTIC_EXECUTION_OUTCOME:
+            ${{ steps.agentic_execution.outcome }}
           GH_AW_ENGINE_STEP_TIMEOUT_MINUTES: 20
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -1009,7 +1194,8 @@ jobs:
         continue-on-error: true
         env:
           MCP_GATEWAY_PORT: ${{ steps.start-mcp-gateway.outputs.gateway-port }}
-          MCP_GATEWAY_AGENT_ID: ${{ steps.start-mcp-gateway.outputs.gateway-agent-id }}
+          MCP_GATEWAY_AGENT_ID:
+            ${{ steps.start-mcp-gateway.outputs.gateway-agent-id }}
           GATEWAY_PID: ${{ steps.start-mcp-gateway.outputs.gateway-pid }}
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/stop_mcp_gateway.sh" "$GATEWAY_PID"
@@ -1027,7 +1213,8 @@ jobs:
             await main();
         env:
           GH_AW_SECRET_NAMES: 'GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GITHUB_TOKEN'
-          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
           SECRET_GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
           SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append agent step summary
@@ -1036,7 +1223,8 @@ jobs:
       - name: Copy Safe Outputs
         if: always()
         env:
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
         run: |
           mkdir -p /tmp/gh-aw
           cp "$GH_AW_SAFE_OUTPUTS" /tmp/gh-aw/safeoutputs.jsonl 2>/dev/null || true
@@ -1045,8 +1233,9 @@ jobs:
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_ALLOWED_DOMAINS: "api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_ALLOWED_DOMAINS: 'api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com'
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
         with:
@@ -1062,7 +1251,8 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_AGENT_OUTPUT: /tmp/gh-aw/sandbox/agent/logs/
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
         with:
           script: |
             const path = require('path');
@@ -1088,7 +1278,8 @@ jobs:
         continue-on-error: true
         env:
           AWF_LOGS_DIR: /tmp/gh-aw/sandbox/firewall/logs
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/print_firewall_logs.sh" --rootless
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/print_firewall_logs.sh" --rootless
       - name: Parse token usage for step summary
         if: always()
         id: parse-token-usage
@@ -1156,7 +1347,8 @@ jobs:
             /tmp/gh-aw/sandbox/firewall/audit/api-proxy-logs/model-routing.jsonl
             /tmp/gh-aw/awf-resolved-config.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
       - name: Upload agent artifacts
         if: always() && steps.redact_secrets.outcome == 'success'
         continue-on-error: true
@@ -1198,7 +1390,8 @@ jobs:
             /tmp/gh-aw/sandbox/firewall/audit/
             /tmp/gh-aw/sandbox/firewall/awf-reflect.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
 
   conclusion:
     name: conclusion
@@ -1208,23 +1401,32 @@ jobs:
       - detection
       - safe_outputs
     if: >
-      always() && (needs.agent.result != 'skipped' || needs.activation.outputs.lockdown_check_failed == 'true' ||
-      needs.activation.outputs.oauth_token_check_failed == 'true' || needs.activation.outputs.stale_lock_file_failed == 'true' ||
-      needs.activation.outputs.daily_ai_credits_exceeded == 'true' || needs.activation.outputs.daily_ai_credits_guardrail_status == 'structural_error' ||
-      needs.activation.outputs.daily_ai_credits_guardrail_status == 'transient_error')
+      always() && (needs.agent.result != 'skipped' ||
+      needs.activation.outputs.lockdown_check_failed == 'true' ||
+      needs.activation.outputs.oauth_token_check_failed == 'true' ||
+      needs.activation.outputs.stale_lock_file_failed == 'true' ||
+      needs.activation.outputs.daily_ai_credits_exceeded == 'true' ||
+      needs.activation.outputs.daily_ai_credits_guardrail_status ==
+      'structural_error' ||
+      needs.activation.outputs.daily_ai_credits_guardrail_status ==
+      'transient_error')
     runs-on: ubuntu-slim
     # Permissions for the conclusion job (workflow permissions default to none).
     permissions:
       actions: read
       issues: write
     concurrency:
-      group: "gh-aw-conclusion-issue-pattern-escalation"
+      group: 'gh-aw-conclusion-issue-pattern-escalation'
       cancel-in-progress: false
       queue: max
     env:
-      GH_AW_JOB_DISPLAY_NAMES: "{\"activation\":\"activation\",\"agent\":\"agent\",\"conclusion\":\"conclusion\",\"detection\":\"detection\",\"safe_outputs\":\"safe_outputs\"}"
-      GH_AW_JOB_RESULTS: "{\"activation\":{\"result\":\"${{ needs.activation.result }}\"},\"agent\":{\"result\":\"${{ needs.agent.result }}\"},\"detection\":{\"result\":\"${{ needs.detection.result }}\"},\"safe_outputs\":{\"result\":\"${{ needs.safe_outputs.result }}\"}}"
-      GH_AW_JOB_TIMING_ELIGIBLE: "{\"activation\":true,\"agent\":true,\"conclusion\":true,\"detection\":true,\"safe_outputs\":true}"
+      GH_AW_JOB_DISPLAY_NAMES: '{"activation":"activation","agent":"agent","conclusion":"conclusion","detection":"detection","safe_outputs":"safe_outputs"}'
+      GH_AW_JOB_RESULTS:
+        '{"activation":{"result":"${{ needs.activation.result
+        }}"},"agent":{"result":"${{ needs.agent.result
+        }}"},"detection":{"result":"${{ needs.detection.result
+        }}"},"safe_outputs":{"result":"${{ needs.safe_outputs.result }}"}}'
+      GH_AW_JOB_TIMING_ELIGIBLE: '{"activation":true,"agent":true,"conclusion":true,"detection":true,"safe_outputs":true}'
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
     outputs:
       noop_comment_body: ${{ steps.noop.outputs.noop_comment_body }}
@@ -1237,20 +1439,25 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-pattern-escalation.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository
+            }}/.github/workflows/issue-pattern-escalation.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
           GH_AW_SETUP_AW_CONTEXT: ${{ inputs.aw_context }}
       - name: Download agent output artifact
         id: download-agent-output
         continue-on-error: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: "{agent,agent-output-fallback}"
+          pattern: '{agent,agent-output-fallback}'
           merge-multiple: true
           path: /tmp/gh-aw/
       - name: Setup agent output environment variable
@@ -1267,8 +1474,14 @@ jobs:
         run: |
           if [ -f /tmp/gh-aw/runtime/aw_info.json ]; then cp /tmp/gh-aw/runtime/aw_info.json /tmp/gh-aw/aw_info.json; fi
       - name: Warn if threat detection produced no verdict
-        if: always() && needs.detection.result != 'skipped' && (needs.detection.outputs.detection_reason == 'agent_failure' || needs.detection.outputs.detection_reason == 'parse_error' || needs.detection.outputs.detection_conclusion == '')
-        run: echo "::warning::Threat detection produced no security verdict. Review the detection job logs before trusting the agent outputs."
+        if:
+          always() && needs.detection.result != 'skipped' &&
+          (needs.detection.outputs.detection_reason == 'agent_failure' ||
+          needs.detection.outputs.detection_reason == 'parse_error' ||
+          needs.detection.outputs.detection_conclusion == '')
+        run:
+          echo "::warning::Threat detection produced no security verdict. Review
+          the detection job logs before trusting the agent outputs."
       - name: Download detection artifact
         id: download-detection-artifact
         continue-on-error: true
@@ -1289,19 +1502,24 @@ jobs:
         id: noop
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_NOOP_MAX: "2"
-          GH_AW_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-pattern-escalation.md"
-          GH_AW_ENGINE_ID: "copilot"
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_NOOP_MAX: '2'
+          GH_AW_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-pattern-escalation.md'
+          GH_AW_ENGINE_ID: 'copilot'
           GH_AW_ENGINE_MODEL: ${{ needs.agent.outputs.model }}
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_NOOP_REPORT_AS_ISSUE: "false"
+          GH_AW_NOOP_REPORT_AS_ISSUE: 'false'
           GH_AW_AIC: ${{ needs.agent.outputs.aic }}
           GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
           GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-          GH_AW_WORKFLOW_ID: "issue-pattern-escalation"
+          GH_AW_WORKFLOW_ID: 'issue-pattern-escalation'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -1316,49 +1534,77 @@ jobs:
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-pattern-escalation.md"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-pattern-escalation.md'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_WORKFLOW_ID: "issue-pattern-escalation"
-          GH_AW_ACTION_FAILURE_ISSUE_EXPIRES_HOURS: "0"
-          GH_AW_ENGINE_ID: "copilot"
-          GH_AW_CHECKOUT_PR_SUCCESS: ${{ needs.agent.outputs.checkout_pr_success }}
-          GH_AW_CHECKOUT_PR_INVALIDATED: ${{ needs.agent.outputs.checkout_pr_invalidated }}
-          GH_AW_AI_CREDITS_RATE_LIMIT_ERROR: ${{ needs.agent.outputs.ai_credits_rate_limit_error || 'false' }}
-          GH_AW_UNKNOWN_MODEL_AI_CREDITS: ${{ needs.agent.outputs.unknown_model_ai_credits || 'false' }}
+          GH_AW_WORKFLOW_ID: 'issue-pattern-escalation'
+          GH_AW_ACTION_FAILURE_ISSUE_EXPIRES_HOURS: '0'
+          GH_AW_ENGINE_ID: 'copilot'
+          GH_AW_CHECKOUT_PR_SUCCESS:
+            ${{ needs.agent.outputs.checkout_pr_success }}
+          GH_AW_CHECKOUT_PR_INVALIDATED:
+            ${{ needs.agent.outputs.checkout_pr_invalidated }}
+          GH_AW_AI_CREDITS_RATE_LIMIT_ERROR:
+            ${{ needs.agent.outputs.ai_credits_rate_limit_error || 'false' }}
+          GH_AW_UNKNOWN_MODEL_AI_CREDITS:
+            ${{ needs.agent.outputs.unknown_model_ai_credits || 'false' }}
           GH_AW_AIC: ${{ needs.agent.outputs.aic }}
           GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
           GH_AW_DETECTION_JOB_RESULT: ${{ needs.detection.result }}
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
-          GH_AW_DEFAULT_CHECKOUT_USES_TRIGGER_REF: "true"
-          GH_AW_INFERENCE_ACCESS_ERROR: ${{ needs.agent.outputs.inference_access_error }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_DEFAULT_CHECKOUT_USES_TRIGGER_REF: 'true'
+          GH_AW_INFERENCE_ACCESS_ERROR:
+            ${{ needs.agent.outputs.inference_access_error }}
           GH_AW_MCP_POLICY_ERROR: ${{ needs.agent.outputs.mcp_policy_error }}
-          GH_AW_AGENTIC_ENGINE_TIMEOUT: ${{ needs.agent.outputs.agentic_engine_timeout }}
-          GH_AW_MODEL_NOT_SUPPORTED_ERROR: ${{ needs.agent.outputs.model_not_supported_error }}
-          GH_AW_MODEL_ENDPOINT_MISMATCH_ERROR: ${{ needs.agent.outputs.model_endpoint_mismatch_error }}
-          GH_AW_HTTP_400_RESPONSE_ERROR: ${{ needs.agent.outputs.http_400_response_error }}
-          GH_AW_MAX_CACHE_MISSES_EXCEEDED: ${{ needs.agent.outputs.max_cache_misses_exceeded }}
-          GH_AW_MISSING_MODEL_PRICING_ERROR: ${{ needs.agent.outputs.missing_model_pricing_error }}
-          GH_AW_MISSING_MODEL_PRICING_MODEL_NAME: ${{ needs.agent.outputs.missing_model_pricing_model_name }}
-          GH_AW_SHELL_EXPANSION_GUARD_REJECTED: ${{ needs.agent.outputs.shell_expansion_guard_rejected }}
-          GH_AW_ENGINE_API_HOSTS: "api.enterprise.githubcopilot.com,api.githubcopilot.com,api.business.githubcopilot.com,api.individual.githubcopilot.com"
-          GH_AW_LOCKDOWN_CHECK_FAILED: ${{ needs.activation.outputs.lockdown_check_failed }}
-          GH_AW_OAUTH_TOKEN_CHECK_FAILED: ${{ needs.activation.outputs.oauth_token_check_failed }}
-          GH_AW_STALE_LOCK_FILE_FAILED: ${{ needs.activation.outputs.stale_lock_file_failed }}
-          GH_AW_DAILY_AI_CREDITS_EXCEEDED: ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
-          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_STATUS: ${{ needs.activation.outputs.daily_ai_credits_guardrail_status }}
-          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_ERROR: ${{ needs.activation.outputs.daily_ai_credits_guardrail_error }}
-          GH_AW_DAILY_AI_CREDITS_TOTAL: ${{ needs.activation.outputs.daily_ai_credits_total }}
-          GH_AW_DAILY_AI_CREDITS_ESTIMATED: ${{ needs.activation.outputs.daily_ai_credits_estimated }}
-          GH_AW_DAILY_AI_CREDITS_THRESHOLD: ${{ needs.activation.outputs.daily_ai_credits_threshold }}
-          GH_AW_DAILY_AI_CREDITS_CONTINUE_ON_ERROR: "false"
-          GH_AW_GROUP_REPORTS: "false"
-          GH_AW_FAILURE_REPORT_AS_ISSUE: "false"
-          GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: "true"
-          GH_AW_MISSING_DATA_REPORT_AS_FAILURE: "true"
-          GH_AW_TIMEOUT_MINUTES: "20"
+          GH_AW_AGENTIC_ENGINE_TIMEOUT:
+            ${{ needs.agent.outputs.agentic_engine_timeout }}
+          GH_AW_MODEL_NOT_SUPPORTED_ERROR:
+            ${{ needs.agent.outputs.model_not_supported_error }}
+          GH_AW_MODEL_ENDPOINT_MISMATCH_ERROR:
+            ${{ needs.agent.outputs.model_endpoint_mismatch_error }}
+          GH_AW_HTTP_400_RESPONSE_ERROR:
+            ${{ needs.agent.outputs.http_400_response_error }}
+          GH_AW_MAX_CACHE_MISSES_EXCEEDED:
+            ${{ needs.agent.outputs.max_cache_misses_exceeded }}
+          GH_AW_MISSING_MODEL_PRICING_ERROR:
+            ${{ needs.agent.outputs.missing_model_pricing_error }}
+          GH_AW_MISSING_MODEL_PRICING_MODEL_NAME:
+            ${{ needs.agent.outputs.missing_model_pricing_model_name }}
+          GH_AW_SHELL_EXPANSION_GUARD_REJECTED:
+            ${{ needs.agent.outputs.shell_expansion_guard_rejected }}
+          GH_AW_ENGINE_API_HOSTS: 'api.enterprise.githubcopilot.com,api.githubcopilot.com,api.business.githubcopilot.com,api.individual.githubcopilot.com'
+          GH_AW_LOCKDOWN_CHECK_FAILED:
+            ${{ needs.activation.outputs.lockdown_check_failed }}
+          GH_AW_OAUTH_TOKEN_CHECK_FAILED:
+            ${{ needs.activation.outputs.oauth_token_check_failed }}
+          GH_AW_STALE_LOCK_FILE_FAILED:
+            ${{ needs.activation.outputs.stale_lock_file_failed }}
+          GH_AW_DAILY_AI_CREDITS_EXCEEDED:
+            ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
+          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_STATUS:
+            ${{ needs.activation.outputs.daily_ai_credits_guardrail_status }}
+          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_ERROR:
+            ${{ needs.activation.outputs.daily_ai_credits_guardrail_error }}
+          GH_AW_DAILY_AI_CREDITS_TOTAL:
+            ${{ needs.activation.outputs.daily_ai_credits_total }}
+          GH_AW_DAILY_AI_CREDITS_ESTIMATED:
+            ${{ needs.activation.outputs.daily_ai_credits_estimated }}
+          GH_AW_DAILY_AI_CREDITS_THRESHOLD:
+            ${{ needs.activation.outputs.daily_ai_credits_threshold }}
+          GH_AW_DAILY_AI_CREDITS_CONTINUE_ON_ERROR: 'false'
+          GH_AW_GROUP_REPORTS: 'false'
+          GH_AW_FAILURE_REPORT_AS_ISSUE: 'false'
+          GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: 'true'
+          GH_AW_MISSING_DATA_REPORT_AS_FAILURE: 'true'
+          GH_AW_TIMEOUT_MINUTES: '20'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -1373,8 +1619,10 @@ jobs:
         continue-on-error: true
         env:
           GH_AW_DETECTION_JOB_RESULT: ${{ needs.detection.result }}
-          GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
-          GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
+          GH_AW_DETECTION_CONCLUSION:
+            ${{ needs.detection.outputs.detection_conclusion }}
+          GH_AW_DETECTION_REASON:
+            ${{ needs.detection.outputs.detection_reason }}
         run: bash "${RUNNER_TEMP}/gh-aw/actions/collect_usage_artifact_files.sh"
       - name: Generate usage activity summary and unified session
         if: always()
@@ -1383,11 +1631,16 @@ jobs:
         env:
           GH_AW_GRADER_MANIFEST_0: '{"version":2,"graders":[]}'
           GH_AW_GRADER_MANIFEST_CHUNKS: '1'
-          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_STATUS: ${{ needs.activation.outputs.daily_ai_credits_guardrail_status }}
-          GH_AW_DAILY_AI_CREDITS_EXCEEDED: ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
-          GH_AW_DAILY_AI_CREDITS_TOTAL: ${{ needs.activation.outputs.daily_ai_credits_total }}
-          GH_AW_DAILY_AI_CREDITS_ESTIMATED: ${{ needs.activation.outputs.daily_ai_credits_estimated }}
-          GH_AW_DAILY_AI_CREDITS_THRESHOLD: ${{ needs.activation.outputs.daily_ai_credits_threshold }}
+          GH_AW_DAILY_AI_CREDITS_GUARDRAIL_STATUS:
+            ${{ needs.activation.outputs.daily_ai_credits_guardrail_status }}
+          GH_AW_DAILY_AI_CREDITS_EXCEEDED:
+            ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
+          GH_AW_DAILY_AI_CREDITS_TOTAL:
+            ${{ needs.activation.outputs.daily_ai_credits_total }}
+          GH_AW_DAILY_AI_CREDITS_ESTIMATED:
+            ${{ needs.activation.outputs.daily_ai_credits_estimated }}
+          GH_AW_DAILY_AI_CREDITS_THRESHOLD:
+            ${{ needs.activation.outputs.daily_ai_credits_threshold }}
         with:
           script: |
             const path = require('path');
@@ -1429,7 +1682,8 @@ jobs:
             /tmp/gh-aw/usage/experiment/assignments.json
             /tmp/gh-aw/usage/activity/summary.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
       - name: Wait before retrying usage artifact upload
         if: always() && steps.upload-usage-artifact.outcome == 'failure'
         run: sleep 10
@@ -1467,7 +1721,8 @@ jobs:
             /tmp/gh-aw/usage/activity/summary.json
           if-no-files-found: ignore
           overwrite: true
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
 
   detection:
     name: detection
@@ -1497,13 +1752,18 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-pattern-escalation.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository
+            }}/.github/workflows/issue-pattern-escalation.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
           GH_AW_SETUP_AW_CONTEXT: ${{ inputs.aw_context }}
       - name: Download activation artifact
         continue-on-error: true
@@ -1516,7 +1776,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: "{agent,agent-output-fallback}"
+          pattern: '{agent,agent-output-fallback}'
           merge-multiple: true
           path: /tmp/gh-aw/
       - name: Setup agent output environment variable
@@ -1550,7 +1810,11 @@ jobs:
           rm -rf /tmp/gh-aw/sandbox/firewall/logs
           rm -rf /tmp/gh-aw/sandbox/firewall/audit
       - name: Download container images
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh" ghcr.io/github/gh-aw-firewall/agent:0.29.0@sha256:b14bd399376180b5649a9324be3b50fbfc82bfe8f0c80045840416b5a4e65b96 ghcr.io/github/gh-aw-firewall/api-proxy:0.29.0@sha256:baff00b856a4bdc93bce134928c70af3d3492f2e518757115042040674d56b0b ghcr.io/github/gh-aw-firewall/squid:0.29.0@sha256:6e0cbf7f980beb78b5461563a8164f6439ca959bc93733d5a6b52972e523ed50
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh"
+          ghcr.io/github/gh-aw-firewall/agent:0.29.0@sha256:b14bd399376180b5649a9324be3b50fbfc82bfe8f0c80045840416b5a4e65b96
+          ghcr.io/github/gh-aw-firewall/api-proxy:0.29.0@sha256:baff00b856a4bdc93bce134928c70af3d3492f2e518757115042040674d56b0b
+          ghcr.io/github/gh-aw-firewall/squid:0.29.0@sha256:6e0cbf7f980beb78b5461563a8164f6439ca959bc93733d5a6b52972e523ed50
       - name: Check if detection needed
         id: detection_guard
         if: always()
@@ -1580,11 +1844,14 @@ jobs:
         if: always() && steps.detection_guard.outputs.run_detection == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          WORKFLOW_NAME: "Review recurring issue patterns"
-          WORKFLOW_DESCRIPTION: "Review recent public issue activity for corroborated patterns that may meet\nDesktop's priority-1 standard, and propose at most one escalation for human review."
+          WORKFLOW_NAME: 'Review recurring issue patterns'
+          WORKFLOW_DESCRIPTION:
+            "Review recent public issue activity for corroborated patterns that
+            may meet\nDesktop's priority-1 standard, and propose at most one
+            escalation for human review."
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
-          GH_AW_DETECTION_CONTINUE_ON_ERROR: "false"
-          GH_AW_DETECTION_SKIP_PROMPT_SUMMARY: "true"
+          GH_AW_DETECTION_CONTINUE_ON_ERROR: 'false'
+          GH_AW_DETECTION_SKIP_PROMPT_SUMMARY: 'true'
         with:
           script: |
             const path = require('path');
@@ -1599,14 +1866,20 @@ jobs:
           mkdir -p /tmp/gh-aw/threat-detection
           touch /tmp/gh-aw/threat-detection/detection.log
       - name: Install AWF binary
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.29.0 --rootless
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.29.0
+          --rootless
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           package-manager-cache: false
       - name: Install GitHub Copilot CLI
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/install_copilot_cli.sh" 1.0.103 --checksums-sha256 26cd3e4b32cde498e4961fb4d48e7b85d7859fc69af1a645a19201fdd577bdb2 --prefer-toolcache
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/install_copilot_cli.sh" 1.0.103
+          --checksums-sha256
+          26cd3e4b32cde498e4961fb4d48e7b85d7859fc69af1a645a19201fdd577bdb2
+          --prefer-toolcache
         env:
           GH_HOST: github.com
           GH_AW_COPILOT_MIN_VERSION: 1.0.35
@@ -1617,7 +1890,11 @@ jobs:
           bash "${RUNNER_TEMP}/gh-aw/actions/install_threat_detect_binary.sh" v0.5.3 --artifact-base-url https://github.com/github/gh-aw-threat-detection/releases/download --sha256-amd64 7cfab3bd02717968a0584ddd3790cff22550059e36d6f656c4f35e9d27851009 --sha256-arm64 6f355949af98e7b5527a958ac11431bd7867db45c0191b94c3a205c662181cc6
       - name: Execute threat detection with AWF
         id: detection_agentic_execution
-        if: always() && steps.detection_guard.outputs.run_detection == 'true' && steps.detection_setup.outcome == 'success' && steps.detection_setup.outputs.ready == 'true' && steps.threat_detect_install.outcome == 'success'
+        if:
+          always() && steps.detection_guard.outputs.run_detection == 'true' &&
+          steps.detection_setup.outcome == 'success' &&
+          steps.detection_setup.outputs.ready == 'true' &&
+          steps.threat_detect_install.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 10
         env:
@@ -1625,12 +1902,17 @@ jobs:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_DUMMY_BYOK: dummy-byok-key-for-offline-mode
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          COPILOT_MODEL: ${{ vars.GH_AW_MODEL_DETECTION_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'detection' }}
+          COPILOT_MODEL:
+            ${{ vars.GH_AW_MODEL_DETECTION_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'detection' }}
           GH_AW_HARNESS_MAX_RETRIES: 0
           GH_AW_LLM_PROVIDER: github
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_DETECTION_MAX_AI_CREDITS || '400' }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_DETECTION_MAX_AI_CREDITS || '400' }}
           GH_AW_MAX_TURNS: ${{ vars.GH_AW_DEFAULT_MAX_TURNS || '' }}
-          GH_AW_MODEL_FALLBACK: ${{ vars.GH_AW_MODEL_DETECTION_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
+          GH_AW_MODEL_FALLBACK:
+            ${{ vars.GH_AW_MODEL_DETECTION_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
           GH_AW_PHASE: detection
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_TIMEOUT_MINUTES: 10
@@ -1650,11 +1932,18 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           RUNNER_TEMP: ${{ runner.temp }}
           S2STOKENS: true
-          TRACEPARENT: ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' && env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01', env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) || '' }}
-          WORKFLOW_NAME: "Review recurring issue patterns"
-          WORKFLOW_DESCRIPTION: "Review recent public issue activity for corroborated patterns that may meet\nDesktop's priority-1 standard, and propose at most one escalation for human review."
+          TRACEPARENT:
+            ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' &&
+            env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01',
+            env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) ||
+            '' }}
+          WORKFLOW_NAME: 'Review recurring issue patterns'
+          WORKFLOW_DESCRIPTION:
+            "Review recent public issue activity for corroborated patterns that
+            may meet\nDesktop's priority-1 standard, and propose at most one
+            escalation for human review."
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
-          GH_AW_DETECTION_CONTINUE_ON_ERROR: "false"
+          GH_AW_DETECTION_CONTINUE_ON_ERROR: 'false'
         run: |
           mkdir -p "/tmp/gh-aw/threat-detection"
           evidence_tmp="/tmp/gh-aw/threat-detection/execution.json.tmp"
@@ -1727,8 +2016,10 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_SECRET_NAMES: 'GH_AW_DEFAULT_OTLP_ENDPOINT,GH_AW_DEFAULT_OTLP_HEADERS'
-          SECRET_GH_AW_DEFAULT_OTLP_ENDPOINT: ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT }}
-          SECRET_GH_AW_DEFAULT_OTLP_HEADERS: ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
+          SECRET_GH_AW_DEFAULT_OTLP_ENDPOINT:
+            ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT }}
+          SECRET_GH_AW_DEFAULT_OTLP_HEADERS:
+            ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
         with:
           script: |
             const path = require('path');
@@ -1740,7 +2031,9 @@ jobs:
             await main({ additionalDirectories: ["/tmp/gh-aw/threat-detection/sandbox/firewall"], persistDetectionMasks });
       - name: Parse threat detection token usage for step summary
         id: parse_detection_token_usage
-        if: always() && steps.detection_guard.outputs.run_detection == 'true' && steps.redact_detection_logs.outcome == 'success'
+        if:
+          always() && steps.detection_guard.outputs.run_detection == 'true' &&
+          steps.redact_detection_logs.outcome == 'success'
         continue-on-error: true
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -1748,7 +2041,7 @@ jobs:
           GH_AW_PHASE: detection
           GH_AW_AGENT_USAGE_PATH: /tmp/gh-aw/threat-detection/detection_usage.json
           GH_AW_AGENT_USAGE_JSONL_PATH: /tmp/gh-aw/threat-detection/detection_usage.jsonl
-          GH_AW_WRITE_EMPTY_USAGE: "true"
+          GH_AW_WRITE_EMPTY_USAGE: 'true'
         with:
           script: |
             const path = require('path');
@@ -1763,8 +2056,10 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_SECRET_NAMES: 'GH_AW_DEFAULT_OTLP_ENDPOINT,GH_AW_DEFAULT_OTLP_HEADERS'
-          SECRET_GH_AW_DEFAULT_OTLP_ENDPOINT: ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT }}
-          SECRET_GH_AW_DEFAULT_OTLP_HEADERS: ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
+          SECRET_GH_AW_DEFAULT_OTLP_ENDPOINT:
+            ${{ secrets.GH_AW_DEFAULT_OTLP_ENDPOINT }}
+          SECRET_GH_AW_DEFAULT_OTLP_HEADERS:
+            ${{ secrets.GH_AW_DEFAULT_OTLP_HEADERS }}
         with:
           script: |
             const path = require('path');
@@ -1775,7 +2070,10 @@ jobs:
             const { persistDetectionMasks } = require(path.join(actionsDir, 'detection_mask_state.cjs'));
             await main({ additionalDirectories: ["/tmp/gh-aw/threat-detection/sandbox/firewall"], persistDetectionMasks });
       - name: Render detection log
-        if: always() && steps.detection_guard.outputs.run_detection == 'true' && steps.redact_detection_logs.outcome == 'success' && steps.redact_detection_artifacts.outcome == 'success'
+        if:
+          always() && steps.detection_guard.outputs.run_detection == 'true' &&
+          steps.redact_detection_logs.outcome == 'success' &&
+          steps.redact_detection_artifacts.outcome == 'success'
         continue-on-error: true
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -1787,7 +2085,10 @@ jobs:
             const { main } = require(path.join(actionsDir, 'render_detection_log.cjs'));
             await main();
       - name: Upload threat detection artifact
-        if: always() && steps.detection_guard.outputs.run_detection == 'true' && steps.redact_detection_logs.outcome == 'success' && steps.redact_detection_artifacts.outcome == 'success'
+        if:
+          always() && steps.detection_guard.outputs.run_detection == 'true' &&
+          steps.redact_detection_logs.outcome == 'success' &&
+          steps.redact_detection_artifacts.outcome == 'success'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: detection
@@ -1799,15 +2100,22 @@ jobs:
             /tmp/gh-aw/threat-detection/sandbox/firewall/logs/
             /tmp/gh-aw/threat-detection/sandbox/firewall/audit/
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
       - name: Conclude threat detection
         id: detection_conclusion
-        if: always() && steps.detection_guard.outputs.run_detection == 'false' || (always() && steps.detection_guard.outputs.run_detection == 'true' && steps.redact_detection_logs.outcome == 'success' && steps.redact_detection_artifacts.outcome == 'success')
+        if:
+          always() && steps.detection_guard.outputs.run_detection == 'false' ||
+          (always() && steps.detection_guard.outputs.run_detection == 'true' &&
+          steps.redact_detection_logs.outcome == 'success' &&
+          steps.redact_detection_artifacts.outcome == 'success')
         env:
           RUN_DETECTION: ${{ steps.detection_guard.outputs.run_detection }}
-          DETECTION_AGENTIC_EXECUTION_OUTCOME: ${{ steps.detection_agentic_execution.outcome }}
-          THREAT_DETECT_INSTALL_OUTCOME: ${{ steps.threat_detect_install.outcome }}
-          GH_AW_DETECTION_CONTINUE_ON_ERROR: "false"
+          DETECTION_AGENTIC_EXECUTION_OUTCOME:
+            ${{ steps.detection_agentic_execution.outcome }}
+          THREAT_DETECT_INSTALL_OUTCOME:
+            ${{ steps.threat_detect_install.outcome }}
+          GH_AW_DETECTION_CONTINUE_ON_ERROR: 'false'
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/conclude_threat_detection.sh" /tmp/gh-aw/threat-detection/detection_result.json
       - name: Upload skipped detection execution evidence
@@ -1817,7 +2125,8 @@ jobs:
           name: detection
           path: /tmp/gh-aw/threat-detection/execution.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
 
   safe_outputs:
     name: safe_outputs
@@ -1825,7 +2134,9 @@ jobs:
       - activation
       - agent
       - detection
-    if: (!cancelled()) && needs.agent.result != 'skipped' && needs.detection.result == 'success'
+    if:
+      (!cancelled()) && needs.agent.result != 'skipped' &&
+      needs.detection.result == 'success'
     runs-on: ubuntu-slim
     # Permissions for the safe_outputs job (workflow permissions default to none).
     permissions:
@@ -1835,33 +2146,52 @@ jobs:
       GH_AW_AGENT_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/issue-pattern-escalation"
-      GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
+      GH_AW_CALLER_WORKFLOW_ID:
+        '${{ github.repository }}/issue-pattern-escalation'
+      GH_AW_DETECTION_CONCLUSION:
+        ${{ needs.detection.outputs.detection_conclusion }}
       GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
-      GH_AW_ENGINE_ID: "copilot"
+      GH_AW_ENGINE_ID: 'copilot'
       GH_AW_ENGINE_MODEL: ${{ needs.agent.outputs.model }}
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
       GH_AW_RUN_DETECTION: ${{ needs.detection.outputs.run_detection }}
       GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
-      GH_AW_WORKFLOW_ID: "issue-pattern-escalation"
-      GH_AW_WORKFLOW_NAME: "Review recurring issue patterns"
-      GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-pattern-escalation.md"
+      GH_AW_WORKFLOW_ID: 'issue-pattern-escalation'
+      GH_AW_WORKFLOW_NAME: 'Review recurring issue patterns'
+      GH_AW_WORKFLOW_SOURCE_URL:
+        '${{ github.server_url }}/${{ github.repository }}/blob/${{
+        github.ref_name }}/.github/workflows/issue-pattern-escalation.md'
     outputs:
-      code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
-      code_push_failure_errors: ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
-      create_discussion_error_count: ${{ steps.process_safe_outputs.outputs.create_discussion_error_count }}
-      create_discussion_errors: ${{ steps.process_safe_outputs.outputs.create_discussion_errors }}
-      created_issue_number: ${{ steps.process_safe_outputs.outputs.created_issue_number }}
-      created_issue_url: ${{ steps.process_safe_outputs.outputs.created_issue_url }}
-      process_safe_outputs_items_applied: ${{ steps.process_safe_outputs.outputs.items_applied }}
-      process_safe_outputs_items_cancelled: ${{ steps.process_safe_outputs.outputs.items_cancelled }}
-      process_safe_outputs_items_deferred: ${{ steps.process_safe_outputs.outputs.items_deferred }}
-      process_safe_outputs_items_failed: ${{ steps.process_safe_outputs.outputs.items_failed }}
-      process_safe_outputs_items_skipped: ${{ steps.process_safe_outputs.outputs.items_skipped }}
-      process_safe_outputs_items_succeeded: ${{ steps.process_safe_outputs.outputs.items_succeeded }}
-      process_safe_outputs_items_warnings: ${{ steps.process_safe_outputs.outputs.items_warnings }}
-      process_safe_outputs_processed_count: ${{ steps.process_safe_outputs.outputs.processed_count }}
-      process_safe_outputs_status: ${{ steps.process_safe_outputs.outputs.status }}
+      code_push_failure_count:
+        ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
+      code_push_failure_errors:
+        ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
+      create_discussion_error_count:
+        ${{ steps.process_safe_outputs.outputs.create_discussion_error_count }}
+      create_discussion_errors:
+        ${{ steps.process_safe_outputs.outputs.create_discussion_errors }}
+      created_issue_number:
+        ${{ steps.process_safe_outputs.outputs.created_issue_number }}
+      created_issue_url:
+        ${{ steps.process_safe_outputs.outputs.created_issue_url }}
+      process_safe_outputs_items_applied:
+        ${{ steps.process_safe_outputs.outputs.items_applied }}
+      process_safe_outputs_items_cancelled:
+        ${{ steps.process_safe_outputs.outputs.items_cancelled }}
+      process_safe_outputs_items_deferred:
+        ${{ steps.process_safe_outputs.outputs.items_deferred }}
+      process_safe_outputs_items_failed:
+        ${{ steps.process_safe_outputs.outputs.items_failed }}
+      process_safe_outputs_items_skipped:
+        ${{ steps.process_safe_outputs.outputs.items_skipped }}
+      process_safe_outputs_items_succeeded:
+        ${{ steps.process_safe_outputs.outputs.items_succeeded }}
+      process_safe_outputs_items_warnings:
+        ${{ steps.process_safe_outputs.outputs.items_warnings }}
+      process_safe_outputs_processed_count:
+        ${{ steps.process_safe_outputs.outputs.processed_count }}
+      process_safe_outputs_status:
+        ${{ steps.process_safe_outputs.outputs.status }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -1870,13 +2200,18 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Review recurring issue patterns"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-pattern-escalation.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.103"
-          GH_AW_INFO_AWF_VERSION: "v0.29.0"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Review recurring issue patterns'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository
+            }}/.github/workflows/issue-pattern-escalation.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.103'
+          GH_AW_INFO_AWF_VERSION: 'v0.29.0'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
           GH_AW_SETUP_AW_CONTEXT: ${{ inputs.aw_context }}
       - name: Mask OTLP telemetry headers
         run: bash "${RUNNER_TEMP}/gh-aw/actions/mask_otlp_headers.sh"
@@ -1885,7 +2220,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: "{agent,agent-output-fallback}"
+          pattern: '{agent,agent-output-fallback}'
           merge-multiple: true
           path: /tmp/gh-aw/
       - name: Setup agent output environment variable
@@ -1900,7 +2235,8 @@ jobs:
       - name: Configure GH_HOST for enterprise compatibility
         id: ghes-host-config
         shell: bash
-        run: | # zizmor: ignore[github-env] - GITHUB_SERVER_URL is set by GitHub Actions, not user input.
+        run:
+          | # zizmor: ignore[github-env] - GITHUB_SERVER_URL is set by GitHub Actions, not user input.
           # Derive GH_HOST from GITHUB_SERVER_URL so the gh CLI targets the correct
           # GitHub instance (GHES/GHEC). On github.com this is a harmless no-op.
           GH_HOST="${GITHUB_SERVER_URL#https://}"
@@ -1928,20 +2264,24 @@ jobs:
           }
           NODE
         env:
-          AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
       - name: Process Safe Outputs
         id: process_safe_outputs
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_JOB_CHECK_RUN_ID: ${{ job.check_run_id }}
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_COMMENT_ID: ${{ needs.activation.outputs.comment_id }}
           GH_AW_MENTIONS_GITHUB_TOKEN: ${{ github.token }}
-          GH_AW_ALLOWED_DOMAINS: "api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_ALLOWED_DOMAINS: 'api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com'
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"create_issue\":{\"deduplicate_by_title\":true,\"labels\":[\"priority-1\"],\"max\":1,\"title_prefix\":\"[P1 pattern proposal] \"},\"noop\":{\"max\":2,\"report-as-issue\":\"false\"}}"
-          GH_AW_GITHUB_TOKEN_SOURCE: "github_actions"
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG:
+            '{"create_issue":{"deduplicate_by_title":true,"labels":["priority-1"],"max":1,"title_prefix":"[P1
+            pattern proposal] "},"noop":{"max":2,"report-as-issue":"false"}}'
+          GH_AW_GITHUB_TOKEN_SOURCE: 'github_actions'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -1962,4 +2302,5 @@ jobs:
             /tmp/gh-aw/temporary-id-map.json
             /tmp/gh-aw/safe-output-errors.json
           if-no-files-found: ignore
-          retention-days: ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
+          retention-days:
+            ${{ vars.GH_AW_DEFAULT_ARTIFACT_RETENTION_DAYS || '0' }}
