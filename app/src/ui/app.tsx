@@ -3465,6 +3465,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   ) => {
     try {
       await this.props.dispatcher.updateRepositoryAccount(repository, login)
+      this.props.dispatcher.incrementMetric(
+        'repositoryAccountChangedFromContextMenuCount'
+      )
     } catch (e) {
       this.props.dispatcher.postError(e)
     }
