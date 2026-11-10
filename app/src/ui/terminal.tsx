@@ -6,6 +6,7 @@ import {
 import React from 'react'
 import { getMonospaceFontFamily } from './get-monospace-font-family'
 import { TerminalOutput } from '../lib/git'
+import { writeClipboardText } from './main-process-proxy'
 
 export const defaultTerminalOptions: Readonly<ITerminalOptions> = {
   convertEol: true,
@@ -57,6 +58,20 @@ export class Terminal extends React.Component<TerminalProps> {
         // doesn't support tab input, so we can safely ignore it.
         return false
       }
+
+      // xterm treats Ctrl+C as an interrupt for a shell, which blocks
+      // the normal copy shortcut. This is a fix for Windows devices
+      // which adds this functionality without breaking.
+      if (
+        key.type === 'keydown' &&
+        key.ctrlKey && !key.altKey &&
+        key.key.toLowerCase() === 'c' &&
+        this.terminal?.hasSelection()
+      ) {
+        writeClipboardText(this.terminal.getSelection())
+        return false
+      }
+
       return true
     })
 
