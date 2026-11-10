@@ -44,6 +44,12 @@ startup doesn't unassign repositories.
 The migration writes `null` when none exists and never revisits that choice.
 New records default to `null`.
 
+GitHub metadata is uniquely scoped by owner, repository name and account login.
+Database version 11 removes an obsolete owner/name-only unique index that older
+development builds can reintroduce when opening a newer database. It leaves
+account-scoped rows, IDs, permissions, local assignments and dependent cache keys
+unchanged; it does not merge accounts or reset the database.
+
 Desktop asks the user to choose an account for an unassigned repository only
 at the point one is needed: when Git asks for HTTPS credentials during a
 user-initiated operation, or when the user explicitly requests GitHub data.
