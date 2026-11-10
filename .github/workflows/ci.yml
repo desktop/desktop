@@ -85,12 +85,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15-xlarge, windows-2022]
+        os: [macos-15-xlarge, windows-x64-large]
         arch: [x64, arm64]
         include:
           - os: macos-15-xlarge
             friendlyName: macOS
-          - os: windows-2022
+          - os: windows-x64-large
             friendlyName: Windows
     timeout-minutes: 60
     environment: ${{ inputs.environment }}
@@ -214,7 +214,7 @@ jobs:
           - os: macos-15-xlarge
             friendlyName: macOS
             arch: arm64
-          - os: windows-2022
+          - os: windows-x64-large
             friendlyName: Windows
             arch: x64
     timeout-minutes: 60
