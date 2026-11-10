@@ -128,10 +128,7 @@ export async function chooseAccountForRemoteRepository(
   if (selected === undefined) {
     return undefined
   }
-  const match =
-    accessible.find(match => isSameAccount(match.account, selected)) ??
-    // An account signed in from the chooser hasn't been checked yet.
-    (await probeRemoteRepositoryAccounts([selected], remote)).at(0)
+  const match = accessible.find(match => isSameAccount(match.account, selected))
   if (match === undefined) {
     throw new Error(
       `The account @${selected.login} can't access ${owner}/${name}.`

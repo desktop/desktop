@@ -141,27 +141,6 @@ describe('choosing an account for a newly added or cloned remote', () => {
     )
   })
 
-  it('checks an account signed in from the chooser before using it', async t => {
-    const carol = new Account('carol', endpoint, 'carol-token', [], '', 4, '')
-    const tokens: string[] = []
-    t.mock.method(API, 'fromAccount', (account: Account) =>
-      createMockAPI({
-        fetchRepositoryIfAccessible: async () => {
-          tokens.push(account.token)
-          return apiRepository
-        },
-      })
-    )
-    const result = await chooseAccountForRemoteRepository(
-      [alice, bob],
-      remote,
-      '/repo',
-      async () => carol
-    )
-    assert.strictEqual(result?.account, carol)
-    assert.deepStrictEqual(tokens, ['alice-token', 'bob-token', 'carol-token'])
-  })
-
   it('rejects a chosen account that cannot access the remote instead of falling back', async t => {
     t.mock.method(API, 'fromAccount', (account: Account) =>
       createMockAPI({
