@@ -190,6 +190,11 @@ export class RepositoriesDatabase extends BaseDatabase {
         await tx.table('protectedBranches').clear()
       }
     )
+    // Older development builds can patch the legacy owner/name index back
+    // into an account-scoped database. A real upgrade removes that stale index.
+    this.conditionalVersion(11, {
+      gitHubRepositories: '++id, &[ownerID+name+accountLogin]',
+    })
   }
 }
 

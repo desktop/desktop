@@ -9,6 +9,7 @@ import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
 import { TrampolineCommandIdentifier } from '../../src/lib/trampoline/trampoline-command'
+import { RepositoriesDatabase } from '../../src/lib/databases'
 
 const endpoint = 'https://api.github.com'
 const alice = new Account('alice', endpoint, 'alice-token', [], '', 1, 'Alice')
@@ -110,6 +111,111 @@ describe('repository-aware credential trampoline', () => {
     trampolineToken: 'test-token',
     stdin: `protocol=https\nhost=${host}\n\n`,
     environmentVariables: new Map<string, string>(),
+  })
+
+  it('persists only the chosen account after repairing a development-branch schema switch', async t => {
+    const { createAssistedCommitRunHarness } = await import(
+      '../helpers/assisted-commit-run'
+    )
+    const h = await createAssistedCommitRunHarness(t)
+    h.appStore['updateRepositorySelectionAfterRepositoriesChanged'] = () => {}
+    h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+    h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+    h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+    const other = await h.stores.accountsStore.addAccount(bob)
+    assert.ok(other)
+    const db = h.stores.repositoriesStore['db']
+    const name = db.name
+    await db.delete()
+    let legacy = new RepositoriesDatabase(name, 10)
+    await legacy.open()
+    t.after(() => db.delete())
+    const bootstrap = new RepositoriesStore(legacy)
+    const local = await bootstrap.addRepository('/repo', undefined)
+    const anonymous = await bootstrap.upsertGitHubRepositoryFromMatch({
+      account: new Account('', endpoint, '', [], '', -1, ''),
+      owner: 'synthetic-owner',
+      name: 'known-repository',
+    })
+    const unassigned = await bootstrap.setGitHubRepository(
+      local,
+      anonymous,
+      null
+    )
+    legacy.close()
+    legacy = new RepositoriesDatabase(name, 9)
+    await legacy.open()
+    assert.equal(
+      legacy
+        .backendDB()
+        .transaction('gitHubRepositories')
+        .objectStore('gitHubRepositories')
+        .indexNames.contains('[ownerID+name]'),
+      true
+    )
+    legacy.close()
+    await db.open()
+    h.appStore['adoptRepository'](unassigned)
+    const gitStore = h.appStore['gitStoreCache'].get(unassigned)
+    const picker = t.mock.fn(async (): Promise<Account | undefined> => other)
+    h.appStore['promptForUnassignedRepositoryAccount'] = picker
+    const handler = createHandler(
+      h.stores.accountsStore,
+      h.stores.repositoriesStore
+    )
+    const lease = t.mock.method(h.stores.accountsStore, 'leaseAccountToken')
+    prompt.mock.mockImplementationOnce(repo =>
+      h.dispatcher.ensureRepositoryAccount(repo)
+    )
+    picker.mock.mockImplementationOnce(async () => undefined)
+    assert.equal(await handler(command()), undefined)
+    assert.equal(lease.mock.callCount(), 0)
+    assert.equal(
+      (await h.appStore._getCurrentRepository(unassigned)).login,
+      null
+    )
+    assert.equal(gitStore.repository.login, null)
+    assert.equal(await db.gitHubRepositories.count(), 1)
+
+    prompt.mock.mockImplementationOnce(repo =>
+      h.dispatcher.ensureRepositoryAccount(repo)
+    )
+    const [credential] = await Promise.all([
+      handler(command()),
+      h.stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+        account: other,
+        owner: 'synthetic-owner',
+        name: 'known-repository',
+      }),
+    ])
+    assert.ok(credential)
+    const fields = new Map(
+      credential
+        .trim()
+        .split('\n')
+        .map(line => {
+          const index = line.indexOf('=')
+          return [line.slice(0, index), line.slice(index + 1)]
+        })
+    )
+    assert.equal(fields.get('username'), other.login)
+    assert.equal(fields.get('password'), other.token)
+    const current = await h.appStore._getCurrentRepository(unassigned)
+    assert.equal(current.login, other.login)
+    assert.notEqual(current.gitHubRepository?.dbID, anonymous.dbID)
+    assert.equal(h.appStore['gitStoreCache'].get(current), gitStore)
+    assert.equal(gitStore.repository.login, other.login)
+    assert.equal(await db.gitHubRepositories.count(), 2)
+    assert.equal(
+      await db.gitHubRepositories
+        .where('[ownerID+name+accountLogin]')
+        .equals([anonymous.owner.id, anonymous.name, other.login])
+        .count(),
+      1
+    )
+    assert.equal(await handler(command()), credential)
+    assert.equal(picker.mock.callCount(), 2)
+    assert.equal(lease.mock.callCount(), 2)
   })
 
   it('uses the repository login, not the first account or URL username', async () => {
