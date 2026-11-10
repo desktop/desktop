@@ -59,9 +59,7 @@ export class Terminal extends React.Component<TerminalProps> {
         return false
       }
 
-      // xterm treats Ctrl+C as an interrupt for a shell, which blocks
-      // the normal copy shortcut. This is a fix for Windows devices
-      // which adds this functionality without breaking.
+      // fix to default xterm behavior on Windows to allow Ctrl+C
       if (
         key.type === 'keydown' &&
         key.ctrlKey && !key.altKey &&
