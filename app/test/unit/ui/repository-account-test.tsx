@@ -1,5 +1,13 @@
 import assert from 'node:assert'
-import { afterEach, before, beforeEach, describe, it, mock } from 'node:test'
+import {
+  after,
+  afterEach,
+  before,
+  beforeEach,
+  describe,
+  it,
+  mock,
+} from 'node:test'
 import * as React from 'react'
 import { Account } from '../../../src/models/account'
 import { GitHubRepository } from '../../../src/models/github-repository'
@@ -11,6 +19,7 @@ import {
 } from '../../../src/models/repository'
 import { SignInResult } from '../../../src/lib/stores/sign-in-store'
 import type { Dispatcher } from '../../../src/ui/dispatcher'
+import { act } from 'react-dom/test-utils'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
 import {
   advanceTimersBy,
@@ -68,10 +77,49 @@ afterEach(() => {
   }
 })
 
-before(() => {
-  mock.module('../../../src/ui/main-process-proxy.ts', {
-    namedExports: { sendDialogDidOpen: () => {} },
-  })
+/** Reports a fixed size so the virtualized account list renders its rows. */
+class SizedResizeObserver implements ResizeObserver {
+  public constructor(private readonly callback: ResizeObserverCallback) {}
+
+  public observe(target: Element) {
+    Object.defineProperty(target, 'offsetWidth', { value: 300 })
+    Object.defineProperty(target, 'offsetHeight', { value: 300 })
+    const contentRect = new DOMRectReadOnly(0, 0, 300, 300)
+    this.callback(
+      [
+        {
+          target,
+          contentRect,
+          borderBoxSize: [],
+          contentBoxSize: [],
+          devicePixelContentBoxSize: [],
+        },
+      ],
+      this
+    )
+  }
+
+  public unobserve() {}
+
+  public disconnect() {}
+}
+
+const originalResizeObserver = window.ResizeObserver
+let originalSend: ((channel: string, ...args: any[]) => void) | undefined
+
+before(async () => {
+  Object.assign(window, { ResizeObserver: SizedResizeObserver })
+  const electron = await import('electron')
+  originalSend = electron.ipcRenderer.send
+  electron.ipcRenderer.send = () => {}
+})
+
+after(async () => {
+  Object.assign(window, { ResizeObserver: originalResizeObserver })
+  if (originalSend !== undefined) {
+    const electron = await import('electron')
+    electron.ipcRenderer.send = originalSend
+  }
 })
 
 function createRepository(login: string | null = null, host = endpoint) {
@@ -119,31 +167,14 @@ async function renderAccountDialog(
   >(async (_endpoint, _login, resultCallback) => {
     callback = resultCallback
   })
-  const showDotComSignInDialog = mock.fn<Dispatcher['showDotComSignInDialog']>(
-    async resultCallback => {
-      callback = resultCallback
-    }
-  )
-  const showEnterpriseSignInDialog = mock.fn<
-    Dispatcher['showEnterpriseSignInDialog']
-  >(async (_endpoint, resultCallback) => {
-    callback = resultCallback
-  })
   const closePopup = mock.fn<Dispatcher['closePopup']>(() => {
     order.push('close-sign-in')
   })
-  const dispatcher: Pick<
-    Dispatcher,
-    | 'showAccountSignInDialog'
-    | 'showDotComSignInDialog'
-    | 'showEnterpriseSignInDialog'
-    | 'closePopup'
-  > = {
-    showAccountSignInDialog,
-    showDotComSignInDialog,
-    showEnterpriseSignInDialog,
-    closePopup,
-  }
+  const dispatcher: Pick<Dispatcher, 'showAccountSignInDialog' | 'closePopup'> =
+    {
+      showAccountSignInDialog,
+      closePopup,
+    }
   const props = {
     repository,
     accounts,
@@ -160,8 +191,6 @@ async function renderAccountDialog(
     completed,
     order,
     showAccountSignInDialog,
-    showDotComSignInDialog,
-    showEnterpriseSignInDialog,
     closePopup,
     finishSignIn: (result: SignInResult) => {
       assert.ok(callback)
@@ -172,10 +201,41 @@ async function renderAccountDialog(
   }
 }
 
-function selectAccount(login: string) {
-  fireEvent.change(screen.getByRole('combobox', { hidden: true }), {
-    target: { value: login },
-  })
+/** Let the account list measure itself, which it defers with setImmediate. */
+async function flushImmediate() {
+  await new Promise<void>(resolve => setImmediate(resolve))
+  act(() => {})
+}
+
+async function openAccountPicker() {
+  fireEvent.click(screen.getByRole('button', { name: 'Account', hidden: true }))
+  advanceTimersBy(300)
+  await flushImmediate()
+}
+
+function listedAccounts() {
+  return screen
+    .getAllByRole('option', { hidden: true })
+    .map(option => option.getAttribute('aria-label'))
+}
+
+function chooseListedAccount(login: string) {
+  fireEvent.click(
+    screen.getByRole('option', {
+      name: new RegExp(`^@${login} `),
+      hidden: true,
+    })
+  )
+  advanceTimersBy(300)
+}
+
+async function selectAccount(login: string) {
+  await openAccountPicker()
+  chooseListedAccount(login)
+}
+
+function queryButton(name: string) {
+  return screen.queryByRole('button', { name, hidden: true })
 }
 
 function click(name: string) {
@@ -188,16 +248,12 @@ describe('RepositoryAccountDialog', () => {
       personal,
       enterprise,
     ])
-    const select = screen.getByRole('combobox', { hidden: true })
-    assert.ok(select instanceof HTMLSelectElement)
-    assert.strictEqual(select.value, '')
-    assert.deepStrictEqual(
-      Array.from(select.options).map(option => option.value),
-      ['', personal.login]
-    )
+    assert.ok(view.container.querySelector('.account-picker .placeholder'))
+    await openAccountPicker()
+    assert.deepStrictEqual(listedAccounts(), ['@personal GitHub.com'])
     click('Use account')
     assert.deepStrictEqual(view.completed, [])
-    selectAccount(personal.login)
+    chooseListedAccount(personal.login)
     click('Use account')
     assert.deepStrictEqual(view.completed, [personal])
     assert.deepStrictEqual(view.order, ['complete', 'dismiss'])
@@ -241,38 +297,20 @@ describe('RepositoryAccountDialog', () => {
     view.finishSignIn({ kind: 'cancelled' })
     assert.deepStrictEqual(view.completed, [])
     click('Choose another account')
-    selectAccount('work')
+    await selectAccount('work')
     click('Use account')
     assert.deepStrictEqual(view.completed, [work])
   })
 
-  it('requires confirmation of a newly signed-in account before props update', async () => {
-    const view = await renderAccountDialog(createRepository(), [])
-    click('Sign in to another account')
-    assert.strictEqual(view.showDotComSignInDialog.mock.callCount(), 1)
-    view.finishSignIn({ kind: 'success', account: personal })
-    assert.deepStrictEqual(view.completed, [])
-    assert.ok(screen.getByRole('option', { name: '@personal', hidden: true }))
-    click('Use account')
-    assert.deepStrictEqual(view.completed, [personal])
+  it('does not offer signing in to another account', async () => {
+    await renderAccountDialog(createRepository(), [personal])
+    assert.strictEqual(queryButton('Sign in to another account'), null)
   })
 
-  it('uses the repository endpoint for enterprise sign-in and ignores other endpoints', async () => {
-    const view = await renderAccountDialog(
-      createRepository(null, enterpriseEndpoint),
-      []
-    )
-    click('Sign in to another account')
-    assert.strictEqual(
-      view.showEnterpriseSignInDialog.mock.calls[0].arguments[0],
-      enterpriseEndpoint
-    )
-    view.finishSignIn({ kind: 'success', account: work })
-    click('Use account')
-    assert.deepStrictEqual(view.completed, [])
-    view.finishSignIn({ kind: 'success', account: enterprise })
-    click('Use account')
-    assert.deepStrictEqual(view.completed, [enterprise])
+  it('offers another account only when one is signed in on the endpoint', async () => {
+    await renderAccountDialog(createRepository('personal'), [enterprise])
+    assert.ok(queryButton('Sign in'))
+    assert.strictEqual(queryButton('Choose another account'), null)
   })
 
   it('names GitHub.com rather than its API endpoint when choosing an account', async () => {
