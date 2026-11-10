@@ -24,6 +24,39 @@ Pick an issue from the First Responder triage queue.
 
 The `needs-triage` label is automatically removed when end-state labels (`enhancement`, `bug`, `ready-for-review`) are applied or the issue is closed.
 
+## Recurring P1 pattern proposals
+
+The separate `issue-pattern-escalation` agentic workflow reviews public issue
+activity daily, independently of per-issue triage. It searches issues created or
+updated in the preceding 14 days, including older issues with recent activity,
+and checks related open and closed trackers. It considers at least two
+independent reports as a candidate signal, not proof of P1 impact.
+
+When public evidence supports both parts of the P1 definition below, it may
+create at most one public issue per run with the `priority-1` label. This is an
+automated proposal, not a human priority decision: a maintainer must assess its
+evidence and take any escalation action. The workflow does not change existing
+issues or post comments. Material new evidence about an existing tracker is
+reported in the Actions run summary for human follow-up.
+
+The workflow uses `GITHUB_TOKEN` for its safe output, so its proposal does not
+trigger the existing issue-opened or labeling workflows and does not
+automatically receive `needs-triage`. It does not notify Slack or replace a
+human P1 escalation. Check Actions for run failures and coverage limitations.
+The scan is bounded to 200 recently active issues, with up to 100 comments per
+relevant issue; search-index delay, missed runs, older inactive reports, API
+limits, and model error may leave evidence undiscovered. Semantic duplicate and
+severity judgments and the coverage checks are model-driven, not guarantees.
+The workflow instructs the agent to suppress proposals when coverage is
+incomplete and to report the gap rather than treat it as a clean scan.
+
+The workflow is compiled with gh-aw v1.0.1. The repository's earlier v0.87.1
+compiler automatically comments on the detection tracking issue on detection
+warnings or failures; v1.0.1 can disable that reporting without disabling
+threat detection. Recompile this workflow separately with
+`gh aw compile issue-pattern-escalation --shellcheck` using v1.0.1, and
+preserve the action pins needed by other compiled workflows.
+
 ## Priority Levels
 
 | Priority | Description |
@@ -53,4 +86,3 @@ The `needs-triage` label is automatically removed when end-state labels (`enhanc
 - **Spam comments:** Mark as spam via GitHub.
 - **Abuse:** Remove content, report, and use your judgment on blocking.
   - Blocking a user from the `desktop` org requires admin permissions.
-
