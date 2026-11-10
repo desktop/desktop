@@ -1,8 +1,6 @@
 {
   "releases": {
-    "3.6.11": [
-      "[Fixed] Update Git to 2.56.1 to address security vulnerabilities"
-    ],
+    "3.6.11": ["[Improved] Update Git to 2.56.1"],
     "3.6.10": ["[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"],
     "3.6.10-beta1": [
       "[Fixed] Update Git for Windows to 2.56.0.windows.4 - #23075"
