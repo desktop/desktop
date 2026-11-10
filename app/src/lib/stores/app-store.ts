@@ -11888,18 +11888,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { tip, defaultBranch } =
-      this.repositoryStateCache.get(repository).branchesState
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { tip } = branchesState
 
     if (tip.kind !== TipState.Valid) {
       // Shouldn't even be able to get here if so - just a type check
       return
     }
 
+    const baseBranch = findContributionTargetDefaultBranch(
+      repository,
+      branchesState
+    )
+
     const currentBranch = tip.branch
     return this._initializePullRequestPreview(
       repository,
-      defaultBranch,
+      baseBranch,
       currentBranch
     )
   }
@@ -12030,8 +12035,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { branchesState, localCommitSHAs } =
       this.repositoryStateCache.get(repository)
-    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+    const { allBranches, recentBranches, currentPullRequest } = branchesState
+    const defaultBranch = findContributionTargetDefaultBranch(
+      repository,
       branchesState
+    )
     const gitStore = this.gitStoreCache.get(repository)
     /*  We only want branches that are also on dotcom such that, when we ask a
      *  user to create a pull request, the base branch also exists on dotcom.
