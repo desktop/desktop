@@ -55,7 +55,6 @@ export async function push(
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
   const args = ['push']
-
   if (!remoteBranch) {
     args.push('--set-upstream')
   } else if (options?.forceWithLease) {
@@ -66,8 +65,9 @@ export async function push(
     args.push('--no-verify')
   }
 
+  const remoteEnv = await envForRemoteOperation(remote.url)
   let opts: IGitStringExecutionOptions = {
-    env: await envForRemoteOperation(remote.url),
+    env: remoteEnv,
     interceptHooks: ['pre-push'],
     onHookProgress: options?.onHookProgress,
     onHookFailure: options?.onHookFailure,

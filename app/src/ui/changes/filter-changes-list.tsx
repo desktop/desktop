@@ -13,6 +13,9 @@ import {
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
+import { CommitMode } from '../../models/commit-mode'
+import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
+import { AssistedCommitRunState } from '../../models/assisted-commit-run'
 import {
   isRepositoryWithGitHubRepository,
   Repository,
@@ -174,6 +177,22 @@ interface IFilterChangesListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
+  readonly commitMode: CommitMode
+  readonly pushAfterCommit?: boolean
+
+  /** Provided only when a real Desktop-owned assisted commit executor is available. */
+  readonly onCreateCopilotAssistedCommits?: (
+    request: ICopilotAssistedCommitRequest
+  ) => void
+
+  /** Assisted operation progress, separate from manual message generation. */
+  readonly isCreatingCopilotAssistedCommits?: boolean
+  readonly repositoryMutationBlocked?: boolean
+
+  readonly assistedCommitState?: AssistedCommitRunState
+  readonly onPrepareCopilotAssistedCommitRequest?: (
+    request: ICopilotAssistedCommitRequest
+  ) => Promise<ICopilotAssistedCommitRequest>
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
@@ -968,6 +987,11 @@ export class FilterChangesList extends React.Component<
         repository={repository}
         repositoryAccount={repositoryAccount}
         commitMessage={this.props.commitMessage}
+        commitMode={this.props.commitMode}
+        onCommitModeChanged={this.onCommitModeChanged}
+        pushAfterCommit={this.props.pushAfterCommit}
+        canPushAfterCommit={this.props.conflictState === null}
+        onPushAfterCommitChanged={this.onPushAfterCommitChanged}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
@@ -1017,6 +1041,25 @@ export class FilterChangesList extends React.Component<
         allowEmptyCommit={this.props.allowEmptyCommit}
         showAllowEmptyCommitOption={true}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onCreateCopilotAssistedCommits={
+          this.props.onCreateCopilotAssistedCommits
+        }
+        isCreatingCopilotAssistedCommits={
+          this.props.isCreatingCopilotAssistedCommits
+        }
+        repositoryMutationBlocked={this.props.repositoryMutationBlocked}
+        assistedCommitState={this.props.assistedCommitState}
+        onPrepareCopilotAssistedCommitRequest={
+          this.props.onPrepareCopilotAssistedCommitRequest
+        }
+        onCancelCopilotAssistedCommits={this.onCancelCopilotAssistedCommits}
+        onRetryCopilotAssistedCommitRecovery={
+          this.onRetryCopilotAssistedCommitRecovery
+        }
+        onDismissCopilotAssistedCommitError={
+          this.onDismissCopilotAssistedCommitError
+        }
+        onAssistedCommitErrorDetails={this.onAssistedCommitErrorDetails}
       />
     )
   }
@@ -1050,6 +1093,12 @@ export class FilterChangesList extends React.Component<
   private onPersistCommitMessage = (message: ICommitMessage) =>
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
 
+  private onCommitModeChanged = (commitMode: CommitMode) =>
+    this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
+
+  private onPushAfterCommitChanged = (enabled: boolean) =>
+    this.props.dispatcher.setPushAfterCommit(this.props.repository, enabled)
+
   private onGenerateCommitMessage = (
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
     mustOverrideExistingMessage: boolean
@@ -1071,6 +1120,47 @@ export class FilterChangesList extends React.Component<
 
   private onCancelGenerateCommitMessage = () => {
     this.props.dispatcher.cancelGenerateCommitMessage(this.props.repository)
+  }
+
+  private onCancelCopilotAssistedCommits = () => {
+    const state = this.props.assistedCommitState
+    if (state !== undefined && state.kind !== 'idle') {
+      this.props.dispatcher.cancelCopilotAssistedCommits(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onRetryCopilotAssistedCommitRecovery = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.retryCopilotAssistedCommitRecovery(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onDismissCopilotAssistedCommitError = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.dismissCopilotAssistedCommitError(
+        this.props.repository,
+        state.runId
+      )
+    }
+  }
+
+  private onAssistedCommitErrorDetails = () => {
+    const state = this.props.assistedCommitState
+    if (state?.kind === 'error') {
+      this.props.dispatcher.showPopup({
+        type: PopupType.Error,
+        error: state.error,
+        showCauses: true,
+      })
+    }
   }
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)

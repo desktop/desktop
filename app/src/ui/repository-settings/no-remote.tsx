@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { DialogContent } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { CallToAction } from '../lib/call-to-action'
 
@@ -14,16 +13,14 @@ interface INoRemoteProps {
 export class NoRemote extends React.Component<INoRemoteProps, {}> {
   public render() {
     return (
-      <DialogContent>
-        <CallToAction actionTitle="Publish" onAction={this.props.onPublish}>
-          <div className="no-remote-publish-message">
-            Publish your repository to GitHub. Need help?{' '}
-            <LinkButton uri={HelpURL}>
-              Learn more about remote repositories.
-            </LinkButton>
-          </div>
-        </CallToAction>
-      </DialogContent>
+      <CallToAction actionTitle="Publish" onAction={this.props.onPublish}>
+        <div className="no-remote-publish-message">
+          Publish your repository to GitHub. Need help?{' '}
+          <LinkButton uri={HelpURL}>
+            Learn more about remote repositories.
+          </LinkButton>
+        </div>
+      </CallToAction>
     )
   }
 }

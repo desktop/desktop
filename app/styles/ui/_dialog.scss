@@ -5,6 +5,7 @@
 @import 'dialogs/push-needs-pull';
 @import 'dialogs/publish-repository';
 @import 'dialogs/repository-settings';
+@import 'dialogs/repository-account';
 @import 'dialogs/release-notes';
 @import 'dialogs/usage-reporting';
 @import 'dialogs/stash-changes';
@@ -626,12 +627,6 @@ dialog {
 
       .button-component {
         width: 100%;
-      }
-    }
-
-    .existing-account-warning {
-      .ref-component {
-        word-break: break-word;
       }
     }
 

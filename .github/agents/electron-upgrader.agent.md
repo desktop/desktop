@@ -76,15 +76,15 @@ Update the following files with the new Node.js version:
 
 After making all changes:
 
-1. **Run `yarn install`** to update dependencies:
+1. **Run `npm install`** to update dependencies:
    ```bash
-   yarn install
+   npm install
    ```
    Ensure the command completes successfully without errors.
 
-2. **Run `yarn build:dev`** to verify the build:
+2. **Run `npm run build:dev`** to verify the build:
    ```bash
-   yarn build:dev
+   npm run build:dev
    ```
    Ensure the build completes successfully without errors.
 
@@ -161,8 +161,8 @@ git add .nvmrc .node-version .tool-versions .github/workflows/ci.yml
 git commit -m "Bump Node.js to v22.20.0"
 
 # Step 5: Install dependencies and verify
-yarn install
-yarn build:dev
+npm install
+npm run build:dev
 
 # Step 6: Push the branch and create a Draft PR
 git push origin HEAD
@@ -175,7 +175,7 @@ git push origin HEAD
 - **Do NOT modify the `production` version** in `script/validate-electron-version.ts` - only update the `beta` version
 - The `.nvmrc` file uses a `v` prefix (e.g., `v22.19.0`), while `.node-version` does not (e.g., `22.19.0`)
 - Always verify the build works after making changes
-- If `yarn install` or `yarn build:dev` fails, investigate and fix the issues before committing
+- If `npm install` or `npm run build:dev` fails, investigate and fix the issues before committing
 
 ## Current Versions (for reference)
 

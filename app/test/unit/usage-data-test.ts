@@ -15,7 +15,7 @@ describe('usage data example', () => {
     assert.strictEqual(
       checkedInExample.replaceAll('\r\n', '\n'),
       expected,
-      'Usage data example is stale. Run `yarn generate-example-usage-data`.'
+      'Usage data example is stale. Run `npm run generate-example-usage-data`.'
     )
   })
 })

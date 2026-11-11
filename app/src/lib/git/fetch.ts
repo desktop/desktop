@@ -8,7 +8,7 @@ import { envForRemoteOperation } from './environment'
 
 async function getFetchArgs(
   remote: string,
-  progressCallback?: (progress: IFetchProgress) => void
+  progressCallback: ((progress: IFetchProgress) => void) | undefined
 ) {
   return [
     'fetch',
@@ -106,6 +106,7 @@ export async function fetchRefspec(
   )
 }
 
+/** Fast-forward tracking branches. */
 export async function fastForwardBranches(
   repository: Repository,
   branches: ReadonlyArray<ITrackingBranch>

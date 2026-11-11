@@ -2,10 +2,10 @@
 description: |
   Agentic issue-triage for GitHub Desktop. On newly opened issues it follows the
   team's shared triage skills (hosted in desktop/gh-cli-and-desktop-shared-workflows)
-  and suggests the minimal correct end-state labels (with issue-intents rationale and
-  confidence) so a maintainer can approve them, plus one short evidence-based
-  rationale comment. The objective is to drive the issue to a state where the
-  needs-triage label is automatically removed.
+  and requests direct application of the minimal correct end-state labels (with
+  issue-intents rationale and confidence), plus one short evidence-based rationale
+  comment. The objective is to drive the issue to a state where the needs-triage
+  label is automatically removed.
 
 on:
   issues:
@@ -79,7 +79,8 @@ repository (main branch) using the GitHub file tools:
 2. `skills/issue-classifier/SKILL.md`
 3. `skills/issue-classifier/references/label-taxonomy.md`
 
-These are your primary triage instructions. Follow them exactly.
+Use these skills for duplicate detection and classification. For label actions and
+comments, follow this workflow's instructions below if a shared skill differs.
 
 ## Step 2: Read the issue
 
@@ -127,17 +128,29 @@ responder has a concrete starting point. If available evidence cannot support a 
 hypothesis, say what remains unknown and name the specific diagnostic evidence needed
 next; do not invent a cause.
 
-## Step 6: Suggest labels via safe outputs
+## Step 6: Apply labels via safe outputs
 
-Based on your classification, use `add-labels` to suggest the appropriate labels (max 3,
-only from the allowlist above). **Always emit labels as suggestions requiring maintainer
-approval — never apply them directly.** Attach a clear rationale to each suggestion.
+Queue the required comment below before requesting labels, since the existing
+label-triggered workflows may comment on or close the issue.
+
+Based on your classification, use `add-labels` to request direct application of the
+appropriate labels (max 3, only from the allowlist above). Pass each label as a
+structured object containing `name`, `rationale`, `confidence`, and `suggest: false`.
+Use `LOW`, `MEDIUM`, or `HIGH` for `confidence` and attach a clear rationale to each
+label. Do not pass bare label-name strings or request suggestions requiring maintainer
+approval.
+
+When calling `add-labels`, explicitly set `item_number` to
+`${{ github.event.issue.number || inputs.issue_number }}`.
+
+The safe-output job applies these requests later. Do not claim that labels have already
+been applied when queuing a request or writing the required comment.
 
 ## Required comment
 
 After deciding, post **one** comment on issue
 #${{ github.event.issue.number || inputs.issue_number }}. Start with a 2-3 sentence
-triage summary explaining which label(s) you are suggesting (if any) and why, in plain
+triage summary explaining which label(s) you are requesting (if any) and why, in plain
 language. For a reported bug, follow it with an **Initial hypothesis** heading and one
 short paragraph containing the technical investigation from Step 5. The hypothesis
 paragraph is separate from the 2-3 sentence triage summary limit.
@@ -156,7 +169,7 @@ Keep this comment factual and specific:
 - Keep the triage summary to 2-3 sentences maximum. The initial hypothesis can be
   longer, but must also be concise and directly related to the evidence gathered.
 
-For a duplicate, name the likely original. If you are suggesting no label, say so and
+For a duplicate, name the likely original. If you are requesting no label, say so and
 state what information would help a first responder finish triage.
 
 When calling `add-comment`, explicitly set `item_number` to

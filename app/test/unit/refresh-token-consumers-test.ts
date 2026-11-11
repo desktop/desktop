@@ -6,7 +6,15 @@ import { AccountRequiresSignInError } from '../../src/lib/credential-sessions'
 import { createCopilotTokenProvider } from '../../src/lib/stores/copilot-store'
 import { createCredentialHelperTrampolineHandler } from '../../src/lib/trampoline/trampoline-credential-helper'
 import { TrampolineCommandIdentifier } from '../../src/lib/trampoline/trampoline-command'
-import { getHasRejectedCredentialsForEndpoint } from '../../src/lib/trampoline/trampoline-environment'
+import {
+  getHasRejectedCredentialsForEndpoint,
+  withTrampolineEnv,
+} from '../../src/lib/trampoline/trampoline-environment'
+import { Repository } from '../../src/models/repository'
+import { GitHubRepository } from '../../src/models/github-repository'
+import { Owner } from '../../src/models/owner'
+import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
+import { TestRepositoriesDatabase } from '../helpers/databases'
 import { trampolineUIHelper } from '../../src/lib/trampoline/trampoline-ui-helper'
 import { parseCredential } from '../../src/lib/git/credential'
 import {
@@ -52,15 +60,60 @@ async function setup(
   return { store, renewals: () => renewals }
 }
 
-function getCredential(store: AccountsStore, trampolineToken = 'test') {
-  const handler = createCredentialHelperTrampolineHandler(store)
-  return handler({
-    identifier: TrampolineCommandIdentifier.CredentialHelper,
-    trampolineToken,
-    parameters: ['get'],
-    environmentVariables: new Map(),
-    stdin: 'protocol=https\nhost=github.com\n\n',
-  })
+const repositoryPath = '/repository'
+
+class TestRepositoriesStore extends RepositoriesStore {
+  public getAll() {
+    return Promise.resolve([
+      new Repository(
+        repositoryPath,
+        1,
+        new GitHubRepository(
+          'repository',
+          new Owner('octocat', account.endpoint, 1),
+          1
+        ),
+        false,
+        null,
+        {},
+        false,
+        undefined,
+        undefined,
+        account.login
+      ),
+    ])
+  }
+}
+
+/**
+ * Ask the credential helper for the repository's credential inside a Git
+ * operation's trampoline environment, then let `inspect` read state that only
+ * lasts for that operation.
+ */
+function getCredential(
+  store: AccountsStore,
+  inspect: (trampolineToken: string) => void = () => {}
+) {
+  const handler = createCredentialHelperTrampolineHandler(
+    store,
+    new TestRepositoriesStore(new TestRepositoriesDatabase())
+  )
+  return withTrampolineEnv(async env => {
+    const trampolineToken = new Map(Object.entries(env)).get(
+      'DESKTOP_TRAMPOLINE_TOKEN'
+    )
+    assert.equal(typeof trampolineToken, 'string')
+    const token = String(trampolineToken)
+    const result = await handler({
+      identifier: TrampolineCommandIdentifier.CredentialHelper,
+      trampolineToken: token,
+      parameters: ['get'],
+      environmentVariables: new Map(),
+      stdin: 'protocol=https\nhost=github.com\n\n',
+    })
+    inspect(token)
+    return result
+  }, repositoryPath)
 }
 
 describe('Refreshing Git credentials', () => {
@@ -113,24 +166,31 @@ describe('Refreshing Git credentials', () => {
     assert.deepEqual(await store.getAll(), [account])
   })
 
-  it('asks the user to sign in again when renewal is rejected', async t => {
+  it('signs the account out without prompting when renewal is rejected', async t => {
     const { store } = await setup(undefined, async () => {
       throw new OAuthRefreshRejectedError()
     })
     const prompt = t.mock.method(
       trampolineUIHelper,
-      'promptForGitHubSignIn',
+      'promptForRepositoryAccount',
       async () => undefined
     )
+    const invalidated = new Array<Account>()
+    store.onTokenInvalidated(a => invalidated.push(a))
 
-    const token = 'rejected-renewal'
-    assert.equal(await getCredential(store, token), undefined)
+    let rejected = false
+    const result = await getCredential(store, token => {
+      rejected = getHasRejectedCredentialsForEndpoint(
+        token,
+        'https://github.com/'
+      )
+    })
+    assert.equal(result, undefined)
     assert.deepEqual(await store.getAll(), [])
-    assert.equal(prompt.mock.callCount(), 1)
-    assert.equal(prompt.mock.calls[0].arguments[0], 'https://github.com/')
-    assert.ok(
-      getHasRejectedCredentialsForEndpoint(token, 'https://github.com/')
-    )
+    // Signing out offers to sign back in, so the helper doesn't prompt too.
+    assert.equal(invalidated.length, 1)
+    assert.equal(prompt.mock.callCount(), 0)
+    assert.ok(rejected)
   })
 })
 

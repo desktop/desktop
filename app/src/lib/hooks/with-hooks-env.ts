@@ -35,7 +35,9 @@ export async function withHooksEnv<T>(
     return fn(opts?.env)
   }
 
-  const hooks = await Array.fromAsync(getRepoHooks(path, opts.interceptHooks))
+  const hooks = await Array.fromAsync(
+    getRepoHooks(path, opts.interceptHooks, opts.env)
+  )
 
   if (hooks.length === 0) {
     return fn(opts?.env)
@@ -58,7 +60,8 @@ export async function withHooksEnv<T>(
       ),
     tmpHooksDir,
     opts?.onHookProgress,
-    opts?.onHookFailure
+    opts?.onHookFailure,
+    opts?.env?.GIT_CONFIG_PARAMETERS
   )
 
   const server = createProxyProcessServer(

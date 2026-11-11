@@ -9,6 +9,7 @@ import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
 import { check } from 'reserved-words'
+import { getNpmCommand } from './npm'
 
 // Basic type for the @primer/octicons package.
 type OcticonsLib = Record<
@@ -125,6 +126,6 @@ export type OcticonSymbol = OcticonSymbolVariant | OcticonSymbolVariants\n\n`)
 
   console.log('Ensuring generated file is formatted correctly...')
   const root = Path.dirname(__dirname)
-  const yarnExecutable = process.platform === 'win32' ? 'yarn.cmd' : 'yarn'
-  return cp.spawn(yarnExecutable, ['lint:fix'], { cwd: root, stdio: 'inherit' })
+  const npm = getNpmCommand(['run', 'lint:fix'])
+  return cp.spawn(npm.executable, npm.args, { cwd: root, stdio: 'inherit' })
 })

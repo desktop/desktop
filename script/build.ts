@@ -67,6 +67,7 @@ import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 import { join } from 'path'
 import assert from 'assert'
 import { copyCopilotDependency } from './copilot'
+import { getNpmCommand } from './npm'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
@@ -347,8 +348,20 @@ function copyDependencies() {
     force: true,
   })
 
-  console.log('  Installing dependencies via yarn…')
-  cp.execSync('yarn install', { cwd: outRoot, env: process.env })
+  console.log('  Installing dependencies via npm…')
+  const npm = getNpmCommand([
+    'install',
+    '--package-lock=false',
+    '--install-links',
+    '--legacy-peer-deps',
+    '--cpu',
+    getDistArchitecture(),
+  ])
+  cp.execFileSync(npm.executable, npm.args, {
+    cwd: outRoot,
+    env: process.env,
+    stdio: 'inherit',
+  })
 
   console.log('  Copying desktop-askpass-trampoline…')
   const trampolineSource = path.resolve(

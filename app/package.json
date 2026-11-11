@@ -16,6 +16,9 @@
     "url": "https://desktop.github.com/"
   },
   "license": "MIT",
+  "allowScripts": {
+    "koffi": false
+  },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.2",
     "@github/alive-client": "^1.2.0",

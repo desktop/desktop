@@ -117,15 +117,18 @@ export async function resolveMainWorktreePath(
     : mainWorktree.path
 }
 
+/** Options for creating and checking out a worktree. */
+export interface IAddWorktreeOptions {
+  /** Branch name used with -b (create new branch). */
+  readonly createBranch?: string
+  /** Commit-ish to check out (branch name, ref, or SHA). */
+  readonly commitish?: string
+}
+
 export async function addWorktree(
   repository: Repository,
   path: string,
-  options: {
-    /** Branch name used with -b (create new branch) */
-    readonly createBranch?: string
-    /** Commit-ish to check out (branch name, ref, or SHA) */
-    readonly commitish?: string
-  } = {}
+  options: IAddWorktreeOptions = {}
 ): Promise<void> {
   const args = ['worktree', 'add']
 
