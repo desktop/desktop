@@ -4,6 +4,7 @@ import { promisify } from 'util'
 import { describe, it } from 'node:test'
 import { join } from 'path'
 import { runCopilotEvaluation } from '../../src/lib/copilot-evaluation'
+import { CopilotAssistedCommitResponseSchema } from '../../src/lib/copilot-assisted-commit'
 import {
   EvaluationRequestError,
   parseCopilotEvaluationRequest,
@@ -137,6 +138,12 @@ describe('Copilot evaluation bridge', () => {
     assert.strictEqual(result.status, 'ok', result.error?.message)
     assert.strictEqual(result.transport, 'fixture')
     assert.strictEqual(result.turns.length, 1)
+    assert.deepStrictEqual(
+      result.turns[0].responseSchema,
+      CopilotAssistedCommitResponseSchema
+    )
+    const raw: unknown = JSON.parse(result.turns[0].content ?? '')
+    assert.deepStrictEqual(raw, { result: result.response })
     assert.strictEqual(result.response?.kind, 'plan')
     assert.deepStrictEqual(result.validation, {
       kind: 'repository',
@@ -208,6 +215,68 @@ describe('Copilot evaluation bridge', () => {
         responses: [{ type: 'raw', content: '{' }],
       },
     })
+
+    it('rejects legacy bare outcomes instead of bypassing the structured envelope', async () => {
+      const result = await runCopilotEvaluation({
+        ...request(),
+        transport: {
+          kind: 'fixture',
+          responses: [
+            {
+              type: 'raw',
+              content: JSON.stringify({
+                kind: 'plan',
+                snapshotId: analysis.snapshotId,
+                commits: [
+                  {
+                    title: 'Update file',
+                    description: '',
+                    changeIds: [analysis.changes[0].id],
+                  },
+                ],
+              }),
+            },
+          ],
+        },
+      })
+      assert.strictEqual(result.status, 'error')
+      assert.strictEqual(result.error?.code, 'invalid-response')
+      assert.strictEqual(result.turns.length, 1)
+      assert.ok(result.turns[0].content?.includes(analysis.snapshotId))
+    })
+
+    it('distinguishes semantically invalid schema envelopes from invalid JSON', async () => {
+      const result = await runCopilotEvaluation({
+        ...request(),
+        transport: {
+          kind: 'fixture',
+          responses: [
+            {
+              type: 'raw',
+              content: JSON.stringify({
+                result: {
+                  kind: 'plan',
+                  snapshotId: analysis.snapshotId,
+                  commits: [
+                    {
+                      title: 'Duplicate ownership',
+                      description: '',
+                      changeIds: [
+                        analysis.changes[0].id,
+                        analysis.changes[0].id,
+                      ],
+                    },
+                  ],
+                },
+              }),
+            },
+          ],
+        },
+      })
+      assert.strictEqual(result.error?.code, 'invalid-response')
+      assert.ok(!result.error.message.includes('invalid or incomplete JSON'))
+      assert.strictEqual(result.turns.length, 1)
+    })
     assert.strictEqual(result.error?.code, 'invalid-response')
     assert.strictEqual(result.turns.length, 1)
     assert.strictEqual(result.turns[0].content, '{')
@@ -252,6 +321,13 @@ describe('Copilot evaluation bridge', () => {
       )
     }
     assert.ok(!result.turns[1].userPrompt.includes('Add child'))
+    assert.ok(
+      result.turns.every(
+        turn =>
+          JSON.stringify(turn.responseSchema) ===
+          JSON.stringify(CopilotAssistedCommitResponseSchema)
+      )
+    )
   })
 
   it('rejects unmatched and duplicate hunk selections explicitly', async () => {

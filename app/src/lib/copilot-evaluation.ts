@@ -1,5 +1,4 @@
 import { CopilotClient, RuntimeConnection } from '@github/copilot-sdk'
-import type { AssistantMessageEvent } from '@github/copilot-sdk'
 import { createHash } from 'crypto'
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
@@ -24,6 +23,7 @@ import { runAssistedCommitPlanningRequest } from './copilot-assisted-commit-requ
 import { getCopilotInMemorySessionFsConfig } from './copilot-in-memory-session-fs-provider'
 import {
   awaitCancellableCopilotOperation,
+  CopilotResponseEvent,
   getCopilotPlanningClient,
   ICopilotPlanningClient,
   ICopilotPlanningSession,
@@ -119,66 +119,79 @@ function fixtureContent(
   }
   if (response.type === 'plan') {
     return JSON.stringify({
-      kind: 'plan',
-      snapshotId: analysis.snapshotId,
-      commits: response.groups.map(group => ({
-        title: group.title,
-        description: group.description,
-        changeIds: analysis.changes
-          .filter(
-            change =>
-              group.paths === undefined || group.paths.includes(change.path)
-          )
-          .map(change => change.id),
-      })),
+      result: {
+        kind: 'plan',
+        snapshotId: analysis.snapshotId,
+        commits: response.groups.map(group => ({
+          title: group.title,
+          description: group.description ?? '',
+          changeIds: analysis.changes
+            .filter(
+              change =>
+                group.paths === undefined || group.paths.includes(change.path)
+            )
+            .map(change => change.id),
+        })),
+      },
     })
   }
   const { type, ...message } = response
   return JSON.stringify({
-    kind: type,
-    snapshotId: analysis.snapshotId,
-    ...message,
+    result: {
+      kind: type,
+      snapshotId: analysis.snapshotId,
+      ...message,
+      ...(response.type === 'uncertain-boundaries'
+        ? { description: response.description ?? '' }
+        : {}),
+    },
   })
 }
 
 function fixtureClient(content: () => string): ICopilotPlanningClient {
-  const messages = new Set<(event: AssistantMessageEvent) => void>()
-  const idle = new Set<() => void>()
+  const events = new Set<(event: CopilotResponseEvent) => void>()
   return {
     createSession: async () => ({
       onSessionError: () => () => {},
-      onAssistantMessage: handler => {
-        messages.add(handler)
-        return () => messages.delete(handler)
-      },
-      onIdle: handler => {
-        idle.add(handler)
-        return () => idle.delete(handler)
+      onResponseEvent: handler => {
+        events.add(handler)
+        return () => events.delete(handler)
       },
       send: async () => {
-        const event: AssistantMessageEvent = {
+        const event: CopilotResponseEvent = {
           type: 'assistant.message',
           id: 'fixture-message',
           parentId: null,
           timestamp: new Date().toISOString(),
-          data: { messageId: 'fixture-message', content: content() },
+          data: {
+            messageId: 'fixture-message',
+            originatingMessageId: 'fixture-request',
+            content: content(),
+          },
         }
-        messages.forEach(handler => handler(event))
-        idle.forEach(handler => handler())
-        return 'fixture-message'
+        events.forEach(handler => handler(event))
+        events.forEach(handler =>
+          handler({
+            type: 'session.idle',
+            id: 'fixture-idle',
+            parentId: null,
+            timestamp: new Date().toISOString(),
+            ephemeral: true,
+            data: {},
+          })
+        )
+        return 'fixture-request'
       },
       sendAndWait: async () => {
         throw new Error('The production planner must use owned send/events')
       },
       disconnect: async () => {
-        messages.clear()
-        idle.clear()
+        events.clear()
       },
     }),
     stop: async () => [],
     forceStop: async () => {
-      messages.clear()
-      idle.clear()
+      events.clear()
     },
   }
 }
@@ -195,22 +208,16 @@ function observeClient(
       const session = await client.createSession(config)
       let started = performance.now()
       let index: number | undefined
-      const update = (content?: string) => {
+      const update = () => {
         if (index !== undefined) {
           turns[index] = {
             ...turns[index],
-            ...(content === undefined ? {} : { content }),
             durationMs: performance.now() - started,
           }
         }
       }
       const observed: ICopilotPlanningSession = {
         ...session,
-        onAssistantMessage: handler =>
-          session.onAssistantMessage(event => {
-            update(event.data.content)
-            handler(event)
-          }),
         send: options => {
           started = performance.now()
           index = turns.length
@@ -222,6 +229,12 @@ function observeClient(
                 ? config.systemMessage.content ?? ''
                 : '',
             userPrompt: options.prompt,
+            responseSchema:
+              options.responseSchema === undefined
+                ? undefined
+                : typeof options.responseSchema.toJSONSchema === 'function'
+                ? options.responseSchema.toJSONSchema()
+                : options.responseSchema,
             content: null,
             durationMs: 0,
           })
@@ -391,6 +404,11 @@ export async function runCopilotEvaluation(
         {
           timeoutMs: request.timeoutMs,
           resolveModel: () => ({ model: request.model }),
+          onResponse: content => {
+            if (turns[turn] !== undefined) {
+              turns[turn] = { ...turns[turn], content: content ?? null }
+            }
+          },
           createClient: async () => {
             const client =
               request.transport.kind === 'fixture'

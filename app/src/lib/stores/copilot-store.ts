@@ -45,6 +45,7 @@ import {
   getCopilotPlanningSession,
   ICopilotPlanningClient,
   sendCopilotMessageRequest,
+  sendCopilotPlanningRequest,
 } from '../copilot-operation'
 import {
   CopilotAssistedCommitResponse,

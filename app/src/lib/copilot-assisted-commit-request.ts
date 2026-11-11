@@ -38,6 +38,8 @@ export interface IAssistedCommitRequestHost {
   readonly createClient: () => Promise<ICopilotPlanningClient>
   /** Evaluation hosts may bound built-in requests without changing model defaults. */
   readonly timeoutMs?: number
+  /** Observe the final correlated response before parsing, never intermediate SDK events. */
+  readonly onResponse?: (content: string | undefined) => void
   readonly resolveModel: () => Pick<
     SessionConfig,
     'model' | 'reasoningEffort' | 'provider'
@@ -218,6 +220,7 @@ export async function runAssistedCommitPlanningRequest(
       cancellationError
     )
     throwIfCancelled()
+    host.onResponse?.(response?.data.content)
     return parseCopilotAssistedCommitStructuredResponse(
       analysis,
       response?.data.content,

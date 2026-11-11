@@ -64,6 +64,20 @@ unsafe-split validation permits a fresh single-commit fallback. Turns, including
 failed raw responses and fallback requests, remain available in the result.
 Successful repository results expose the final canonical plan.
 
+The shared planner submits `CopilotAssistedCommitResponseSchema` on every turn,
+including the whole-selection fallback. The model-facing response is
+`{"result": <outcome>}`; the bridge's top-level `response` remains the normalized
+application outcome, without that wire envelope. Scripted `plan`, uncertainty,
+and unsafe responses construct the current model envelope; `raw` responses are
+sent verbatim and must explicitly include it when testing semantic rejection.
+
+Each recorded turn includes the exact SDK `responseSchema` and the final
+request-correlated root response, including malformed JSON rejected by parsing.
+Intermediate messages, unrelated/child responses, and superseded corrections
+are not reported as the model's final answer. Completion, cancellation, and
+error handling use the foundation's production event waiter rather than a
+second evaluator-specific completion implementation.
+
 Planning does not create user commits or push. Seed commits are created only
 inside owned temporary fixture repositories. HEAD, index, and worktree contents
 are compared before and after planning, including failed plans. Fixture

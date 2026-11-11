@@ -100,6 +100,8 @@ export interface ICopilotEvaluationTurn {
   readonly model: string
   readonly systemPrompt: string
   readonly userPrompt: string
+  /** Exact per-run schema supplied to the SDK; absent in legacy bridge results. */
+  readonly responseSchema?: Readonly<Record<string, unknown>>
   readonly content: string | null
   readonly durationMs: number
 }
