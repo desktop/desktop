@@ -38,7 +38,12 @@ parser still normalizes an omitted description to `""` and rejects invalid
 description types.
 
 Conflicts request `action: null` for text conflicts and `"keep"` or `"delete"`
-for delete/modify conflicts. The existing parser already treats null/missing
+for delete/modify conflicts. The action schema uses `anyOf` with a string-enum
+branch and a separate null branch. A reported `claude-haiku-4.5` route rejects
+an enum alongside `type: ["string", "null"]`, despite that being valid JSON
+Schema. The shared schema type and regression tests keep enums scalar-typed;
+successful hosted Haiku inference after this representation change remains
+unverified. The existing parser already treats null/missing
 action as absence. Ordered hunk contents, paths and reasoning retain their
 meaning. Models are asked for a string or null summary and an array of references,
 but missing/malformed summary and references remain nonfatal in the application

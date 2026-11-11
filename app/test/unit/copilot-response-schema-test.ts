@@ -22,7 +22,7 @@ import { isRecord } from '../../src/lib/is-record'
 const ajv = new Ajv()
 
 describe('Copilot response schemas', () => {
-  it('uses the portable strict-provider vocabulary without optional object properties or root unions', () => {
+  it('uses the portable strict-provider vocabulary with scalar-typed enums and no root unions', () => {
     const check = (schema: unknown) => {
       assert.ok(isRecord(schema))
       for (const key of Object.keys(schema)) {
@@ -38,6 +38,19 @@ describe('Copilot response schemas', () => {
           ].includes(key),
           `Unsupported schema keyword ${key}`
         )
+      }
+      if (Array.isArray(schema.enum)) {
+        assert.strictEqual(
+          typeof schema.type,
+          'string',
+          'Claude schema validation requires an enum to declare a scalar type'
+        )
+        for (const value of schema.enum) {
+          assert.strictEqual(
+            schema.type,
+            value === null ? 'null' : typeof value
+          )
+        }
       }
       if (schema.type === 'object') {
         assert.ok(isRecord(schema.properties))
@@ -146,6 +159,16 @@ describe('Copilot response schemas', () => {
       ],
     }
     assert.equal(validate(response), true, JSON.stringify(validate.errors))
+    for (const action of ['keep', 'delete', null]) {
+      assert.equal(
+        validate({
+          ...response,
+          resolutions: [{ ...text, action }],
+        }),
+        true,
+        JSON.stringify(validate.errors)
+      )
+    }
     for (const malformed of [
       { ...response, resolutions: [{ ...text, action: 'overwrite' }] },
       { ...response, resolutions: [{ ...text, hunks: [42] }] },

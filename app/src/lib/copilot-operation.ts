@@ -18,9 +18,10 @@ export type CopilotResponseSchema =
     }
   | { readonly type: 'array'; readonly items: CopilotResponseSchema }
   | {
-      readonly type: 'string' | readonly ['string', 'null']
-      readonly enum?: ReadonlyArray<string | null>
+      readonly type: 'string'
+      readonly enum?: ReadonlyArray<string>
     }
+  | { readonly type: 'null' | readonly ['string', 'null'] }
   | { readonly anyOf: ReadonlyArray<CopilotResponseSchema> }
 
 /** Cancellation controls for SDK operations, preserving the caller's domain error. */

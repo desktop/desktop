@@ -85,7 +85,12 @@ export const CopilotConflictResolutionResponseSchema: CopilotResponseSchema = {
             },
           },
           reasoning: { type: 'string' },
-          action: { type: ['string', 'null'], enum: ['keep', 'delete', null] },
+          action: {
+            anyOf: [
+              { type: 'string', enum: ['keep', 'delete'] },
+              { type: 'null' },
+            ],
+          },
         },
         required: ['path', 'hunks', 'reasoning', 'action'],
         additionalProperties: false,
