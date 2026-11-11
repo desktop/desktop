@@ -1,0 +1,69 @@
+name: Copilot evaluations
+
+on:
+  push:
+    branches:
+      - development
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    if:
+      github.repository == 'desktop/desktop' && vars.COPILOT_EVALS_ENABLED ==
+      'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create evaluation dispatch token
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.COPILOT_EVALS_APP_ID }}
+          private-key: ${{ secrets.COPILOT_EVALS_APP_PRIVATE_KEY }}
+          owner: desktop
+          repositories: copilot-evals
+          permission-actions: write
+
+      - name: Dispatch the exact pushed Desktop revision
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          DESKTOP_SHA: ${{ github.sha }}
+          SOURCE_RUN_ID: ${{ github.run_id }}
+          SOURCE_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflow_ref="$(gh api repos/desktop/copilot-evals --jq .default_branch)"
+          payload="$(jq -n \
+            --arg ref "$workflow_ref" \
+            --arg sha "$DESKTOP_SHA" \
+            --arg source_id "$SOURCE_RUN_ID" \
+            --arg source_url "$SOURCE_RUN_URL" \
+            '{ref: $ref, inputs: {
+              desktop_ref: $sha,
+              source_run_id: $source_id,
+              source_run_url: $source_url
+            }}')"
+          response="$(printf '%s' "$payload" | gh api \
+            --method POST \
+            -H 'X-GitHub-Api-Version: 2026-03-10' \
+            repos/desktop/copilot-evals/actions/workflows/evaluate.yml/dispatches \
+            --input -)"
+          run_url="$(printf '%s' "$response" | jq -r '.html_url // empty')"
+          {
+            echo "## Copilot evaluation dispatched"
+            echo
+            echo "Desktop revision: \`$DESKTOP_SHA\`"
+            if [[ -n "$run_url" ]]; then
+              printf '\n[Private evaluation report](%s)\n' "$run_url"
+            else
+              echo
+              echo "Dispatch accepted. This API version returned no run URL."
+            fi
+            echo
+            echo "Dispatch acceptance does not indicate evaluation success."
+          } >> "$GITHUB_STEP_SUMMARY"

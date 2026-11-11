@@ -314,3 +314,13 @@ controls, visible errors, cancellation, result acceptance/rollback and optional
 push/retry through the coordinator and its execution, recovery and push modules.
 Do not turn a checked plan into a JSON capability or execute it outside the
 active snapshot scope.
+
+## Evaluation
+
+The application store and the [headless evaluation bridge](copilot-evaluations.md)
+share the planner request lifecycle in `copilot-assisted-commit-request.ts`.
+The private evaluation repository owns fixtures, model comparisons, grading,
+and reports; it does not copy the planner's prompts or validation.
+Repository benchmarks run real snapshot capture and cumulative-tree validation
+without publishing commits. Offline scripted responses establish contracts,
+while live runs measure model correctness and output quality separately.

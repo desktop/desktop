@@ -1,0 +1,269 @@
+import assert from 'node:assert'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import { describe, it } from 'node:test'
+import { join } from 'path'
+import { runCopilotEvaluation } from '../../src/lib/copilot-evaluation'
+import {
+  EvaluationRequestError,
+  parseCopilotEvaluationRequest,
+} from '../../../script/copilot-eval/parse-request'
+import {
+  ICopilotEvaluationRequest,
+  IEvaluationRepositoryInput,
+} from '../../../script/copilot-eval/protocol'
+
+const execute = promisify(execFile)
+const analysis = {
+  snapshotId: 'fixture-snapshot',
+  changes: [
+    {
+      id: 'fixture-change',
+      kind: 'text-hunk' as const,
+      path: 'file.txt',
+      diff: '@@ -1 +1 @@\n-old\n+new\n',
+    },
+  ],
+}
+
+function request(
+  input: ICopilotEvaluationRequest['input'] = {
+    kind: 'analysis',
+    analysis,
+  }
+): ICopilotEvaluationRequest {
+  return {
+    protocolVersion: 1,
+    feature: 'assisted-commit',
+    model: 'offline-fixture',
+    input,
+    transport: {
+      kind: 'fixture',
+      responses: [
+        { type: 'plan', groups: [{ title: 'Update the selected change' }] },
+      ],
+    },
+  }
+}
+
+const repository: IEvaluationRepositoryInput = {
+  kind: 'repository',
+  baseFiles: { 'file.txt': 'old\n' },
+  files: { 'file.txt': 'new\n' },
+  selection: [{ path: 'file.txt' }],
+}
+
+describe('Copilot evaluation bridge', () => {
+  it('round-trips the versioned request and rejects unsupported fields', () => {
+    assert.deepStrictEqual(
+      JSON.parse(JSON.stringify(parseCopilotEvaluationRequest(request()))),
+      request()
+    )
+    for (const invalid of [
+      { ...request(), protocolVersion: 2 },
+      { ...request(), feature: 'unsupported' },
+      { ...request(), extra: true },
+      { ...request(), model: '' },
+      { ...request(), transport: { kind: 'copilot', responses: [] } },
+      { ...request(), instructions: { mcpServers: {} } },
+    ]) {
+      assert.throws(
+        () => parseCopilotEvaluationRequest(invalid),
+        EvaluationRequestError
+      )
+    }
+  })
+
+  it('rejects escaping paths and Git metadata before materializing fixtures', () => {
+    for (const path of [
+      '../outside',
+      '/absolute',
+      'nested/../outside',
+      'nested\\outside',
+      '.git/config',
+      '.GIT/config',
+      '.git./config',
+      'git~1/config',
+      'C:/outside',
+    ]) {
+      assert.throws(
+        () =>
+          parseCopilotEvaluationRequest({
+            ...request(repository),
+            input: { ...repository, baseFiles: { [path]: 'unsafe' } },
+          }),
+        EvaluationRequestError
+      )
+    }
+  })
+
+  it('rejects executable bridge fields without calling getters', () => {
+    const raw = { ...request() }
+    Object.defineProperty(raw, 'model', {
+      get: () => assert.fail('Bridge parser invoked executable input'),
+    })
+    assert.throws(
+      () => parseCopilotEvaluationRequest(raw),
+      EvaluationRequestError
+    )
+  })
+
+  it('executes a fresh Node process without the test bootstrap', async () => {
+    const bridge = join(__dirname, '../../../script/copilot-eval.mjs')
+    const description = await execute(process.execPath, [bridge, '--describe'])
+    assert.strictEqual(JSON.parse(description.stdout).protocolVersion, 1)
+    const result = await new Promise<string>((resolve, reject) => {
+      const child = execFile(
+        process.execPath,
+        [bridge],
+        { timeout: 30000 },
+        (error, stdout, stderr) => {
+          if (error !== null) {
+            reject(new Error(`${error.message}\n${stderr}`))
+          } else {
+            resolve(stdout)
+          }
+        }
+      )
+      child.stdin?.end(JSON.stringify(request(repository)))
+    })
+    const output = JSON.parse(result)
+    assert.strictEqual(output.status, 'ok')
+    assert.strictEqual(output.validation.preservedIndex, true)
+  })
+
+  it('validates actual Git trees without altering real fixture state', async () => {
+    const result = await runCopilotEvaluation(request(repository))
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.strictEqual(result.transport, 'fixture')
+    assert.strictEqual(result.turns.length, 1)
+    assert.strictEqual(result.response?.kind, 'plan')
+    assert.deepStrictEqual(result.validation, {
+      kind: 'repository',
+      trees: [result.validation?.selectedTree],
+      selectedTree: result.validation?.selectedTree,
+      preservedHead: true,
+      preservedIndex: true,
+      preservedWorktree: true,
+    })
+  })
+
+  it('passes only selected hunks and excludes unselected files from prompts', async () => {
+    const lines = Array.from({ length: 40 }, (_, i) => `line ${i}\n`)
+    const changed = [...lines]
+    changed[1] = 'selected change\n'
+    changed[30] = 'UNSELECTED_HUNK_SENTINEL\n'
+    const result = await runCopilotEvaluation(
+      request({
+        kind: 'repository',
+        baseFiles: { 'file.txt': lines.join(''), other: 'old\n' },
+        files: {
+          'file.txt': changed.join(''),
+          other: 'UNSELECTED_FILE_SENTINEL\n',
+        },
+        selection: [{ path: 'file.txt', hunks: [0] }],
+      })
+    )
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.strictEqual(result.analysis?.changes.length, 1)
+    assert.ok(result.turns[0].userPrompt.includes('selected change'))
+    assert.ok(!result.turns[0].userPrompt.includes('UNSELECTED_'))
+  })
+
+  it('handles binary fixture changes as indivisible atomic units', async () => {
+    const result = await runCopilotEvaluation(
+      request({
+        kind: 'repository',
+        baseFiles: { binary: '\0old' },
+        files: { binary: '\0new' },
+        selection: [{ path: 'binary' }],
+      })
+    )
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.strictEqual(result.analysis?.changes[0].kind, 'atomic')
+  })
+
+  it('rejects empty analysis and invalid deadlines before making model calls', async () => {
+    const empty = await runCopilotEvaluation(
+      request({
+        kind: 'analysis',
+        analysis: { snapshotId: 'empty', changes: [] },
+      })
+    )
+    assert.strictEqual(empty.error?.code, 'empty-selection')
+    assert.strictEqual(empty.turns.length, 0)
+    const timeout = await runCopilotEvaluation({
+      ...request(),
+      timeoutMs: 0,
+    })
+    assert.strictEqual(timeout.error?.code, 'invalid-request')
+    assert.strictEqual(timeout.turns.length, 0)
+  })
+
+  it('preserves malformed output and never retries it into a pass', async () => {
+    const result = await runCopilotEvaluation({
+      ...request(repository),
+      transport: {
+        kind: 'fixture',
+        responses: [{ type: 'raw', content: '{' }],
+      },
+    })
+    assert.strictEqual(result.error?.code, 'invalid-response')
+    assert.strictEqual(result.turns.length, 1)
+    assert.strictEqual(result.turns[0].content, '{')
+    assert.strictEqual(result.validation?.preservedWorktree, true)
+  })
+
+  it('records both turns of the canonical unsafe-split fallback', async () => {
+    const result = await runCopilotEvaluation({
+      ...request({
+        kind: 'repository',
+        baseFiles: { replaced: 'old file\n' },
+        files: { replaced: null, 'replaced/child': 'new child\n' },
+        selection: [{ path: 'replaced' }, { path: 'replaced/child' }],
+      }),
+      transport: {
+        kind: 'fixture',
+        responses: [
+          {
+            type: 'plan',
+            groups: [
+              { title: 'Add child', paths: ['replaced/child'] },
+              { title: 'Remove file', paths: ['replaced'] },
+            ],
+          },
+          {
+            type: 'plan',
+            groups: [{ title: 'Replace file with directory and child' }],
+          },
+        ],
+      },
+    })
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.deepStrictEqual(
+      result.turns.map(turn => turn.mode),
+      ['plan', 'single-commit']
+    )
+    assert.strictEqual(result.response?.kind, 'plan')
+    if (result.response?.kind === 'plan') {
+      assert.strictEqual(
+        result.response.commits[0].title,
+        'Replace file with directory and child'
+      )
+    }
+    assert.ok(!result.turns[1].userPrompt.includes('Add child'))
+  })
+
+  it('rejects unmatched and duplicate hunk selections explicitly', async () => {
+    for (const hunks of [[99], [0, 0]]) {
+      const result = await runCopilotEvaluation(
+        request({
+          ...repository,
+          selection: [{ path: 'file.txt', hunks }],
+        })
+      )
+      assert.strictEqual(result.error?.code, 'invalid-request')
+      assert.strictEqual(result.turns.length, 0)
+    }
+  })
+})

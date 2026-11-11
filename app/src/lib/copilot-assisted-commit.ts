@@ -6,10 +6,8 @@ import {
   IAssistedCommitPlanCommit,
 } from '../models/assisted-commit'
 import { IRepoRulesMetadataRule } from '../models/repo-rules'
-import type {
-  CopilotModelRequest,
-  ICommitMessagePromptTags,
-} from './stores/copilot-store'
+import type { CopilotModelRequest } from './stores/copilot-store'
+import type { ICommitMessagePromptTags } from './copilot-prompt'
 
 /** A planning turn, or a fresh message for the complete selection after an unsafe split. */
 export type AssistedCommitPlanningMode = 'plan' | 'single-commit'
@@ -92,7 +90,9 @@ export const CopilotAssistedCommitResponseSchema: CopilotResponseSchema = {
 /** Caller-selected model, message constraints and cancellation for a planning turn. */
 export interface ICopilotAssistedCommitPlanningOptions {
   readonly request?: CopilotModelRequest | null
-  readonly commitMessageRules?: ReadonlyArray<IRepoRulesMetadataRule>
+  readonly commitMessageRules?: ReadonlyArray<
+    Pick<IRepoRulesMetadataRule, 'enforced' | 'humanDescription'>
+  >
   readonly signal?: AbortSignal
   readonly mode?: AssistedCommitPlanningMode
 }

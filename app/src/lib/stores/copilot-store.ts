@@ -37,36 +37,33 @@ import {
 import {
   createCopilotInMemorySessionFsProvider,
   getCopilotInMemorySessionFsConfig,
-  ICopilotInMemorySessionFsProvider,
 } from '../copilot-in-memory-session-fs-provider'
 import {
   awaitCancellableCopilotOperation,
   getCopilotMessageSession,
   getCopilotPlanningClient,
   getCopilotPlanningSession,
-  ICopilotMessageSession,
   ICopilotPlanningClient,
-  ICopilotPlanningSession,
   sendCopilotMessageRequest,
-  sendCopilotPlanningRequest,
 } from '../copilot-operation'
 import {
-  assertAssistedCommitAnalysis,
-  buildAssistedCommitSystemPrompt,
-  buildAssistedCommitUserPrompt,
-  CopilotAssistedCommitError,
   CopilotAssistedCommitResponse,
-  CopilotAssistedCommitResponseSchema,
   getAssistedCommitClientEnvironment,
-  getAssistedCommitSessionConfig,
   ICopilotAssistedCommitPlanningOptions,
-  parseCopilotAssistedCommitStructuredResponse,
 } from '../copilot-assisted-commit'
+import {
+  DefaultCopilotRequestTimeoutMs,
+  runAssistedCommitPlanningRequest,
+} from '../copilot-assisted-commit-request'
+import {
+  generateCommitMessagePromptTags,
+  getCleanedEnforcedRuleDescriptions,
+  ICommitMessagePromptTags,
+} from '../copilot-prompt'
 import { IAssistedCommitAnalysis } from '../../models/assisted-commit'
 import { getCopilotRuntimePath } from '../copilot-runtime'
 import { startTimer } from '../../ui/lib/timing'
 import { join } from 'path'
-import { randomBytes } from 'crypto'
 import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
@@ -89,90 +86,16 @@ export const DefaultCopilotModel = 'auto'
 export const DefaultConflictResolutionReasoningEffort: ReasoningEffort =
   'medium'
 
-/**
- * Default per-request timeout (in milliseconds) for Copilot SDK calls such
- * as commit message generation. Custom BYOK providers may override this
- * via {@link CopilotModelRequest.timeoutMs}.
- */
-export const DefaultCopilotRequestTimeoutMs = 60000
-
-/** Bound graceful teardown of an ephemeral planner runtime before force-stopping it. */
-export const AssistedCommitCleanupTimeoutMs = 1000
-
-async function disposeAssistedCommitClient(
-  client: ICopilotPlanningClient,
-  session: ICopilotMessageSession | null,
-  interrupted: boolean
-): Promise<void> {
-  if (interrupted) {
-    // No Git or tool work exists to join; kill the owned ephemeral runtime.
-    await client.forceStop()
-    return
-  }
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () => reject(new Error('Copilot assisted commit cleanup timed out')),
-      AssistedCommitCleanupTimeoutMs
-    )
-  })
-  let forcing = false
-  const cleanup = async () => {
-    await session?.disconnect()
-    if (forcing) {
-      return
-    }
-    const errors = await client.stop()
-    if (errors.length > 0) {
-      throw new AggregateError(errors, 'Copilot runtime cleanup failed')
-    }
-  }
-  const pending = cleanup()
-  try {
-    await Promise.race([pending, timeout])
-  } catch (error) {
-    forcing = true
-    clearTimeout(timer)
-    try {
-      await client.forceStop()
-    } catch (forceStopError) {
-      throw new AggregateError(
-        [error, forceStopError],
-        'Copilot runtime cleanup and force stop failed'
-      )
-    }
-    const settled = pending.then(
-      () => undefined,
-      () => undefined
-    )
-    const joinTimeout = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () =>
-          reject(
-            new Error(
-              'Copilot graceful cleanup did not settle after force stop'
-            )
-          ),
-        AssistedCommitCleanupTimeoutMs
-      )
-    })
-    try {
-      await Promise.race([settled, joinTimeout])
-    } catch (joinError) {
-      throw new AggregateError(
-        [error, joinError],
-        'Copilot runtime stopped, but graceful cleanup is still pending'
-      )
-    }
-    // The owned stdio runtime exited and its graceful continuation settled.
-    // Do not log SDK error text: it can contain request or user-specific data.
-    log.warn(
-      'Copilot assisted commit graceful cleanup required a completed force stop'
-    )
-  } finally {
-    clearTimeout(timer)
-  }
-}
+export {
+  AssistedCommitCleanupTimeoutMs,
+  DefaultCopilotRequestTimeoutMs,
+} from '../copilot-assisted-commit-request'
+export {
+  generateCommitMessagePromptTags,
+  getCleanedEnforcedRuleDescriptions,
+  getEnforcedRuleDescriptions,
+  ICommitMessagePromptTags,
+} from '../copilot-prompt'
 
 /**
  * Provider configuration forwarded to the Copilot SDK when generating a
@@ -433,80 +356,6 @@ the JSON object, just return it as plain text. For example:
   "description": "The login form was not submitting correctly. This commit fixes that issue by adding a missing \`name\` attribute to the submit button."
 }
 `
-
-/**
- * Returns the human-readable descriptions of all rules that github.com
- * will evaluate when the user pushes the commit. This includes rules the
- * current user is permitted to bypass (since github.com still evaluates
- * them) but excludes rules that are not enforced for the current user.
- *
- * Exported for testing.
- */
-export function getEnforcedRuleDescriptions(
-  rules: ReadonlyArray<IRepoRulesMetadataRule>
-): ReadonlyArray<string> {
-  return rules
-    .filter(r => r.enforced === true || r.enforced === 'bypass')
-    .map(r => r.humanDescription)
-}
-
-/**
- * Strips control characters (including newlines) and surrounding whitespace
- * from a single rule description so it renders as a single bullet line and
- * can't fragment the surrounding delimited block.
- */
-function sanitizeRuleDescription(description: string): string {
-  return description.replace(/[\u0000-\u001F\u007F]+/g, ' ').trim()
-}
-
-/**
- * Returns the cleaned, deduplicated, non-empty rule descriptions that should
- * be embedded in the commit-message user prompt. Combines
- * {@link getEnforcedRuleDescriptions} with sanitisation so callers (the
- * user-prompt builder and the system-prompt `hasRules` decision) operate on
- * the exact same set and can't drift apart.
- *
- * Exported for testing.
- */
-export function getCleanedEnforcedRuleDescriptions(
-  rules: ReadonlyArray<IRepoRulesMetadataRule> | undefined
-): ReadonlyArray<string> {
-  if (!rules) {
-    return []
-  }
-
-  const descriptions = getEnforcedRuleDescriptions(rules)
-  return [...new Set(descriptions.map(sanitizeRuleDescription))].filter(
-    d => d.length > 0
-  )
-}
-
-/**
- * Per-request delimiter tags used to wrap untrusted user-prompt sections so
- * the model can distinguish data from instructions. Generated fresh for each
- * commit-message generation request so untrusted content can't predict (and
- * therefore can't close) the wrapping tags.
- */
-export interface ICommitMessagePromptTags {
-  readonly diffOpen: string
-  readonly diffClose: string
-  readonly repoRulesOpen: string
-  readonly repoRulesClose: string
-}
-
-/**
- * Generates a fresh set of {@link ICommitMessagePromptTags} for one Copilot
- * session. Exported for testing.
- */
-export function generateCommitMessagePromptTags(): ICommitMessagePromptTags {
-  const token = randomBytes(8).toString('hex')
-  return {
-    diffOpen: `<diff-${token}>`,
-    diffClose: `</diff-${token}>`,
-    repoRulesOpen: `<repo-rules-${token}>`,
-    repoRulesClose: `</repo-rules-${token}>`,
-  }
-}
 
 /**
  * Builds the system prompt to use for commit message generation. When the
@@ -1094,159 +943,30 @@ export class CopilotStore extends BaseStore {
     repositoryPath: string,
     options: ICopilotAssistedCommitPlanningOptions = {}
   ): Promise<CopilotAssistedCommitResponse> {
-    assertAssistedCommitAnalysis(analysis)
-    const request = options.request
-    const timeoutMs =
-      request?.kind === 'byok' && request.timeoutMs !== undefined
-        ? request.timeoutMs
-        : DefaultCopilotRequestTimeoutMs
-    if (
-      !Number.isFinite(timeoutMs) ||
-      timeoutMs <= 0 ||
-      timeoutMs > 2147483647
-    ) {
-      throw new CopilotAssistedCommitError(
-        'invalid-request',
-        'The assisted commit request timeout must be finite, positive and supported by the runtime'
-      )
-    }
-    const deadline = new AbortController()
-    const signal =
-      options.signal === undefined
-        ? deadline.signal
-        : AbortSignal.any([options.signal, deadline.signal])
-    const cancellationError = () =>
-      options.signal?.aborted
-        ? new CopilotAssistedCommitError(
-            'cancelled',
-            'Assisted commit planning cancelled'
-          )
-        : new CopilotAssistedCommitError(
-            'timed-out',
-            'Assisted commit planning timed out'
-          )
-    const throwIfCancelled = () => {
-      if (signal.aborted) {
-        throw cancellationError()
-      }
-    }
-    const timer = setTimeout(() => deadline.abort(), timeoutMs)
-    let client: ICopilotPlanningClient | null = null
-    let session: ICopilotPlanningSession | null = null
-    let failed = false
-    let failure: unknown
-    let disposed = false
-    const fileSystems: ICopilotInMemorySessionFsProvider[] = []
-    try {
-      throwIfCancelled()
-      const tags = generateCommitMessagePromptTags()
-      const mode = options.mode ?? 'plan'
-      const cleanedRules = getCleanedEnforcedRuleDescriptions(
-        options.commitMessageRules
-      )
-      const prompt = buildAssistedCommitUserPrompt(analysis, tags, cleanedRules)
-      let modelId: string
-      let reasoningEffort: ReasoningEffort | undefined
-      let provider: CopilotProviderConfig | undefined
-      if (request?.kind === 'byok') {
-        modelId = request.modelId
-        reasoningEffort = request.reasoningEffort
-        provider = request.provider
-      } else {
+    return runAssistedCommitPlanningRequest(analysis, repositoryPath, options, {
+      createClient: () =>
+        this.createAssistedCommitClient(account, repositoryPath),
+      resolveModel: () => {
+        const request = options.request
+        if (request?.kind === 'byok') {
+          return {
+            model: request.modelId,
+            reasoningEffort: request.reasoningEffort,
+            provider: request.provider,
+          }
+        }
         const models = this.getCachedModelList(account)
         const requested = request?.modelId
         const resolved = requested
           ? models?.find(model => model.id === requested)
           : getPreferredDefaultModel(models ?? [])
-        modelId = resolved?.id ?? requested ?? DefaultCopilotModel
-        reasoningEffort = undefined
-      }
-      throwIfCancelled()
-      client = await awaitCancellableCopilotOperation(
-        () => this.createAssistedCommitClient(account, repositoryPath),
-        {
-          signal,
-          cancellationError,
-          disposeLateValue: lateClient => lateClient.forceStop(),
+        return {
+          model: resolved?.id ?? requested ?? DefaultCopilotModel,
+          reasoningEffort: undefined,
+          provider: undefined,
         }
-      )
-      throwIfCancelled()
-      const planningClient = client
-      session = await awaitCancellableCopilotOperation(
-        () =>
-          planningClient.createSession({
-            ...getAssistedCommitSessionConfig(
-              repositoryPath,
-              buildAssistedCommitSystemPrompt(tags, mode)
-            ),
-            clientName: CopilotClientNames['assisted-commit'],
-            model: modelId,
-            reasoningEffort,
-            provider,
-            createSessionFsProvider: () => {
-              const fs = createCopilotInMemorySessionFsProvider()
-              if (disposed) {
-                fs.dispose()
-              } else {
-                fileSystems.push(fs)
-              }
-              return fs
-            },
-          }),
-        {
-          signal,
-          cancellationError,
-          disposeLateValue: lateSession => lateSession.disconnect(),
-        }
-      )
-      throwIfCancelled()
-      const response = await sendCopilotPlanningRequest(
-        session,
-        { prompt, responseSchema: CopilotAssistedCommitResponseSchema },
-        signal,
-        cancellationError
-      )
-      throwIfCancelled()
-      return parseCopilotAssistedCommitStructuredResponse(
-        analysis,
-        response?.data.content,
-        mode
-      )
-    } catch (error) {
-      failed = true
-      failure = signal.aborted ? cancellationError() : error
-      throw failure
-    } finally {
-      clearTimeout(timer)
-      const cleanupErrors: unknown[] = []
-      try {
-        if (client !== null) {
-          await disposeAssistedCommitClient(client, session, signal.aborted)
-        }
-      } catch (error) {
-        cleanupErrors.push(error)
-      } finally {
-        disposed = true
-        fileSystems.forEach(fs => fs.dispose())
-      }
-      if (cleanupErrors.length > 0) {
-        throw new CopilotAssistedCommitError(
-          'cleanup-failed',
-          'Copilot assisted commit resources could not be cleaned up',
-          {
-            cause: failed
-              ? failure
-              : signal.aborted
-              ? cancellationError()
-              : undefined,
-            cleanupErrors,
-          }
-        )
-      }
-      if (!failed) {
-        throwIfCancelled()
-      }
-    }
+      },
+    })
   }
 
   /**

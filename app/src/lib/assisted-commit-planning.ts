@@ -6,10 +6,12 @@ import {
 import {
   AssistedCommitError,
   checkAssistedCommitCancellation,
+} from './git/assisted-commit/error'
+import {
   createSingleAssistedCommitPlan,
-  IAssistedCommitOperationOptions,
   validateAssistedCommitPlan,
-} from './git/assisted-commit'
+} from './git/assisted-commit/plan'
+import { IAssistedCommitOperationOptions } from './git/assisted-commit/progress'
 import {
   assertAssistedCommitAnalysis,
   AssistedCommitPlanningMode,

@@ -8,6 +8,7 @@
   "description": "GitHub Desktop build dependencies",
   "scripts": {
     "cli": "ts-node app/src/cli/main.ts",
+    "copilot:eval": "node script/copilot-eval.mjs",
     "check:eslint": "tsc -P eslint-rules/",
     "test:eslint": "node script/test.mjs eslint-rules",
     "test:script": "node script/test.mjs script",
