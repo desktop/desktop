@@ -333,6 +333,41 @@ describe('Clone Repository across accounts', () => {
     })
   })
 
+  it('hides the account picker and clones with the sole account', async t => {
+    const aliceRepository = repositoryFor('alice', 'alice-repo')
+    const { view, clone } = await renderClone(t, {
+      accounts: [alice],
+      apiRepositories: new Map([
+        [alice, { repositories: [aliceRepository], loading: false }],
+      ]),
+    })
+
+    const item = await waitFor(() =>
+      screen.getByRole('option', { name: /alice\/alice-repo/, hidden: true })
+    )
+    assert.strictEqual(view.container.querySelector('.account-picker'), null)
+
+    clickRepository(item)
+    const cloneButton = screen.getByRole('button', {
+      name: 'Clone',
+      hidden: true,
+    })
+    await waitFor(() =>
+      assert.strictEqual(cloneButton.getAttribute('aria-disabled'), null)
+    )
+    const form = view.container.querySelector('form')
+    assert.ok(form)
+    fireEvent.submit(form)
+
+    await waitFor(() => assert.strictEqual(clone.mock.callCount(), 1))
+    const [url, , options] = clone.mock.calls[0].arguments
+    assert.strictEqual(url, 'https://github.com/alice/alice-repo.git')
+    assert.deepStrictEqual(options, {
+      defaultBranch: undefined,
+      account: { endpoint, login: 'alice' },
+    })
+  })
+
   it('lists repositories for the selected account and clones with it over HTTPS', async t => {
     const aliceRepository = repositoryFor('alice', 'alice-repo')
     const carolRepository = repositoryFor('carol', 'repo', 'ghe.example.com')
