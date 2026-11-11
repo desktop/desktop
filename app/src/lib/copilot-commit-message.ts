@@ -21,14 +21,9 @@ export interface ICopilotCommitMessage {
 export function parseCopilotCommitMessage(
   content: string
 ): ICopilotCommitMessage {
-  const jsonMatch =
-    content.match(/```json\s*([\s\S]*?)```/) ||
-    content.match(/```\s*([\s\S]*?)```/)
-  const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim()
-
   let parsed: unknown
   try {
-    parsed = JSON.parse(jsonStr)
+    parsed = JSON.parse(content)
   } catch {
     throw new Error(
       'Copilot returned invalid JSON for commit message generation'

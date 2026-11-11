@@ -33,9 +33,11 @@ JSON envelope, checks its size and fields, then delegates to the existing
 parser and application types remain available unchanged. No arbitrary JSON
 extraction, Markdown removal or output repair is added.
 
-Ordinary generation also requests an empty string for no body. Its existing
-parser still normalizes an omitted description to `""` and rejects invalid
-description types.
+Ordinary generation also requests an empty string for no body. Its parser
+accepts only bare JSON, preserving code fences inside string values rather than
+extracting fenced fragments. Markdown-wrapped responses are rejected, without a
+legacy fallback. The parser still normalizes an omitted description to `""` and
+rejects invalid description types.
 
 Conflicts request `action: null` for text conflicts and `"keep"` or `"delete"`
 for delete/modify conflicts. The action schema uses `anyOf` with a string-enum
