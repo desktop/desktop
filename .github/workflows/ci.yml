@@ -126,6 +126,8 @@ jobs:
           New-Item -ItemType Directory -Path $directory | Out-Null
           $command = @'
           $ErrorActionPreference = 'Stop'
+          [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+          $OutputEncoding = [Console]::OutputEncoding
           $directory = Join-Path $env:RUNNER_TEMP 'desktop-unit-tests'
           $logPath = Join-Path $directory 'output.log'
           $resultPath = Join-Path $directory 'result.json'
@@ -252,7 +254,7 @@ jobs:
               $process | Wait-Process
             }
           } finally {
-            Get-Content (Join-Path $directory 'output.log')
+            Get-Content (Join-Path $directory 'output.log') -Encoding utf8
           }
           $result = Get-Content $resultPath -Raw | ConvertFrom-Json
           $duration = ([DateTime]::Parse($result.completedAt) - [DateTime]::Parse($result.startedAt)).TotalSeconds
