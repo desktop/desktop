@@ -376,7 +376,9 @@ describe('repository-aware credential trampoline', () => {
       const handler = createHandler(
         new TestAccountsStore(accounts),
         new TestRepositoriesStore([repository(login)]),
-        outcome => outcomes.push(outcome)
+        outcome => {
+          outcomes.push(outcome)
+        }
       )
       await handler({ ...command(), parameters: [parameter] })
       return outcomes
@@ -413,6 +415,48 @@ describe('repository-aware credential trampoline', () => {
       assert.deepEqual(await outcomesFor([alice], 'alice', 'erase'), [
         'rejected',
       ])
+    })
+
+    it('reports a failed credential lease before propagating it', async () => {
+      class FailingLeaseStore extends TestAccountsStore {
+        public async leaseAccountToken(
+          _account: Account,
+          _holder: string
+        ): Promise<never> {
+          throw new Error('network error')
+        }
+      }
+      const outcomes = new Array<string>()
+      const handler = createHandler(
+        new FailingLeaseStore([alice]),
+        new TestRepositoriesStore([repository('alice')]),
+        outcome => {
+          outcomes.push(outcome)
+        }
+      )
+      assert.equal(await handler(command()), undefined)
+      assert.deepEqual(outcomes, ['not-provided'])
+    })
+
+    it('returns the credential when reporting throws', async () => {
+      const handler = createHandler(
+        new TestAccountsStore([alice]),
+        new TestRepositoriesStore([repository('alice')]),
+        () => {
+          throw new Error('stats failed')
+        }
+      )
+      assert.match((await handler(command())) ?? '', /alice-token/)
+    })
+
+    it('returns the credential when reporting rejects', async () => {
+      const handler = createHandler(
+        new TestAccountsStore([alice]),
+        new TestRepositoriesStore([repository('alice')]),
+        () => Promise.reject(new Error('stats failed'))
+      )
+      assert.match((await handler(command())) ?? '', /alice-token/)
+      await new Promise(resolve => setImmediate(resolve))
     })
 
     it('does not report requests unrelated to a repository account', async () => {

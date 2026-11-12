@@ -4102,20 +4102,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.increment('coAuthoredCommits')
     }
 
-    const account = getAccountForStatsAttribution(this.accounts, repository)
     if (repository.gitHubRepository !== null) {
-      if (account !== null) {
-        if (isDotComAccount(account)) {
+      const endpointAccount = getAccountForStatsAttribution(
+        this.accounts,
+        repository
+      )
+      if (endpointAccount !== null) {
+        if (isDotComAccount(endpointAccount)) {
           this.statsStore.increment('dotcomCommits')
         } else {
           this.statsStore.increment('enterpriseCommits')
         }
+      }
 
-        const { commitAuthor } = repositoryState
-        if (commitAuthor !== null) {
-          if (!isAttributableEmailFor(account, commitAuthor.email)) {
-            this.statsStore.increment('unattributedCommits')
-          }
+      // The endpoint fallback doesn't identify the commit author, so only
+      // check attribution against the repository's own account.
+      const account = getAccountForRepository(this.accounts, repository)
+      const { commitAuthor } = repositoryState
+      if (account !== null && commitAuthor !== null) {
+        if (!isAttributableEmailFor(account, commitAuthor.email)) {
+          this.statsStore.increment('unattributedCommits')
         }
       }
 
@@ -6619,7 +6625,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const accounts = await this.accountsStore.getAll()
         const { account } = options
         if (account !== undefined) {
-          if (isMultiAccountEndpoint(accounts, account.endpoint)) {
+          if (
+            options.fromCloneDialog === true &&
+            isMultiAccountEndpoint(accounts, account.endpoint)
+          ) {
             recordAssignmentStats = () =>
               this.statsStore.increment(
                 'cloneFromAccountPickerOnMultiAccountEndpointCount'
@@ -6643,7 +6652,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
         )
         const outcome = getAssignmentOutcome(assignment, chose, accounts, url)
-        if (outcome !== null) {
+        if (options.fromCloneDialog === true && outcome !== null) {
           recordAssignmentStats = () =>
             this.statsStore.increment(
               outcome === 'auto'
