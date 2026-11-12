@@ -41,7 +41,10 @@ import {
   DiffSelectionType,
   DiffType,
 } from '../../../src/models/diff'
-import { CopilotAssistedCommitError } from '../../../src/lib/copilot-assisted-commit'
+import {
+  CopilotAssistedCommitError,
+  CopilotAssistedCommitResponseSchema,
+} from '../../../src/lib/copilot-assisted-commit'
 import { CopilotError } from '../../../src/lib/copilot-error'
 import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
@@ -629,6 +632,10 @@ describe('AppStore assisted commit runs', () => {
     const repository = await h.register(source)
     h.propose.mock.restore()
     h.planner.send.mock.mockImplementation(async options => {
+      assert.strictEqual(
+        options.responseSchema,
+        CopilotAssistedCommitResponseSchema
+      )
       const analysis = h.assisted.state['runs'].get(repository.id)?.snapshot
         ?.analysis
       assert.ok(analysis)
@@ -654,7 +661,7 @@ describe('AppStore assisted commit runs', () => {
               'Replace old file with child directory'
             )
       assert.ok(options.prompt.includes('replaced'))
-      return assistantMessage(JSON.stringify(content))
+      return assistantMessage(JSON.stringify({ result: content }))
     })
     const result = await h.dispatcher.createCopilotAssistedCommits(
       repository,

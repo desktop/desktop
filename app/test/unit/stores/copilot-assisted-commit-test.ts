@@ -11,6 +11,7 @@ import { CopilotError } from '../../../src/lib/copilot-error'
 import {
   AssistedCommitPromptLimitBytes,
   CopilotAssistedCommitError,
+  CopilotAssistedCommitResponseSchema,
 } from '../../../src/lib/copilot-assisted-commit'
 import { ICopilotPlanningClient } from '../../../src/lib/copilot-operation'
 import { enableCommitMessageGeneration } from '../../../src/lib/feature-flag'
@@ -146,6 +147,10 @@ describe('CopilotStore constrained assisted planner', () => {
     assert.strictEqual(typeof config.createSessionFsProvider, 'function')
     assert.ok(scheduled.mock.calls.some(call => call.arguments[1] === 12345))
     const prompt = mock.send.mock.calls[0].arguments[0].prompt
+    assert.strictEqual(
+      mock.send.mock.calls[0].arguments[0].responseSchema,
+      CopilotAssistedCommitResponseSchema
+    )
     assert.ok(prompt.includes('opaque-first-hunk'))
     assert.ok(prompt.includes('opaque-second-hunk'))
     assert.ok(prompt.includes('opaque-atomic-rename'))
@@ -190,6 +195,12 @@ describe('CopilotStore constrained assisted planner', () => {
         assert.strictEqual(config.provider, undefined)
       }
       assert.strictEqual(mock.createSession.mock.callCount(), 2)
+      for (const call of mock.send.mock.calls) {
+        assert.strictEqual(
+          call.arguments[0].responseSchema,
+          CopilotAssistedCommitResponseSchema
+        )
+      }
       assert.strictEqual(mock.listModels.mock.callCount(), 0)
     })
   }

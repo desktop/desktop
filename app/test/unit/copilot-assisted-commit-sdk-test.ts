@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import { chmod, mkdir, readFile, readdir, writeFile } from 'fs/promises'
 import { join } from 'path'
+import Ajv from 'ajv'
 import {
   CopilotClient,
   CopilotRequestContext,
@@ -26,24 +27,152 @@ import { getCopilotInMemorySessionFsConfig } from '../../src/lib/copilot-in-memo
 import { isRecord } from '../../src/lib/is-record'
 import {
   CopilotAssistedCommitResponse,
+  CopilotAssistedCommitResponseSchema,
   getAssistedCommitClientEnvironment,
 } from '../../src/lib/copilot-assisted-commit'
+import { CopilotCommitMessageResponseSchema } from '../../src/lib/copilot-commit-message'
+import { CopilotConflictResolutionResponseSchema } from '../../src/lib/copilot-conflict-resolution'
+import { CopilotStore } from '../../src/lib/stores/copilot-store'
+import { createTestAccountsStore } from '../helpers/app-store-test-harness'
 
 /** A completely local fake model; no synthetic or customer data reaches a provider. */
 class SyntheticModel extends CopilotRequestHandler {
   public readonly requests: string[] = []
 
-  public constructor(private readonly response: CopilotAssistedCommitResponse) {
+  public constructor(
+    private readonly response: unknown | (() => unknown),
+    private readonly onRequest?: (
+      body: Record<string, unknown>
+    ) => Response | void
+  ) {
     super()
   }
 
   protected override async sendRequest(request: Request): Promise<Response> {
-    assert.strictEqual(request.url, 'http://127.0.0.1:1/chat/completions')
+    const url = new URL(request.url)
+    assert.strictEqual(url.origin, 'http://127.0.0.1:1')
+    assert.ok(
+      ['/chat/completions', '/responses', '/v1/messages', '/messages'].includes(
+        url.pathname
+      )
+    )
     const text = await request.text()
     this.requests.push(text)
     const body: unknown = JSON.parse(text)
     assert.ok(isRecord(body))
-    const content = JSON.stringify(this.response)
+    const failure = this.onRequest?.(body)
+    if (failure !== undefined) {
+      return failure
+    }
+    const content = JSON.stringify(
+      typeof this.response === 'function' ? this.response() : this.response
+    )
+    if (url.pathname.endsWith('/messages')) {
+      const start = {
+        id: 'synthetic-completion',
+        type: 'message',
+        role: 'assistant',
+        model: 'synthetic-model',
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 100, output_tokens: 0 },
+      }
+      if (body.stream !== true) {
+        return new Response(
+          JSON.stringify({
+            ...start,
+            content: [{ type: 'text', text: content }],
+            stop_reason: 'end_turn',
+            usage: { input_tokens: 100, output_tokens: 100 },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+      const events = [
+        { type: 'message_start', message: start },
+        {
+          type: 'content_block_start',
+          index: 0,
+          content_block: { type: 'text', text: '' },
+        },
+        {
+          type: 'content_block_delta',
+          index: 0,
+          delta: { type: 'text_delta', text: content },
+        },
+        { type: 'content_block_stop', index: 0 },
+        {
+          type: 'message_delta',
+          delta: { stop_reason: 'end_turn', stop_sequence: null },
+          usage: { output_tokens: 100 },
+        },
+        { type: 'message_stop' },
+      ]
+      return new Response(
+        events
+          .map(
+            event => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`
+          )
+          .join(''),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } }
+      )
+    }
+    if (url.pathname === '/responses') {
+      const item = {
+        id: 'synthetic-message',
+        type: 'message',
+        role: 'assistant',
+        status: 'completed',
+        content: [{ type: 'output_text', text: content, annotations: [] }],
+      }
+      const response = {
+        id: 'synthetic-completion',
+        object: 'response',
+        status: 'completed',
+        model: 'synthetic-model',
+        output: [item],
+        usage: { input_tokens: 100, output_tokens: 100, total_tokens: 200 },
+      }
+      if (body.stream !== true) {
+        return new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      const events = [
+        { type: 'response.created', response: { ...response, output: [] } },
+        { type: 'response.output_item.added', output_index: 0, item },
+        {
+          type: 'response.output_text.delta',
+          item_id: item.id,
+          output_index: 0,
+          content_index: 0,
+          delta: content,
+        },
+        {
+          type: 'response.output_text.done',
+          item_id: item.id,
+          output_index: 0,
+          content_index: 0,
+          text: content,
+        },
+        { type: 'response.output_item.done', output_index: 0, item },
+        { type: 'response.completed', response },
+      ]
+      return new Response(
+        events
+          .map(
+            (event, sequence_number) =>
+              `event: ${event.type}\ndata: ${JSON.stringify({
+                ...event,
+                sequence_number,
+              })}\n\n`
+          )
+          .join(''),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } }
+      )
+    }
     if (body.stream !== true) {
       return new Response(
         JSON.stringify({
@@ -126,6 +255,295 @@ class PendingSyntheticModel extends CopilotRequestHandler {
   }
 }
 
+describe('production structured output with the shipped SDK/runtime and a local synthetic provider', () => {
+  for (const route of ['completions', 'responses', 'anthropic'] as const) {
+    for (const feature of ['assisted', 'message', 'conflicts'] as const) {
+      it(`forwards and consumes the ${feature} schema on ${route}`, async t => {
+        const root = await createTempDirectory(t)
+        const home = join(root, 'home')
+        const repositoryPath = join(root, 'repository')
+        await mkdir(home)
+        await mkdir(repositoryPath)
+        const schema =
+          feature === 'assisted'
+            ? CopilotAssistedCommitResponseSchema
+            : feature === 'message'
+            ? CopilotCommitMessageResponseSchema
+            : CopilotConflictResolutionResponseSchema
+        const message = { title: 'Update synthetic changes', description: '' }
+        const plan: CopilotAssistedCommitResponse = {
+          kind: 'plan',
+          snapshotId: syntheticAnalysis.snapshotId,
+          commits: [
+            {
+              ...message,
+              changeIds: syntheticAnalysis.changes.map(change => change.id),
+            },
+          ],
+        }
+        const resolution = {
+          resolutions: [
+            {
+              path: 'synthetic.txt',
+              hunks: [{ resolvedContent: 'merged' }],
+              reasoning: 'Combine both sides',
+              action: null,
+            },
+          ],
+          summary: null,
+          references: [],
+        }
+        const response =
+          feature === 'assisted'
+            ? { result: plan }
+            : feature === 'message'
+            ? message
+            : resolution
+        const ajv = new Ajv()
+        const model = new SyntheticModel(response, body => {
+          if (route === 'completions') {
+            assert.deepStrictEqual(body.response_format, {
+              type: 'json_schema',
+              json_schema: { name: 'response', strict: true, schema },
+            })
+          } else if (route === 'responses') {
+            assert.deepStrictEqual(body.text, {
+              format: {
+                type: 'json_schema',
+                name: 'response',
+                strict: true,
+                schema,
+              },
+            })
+          } else {
+            assert.deepStrictEqual(body.output_config, {
+              format: { type: 'json_schema', schema },
+            })
+          }
+          const validate = ajv.compile(schema)
+          assert.ok(validate(response), JSON.stringify(validate.errors))
+        })
+        const client = new CopilotClient({
+          connection: RuntimeConnection.forStdio(),
+          workingDirectory: repositoryPath,
+          baseDirectory: home,
+          env: {
+            ...getAssistedCommitClientEnvironment({
+              HOME: home,
+              COPILOT_HOME: home,
+              PATH: process.env.PATH,
+            }),
+            COPILOT_DISABLE_KEYTAR: '1',
+          },
+          useLoggedInUser: false,
+          logLevel: 'none',
+          onListModels: () => [],
+          requestHandler: model,
+          sessionFs: getCopilotInMemorySessionFsConfig(
+            repositoryPath,
+            __WIN32__ ? 'windows' : 'posix'
+          ),
+        })
+        t.after(() => client.forceStop())
+        const account = makeCopilotAccount()
+        const accounts = createTestAccountsStore()
+        await accounts.addAccount(account)
+        const store = new CopilotStore(accounts)
+        t.mock.method(
+          store as unknown as { createClient(): Promise<CopilotClient> },
+          'createClient',
+          async () => client
+        )
+        const request = syntheticBYOKRequest(10000)
+        assert.ok(request.kind === 'byok')
+        const byok = {
+          ...request,
+          reasoningEffort: undefined,
+          provider:
+            route === 'anthropic'
+              ? {
+                  type: 'anthropic' as const,
+                  baseUrl: 'http://127.0.0.1:1',
+                  apiKey: 'synthetic-not-a-secret',
+                }
+              : { ...request.provider, wireApi: route },
+        }
+        if (feature === 'assisted') {
+          assert.deepStrictEqual(
+            await store.proposeAssistedCommitPlan(
+              account,
+              syntheticAnalysis,
+              repositoryPath,
+              { request: byok }
+            ),
+            plan
+          )
+        } else if (feature === 'message') {
+          assert.deepStrictEqual(
+            await store.generateCommitMessage(
+              account,
+              'Synthetic diff',
+              repositoryPath,
+              byok
+            ),
+            message
+          )
+        } else {
+          const result = await store.resolveConflicts(
+            account,
+            {
+              ourLabel: 'main',
+              theirLabel: 'feature',
+              files: [
+                {
+                  path: 'synthetic.txt',
+                  hunks: [
+                    {
+                      oursContent: 'ours\n',
+                      theirsContent: 'theirs\n',
+                      baseContent: null,
+                      contextBefore: '',
+                      contextAfter: '',
+                    },
+                  ],
+                  rawContent:
+                    '<<<<<<< main\nours\n=======\ntheirs\n>>>>>>> feature\n',
+                },
+              ],
+              ourCommits: [],
+              theirCommits: [],
+              pullRequests: [],
+            },
+            repositoryPath,
+            byok
+          )
+          assert.deepStrictEqual(result, {
+            resolutions: [
+              {
+                path: 'synthetic.txt',
+                resolvedContent: 'merged\n',
+                reasoning: 'Combine both sides',
+              },
+            ],
+            summary: null,
+            references: [],
+          })
+        }
+        assert.strictEqual(model.requests.length, 1)
+      })
+    }
+  }
+
+  for (const failsCorrection of [false, true]) {
+    it(`retains schema and origin through real runtime stop-hook correction (fails=${failsCorrection})`, async t => {
+      const root = await createTempDirectory(t)
+      const home = join(root, 'home')
+      const repositoryPath = join(root, 'repository')
+      await mkdir(home)
+      await mkdir(repositoryPath)
+      const corrected = wholeSelectionResponse(
+        syntheticAnalysis,
+        'Corrected plan'
+      )
+      let turns = 0
+      const model = new SyntheticModel(
+        () => ({
+          result:
+            ++turns === 1
+              ? wholeSelectionResponse(syntheticAnalysis, 'Intermediate plan')
+              : corrected,
+        }),
+        body => {
+          assert.deepStrictEqual(body.response_format, {
+            type: 'json_schema',
+            json_schema: {
+              name: 'response',
+              strict: true,
+              schema: CopilotAssistedCommitResponseSchema,
+            },
+          })
+          if (failsCorrection && turns > 0) {
+            return new Response(
+              JSON.stringify({
+                error: {
+                  type: 'invalid_request_error',
+                  code: 'unsupported_response_format',
+                  message: 'Synthetic provider rejects structured output',
+                  param: 'response_format',
+                },
+              }),
+              { status: 400, headers: { 'Content-Type': 'application/json' } }
+            )
+          }
+          return undefined
+        }
+      )
+      const client = new CopilotClient({
+        connection: RuntimeConnection.forStdio(),
+        workingDirectory: repositoryPath,
+        baseDirectory: home,
+        env: {
+          ...getAssistedCommitClientEnvironment({
+            HOME: home,
+            COPILOT_HOME: home,
+            PATH: process.env.PATH,
+          }),
+          COPILOT_DISABLE_KEYTAR: '1',
+        },
+        useLoggedInUser: false,
+        logLevel: 'none',
+        onListModels: () => [],
+        requestHandler: model,
+        sessionFs: getCopilotInMemorySessionFsConfig(
+          repositoryPath,
+          __WIN32__ ? 'windows' : 'posix'
+        ),
+      })
+      t.after(() => client.forceStop())
+      const origins: Array<string | undefined> = []
+      let stops = 0
+      const store = createPlannerStore(async () =>
+        getCopilotPlanningClient(client, async config => {
+          const session = await client.createSession({
+            ...config,
+            hooks: {
+              onAgentStop: () =>
+                ++stops === 1
+                  ? { decision: 'block', reason: 'Produce the corrected plan' }
+                  : undefined,
+            },
+          })
+          session.on('assistant.message', event =>
+            origins.push(event.data.originatingMessageId)
+          )
+          return session
+        })
+      )
+      const request = syntheticBYOKRequest(10000)
+      assert.ok(request.kind === 'byok')
+      const operation = store.proposeAssistedCommitPlan(
+        makeCopilotAccount(),
+        syntheticAnalysis,
+        repositoryPath,
+        { request: { ...request, reasoningEffort: undefined } }
+      )
+      if (failsCorrection) {
+        await assert.rejects(
+          operation,
+          /Synthetic provider rejects structured output/
+        )
+        assert.strictEqual(origins.length, 1)
+      } else {
+        assert.deepStrictEqual(await operation, corrected)
+        assert.strictEqual(origins.length, 2)
+        assert.strictEqual(origins[0], origins[1])
+      }
+      assert.strictEqual(model.requests.length, 2)
+      assert.ok(origins[0])
+    })
+  }
+})
+
 describe('assisted planner actual SDK instruction and model-tool contract', () => {
   for (const delay of ['none', 'disconnect', 'stop'] as const) {
     it(`joins the actual owned SDK runtime after repeated successful plans with delayed ${delay}`, async t => {
@@ -153,7 +571,9 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
           useLoggedInUser: false,
           logLevel: 'none',
           onListModels: () => [],
-          requestHandler: new SyntheticModel(wholeSelectionResponse()),
+          requestHandler: new SyntheticModel({
+            result: wholeSelectionResponse(),
+          }),
           sessionFs: getCopilotInMemorySessionFsConfig(
             repositoryPath,
             __WIN32__ ? 'windows' : 'posix'
@@ -411,7 +831,7 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
         },
       ],
     }
-    const model = new SyntheticModel(response)
+    const model = new SyntheticModel({ result: response })
     const client = new CopilotClient({
       connection: RuntimeConnection.forStdio(),
       workingDirectory: repositoryPath,

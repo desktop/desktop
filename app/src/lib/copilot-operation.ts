@@ -8,6 +8,22 @@ import type {
 } from '@github/copilot-sdk'
 import { getCopilotPaymentRequiredErrorFromSessionError } from './copilot-error'
 
+/** Native response-schema vocabulary shared by the supported strict providers. */
+export type CopilotResponseSchema =
+  | {
+      readonly type: 'object'
+      readonly properties: Readonly<Record<string, CopilotResponseSchema>>
+      readonly required: ReadonlyArray<string>
+      readonly additionalProperties: false
+    }
+  | { readonly type: 'array'; readonly items: CopilotResponseSchema }
+  | {
+      readonly type: 'string'
+      readonly enum?: ReadonlyArray<string>
+    }
+  | { readonly type: 'null' | readonly ['string', 'null'] }
+  | { readonly anyOf: ReadonlyArray<CopilotResponseSchema> }
+
 /** Cancellation controls for SDK operations, preserving the caller's domain error. */
 export interface ICancellableCopilotOperationOptions<T> {
   readonly signal?: AbortSignal
@@ -108,12 +124,18 @@ export interface ICopilotMessageSession {
   disconnect(): Promise<void>
 }
 
-/** Planner-owned event waiting; never call SDK sendAndWait for an interruptible planning turn. */
+/** Events needed to correlate a submitted run with its final root response. */
+export type CopilotResponseEvent = SessionEventPayload<
+  | 'user.message'
+  | 'assistant.message'
+  | 'session.idle'
+  | 'session.autopilot_stopped'
+  | 'session.error'
+>
+
+/** Caller-owned event waiting; never call SDK sendAndWait for an interruptible planning turn. */
 export interface ICopilotPlanningSession extends ICopilotMessageSession {
-  onAssistantMessage(
-    handler: (event: AssistantMessageEvent) => void
-  ): () => void
-  onIdle(handler: () => void): () => void
+  onResponseEvent(handler: (event: CopilotResponseEvent) => void): () => void
   send(options: MessageOptions): Promise<string>
 }
 
@@ -143,8 +165,17 @@ export function getCopilotPlanningSession(
 ): ICopilotPlanningSession {
   return {
     ...getCopilotMessageSession(session),
-    onAssistantMessage: handler => session.on('assistant.message', handler),
-    onIdle: handler => session.on('session.idle', handler),
+    onResponseEvent: handler =>
+      session.on(event => {
+        switch (event.type) {
+          case 'user.message':
+          case 'assistant.message':
+          case 'session.idle':
+          case 'session.autopilot_stopped':
+          case 'session.error':
+            handler(event)
+        }
+      }),
     send: options => session.send(options),
   }
 }
@@ -191,16 +222,23 @@ export async function sendCopilotMessageRequest(
 }
 
 /**
- * Wait for a complete primary response/idle using the enclosing planner's deadline.
+ * Wait for the final matching root response using the caller's deadline.
  *
- * Every subscription and abort handler is released on success/error/cancellation.
- * No SDK-owned response timer can outlive a disconnected ephemeral session.
+ * Subscribe before sending and replay events after admission establishes the
+ * origin. Stop-hook corrections supersede earlier messages; tool requests
+ * invalidate an earlier candidate. Idle alone is not proof of request ownership.
+ * Every listener is released on completion, failure or cancellation.
  */
 export async function sendCopilotPlanningRequest(
   session: ICopilotPlanningSession,
   options: MessageOptions,
   signal: AbortSignal,
-  cancellationError: () => Error
+  cancellationError: () => Error,
+  sessionError: (
+    data: SessionEventPayload<'session.error'>['data']
+  ) => Error = data =>
+    getCopilotPaymentRequiredErrorFromSessionError(data) ??
+    new Error(data.message, { cause: data })
 ): Promise<AssistantMessageEvent | undefined> {
   if (signal.aborted) {
     throw cancellationError()
@@ -208,45 +246,87 @@ export async function sendCopilotPlanningRequest(
   return new Promise((resolve, reject) => {
     let settled = false
     let response: AssistantMessageEvent | undefined
-    let sendFinished = false
-    let idle = false
-    const subscriptions: Array<() => void> = []
+    let messageId: string | undefined
+    let consumed = false
+    const buffered: CopilotResponseEvent[] = []
     const finish = (complete: () => void) => {
       if (settled) {
         return
       }
       settled = true
       signal.removeEventListener('abort', onAbort)
-      subscriptions.forEach(unsubscribe => unsubscribe())
+      unsubscribe()
+      buffered.length = 0
       complete()
     }
     const onAbort = () => finish(() => reject(cancellationError()))
-    const completeIfReady = () => {
-      if (sendFinished && idle) {
-        finish(() => resolve(response))
+    const observe = (event: CopilotResponseEvent) => {
+      if (settled || event.agentId !== undefined) {
+        return
+      }
+      switch (event.type) {
+        case 'user.message':
+          if (event.data.messageId === messageId) {
+            consumed = true
+          }
+          break
+        case 'assistant.message':
+          if (event.data.originatingMessageId === messageId) {
+            consumed = true
+            response = event.data.toolRequests?.length ? undefined : event
+          }
+          break
+        case 'session.error':
+          if (
+            event.data.originatingMessageId === undefined ||
+            event.data.originatingMessageId === messageId
+          ) {
+            finish(() => reject(sessionError(event.data)))
+          }
+          break
+        case 'session.idle':
+          if (consumed && event.data.mode !== 'autopilot') {
+            if (event.data.aborted) {
+              finish(() =>
+                reject(new Error('Copilot run was aborted before completion'))
+              )
+            } else {
+              finish(() => resolve(response))
+            }
+          }
+          break
+        case 'session.autopilot_stopped':
+          if (event.data.requestId === messageId) {
+            if (
+              event.data.reason === 'aborted' ||
+              event.data.reason === 'error'
+            ) {
+              finish(() =>
+                reject(new Error(`Copilot run stopped: ${event.data.reason}`))
+              )
+            } else {
+              finish(() => resolve(response))
+            }
+          }
+          break
       }
     }
-    subscriptions.push(
-      session.onSessionError(data => {
-        const error =
-          getCopilotPaymentRequiredErrorFromSessionError(data) ??
-          new Error(data.message, { cause: data })
-        finish(() => reject(error))
-      })
-    )
-    subscriptions.push(
-      session.onAssistantMessage(event => {
-        if (event.agentId === undefined) {
-          response = event
-        }
-      })
-    )
-    subscriptions.push(
-      session.onIdle(() => {
-        idle = true
-        completeIfReady()
-      })
-    )
+    const unsubscribe = session.onResponseEvent(event => {
+      if (event.agentId !== undefined || settled) {
+        return
+      }
+      // Session-wide failures do not need admission to establish ownership.
+      if (
+        event.type === 'session.error' &&
+        event.data.originatingMessageId === undefined
+      ) {
+        finish(() => reject(sessionError(event.data)))
+      } else if (messageId === undefined) {
+        buffered.push(event)
+      } else {
+        observe(event)
+      }
+    })
     signal.addEventListener('abort', onAbort)
     if (signal.aborted) {
       onAbort()
@@ -254,9 +334,21 @@ export async function sendCopilotPlanningRequest(
     }
     try {
       void session.send(options).then(
-        () => {
-          sendFinished = true
-          completeIfReady()
+        id => {
+          if (settled) {
+            return
+          }
+          if (!id) {
+            finish(() =>
+              reject(
+                new Error('Copilot send returned no originating message ID')
+              )
+            )
+            return
+          }
+          messageId = id
+          const events = buffered.splice(0)
+          events.forEach(observe)
         },
         error =>
           finish(() => reject(signal.aborted ? cancellationError() : error))

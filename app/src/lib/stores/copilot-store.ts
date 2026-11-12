@@ -11,11 +11,13 @@ import { AccountsStore } from './accounts-store'
 import { Account, isDotComAccount } from '../../models/account'
 import {
   ICopilotCommitMessage,
+  CopilotCommitMessageResponseSchema,
   parseCopilotCommitMessage,
 } from '../copilot-commit-message'
 import {
   CopilotValidationError,
   ConflictResolutionSystemPrompt,
+  CopilotConflictResolutionResponseSchema,
   ICopilotConflictReference,
   IReassembledConflictResolutionResponse,
   IConflictResolutionProgress,
@@ -41,6 +43,7 @@ import {
   awaitCancellableCopilotOperation,
   getCopilotMessageSession,
   getCopilotPlanningClient,
+  getCopilotPlanningSession,
   ICopilotMessageSession,
   ICopilotPlanningClient,
   ICopilotPlanningSession,
@@ -53,10 +56,11 @@ import {
   buildAssistedCommitUserPrompt,
   CopilotAssistedCommitError,
   CopilotAssistedCommitResponse,
+  CopilotAssistedCommitResponseSchema,
   getAssistedCommitClientEnvironment,
   getAssistedCommitSessionConfig,
   ICopilotAssistedCommitPlanningOptions,
-  parseCopilotAssistedCommitResponse,
+  parseCopilotAssistedCommitStructuredResponse,
 } from '../copilot-assisted-commit'
 import { IAssistedCommitAnalysis } from '../../models/assisted-commit'
 import { getCopilotRuntimePath } from '../copilot-runtime'
@@ -404,7 +408,7 @@ contents of the changeset for other developers reading the commit history.
 
 The commit description can be longer, and should provide more context about the
 changeset, including why the changeset is being made, and any other relevant
-information. The commit description is optional, so you can omit it if the
+information. The commit description is optional, so use an empty string if the
 changeset is small enough that it can be described in the commit title or if you
 don't have enough context.
 
@@ -761,11 +765,11 @@ interface IRunConflictResolutionTurnOptions {
  * Supports real cancellation via an `AbortSignal`: when the signal aborts, the
  * turn is torn down immediately — all listeners are removed and the promise is
  * rejected with a {@link CopilotConflictResolutionAbortError}. The session is
- * always destroyed exactly once before this function returns, whether the turn
+ * always disconnected exactly once before this function returns, whether the turn
  * succeeded, failed, or was aborted.
  *
- * Note: destroying the session tears down the local SDK turn immediately;
- * whether the backend stops generating depends on the SDK's `destroy()`
+ * Note: disconnecting the session tears down the local SDK turn immediately;
+ * whether the backend stops generating depends on the SDK's `disconnect()`
  * semantics.
  */
 export async function runConflictResolutionTurn(
@@ -774,90 +778,52 @@ export async function runConflictResolutionTurn(
   options: IRunConflictResolutionTurnOptions
 ): Promise<string> {
   const { timeoutMs, signal, onReasoningSnippet } = options
-
+  const deadline = new AbortController()
+  const turnSignal =
+    signal === undefined
+      ? deadline.signal
+      : AbortSignal.any([signal, deadline.signal])
+  const cancellationError = () =>
+    signal?.aborted
+      ? new CopilotConflictResolutionAbortError()
+      : new Error('Copilot conflict resolution timed out')
+  const timer = setTimeout(() => deadline.abort(), timeoutMs)
+  const unsubs: Array<() => void> = []
+  let reasoningBuffer = ''
+  const sentenceTerminator = /(?<!\d)([.!?])\s+|\n+/
+  const flushReasoning = (force: boolean) => {
+    while (true) {
+      const match = sentenceTerminator.exec(reasoningBuffer)
+      if (match === null) {
+        break
+      }
+      const end = match.index + match[0].length
+      const sentence = reasoningBuffer.slice(0, end).trim()
+      reasoningBuffer = reasoningBuffer.slice(end)
+      if (sentence.length > 0) {
+        if (__DEV__) {
+          log.info(`[Copilot SDK] reasoning sentence: ${sentence}`)
+        }
+        onReasoningSnippet?.(sentence)
+      }
+    }
+    if (force && reasoningBuffer.trim().length > 0) {
+      if (__DEV__) {
+        log.info(
+          `[Copilot SDK] reasoning sentence (forced): ${reasoningBuffer.trim()}`
+        )
+      }
+      onReasoningSnippet?.(reasoningBuffer.trim())
+      reasoningBuffer = ''
+    }
+  }
   try {
-    return await new Promise<string>((resolve, reject) => {
-      let settled = false
-      let reasoningBuffer = ''
-
-      // Unsub handles are collected here as listeners are attached, so
-      // `cleanup()` is safe to call from any early path (e.g. an already-aborted
-      // signal, where the array is still empty).
-      const unsubs: Array<() => void> = []
-
-      // Match a sentence terminator (`.`, `!`, `?`, or newline) — when we see
-      // one, flush the accumulated reasoning text as a single user-facing
-      // snippet. Negative lookbehind for digits avoids splitting list markers
-      // like `1. ` mid-sentence.
-      const sentenceTerminator = /(?<!\d)([.!?])\s+|\n+/
-
-      const flushReasoning = (force: boolean) => {
-        while (true) {
-          const match = sentenceTerminator.exec(reasoningBuffer)
-          if (match === null) {
-            break
-          }
-          const end = match.index + match[0].length
-          const sentence = reasoningBuffer.slice(0, end).trim()
-          reasoningBuffer = reasoningBuffer.slice(end)
-          if (sentence.length > 0) {
-            if (__DEV__) {
-              log.info(`[Copilot SDK] reasoning sentence: ${sentence}`)
-            }
-            onReasoningSnippet?.(sentence)
-          }
-        }
-        if (force && reasoningBuffer.trim().length > 0) {
-          if (__DEV__) {
-            log.info(
-              `[Copilot SDK] reasoning sentence (forced): ${reasoningBuffer.trim()}`
-            )
-          }
-          onReasoningSnippet?.(reasoningBuffer.trim())
-          reasoningBuffer = ''
-        }
-      }
-
-      // Remove every subscription, the timeout, and the abort listener. Called
-      // once, from finish(), which gates on `settled`.
-      const cleanup = () => {
-        clearTimeout(timer)
-        signal?.removeEventListener('abort', onAbort)
-        for (const unsub of unsubs) {
-          unsub()
-        }
-      }
-
-      // Run a terminal action (resolve/reject) at most once, cleaning up first.
-      const finish = (action: () => void) => {
-        if (settled) {
-          return
-        }
-        settled = true
-        cleanup()
-        action()
-      }
-
-      const onAbort = () => {
-        finish(() => reject(new CopilotConflictResolutionAbortError()))
-      }
-
-      const timer = setTimeout(() => {
-        finish(() => reject(new Error('Copilot conflict resolution timed out')))
-      }, timeoutMs)
-
-      // If the signal already aborted before we got here, tear down now. The
-      // outer `finally` still destroys the session.
-      if (signal?.aborted) {
-        onAbort()
-        return
-      }
-      signal?.addEventListener('abort', onAbort)
-
-      // Stream the model's extended-thinking text sentence-by-sentence so the
-      // UI can show what Copilot is currently reasoning about.
-      unsubs.push(
-        session.on('assistant.reasoning_delta', event => {
+    if (turnSignal.aborted) {
+      throw cancellationError()
+    }
+    unsubs.push(
+      session.on('assistant.reasoning_delta', event => {
+        if (event.agentId === undefined) {
           if (__DEV__) {
             log.info(
               `[Copilot SDK] reasoning_delta: ${JSON.stringify(
@@ -867,45 +833,32 @@ export async function runConflictResolutionTurn(
           }
           reasoningBuffer += event.data.deltaContent
           flushReasoning(false)
-        })
-      )
-
-      // First message_delta marks the transition into the actual response (the
-      // JSON payload). Flush any leftover reasoning so it isn't stranded —
-      // idempotent once the reasoning buffer is empty.
-      unsubs.push(
-        session.on('assistant.message_delta', () => {
+        }
+      }),
+      session.on('assistant.message_delta', event => {
+        if (event.agentId === undefined) {
           flushReasoning(true)
-        })
-      )
-
-      // The assistant.message event contains the complete, final response
-      // content. This is the authoritative source — NOT the accumulated deltas.
-      unsubs.push(
-        session.on('assistant.message', event => {
-          const content = event.data.content
-          if (!content) {
-            finish(() => reject(new Error('No response from Copilot')))
-          } else {
-            finish(() => resolve(content))
-          }
-        })
-      )
-
-      unsubs.push(
-        session.on('session.error', event => {
-          finish(() =>
-            reject(new Error(`Copilot error: ${event.data.message}`))
-          )
-        })
-      )
-
-      // Send the prompt (fire-and-forget; events drive completion)
-      session.send({ prompt }).catch(err => {
-        finish(() => reject(err))
+        }
       })
-    })
+    )
+    const response = await sendCopilotPlanningRequest(
+      getCopilotPlanningSession(session),
+      { prompt, responseSchema: CopilotConflictResolutionResponseSchema },
+      turnSignal,
+      cancellationError,
+      data => new Error(`Copilot error: ${data.message}`)
+    )
+    if (turnSignal.aborted) {
+      throw cancellationError()
+    }
+    if (!response?.data.content) {
+      throw new Error('No response from Copilot')
+    }
+    flushReasoning(true)
+    return response.data.content
   } finally {
+    clearTimeout(timer)
+    unsubs.forEach(unsubscribe => unsubscribe())
     await session.disconnect().catch(() => {})
   }
 }
@@ -1246,12 +1199,12 @@ export class CopilotStore extends BaseStore {
       throwIfCancelled()
       const response = await sendCopilotPlanningRequest(
         session,
-        { prompt },
+        { prompt, responseSchema: CopilotAssistedCommitResponseSchema },
         signal,
         cancellationError
       )
       throwIfCancelled()
-      return parseCopilotAssistedCommitResponse(
+      return parseCopilotAssistedCommitStructuredResponse(
         analysis,
         response?.data.content,
         mode
@@ -1426,7 +1379,10 @@ export class CopilotStore extends BaseStore {
 
       const response = await sendCopilotMessageRequest(
         getCopilotMessageSession(session),
-        { prompt: userPrompt },
+        {
+          prompt: userPrompt,
+          responseSchema: CopilotCommitMessageResponseSchema,
+        },
         timeoutMs,
         {
           signal,

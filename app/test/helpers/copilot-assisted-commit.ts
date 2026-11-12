@@ -19,6 +19,7 @@ import {
 import {
   ICopilotPlanningClient,
   ICopilotPlanningSession,
+  CopilotResponseEvent,
 } from '../../src/lib/copilot-operation'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
 import {
@@ -134,7 +135,11 @@ export function assistantMessage(content: string): AssistantMessageEvent {
     id: 'synthetic-message',
     timestamp: new Date(0).toISOString(),
     parentId: null,
-    data: { messageId: 'synthetic-message', content },
+    data: {
+      messageId: 'synthetic-message',
+      originatingMessageId: 'synthetic-request',
+      content,
+    },
   }
 }
 
@@ -162,32 +167,39 @@ export function createMockPlanner(t: TestContext) {
     async (
       _options: MessageOptions
     ): Promise<AssistantMessageEvent | undefined> =>
-      assistantMessage(JSON.stringify(wholeSelectionResponse()))
+      assistantMessage(JSON.stringify({ result: wholeSelectionResponse() }))
   )
   const disconnect = t.mock.fn(async () => {})
-  const messages = new Set<(event: AssistantMessageEvent) => void>()
-  const idle = new Set<() => void>()
+  const events = new Set<(event: CopilotResponseEvent) => void>()
+  const emit = (event: CopilotResponseEvent) =>
+    events.forEach(handler => handler(event))
   const session: ICopilotPlanningSession = {
     onSessionError: handler => {
       errors.add(handler)
       return () => errors.delete(handler)
     },
     sendAndWait: send,
-    onAssistantMessage: handler => {
-      messages.add(handler)
-      return () => messages.delete(handler)
-    },
-    onIdle: handler => {
-      idle.add(handler)
-      return () => idle.delete(handler)
+    onResponseEvent: handler => {
+      events.add(handler)
+      return () => events.delete(handler)
     },
     send: async options => {
+      emit({
+        ...assistantMessage(''),
+        type: 'user.message',
+        data: { messageId: 'synthetic-request', content: options.prompt },
+      })
       const response = await send(options)
       if (response !== undefined) {
-        messages.forEach(handler => handler(response))
+        emit(response)
       }
-      idle.forEach(handler => handler())
-      return 'synthetic-message'
+      emit({
+        ...assistantMessage(''),
+        type: 'session.idle',
+        ephemeral: true,
+        data: {},
+      })
+      return 'synthetic-request'
     },
     disconnect,
   }
@@ -225,8 +237,10 @@ export function createMockPlanner(t: TestContext) {
     forceStop,
     listModels,
     cachedModels,
-    emitError: (data: SessionEventPayload<'session.error'>['data']) =>
-      errors.forEach(handler => handler(data)),
-    listenerCount: () => errors.size + messages.size + idle.size,
+    emitError: (data: SessionEventPayload<'session.error'>['data']) => {
+      errors.forEach(handler => handler(data))
+      emit({ ...assistantMessage(''), type: 'session.error', data })
+    },
+    listenerCount: () => errors.size + events.size,
   }
 }

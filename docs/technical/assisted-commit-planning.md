@@ -6,6 +6,8 @@ The [assisted commit feature owners](assisted-commit-runs.md) own the applicatio
 workflow, consent and optional push; the
 [transaction engine](assisted-commit-transactions.md) owns Git execution and
 recovery. Ordinary message generation uses a separate prompt and request path.
+All three Copilot generation features use per-run
+[SDK response schemas](copilot-structured-output.md).
 
 ## Public contracts
 
@@ -63,7 +65,11 @@ complete input preservation, not measured model grouping quality.
 
 ## Outcomes and the only fallback
 
-The wire protocol has three exact shapes:
+The backend-independent response contract has three exact shapes. SDK model
+output wraps exactly one of these outcomes in `{"result": ...}` and requests
+string descriptions (`""` for no body), so strict providers can represent the
+union without a root-level union or optional properties. The SDK adapter unwraps
+only that explicit envelope before applying these existing validators.
 
 ```json
 {

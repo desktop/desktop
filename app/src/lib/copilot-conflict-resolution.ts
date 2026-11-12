@@ -1,4 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject'
+import type { CopilotResponseSchema } from './copilot-operation'
 
 import {
   IConflictContextCommit,
@@ -59,6 +60,58 @@ export interface IRawFileResolution {
    * or `"delete"` to accept the deletion. When present, `hunks` is empty.
    */
   readonly action?: 'keep' | 'delete'
+}
+
+/**
+ * Per-run generation contract using required nullable fields for strict providers.
+ * Summary/references remain best-effort metadata in the application parser.
+ */
+export const CopilotConflictResolutionResponseSchema: CopilotResponseSchema = {
+  type: 'object',
+  properties: {
+    resolutions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          path: { type: 'string' },
+          hunks: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { resolvedContent: { type: 'string' } },
+              required: ['resolvedContent'],
+              additionalProperties: false,
+            },
+          },
+          reasoning: { type: 'string' },
+          action: {
+            anyOf: [
+              { type: 'string', enum: ['keep', 'delete'] },
+              { type: 'null' },
+            ],
+          },
+        },
+        required: ['path', 'hunks', 'reasoning', 'action'],
+        additionalProperties: false,
+      },
+    },
+    summary: { type: ['string', 'null'] },
+    references: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          type: { type: 'string', enum: ['pullRequest', 'commit'] },
+          id: { type: 'string' },
+        },
+        required: ['type', 'id'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['resolutions', 'summary', 'references'],
+  additionalProperties: false,
 }
 
 /** A reference the model considered material to its decision. */
@@ -229,7 +282,8 @@ Response format:
         { "resolvedContent": "merged content that replaces conflict 1" },
         { "resolvedContent": "merged content that replaces conflict 2" }
       ],
-      "reasoning": "What each side changed in this file, what you kept, and what you dropped or overrode."
+      "reasoning": "What each side changed in this file, what you kept, and what you dropped or overrode.",
+      "action": null
     },
     {
       "path": "deleted-or-modified/file.ts",
@@ -244,7 +298,7 @@ Field rules:
 
 hunks: An ordered array with one entry per conflict in the file, matching the "Conflict 1 of N", "Conflict 2 of N" order from the input. Each entry's resolvedContent is ONLY the merged content that replaces that specific conflict marker block (the region between <<<<<<< and >>>>>>>). Do NOT include surrounding non-conflicted code — the application splices each resolution into the original file automatically. If the resolution is to accept one side entirely, return that side's content verbatim. For an intentional deletion, use an empty string. For delete-vs-modify conflicts, hunks must be an empty array.
 
-action: Only for delete-vs-modify conflicts. Set to "keep" to preserve the modified file, or "delete" to accept the deletion. Use commit messages and PR context to determine intent — if the deletion was part of a refactoring that moved functionality elsewhere, prefer "delete"; if the modifications add important functionality that should be preserved, prefer "keep". Omit this field for regular text conflicts.
+action: Set to null for regular text conflicts. For delete-vs-modify conflicts, set to "keep" to preserve the modified file, or "delete" to accept the deletion. Use commit messages and PR context to determine intent — if the deletion was part of a refactoring that moved functionality elsewhere, prefer "delete"; if the modifications add important functionality that should be preserved, prefer "keep".
 
 reasoning: Terse, direct prose — enough detail to verify the decision, not a wall of text. State what each side did in this file, what you kept, and any trade-off. Typically 1-4 sentences depending on complexity.
 
