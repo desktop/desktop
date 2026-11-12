@@ -20,6 +20,8 @@ produces only JSON on stdout; diagnostics go to stderr. Each process accepts
 one JSON request, bounded to 32 MiB. An evaluation error returns a structured
 envelope and nonzero exit status. Startup/dependency failures can prevent an
 envelope from being produced and must be treated as infrastructure failures.
+SIGINT and SIGTERM cancel input collection, model preflight, and active planning;
+preflight also retains its independent 60-second deadline.
 
 The versioned contracts are in `script/copilot-eval/protocol.ts`. Unknown
 versions, fields, features, input kinds, and escaping fixture paths are rejected.

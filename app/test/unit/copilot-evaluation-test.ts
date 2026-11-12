@@ -4,7 +4,11 @@ import { promisify } from 'util'
 import { describe, it } from 'node:test'
 import { join } from 'path'
 import { mkdir, writeFile } from 'fs/promises'
-import { runCopilotEvaluation } from '../../src/lib/copilot-evaluation'
+import { CopilotClient } from '@github/copilot-sdk'
+import {
+  listCopilotEvaluationModels,
+  runCopilotEvaluation,
+} from '../../src/lib/copilot-evaluation'
 import { CopilotAssistedCommitResponseSchema } from '../../src/lib/copilot-assisted-commit'
 import { isolateGitConfig } from '../helpers/git-config'
 import { createTempDirectory } from '../helpers/temp'
@@ -270,6 +274,39 @@ describe('Copilot evaluation bridge', () => {
     })
     assert.strictEqual(timeout.error?.code, 'invalid-request')
     assert.strictEqual(timeout.turns.length, 0)
+  })
+
+  it('cancels model preflight during startup without requesting model metadata', async t => {
+    const previous = process.env.COPILOT_GITHUB_TOKEN
+    process.env.COPILOT_GITHUB_TOKEN = 'synthetic-evaluation-token'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.COPILOT_GITHUB_TOKEN
+      } else {
+        process.env.COPILOT_GITHUB_TOKEN = previous
+      }
+    })
+    const controller = new AbortController()
+    const start = t.mock.method(CopilotClient.prototype, 'start', async () => {
+      controller.abort()
+    })
+    const list = t.mock.method(
+      CopilotClient.prototype,
+      'listModels',
+      async () => assert.fail('Cancelled preflight requested model metadata')
+    )
+    const stop = t.mock.method(
+      CopilotClient.prototype,
+      'forceStop',
+      async () => {}
+    )
+    await assert.rejects(
+      listCopilotEvaluationModels(controller.signal),
+      /Model preflight cancelled/
+    )
+    assert.strictEqual(start.mock.callCount(), 1)
+    assert.strictEqual(list.mock.callCount(), 0)
+    assert.strictEqual(stop.mock.callCount(), 1)
   })
 
   it('preserves malformed output and never retries it into a pass', async () => {

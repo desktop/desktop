@@ -74,21 +74,31 @@ function createLiveClient(repositoryPath: string, home: string): CopilotClient {
 }
 
 /** List models with explicit credentials and an isolated, owned SDK runtime. */
-export async function listCopilotEvaluationModels(): Promise<
-  ReadonlyArray<string>
-> {
+export async function listCopilotEvaluationModels(
+  signal?: AbortSignal
+): Promise<ReadonlyArray<string>> {
+  signal?.throwIfAborted()
   explicitToken()
+  const deadline = AbortSignal.timeout(60000)
+  const cancellation =
+    signal === undefined ? deadline : AbortSignal.any([signal, deadline])
   const root = await mkdtemp(join(tmpdir(), 'desktop-eval-models-'))
   const client = createLiveClient(root, root)
   try {
     return await awaitCancellableCopilotOperation(
       async () => {
         await client.start()
+        cancellation.throwIfAborted()
         return (await client.listModels()).map(model => model.id)
       },
       {
-        signal: AbortSignal.timeout(60000),
-        cancellationError: () => new Error('Model preflight timed out'),
+        signal: cancellation,
+        cancellationError: () =>
+          new Error(
+            signal?.aborted
+              ? 'Model preflight cancelled'
+              : 'Model preflight timed out'
+          ),
       }
     )
   } finally {
