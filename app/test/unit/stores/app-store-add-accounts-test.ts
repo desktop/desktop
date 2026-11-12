@@ -18,10 +18,13 @@ import { Popup, PopupType } from '../../../src/models/popup'
 import { createMockAPI, createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
+import type { StatsStore } from '../../../src/lib/stats'
+import type { CloneRepositoryOptions } from '../../../src/models/clone-options'
 
 describe('AppStore explicitly adding repositories', () => {
   let appStore: AppStore
   let statsDb: TestStatsDatabase
+  let statsStore: StatsStore
   let stores: ITestStores
   const endpoint = 'https://api.github.com'
   const alice = new Account('alice', endpoint, 'alice-token', [], '', 1, '')
@@ -82,6 +85,7 @@ describe('AppStore explicitly adding repositories', () => {
     statsDb = new TestStatsDatabase()
     await statsDb.reset()
     const stats = new StatsStore(statsDb, new TestActivityMonitor(), fakePost)
+    statsStore = stats
     const coordinator = new PullRequestCoordinator(
       stores.pullRequestStore,
       stores.repositoriesStore
@@ -823,6 +827,22 @@ describe('AppStore explicitly adding repositories', () => {
     )
   })
 
+  it('records an add as unassigned when the account picker is cancelled', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({ fetchRepositoryIfAccessible: async () => apiRepository })
+    )
+    t.mock.method(appStore, '_chooseRepositoryAccount', async () => undefined)
+    const counters = new Array<string>()
+    t.mock.method(statsStore, 'increment', async (key: string) => {
+      counters.push(key)
+    })
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added[0].login, null)
+    assert.ok(counters.includes('addRepositoryAccountUnassignedCount'))
+    assert.ok(!counters.includes('addRepositoryAccountChosenCount'))
+  })
+
   it('skips accounts whose access check fails when adding a repository', async t => {
     const repository = await setupRepository(t)
     t.mock.method(API, 'fromAccount', (account: Account) =>
@@ -952,6 +972,55 @@ describe('AppStore explicitly adding repositories', () => {
 
     it('assigns nothing when the selected account is no longer signed in', async t => {
       assert.strictEqual(await chooseForClone(t, 'carol'), null)
+    })
+
+    describe('recording account picker stats', () => {
+      async function recordedCounters(
+        t: TestContext,
+        options: CloneRepositoryOptions
+      ) {
+        const counters = new Array<string>()
+        t.mock.method(statsStore, 'increment', async (key: string) => {
+          counters.push(key)
+        })
+        t.mock.method(
+          stores.cloningRepositoriesStore,
+          'clone',
+          async (
+            _url: string,
+            _path: string,
+            _options: unknown,
+            chooseAccount: () => Promise<unknown>
+          ) => {
+            await chooseAccount()
+            return true
+          }
+        )
+        await appStore._clone(
+          'https://github.com/owner/repo',
+          '/clone',
+          options
+        ).promise
+        await setImmediate()
+        return counters
+      }
+
+      it('records a clone dialog clone on a multi-account endpoint', async t => {
+        assert.deepStrictEqual(
+          await recordedCounters(t, {
+            account: { endpoint, login: 'bob' },
+            fromCloneDialog: true,
+          }),
+          ['cloneFromAccountPickerOnMultiAccountEndpointCount']
+        )
+      })
+
+      it('does not record cloning a missing repository again', async t => {
+        assert.deepStrictEqual(
+          await recordedCounters(t, { account: { endpoint, login: 'bob' } }),
+          []
+        )
+      })
     })
   })
 

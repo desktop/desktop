@@ -72,6 +72,7 @@ async function renderSettings(repository = createRepository()) {
   >(async (_, login) => createRepository(login))
   const setRemoteURL = mock.fn<Dispatcher['setRemoteURL']>(async () => {})
   const refreshAuthor = mock.fn<Dispatcher['refreshAuthor']>(async () => {})
+  const incrementMetric = mock.fn<Dispatcher['incrementMetric']>(async () => {})
   const onDismissed = mock.fn()
   const dispatcher: Pick<
     Dispatcher,
@@ -79,11 +80,13 @@ async function renderSettings(repository = createRepository()) {
     | 'setRemoteURL'
     | 'refreshAuthor'
     | 'updateRepositoryWorkflowPreferences'
+    | 'incrementMetric'
   > = {
     updateRepositoryAccount,
     setRemoteURL,
     refreshAuthor,
     updateRepositoryWorkflowPreferences: async () => {},
+    incrementMetric,
   }
   const props = {
     repository,
@@ -100,6 +103,7 @@ async function renderSettings(repository = createRepository()) {
   return {
     ...view,
     onDismissed,
+    incrementMetric,
     updateRepositoryAccount,
     setRemoteURL,
     refreshAuthor,
@@ -167,6 +171,10 @@ describe('RepositorySettings account', () => {
     assert.deepStrictEqual(
       view.updateRepositoryAccount.mock.calls[0].arguments,
       [repository, 'work']
+    )
+    assert.deepStrictEqual(
+      view.incrementMetric.mock.calls.map(c => c.arguments[0]),
+      ['repositoryAccountChangedFromSettingsCount']
     )
     assert.strictEqual(setConfigValue.mock.callCount(), 0)
     assert.strictEqual(view.refreshAuthor.mock.callCount(), 0)

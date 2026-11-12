@@ -210,6 +210,7 @@ import {
   getAccountForCommitMessageGeneration,
   getAccountForCopilotConflictResolution,
   getAccountForRepository,
+  getAccountForStatsAttribution,
 } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -300,6 +301,12 @@ import {
   Shell,
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
+import {
+  AssignmentOutcome,
+  countAdditionalAccountSignIns,
+  getAssignmentOutcome,
+  isMultiAccountEndpoint,
+} from '../stats/multi-account-stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
@@ -1128,6 +1135,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.signInStore.onDidError(error => this.emitError(error))
 
     this.accountsStore.onDidUpdate(accounts => {
+      this.recordAdditionalAccountSignIns(this.accounts, accounts)
       this.accounts = accounts
       this.cachedRepoRulesets = new Map()
       this.statsStore.setUsesShortLivedToken(
@@ -4101,20 +4109,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.increment('coAuthoredCommits')
     }
 
-    const account = getAccountForRepository(this.accounts, repository)
     if (repository.gitHubRepository !== null) {
-      if (account !== null) {
-        if (isDotComAccount(account)) {
+      const endpointAccount = getAccountForStatsAttribution(
+        this.accounts,
+        repository
+      )
+      if (endpointAccount !== null) {
+        if (isDotComAccount(endpointAccount)) {
           this.statsStore.increment('dotcomCommits')
         } else {
           this.statsStore.increment('enterpriseCommits')
         }
+      }
 
-        const { commitAuthor } = repositoryState
-        if (commitAuthor !== null) {
-          if (!isAttributableEmailFor(account, commitAuthor.email)) {
-            this.statsStore.increment('unattributedCommits')
-          }
+      // The endpoint fallback doesn't identify the commit author, so only
+      // check attribution against the repository's own account.
+      const account = getAccountForRepository(this.accounts, repository)
+      const { commitAuthor } = repositoryState
+      if (account !== null && commitAuthor !== null) {
+        if (!isAttributableEmailFor(account, commitAuthor.email)) {
+          this.statsStore.increment('unattributedCommits')
         }
       }
 
@@ -5586,6 +5600,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  private recordAddRepositoryAssignment(outcome: AssignmentOutcome | null) {
+    if (outcome === 'auto') {
+      this.statsStore.increment('addRepositoryAccountAutoAssignedCount')
+    } else if (outcome === 'chosen') {
+      this.statsStore.increment('addRepositoryAccountChosenCount')
+    } else if (outcome === 'unassigned') {
+      this.statsStore.increment('addRepositoryAccountUnassignedCount')
+    }
+  }
+
+  private recordAdditionalAccountSignIns(
+    previous: ReadonlyArray<Account>,
+    next: ReadonlyArray<Account>
+  ) {
+    const count = countAdditionalAccountSignIns(previous, next)
+    if (count > 0) {
+      this.statsStore.increment('additionalAccountSignInCount', count)
+    }
+  }
+
   /**
    * Refreshes the GitHub repository information for the currently selected
    * repository when the active account changes. This ensures that permission
@@ -6077,8 +6111,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (aborted) {
       return
     }
+    // Attribute the push to the repository's assigned account, or another
+    // signed-in account on its endpoint, so that GitHub and GHES pushes can be
+    // told apart from pushes to generic remotes.
     this.statsStore.recordPush(
-      getAccountForRepository(this.accounts, repository),
+      getAccountForStatsAttribution(this.accounts, repository),
       options
     )
     gitStore.clearTagsToPush()
@@ -6451,6 +6488,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // The account is assigned before pushing so Git uses its credentials.
     this.adoptRepository(repository)
 
+    if (isMultiAccountEndpoint(this.accounts, account.endpoint)) {
+      this.statsStore.increment('publishOnMultiAccountEndpointCount')
+    }
+
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
     if (gitStore.tip.kind === TipState.Valid) {
@@ -6517,6 +6558,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     promise: Promise<boolean>
     repository: CloningRepository
   } {
+    let recordAssignmentStats = () => {}
     const promise = this.cloningRepositoriesStore.clone(
       url,
       path,
@@ -6525,6 +6567,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const accounts = await this.accountsStore.getAll()
         const { account } = options
         if (account !== undefined) {
+          if (
+            options.fromCloneDialog === true &&
+            isMultiAccountEndpoint(accounts, account.endpoint)
+          ) {
+            recordAssignmentStats = () =>
+              this.statsStore.increment(
+                'cloneFromAccountPickerOnMultiAccountEndpointCount'
+              )
+          }
           // The user picked this repository from the list of repositories
           // visible to this account, so there's no need to probe for access.
           // If access has since been lost the clone fails and nothing is
@@ -6532,13 +6583,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
           const selected = accounts.filter(a => isSameAccount(a, account))
           return matchGitHubRepository(selected, url)
         }
-        return chooseAccountForRemoteRepository(
+        let chose = false
+        const assignment = await chooseAccountForRemoteRepository(
           accounts,
           url,
           path,
-          (repository, accounts) =>
-            this._chooseRepositoryAccount(repository, accounts)
+          (repository, accounts) => {
+            chose = true
+            return this._chooseRepositoryAccount(repository, accounts)
+          }
         )
+        const outcome = getAssignmentOutcome(assignment, chose, accounts, url)
+        if (options.fromCloneDialog === true && outcome !== null) {
+          recordAssignmentStats = () =>
+            this.statsStore.increment(
+              outcome === 'auto'
+                ? 'cloneAccountAutoAssignedCount'
+                : outcome === 'chosen'
+                ? 'cloneAccountChosenCount'
+                : 'cloneAccountUnassignedCount'
+            )
+        }
+        return assignment
       }
     )
     const repository = this.cloningRepositoriesStore.repositories.find(
@@ -6548,6 +6614,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     promise.then(success => {
       if (success) {
         this.statsStore.recordCloneRepository()
+        recordAssignmentStats()
       }
     })
 
@@ -9421,9 +9488,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       )
       if (clearAssignments === undefined) {
+        this.statsStore.increment('accountSignOutCancelledCount')
         return
       }
+      this.statsStore.increment('accountSignOutWithAssignmentsCount')
       if (clearAssignments) {
+        this.statsStore.increment('accountSignOutClearedAssignmentsCount')
         await this.repositoriesStore.clearAccountAssignments(account)
         for (const repository of await this.repositoriesStore.getAll()) {
           this.adoptRepository(repository)
@@ -9758,6 +9828,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         const remote = gitStore.defaultRemote
         const accounts = await this.accountsStore.getAll()
+        let chose = false
         const assignment =
           clonedAssignment !== undefined
             ? clonedAssignment
@@ -9767,14 +9838,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 accounts,
                 remote.url,
                 validatedPath,
-                (repository, candidates) =>
-                  this._chooseRepositoryAccount(repository, candidates)
+                (repository, candidates) => {
+                  chose = true
+                  return this._chooseRepositoryAccount(repository, candidates)
+                }
               ).catch(e => {
                 // Add the repository unassigned rather than leaving it
                 // half-added.
                 this.emitError(e)
                 return null
               })
+        if (clonedAssignment === undefined && remote !== null) {
+          // Cancelling the picker still adds the repository, unassigned.
+          this.recordAddRepositoryAssignment(
+            getAssignmentOutcome(
+              assignment ?? null,
+              chose,
+              accounts,
+              remote.url
+            )
+          )
+        }
         let refreshedRepo = addedRepo
         if (assignment != null) {
           const gitHubRepository = isAccessibleRepository(assignment)

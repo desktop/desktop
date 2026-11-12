@@ -16,6 +16,26 @@ export function getAccountForRepository(
 }
 
 /**
+ * Get the account used to classify repository activity in usage stats.
+ *
+ * Prefers the repository's assigned account, falling back to any signed-in
+ * account for the repository's endpoint so that unassigned repositories, or
+ * repositories assigned to a signed-out account, are still attributed to
+ * GitHub.com or GitHub Enterprise. Never use this for authentication.
+ */
+export function getAccountForStatsAttribution(
+  accounts: ReadonlyArray<Account>,
+  repository: Repository
+): Account | null {
+  const endpoint = repository.gitHubRepository?.endpoint
+  return (
+    getAccountForRepository(accounts, repository) ??
+    accounts.find(a => endpoint !== undefined && a.endpoint === endpoint) ??
+    null
+  )
+}
+
+/**
  * Get the authenticated account to use for commit message generation.
  */
 export function getAccountForCommitMessageGeneration(
