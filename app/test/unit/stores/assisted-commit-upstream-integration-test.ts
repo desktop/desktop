@@ -113,6 +113,50 @@ async function assignedAccountHarness(t: TestContext) {
 }
 
 describe('assisted runs with repository-assigned accounts', () => {
+  for (const withdrawRollout of [false, true]) {
+    it(`uses an account rollout outside preview and ${
+      withdrawRollout ? 'revokes' : 'retains'
+    } its prepared intent`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const original = h.appStore['accounts'][0]
+      const account = new Account(
+        original.login,
+        original.endpoint,
+        original.token,
+        original.emails,
+        original.avatarURL,
+        original.id,
+        original.name,
+        original.plan,
+        original.copilotEndpoint,
+        true,
+        ['desktop_copilot_assisted_commits'],
+        original.copilotLicenseType
+      )
+      h.stores.accountsStore['credentials'].inheritSession(original, account)
+      h.appStore['accounts'] = [account]
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      assert.equal(await h.assisted.context.isAvailable(repository), true)
+      const prepared = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      if (withdrawRollout) {
+        h.appStore['accounts'] = [original]
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        prepared
+      )
+      assert.equal(outcome.kind, withdrawRollout ? 'error' : 'local-ready')
+      assert.equal(h.propose.mock.callCount(), withdrawRollout ? 0 : 1)
+      assert.equal(await count(repository), withdrawRollout ? 1 : 2)
+    })
+  }
+
   it('uses the current assigned account for a stale repository snapshot, not the first account on its endpoint', async t => {
     const h = await assignedAccountHarness(t)
     h.appStore._setSelectedCopilotModel(

@@ -130,7 +130,7 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
             </LinkButton>
           </p>
         </div>
-        {enableCopilotAssistedCommit() && (
+        {enableCopilotAssistedCommit(this.props.account) && (
           <div className="copilot-section">
             {this.renderFeatureModelPicker(
               copilotModels,

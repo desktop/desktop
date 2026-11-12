@@ -1508,6 +1508,22 @@ describe('CopilotPreferences', () => {
       })
     }
 
+    it('shows the assisted picker for an opted-in account without preview features', () => {
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const view = render(
+        <CopilotPreferences
+          {...defaults()}
+          accounts={[
+            makeAccount({ features: ['desktop_copilot_assisted_commits'] }),
+          ]}
+        />
+      )
+      assert.strictEqual(getModelPickerButtons(view.container).length, 3)
+      assert.ok(
+        screen.getByText(__DARWIN__ ? 'Assisted Commits' : 'Assisted commits')
+      )
+    })
+
     it('hides the assisted picker when the feature is disabled', () => {
       delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
       const view = render(<CopilotPreferences {...defaults()} />)

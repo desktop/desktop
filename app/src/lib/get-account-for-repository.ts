@@ -33,13 +33,14 @@ export function getAccountForCopilot(
 }
 
 /**
- * Get a Desktop-enabled account for assisted commits when the feature is enabled.
+ * Get a Desktop-enabled account whose assisted-commit rollout is enabled.
  */
 export function getAccountForCopilotAssistedCommits(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | undefined {
-  return enableCopilotAssistedCommit()
-    ? getAccountForCopilot(accounts, repository)
-    : undefined
+  return getAccountForCopilot(
+    accounts.filter(enableCopilotAssistedCommit),
+    repository
+  )
 }

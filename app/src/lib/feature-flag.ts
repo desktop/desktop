@@ -1,3 +1,5 @@
+import { Account } from '../models/account'
+
 const Disable = false
 
 /**
@@ -95,8 +97,12 @@ export const enableResizingToolbarButtons = () => true
 /**
  * Should we offer the Copilot-assisted commit mode, where Copilot splits the
  * selected changes into commits and writes their messages?
+ *
+ * Enabled in development/preview or through the account rollout.
  */
-export const enableCopilotAssistedCommit = enableDevelopmentFeatures
+export const enableCopilotAssistedCommit = (account: Account) =>
+  enableDevelopmentFeatures() ||
+  (account.features ?? []).includes('desktop_copilot_assisted_commits')
 
 export function enableAccessibleListToolTips(): boolean {
   return enableBetaFeatures()

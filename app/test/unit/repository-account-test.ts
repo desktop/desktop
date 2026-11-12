@@ -67,7 +67,11 @@ describe('Repository account resolution', () => {
 })
 
 describe('Copilot account resolution', () => {
-  function withCopilotAccess(account: Account, enabled: boolean | undefined) {
+  function withCopilotAccess(
+    account: Account,
+    enabled: boolean | undefined,
+    features?: ReadonlyArray<string>
+  ) {
     return new Account(
       account.login,
       account.endpoint,
@@ -79,7 +83,7 @@ describe('Copilot account resolution', () => {
       account.plan,
       account.copilotEndpoint,
       enabled,
-      []
+      features
     )
   }
 
@@ -160,6 +164,50 @@ describe('Copilot account resolution', () => {
         repository('alice')
       ),
       undefined
+    )
+  })
+  it('selects only entitled accounts with their own assisted rollout flag outside preview', t => {
+    const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreview
+      }
+    })
+    const features = ['desktop_copilot_assisted_commits']
+    const assigned = withCopilotAccess(alice, true)
+    const optedIn = withCopilotAccess(bob, true, features)
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [assigned, optedIn],
+        repository('alice')
+      ),
+      optedIn
+    )
+    const assignedOptedIn = withCopilotAccess(alice, true, features)
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [optedIn, assignedOptedIn],
+        repository('ALICE')
+      ),
+      assignedOptedIn
+    )
+    for (const account of [
+      assigned,
+      withCopilotAccess(alice, true, ['unrelated-feature']),
+      withCopilotAccess(alice, false, features),
+      withCopilotAccess(alice, undefined, features),
+    ]) {
+      assert.equal(
+        getAccountForCopilotAssistedCommits([account], repository('alice')),
+        undefined
+      )
+    }
+    assert.equal(
+      getAccountForCopilot([assigned, optedIn], repository('alice')),
+      assigned
     )
   })
 })

@@ -471,6 +471,32 @@ describe('CommitMessage', () => {
       assert.strictEqual(requests.length, 0)
     })
 
+    it('offers assisted commit modes for an opted-in account without preview features', () => {
+      const account = createAccount()
+      const { rerender } = renderWithCommitModes()
+      delete process.env[PreviewFeaturesEnv]
+      rerender({
+        accounts: [
+          new Account(
+            account.login,
+            account.endpoint,
+            account.token,
+            account.emails,
+            account.avatarURL,
+            account.id,
+            account.name,
+            account.plan,
+            account.copilotEndpoint,
+            true,
+            ['desktop_copilot_assisted_commits']
+          ),
+        ],
+      })
+      assert.ok(screen.getByRole('button', { name: 'Choose how to commit' }))
+      switchToCopilotMode()
+      assert.ok(screen.getByText('Let Copilot write your commits'))
+    })
+
     it('does not offer commit modes when the feature is disabled', () => {
       const { rerender } = renderWithCommitModes()
       switchToCopilotMode()

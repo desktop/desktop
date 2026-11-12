@@ -190,8 +190,10 @@ defaults. The planner omits the obsolete `remoteSession` option: SDK 1.0.18
 documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
 exposes that option. No replacement remote/export policy is emulated.
 
-Callers use `getAccountForCopilotAssistedCommits`, which adds the assisted feature
-flag to shared `getAccountForCopilot` account selection and Desktop entitlement.
+Callers use `getAccountForCopilotAssistedCommits`, which filters accounts by the
+assisted rollout before shared `getAccountForCopilot` selection and Desktop
+entitlement. Development/preview enables the rollout for all accounts; otherwise
+the selected account must have `desktop_copilot_assisted_commits` in `features`.
 Runtime availability and issuing-session authorization remain required; the
 feature's dialog owner manages assisted consent. The independent `assisted-commit`
 model preference reuses the existing picker and account-scoped persistence, not

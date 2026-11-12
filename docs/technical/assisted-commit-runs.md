@@ -139,7 +139,10 @@ Desktop-enabled eligible account and the packaged runtime.
 Shared `getAccountForCopilot` selection serves ordinary generation and conflict
 resolution, preferring the repository-assigned account, then the first
 Desktop-enabled account. `getAccountForCopilotAssistedCommits` uses that same
-selection policy only when the assisted-commit feature flag is enabled.
+selection policy among accounts whose assisted-commit rollout is enabled:
+development/preview features are enabled **or** that account's `features` contains
+`desktop_copilot_assisted_commits`. A different account's flag cannot authorize
+the selected account. The model picker uses its owning account's rollout.
 Desktop entitlement remains required; retired commit-message, SDK and conflict
 rollout flags are not eligibility gates. Ordinary generation always uses the SDK.
 The account-scoped `assisted-commit` model preference resolves to
