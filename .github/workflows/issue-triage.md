@@ -2,10 +2,9 @@
 description: |
   Agentic issue-triage for GitHub Desktop. On newly opened issues it follows the
   team's shared triage skills (hosted in desktop/gh-cli-and-desktop-shared-workflows)
-  and requests direct application of the minimal correct end-state labels (with
-  issue-intents rationale and confidence), plus one short evidence-based rationale
-  comment. The objective is to drive the issue to a state where the needs-triage
-  label is automatically removed.
+  and requests direct application of the minimal correct end-state labels, plus
+  one short evidence-based comment with rationale and confidence. The objective is
+  to drive the issue to a state where the needs-triage label is automatically removed.
 
 on:
   issues:
@@ -23,8 +22,7 @@ permissions:
   copilot-requests: write
   issues: read
 
-# GH_AW_RUNTIME_FEATURES enables native issue-intent rationale/confidence at runtime.
-# It is INERT unless a repo admin sets the repository variable to `issue_intents`.
+# Runtime flags are preserved, but add-labels disables native issue-intents below.
 env:
   GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
 
@@ -49,7 +47,7 @@ safe-outputs:
     private-key: ${{ secrets.DESKTOP_TRIAGE_APP_PRIVATE_KEY }}
   add-labels:
     max: 3
-    issue-intent: true
+    issue-intent: false
     allowed:
       - bug
       - priority-1
@@ -135,10 +133,9 @@ label-triggered workflows may comment on or close the issue.
 
 Based on your classification, use `add-labels` to request direct application of the
 appropriate labels (max 3, only from the allowlist above). Pass each label as a
-structured object containing `name`, `rationale`, `confidence`, and `suggest: false`.
-Use `LOW`, `MEDIUM`, or `HIGH` for `confidence` and attach a clear rationale to each
-label. Do not pass bare label-name strings or request suggestions requiring maintainer
-approval.
+label-name string in the `labels` array (for example: `["bug", "priority-3"]`).
+Do not send label objects or native issue-intent metadata, or request suggestions
+requiring maintainer approval.
 
 When calling `add-labels`, explicitly set `item_number` to
 `${{ github.event.issue.number || inputs.issue_number }}`.
@@ -150,10 +147,11 @@ been applied when queuing a request or writing the required comment.
 
 After deciding, post **one** comment on issue
 #${{ github.event.issue.number || inputs.issue_number }}. Start with a 2-3 sentence
-triage summary explaining which label(s) you are requesting (if any) and why, in plain
-language. For a reported bug, follow it with an **Initial hypothesis** heading and one
-short paragraph containing the technical investigation from Step 5. The hypothesis
-paragraph is separate from the 2-3 sentence triage summary limit.
+triage summary explaining which label(s) you are requesting (if any), why, and your
+confidence (`LOW`, `MEDIUM`, or `HIGH`) for each, in plain language. For a reported bug,
+follow it with an **Initial hypothesis** heading and one short paragraph containing the
+technical investigation from Step 5. The hypothesis paragraph is separate from the 2-3
+sentence triage summary limit.
 
 Keep this comment factual and specific:
 - Cite concrete evidence from the issue (for example: error text, reproducible steps,
