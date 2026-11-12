@@ -350,6 +350,13 @@ export function buildDefaultMenuTemplate({
         click: emit('view-repository-on-github'),
       },
       {
+        id: 'view-upstream-repository-on-github',
+        label: __DARWIN__
+          ? 'View Upstream on GitHub'
+          : 'View upstre&am on GitHub',
+        click: emit('view-upstream-repository-on-github'),
+      },
+      {
         label: __DARWIN__
           ? `Open in ${selectedShell ?? 'Shell'}`
           : `O&pen in ${selectedShell ?? 'shell'}`,
