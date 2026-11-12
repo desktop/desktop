@@ -370,6 +370,25 @@ describe('Copilot evaluation bridge', () => {
     assert.strictEqual(result.validation?.preservedWorktree, true)
   })
 
+  it('materializes a replacement child before its parent deletion in the file map', async () => {
+    const result = await runCopilotEvaluation(
+      request({
+        kind: 'repository',
+        baseFiles: { replaced: 'old file\n' },
+        files: { 'replaced/child': 'new child\n', replaced: null },
+        selection: [{ path: 'replaced' }, { path: 'replaced/child' }],
+      })
+    )
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.deepStrictEqual(
+      result.analysis?.changes.map(change => change.path).sort(),
+      ['replaced', 'replaced/child']
+    )
+    assert.strictEqual(result.validation?.preservedHead, true)
+    assert.strictEqual(result.validation?.preservedIndex, true)
+    assert.strictEqual(result.validation?.preservedWorktree, true)
+  })
+
   it('records both turns of the canonical unsafe-split fallback', async () => {
     const result = await runCopilotEvaluation({
       ...request({

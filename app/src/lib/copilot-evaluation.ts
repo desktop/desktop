@@ -254,11 +254,15 @@ async function writeFiles(
   root: string,
   files: Readonly<Record<string, string | null>>
 ): Promise<void> {
-  for (const [path, content] of Object.entries(files)) {
-    const target = join(root, path)
+  const entries = Object.entries(files)
+  for (const [path, content] of entries) {
     if (content === null) {
-      await rm(target)
-    } else {
+      await rm(join(root, path))
+    }
+  }
+  for (const [path, content] of entries) {
+    if (content !== null) {
+      const target = join(root, path)
       await mkdir(dirname(target), { recursive: true })
       await writeFile(target, content, 'utf8')
     }
