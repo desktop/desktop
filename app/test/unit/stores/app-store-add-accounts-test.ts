@@ -827,6 +827,22 @@ describe('AppStore explicitly adding repositories', () => {
     )
   })
 
+  it('records an add as unassigned when the account picker is cancelled', async t => {
+    const repository = await setupRepository(t)
+    t.mock.method(API, 'fromAccount', () =>
+      createMockAPI({ fetchRepositoryIfAccessible: async () => apiRepository })
+    )
+    t.mock.method(appStore, '_chooseRepositoryAccount', async () => undefined)
+    const counters = new Array<string>()
+    t.mock.method(statsStore, 'increment', async (key: string) => {
+      counters.push(key)
+    })
+    const added = await appStore._addRepositories([repository.path])
+    assert.strictEqual(added[0].login, null)
+    assert.ok(counters.includes('addRepositoryAccountUnassignedCount'))
+    assert.ok(!counters.includes('addRepositoryAccountChosenCount'))
+  })
+
   it('skips accounts whose access check fails when adding a repository', async t => {
     const repository = await setupRepository(t)
     t.mock.method(API, 'fromAccount', (account: Account) =>

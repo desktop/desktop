@@ -9907,8 +9907,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
                 return null
               })
         if (clonedAssignment === undefined && remote !== null) {
+          // Cancelling the picker still adds the repository, unassigned.
           this.recordAddRepositoryAssignment(
-            getAssignmentOutcome(assignment, chose, accounts, remote.url)
+            getAssignmentOutcome(
+              assignment ?? null,
+              chose,
+              accounts,
+              remote.url
+            )
           )
         }
         let refreshedRepo = addedRepo

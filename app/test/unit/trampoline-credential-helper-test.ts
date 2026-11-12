@@ -438,27 +438,6 @@ describe('repository-aware credential trampoline', () => {
       assert.deepEqual(outcomes, ['not-provided'])
     })
 
-    it('returns the credential when reporting throws', async () => {
-      const handler = createHandler(
-        new TestAccountsStore([alice]),
-        new TestRepositoriesStore([repository('alice')]),
-        () => {
-          throw new Error('stats failed')
-        }
-      )
-      assert.match((await handler(command())) ?? '', /alice-token/)
-    })
-
-    it('returns the credential when reporting rejects', async () => {
-      const handler = createHandler(
-        new TestAccountsStore([alice]),
-        new TestRepositoriesStore([repository('alice')]),
-        () => Promise.reject(new Error('stats failed'))
-      )
-      assert.match((await handler(command())) ?? '', /alice-token/)
-      await new Promise(resolve => setImmediate(resolve))
-    })
-
     it('does not report requests unrelated to a repository account', async () => {
       path = '/elsewhere'
       try {

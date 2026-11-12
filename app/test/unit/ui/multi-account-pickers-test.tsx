@@ -384,6 +384,7 @@ describe('Clone Repository across accounts', () => {
     assert.deepStrictEqual(options, {
       defaultBranch: undefined,
       account: { endpoint: enterpriseEndpoint, login: 'carol' },
+      fromCloneDialog: true,
     })
   })
 

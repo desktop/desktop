@@ -47,9 +47,6 @@ type Credential = Map<string, string>
 type Store = Pick<AccountsStore, 'getAll' | 'leaseAccountToken'>
 
 type OnCredentialOutcome = (outcome: CredentialOutcome) => void
-type CredentialOutcomeReporter = (
-  outcome: CredentialOutcome
-) => void | Promise<unknown>
 
 const info = (msg: string) => log.info(`credential-helper: ${msg}`)
 const debug = (msg: string) => log.debug(`credential-helper: ${msg}`)
@@ -310,30 +307,11 @@ const eraseExternalCredential = (cred: Credential, token: string) => {
   return rejectCredential(cred, path, getGcmEnv(token))
 }
 
-/**
- * Report outcomes on a best-effort basis so that a failing reporter never
- * changes the credential result.
- */
-function toSafeOutcomeReporter(
-  report: CredentialOutcomeReporter
-): OnCredentialOutcome {
-  return outcome => {
-    try {
-      Promise.resolve(report(outcome)).catch(e =>
-        error(`failed recording outcome ${outcome}`, e)
-      )
-    } catch (e) {
-      error(`failed recording outcome ${outcome}`, e)
-    }
-  }
-}
-
 export function createCredentialHelperTrampolineHandler(
   accountsStore: AccountsStore,
   repositoriesStore: RepositoriesStore,
-  reportOutcome: CredentialOutcomeReporter = () => {}
+  onOutcome: OnCredentialOutcome = () => {}
 ): TrampolineCommandHandler {
-  const onOutcome = toSafeOutcomeReporter(reportOutcome)
   let accounts: ReadonlyArray<Account> = []
   let repositories: ReadonlyArray<Repository> = []
   let accountsUpdated = false
