@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Path from 'path'
-
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -1106,6 +1105,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     document.addEventListener('focus', this.onDocumentFocus, {
       capture: true,
     })
+    window.addEventListener('wheel', this.onCtrlPlusWheel)
   }
 
   private onDocumentFocus = (event: FocusEvent) => {
@@ -1243,6 +1243,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
       }
     }
+  }
+
+  /** Zoom in or out when Ctrl/Cmd + Scroll Up or Ctrl/Cmd + Scroll Down is executed. */
+  private onCtrlPlusWheel = (event: WheelEvent) => {
+    if (event.defaultPrevented || !(event.ctrlKey || event.metaKey)) {
+      return
+    }
+    const direction = event.deltaY < 0 ? 'in' : 'out'
+    ipcRenderer.invoke('zoom', direction)
   }
 
   private async handleDragAndDrop(fileList: FileList) {
