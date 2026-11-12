@@ -66,7 +66,7 @@ export function makeCopilotAccount(): Account {
     'free',
     undefined,
     true,
-    ['desktop_copilot_generate_commit_message'],
+    [],
     'PRO'
   )
 }

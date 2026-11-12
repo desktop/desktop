@@ -70,7 +70,6 @@ import { randomBytes } from 'crypto'
 import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
-import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
 import type { AccountQuotaSnapshot, Model } from '../copilot/types'
 import { isGHE } from '../endpoint-capabilities'
 import {
@@ -209,7 +208,10 @@ export type CopilotModelRequest =
     }
 
 /** Copilot features that support per-model selection. */
-export type CopilotFeature = 'commit-message-generation' | 'conflict-resolution'
+export type CopilotFeature =
+  | 'commit-message-generation'
+  | 'conflict-resolution'
+  | 'assisted-commit'
 
 /**
  * Stable identifiers for attributing Copilot CLI telemetry to Desktop features.
@@ -221,6 +223,7 @@ export type CopilotFeature = 'commit-message-generation' | 'conflict-resolution'
 const CopilotClientNames: Readonly<Record<CopilotFeature, string>> = {
   'commit-message-generation': 'github/desktop:commit-message-generation',
   'conflict-resolution': 'github/desktop:conflict-resolution',
+  'assisted-commit': 'github/desktop:assisted-commit',
 }
 
 /** Concrete session config produced by resolving a {@link CopilotModelRequest}. */
@@ -1080,7 +1083,7 @@ export class CopilotStore extends BaseStore {
    * Propose messages and exact opaque-ID ownership for frozen selected changes.
    *
    * This method never reads selected files, changes CommitMessage drafts, or
-   * mutates Git. Reuse the commit-message feature's caller-selected model and
+   * mutates Git. Use the caller-selected assisted-commit model and existing
    * account eligibility/consent gates. Pass its response to planAssistedCommits,
    * which checks every cumulative tree before integration may execute anything.
    * Empty selections must bypass this method with an explicit caller title.
@@ -1176,7 +1179,7 @@ export class CopilotStore extends BaseStore {
               repositoryPath,
               buildAssistedCommitSystemPrompt(tags, mode)
             ),
-            clientName: CopilotClientNames['commit-message-generation'],
+            clientName: CopilotClientNames['assisted-commit'],
             model: modelId,
             reasoningEffort,
             provider,
@@ -1809,19 +1812,16 @@ export class CopilotStore extends BaseStore {
    * Lists the available Copilot models for the account from the SDK, using a
    * cached result if it is less than {@link ModelListCacheTTL} old.
    *
-   * Returns `null` when the model list is unavailable (the account cannot use
-   * the SDK, it is no longer signed in, or the SDK fetch failed and we have no
-   * prior cache). Callers should distinguish this from an empty array, which
+   * Returns `null` when the model list is unavailable (the account is no longer
+   * signed in, or the SDK fetch failed and we have no prior cache).
+   * Callers should distinguish this from an empty array, which
    * would mean Copilot legitimately reports no models.
    */
   public async listModels(
     account: Account
   ): Promise<ReadonlyArray<Model> | null> {
     const key = getCopilotModelCacheKey(account)
-    if (
-      !this.signedInAccountKeys.has(key) ||
-      !enableCopilotSdkCommitMessageGeneration(account)
-    ) {
+    if (!this.signedInAccountKeys.has(key)) {
       return null
     }
 
@@ -1844,10 +1844,7 @@ export class CopilotStore extends BaseStore {
     account: Account
   ): Promise<CopilotQuotaSnapshots | null> {
     const key = getCopilotAccountCacheKey(account)
-    if (
-      !this.signedInAccountKeys.has(key) ||
-      !enableCopilotSdkCommitMessageGeneration(account)
-    ) {
+    if (!this.signedInAccountKeys.has(key)) {
       return null
     }
 
