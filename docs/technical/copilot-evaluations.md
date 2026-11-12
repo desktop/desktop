@@ -67,9 +67,11 @@ Successful repository results expose the final canonical plan.
 The shared planner submits `CopilotAssistedCommitResponseSchema` on every turn,
 including the whole-selection fallback. The model-facing response is
 `{"result": <outcome>}`; the bridge's top-level `response` remains the normalized
-application outcome, without that wire envelope. Scripted `plan`, uncertainty,
-and unsafe responses construct the current model envelope; `raw` responses are
+application outcome, without that wire envelope. Scripted `plan` and uncertainty
+responses construct the current model envelope; `raw` responses are
 sent verbatim and must explicitly include it when testing semantic rejection.
+The planner schema has no refusal outcome: a plan contains one or more commits,
+or uncertainty supplies one message for the complete selection.
 
 Each recorded turn includes the exact SDK `responseSchema` and the final
 request-correlated root response, including malformed JSON rejected by parsing.

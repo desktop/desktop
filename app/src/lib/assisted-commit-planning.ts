@@ -15,7 +15,6 @@ import { IAssistedCommitOperationOptions } from './git/assisted-commit/progress'
 import {
   assertAssistedCommitAnalysis,
   AssistedCommitPlanningMode,
-  CopilotAssistedCommitError,
   CopilotAssistedCommitResponse,
   validateCopilotAssistedCommitResponse,
 } from './copilot-assisted-commit'
@@ -46,7 +45,7 @@ export interface IAssistedCommitPlanningOptions
  *
  * The caller owns the snapshot scope. Only an unsafe-plan from cumulative-tree
  * validation of a valid split permits one fresh whole-selection request.
- * Invalid output, unsafe outcomes and transport/ownership errors never retry.
+ * Invalid output and transport/ownership errors never retry.
  */
 export async function planAssistedCommits(
   snapshot: IAssistedCommitSnapshot,
@@ -65,15 +64,11 @@ export async function planAssistedCommits(
     checkAssistedCommitCancellation(options.signal)
     const response = await propose(snapshot.analysis, mode, options.signal)
     checkAssistedCommitCancellation(options.signal)
-    const checked = validateCopilotAssistedCommitResponse(
+    return validateCopilotAssistedCommitResponse(
       snapshot.analysis,
       response,
       mode
     )
-    if (checked.kind === 'unsafe') {
-      throw new CopilotAssistedCommitError('unsafe', checked.reason)
-    }
-    return checked
   }
 
   const response = await analyze('plan')

@@ -28,11 +28,6 @@ type CopilotAssistedCommitResponse =
       readonly title: string
       readonly description?: string
     }
-  | {
-      readonly kind: 'unsafe'
-      readonly snapshotId: string
-      readonly reason: string
-    }
 
 /** Serializable fixture inputs; paths are relative to a disposable repository. */
 export interface IEvaluationRepositoryInput {
@@ -63,7 +58,6 @@ export type EvaluationFixtureResponse =
       readonly title: string
       readonly description?: string
     }
-  | { readonly type: 'unsafe'; readonly reason: string }
 
 /** Versioned, one-request-per-process bridge input. Credentials are environment-only. */
 export interface ICopilotEvaluationRequest {

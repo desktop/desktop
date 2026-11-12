@@ -135,15 +135,12 @@ function fixtureContent(
       },
     })
   }
-  const { type, ...message } = response
   return JSON.stringify({
     result: {
-      kind: type,
+      kind: response.type,
       snapshotId: analysis.snapshotId,
-      ...message,
-      ...(response.type === 'uncertain-boundaries'
-        ? { description: response.description ?? '' }
-        : {}),
+      title: response.title,
+      description: response.description ?? '',
     },
   })
 }

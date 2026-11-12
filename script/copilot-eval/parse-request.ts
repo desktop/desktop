@@ -166,7 +166,6 @@ function fixtureResponse(value: unknown): EvaluationFixtureResponse {
     'groups',
     'title',
     'description',
-    'reason',
   ])
   switch (discriminant.type) {
     case 'raw': {
@@ -187,10 +186,6 @@ function fixtureResponse(value: unknown): EvaluationFixtureResponse {
           }
         }),
       }
-    }
-    case 'unsafe': {
-      const raw = object(value, ['type', 'reason'])
-      return { type: 'unsafe', reason: text(raw.reason) }
     }
     case 'uncertain-boundaries': {
       const raw = object(value, ['type', 'title', 'description'])

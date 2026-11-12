@@ -67,6 +67,13 @@ describe('Copilot evaluation bridge', () => {
       { ...request(), model: '' },
       { ...request(), transport: { kind: 'copilot', responses: [] } },
       { ...request(), instructions: { mcpServers: {} } },
+      {
+        ...request(),
+        transport: {
+          kind: 'fixture',
+          responses: [{ type: 'unsafe', reason: 'Changes not analyzable' }],
+        },
+      },
     ]) {
       assert.throws(
         () => parseCopilotEvaluationRequest(invalid),
@@ -243,6 +250,28 @@ describe('Copilot evaluation bridge', () => {
       assert.strictEqual(result.error?.code, 'invalid-response')
       assert.strictEqual(result.turns.length, 1)
       assert.ok(result.turns[0].content?.includes(analysis.snapshotId))
+    })
+
+    it('rejects a raw refusal instead of accepting it or inventing a whole-selection message', async () => {
+      const content = JSON.stringify({
+        result: {
+          kind: 'unsafe',
+          snapshotId: analysis.snapshotId,
+          reason: 'Changes not analyzable',
+        },
+      })
+      const result = await runCopilotEvaluation({
+        ...request(),
+        transport: {
+          kind: 'fixture',
+          responses: [{ type: 'raw', content }],
+        },
+      })
+      assert.strictEqual(result.status, 'error')
+      assert.strictEqual(result.error?.code, 'invalid-response')
+      assert.strictEqual(result.response, undefined)
+      assert.strictEqual(result.turns.length, 1)
+      assert.strictEqual(result.turns[0].content, content)
     })
 
     it('distinguishes semantically invalid schema envelopes from invalid JSON', async () => {
