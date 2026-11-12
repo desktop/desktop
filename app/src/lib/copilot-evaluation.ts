@@ -209,8 +209,16 @@ function observeClient(
   model: string,
   turns: ICopilotEvaluationTurn[]
 ): ICopilotPlanningClient {
+  const pending = new Set<() => void>()
   return {
     ...client,
+    forceStop: async () => {
+      try {
+        await client.forceStop()
+      } finally {
+        pending.forEach(update => update())
+      }
+    },
     createSession: async config => {
       const session = await client.createSession(config)
       let started = performance.now()
@@ -222,7 +230,9 @@ function observeClient(
             durationMs: performance.now() - started,
           }
         }
+        pending.delete(update)
       }
+      pending.add(update)
       const observed: ICopilotPlanningSession = {
         ...session,
         send: options => {

@@ -81,6 +81,7 @@ or uncertainty supplies one message for the complete selection.
 
 Each recorded turn includes the exact SDK `responseSchema` and the final
 request-correlated root response, including malformed JSON rejected by parsing.
+Turn durations are finalized during cleanup even after cancellation or timeout.
 Intermediate messages, unrelated/child responses, and superseded corrections
 are not reported as the model's final answer. Completion, cancellation, and
 error handling use the foundation's production event waiter rather than a

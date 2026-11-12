@@ -12,6 +12,7 @@ import {
 import { CopilotAssistedCommitResponseSchema } from '../../src/lib/copilot-assisted-commit'
 import { isolateGitConfig } from '../helpers/git-config'
 import { createTempDirectory } from '../helpers/temp'
+import { deferred } from '../helpers/copilot-assisted-commit'
 import {
   EvaluationRequestError,
   parseCopilotEvaluationRequest,
@@ -308,6 +309,60 @@ describe('Copilot evaluation bridge', () => {
     assert.strictEqual(list.mock.callCount(), 0)
     assert.strictEqual(stop.mock.callCount(), 1)
   })
+
+  for (const cancel of [true, false]) {
+    const code = cancel ? 'cancelled' : 'timed-out'
+    it(`records elapsed turn time when planning is ${code}`, async t => {
+      const previous = process.env.COPILOT_GITHUB_TOKEN
+      process.env.COPILOT_GITHUB_TOKEN = 'synthetic-evaluation-token'
+      t.after(() => {
+        if (previous === undefined) {
+          delete process.env.COPILOT_GITHUB_TOKEN
+        } else {
+          process.env.COPILOT_GITHUB_TOKEN = previous
+        }
+      })
+      if (!cancel) {
+        t.mock.timers.enable({ apis: ['setTimeout'] })
+      }
+      const sent = deferred<void>()
+      const disconnect = t.mock.fn(async () => {})
+      t.mock.method(CopilotClient.prototype, 'createSession', async () => ({
+        on: () => () => {},
+        send: async () => {
+          sent.resolve()
+          return 'synthetic-request'
+        },
+        disconnect,
+      }))
+      const stop = t.mock.method(
+        CopilotClient.prototype,
+        'forceStop',
+        async () => {}
+      )
+      const controller = new AbortController()
+      const pending = runCopilotEvaluation(
+        {
+          ...request(),
+          timeoutMs: 100,
+          transport: { kind: 'copilot' },
+        },
+        controller.signal
+      )
+      await sent.promise
+      if (cancel) {
+        controller.abort()
+      } else {
+        t.mock.timers.tick(100)
+      }
+      const result = await pending
+      assert.strictEqual(result.error?.code, code)
+      assert.strictEqual(result.turns.length, 1)
+      assert.ok(result.turns[0].durationMs > 0)
+      assert.strictEqual(disconnect.mock.callCount(), 0)
+      assert.strictEqual(stop.mock.callCount(), 1)
+    })
+  }
 
   it('preserves malformed output and never retries it into a pass', async () => {
     const result = await runCopilotEvaluation({
