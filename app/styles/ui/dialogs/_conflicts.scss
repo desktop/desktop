@@ -1,7 +1,8 @@
 @import '../../mixins';
 
 dialog#conflicts-dialog {
-  width: 500px;
+  // Scale with the viewport so long file paths fit on large screens.
+  width: clamp(500px, 40vw, 800px);
 
   .summary {
     margin-bottom: 20px;
@@ -30,7 +31,7 @@ dialog#conflicts-dialog {
     list-style: none;
     padding: 0 var(--spacing-double);
     margin: 0 calc(-1 * var(--spacing-double));
-    max-height: 285px;
+    max-height: max(285px, calc(80vh - 250px));
     overflow-y: auto;
 
     li {

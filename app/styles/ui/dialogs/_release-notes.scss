@@ -1,15 +1,18 @@
 @import '../../../styles/variables';
 
 #release-notes {
-  max-height: 500px;
-  max-width: 800px;
+  // Grow with the viewport on large screens while keeping the previous
+  // dimensions as a lower bound.
+  max-height: max(500px, 80vh);
+  max-width: max(800px, 70vw);
   min-width: 550px;
 
   .dialog-content {
     // we'll own the layout inside here
     overflow-x: hidden;
     overflow-y: auto;
-    max-height: 335px;
+    // Leave room for the header (100px) and footer within the dialog.
+    max-height: max(335px, calc(80vh - 165px));
     padding: var(--spacing) var(--spacing-triple);
   }
 
