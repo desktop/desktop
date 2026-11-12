@@ -1338,4 +1338,147 @@ describe('CopilotPreferences', () => {
       ])
     })
   })
+
+  describe('assisted commits model picker', () => {
+    let previousPreviewFeatures: string | undefined
+
+    beforeEach(() => {
+      previousPreviewFeatures = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    })
+
+    afterEach(() => {
+      if (previousPreviewFeatures === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
+      }
+    })
+
+    for (const darwin of [true, false]) {
+      it(`renders three independently selected, platform-labeled pickers (darwin=${darwin})`, t => {
+        const previousDarwin = __DARWIN__
+        Object.assign(globalThis, { __DARWIN__: darwin })
+        t.after(() => Object.assign(globalThis, { __DARWIN__: previousDarwin }))
+        const view = render(
+          <CopilotPreferences
+            {...defaults()}
+            selectedCopilotModelsByAccount={selectionsForDefaultAccount({
+              'commit-message-generation': 'claude-sonnet',
+              'conflict-resolution': 'auto',
+              'assisted-commit': 'usage-billed-model',
+            })}
+          />
+        )
+
+        assert.ok(
+          screen.getByText(
+            darwin ? 'Commit Message Generation' : 'Commit message generation'
+          )
+        )
+        assert.ok(
+          screen.getByText(
+            darwin ? 'Conflict Resolution' : 'Conflict resolution'
+          )
+        )
+        assert.ok(
+          screen.getByText(darwin ? 'Assisted Commits' : 'Assisted commits')
+        )
+        assert.deepStrictEqual(
+          getModelPickerButtons(view.container).map(
+            button => button.textContent
+          ),
+          ['Claude Sonnet (2x)', 'Auto (default)', 'Usage Billed Model']
+        )
+        assert.ok(screen.getByText('Lightweight model. Use of credits: low'))
+      })
+    }
+
+    for (const byok of [false, true]) {
+      it(`reports the assisted feature and owning account for a ${
+        byok ? 'BYOK' : 'built-in'
+      } selection`, async () => {
+        const account = makeAccount({
+          endpoint: 'https://api.octocorp.ghe.com',
+          id: 2,
+          login: 'octo',
+        })
+        const changed: Array<{
+          account: Account
+          feature: CopilotFeature
+          model: string | null
+        }> = []
+        const view = render(
+          <CopilotPreferences
+            {...defaults()}
+            accounts={[account]}
+            copilotModelsByAccount={
+              new Map([[getCopilotAccountCacheKey(account), models]])
+            }
+            byokProviders={[ollamaProvider]}
+            onSelectedCopilotModelChanged={(account, feature, model) =>
+              changed.push({ account, feature, model })
+            }
+          />
+        )
+        const button = getModelPickerButtons(view.container)[2]
+        assert.ok(button)
+        fireEvent.click(button)
+        const popover = document.querySelector('.popover-dropdown-content')
+        assert.ok(popover instanceof HTMLElement)
+        const option = await within(popover).findByText(
+          byok ? 'Llama 3' : 'Claude Sonnet (2x)'
+        )
+        fireEvent.click(option)
+
+        assert.deepStrictEqual(changed, [
+          {
+            account,
+            feature: 'assisted-commit',
+            model: encodeModelKey(
+              byok
+                ? {
+                    kind: 'byok',
+                    providerId: ollamaProvider.id,
+                    modelId: 'llama3',
+                  }
+                : { kind: 'copilot', modelId: 'claude-sonnet' }
+            ),
+          },
+        ])
+      })
+    }
+
+    for (const selection of [
+      undefined,
+      'deleted-model',
+      'byok:missing-provider:missing-model',
+    ]) {
+      it(`uses the normal default for ${
+        selection ?? 'an absent selection'
+      }, not the ordinary preference`, () => {
+        const view = render(
+          <CopilotPreferences
+            {...defaults()}
+            selectedCopilotModelsByAccount={selectionsForDefaultAccount({
+              'commit-message-generation': 'claude-sonnet',
+              ...(selection === undefined
+                ? {}
+                : { 'assisted-commit': selection }),
+            })}
+          />
+        )
+        const button = getModelPickerButtons(view.container)[2]
+        assert.ok(button)
+        assert.strictEqual(button.textContent, 'Auto (default)')
+      })
+    }
+
+    it('hides the assisted picker when the feature is disabled', () => {
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const view = render(<CopilotPreferences {...defaults()} />)
+      assert.strictEqual(getModelPickerButtons(view.container).length, 2)
+      assert.strictEqual(screen.queryByText(/Assisted [Cc]ommits/), null)
+    })
+  })
 })

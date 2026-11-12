@@ -4,7 +4,10 @@ import {
   parseModelKey,
   type IBYOKProvider,
 } from '../../lib/copilot/byok'
-import { enableCopilotConflictResolution } from '../../lib/feature-flag'
+import {
+  enableCopilotAssistedCommit,
+  enableCopilotConflictResolution,
+} from '../../lib/feature-flag'
 import {
   DefaultCopilotModel,
   type CopilotFeature,
@@ -57,6 +60,14 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
     this.props.onSelectedCopilotModelChanged(
       this.props.account,
       'conflict-resolution',
+      model
+    )
+  }
+
+  private onAssistedCommitModelChanged = (model: string) => {
+    this.props.onSelectedCopilotModelChanged(
+      this.props.account,
+      'assisted-commit',
       model
     )
   }
@@ -145,6 +156,20 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
               }
               onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
             />
+          </>
+        )}
+        {enableCopilotAssistedCommit() && (
+          <>
+            {this.renderFeatureModelPicker(
+              copilotModels,
+              'assisted-commit',
+              __DARWIN__ ? 'Assisted Commits' : 'Assisted commits',
+              this.onAssistedCommitModelChanged,
+              280
+            )}
+            <p className="settings-description">
+              Model changes apply to future assisted commits.
+            </p>
           </>
         )}
       </>

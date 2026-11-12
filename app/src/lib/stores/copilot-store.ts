@@ -209,7 +209,10 @@ export type CopilotModelRequest =
     }
 
 /** Copilot features that support per-model selection. */
-export type CopilotFeature = 'commit-message-generation' | 'conflict-resolution'
+export type CopilotFeature =
+  | 'commit-message-generation'
+  | 'conflict-resolution'
+  | 'assisted-commit'
 
 /**
  * Stable identifiers for attributing Copilot CLI telemetry to Desktop features.
@@ -217,8 +220,12 @@ export type CopilotFeature = 'commit-message-generation' | 'conflict-resolution'
  * This attribution exposes resolved models and CLI success or failure behavior,
  * but it does not connect those events to Desktop outcomes such as acceptance,
  * overrides, or abandonment.
+ * Assisted commits have a separate model preference but retain commit-message
+ * generation's runtime attribution.
  */
-const CopilotClientNames: Readonly<Record<CopilotFeature, string>> = {
+const CopilotClientNames: Readonly<
+  Record<Exclude<CopilotFeature, 'assisted-commit'>, string>
+> = {
   'commit-message-generation': 'github/desktop:commit-message-generation',
   'conflict-resolution': 'github/desktop:conflict-resolution',
 }
@@ -1080,7 +1087,7 @@ export class CopilotStore extends BaseStore {
    * Propose messages and exact opaque-ID ownership for frozen selected changes.
    *
    * This method never reads selected files, changes CommitMessage drafts, or
-   * mutates Git. Reuse the commit-message feature's caller-selected model and
+   * mutates Git. Use the caller-selected assisted-commit model and existing
    * account eligibility/consent gates. Pass its response to planAssistedCommits,
    * which checks every cumulative tree before integration may execute anything.
    * Empty selections must bypass this method with an explicit caller title.

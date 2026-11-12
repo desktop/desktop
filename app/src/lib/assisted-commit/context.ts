@@ -57,7 +57,7 @@ export class AssistedCommitContext {
     ) => Repository
   ) {}
 
-  /** Capture the current account and its existing ordinary-generation model choice. */
+  /** Capture the current account and its assisted-commit model choice. */
   public getIntent(repository: Repository): {
     readonly account: Account | undefined
     readonly modelSelection: string | null
@@ -73,7 +73,7 @@ export class AssistedCommitContext {
         account === undefined
           ? null
           : settings.models.get(getCopilotAccountCacheKey(account))?.[
-              'commit-message-generation'
+              'assisted-commit'
             ] ?? null,
     }
   }

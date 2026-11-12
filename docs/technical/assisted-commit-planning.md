@@ -252,8 +252,8 @@ cleanup. The planner never assumes ownership of it.
 ## Run orchestration
 
 Apply existing account eligibility and consent **before** capture or any model
-request, resolve the existing commit-message model selection, and pause
-index-refreshing status requests while the snapshot is active.
+request, resolve the account's independent assisted-commit model selection, and
+pause index-refreshing status requests while the snapshot is active.
 The execution owner can then compose the backend contracts:
 
 ```ts

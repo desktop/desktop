@@ -136,9 +136,16 @@ cleared by assisted success, failure, cancellation, or an empty commit.
 
 Execution preconditions checked by both UI and backend include an authenticated
 Desktop-enabled eligible account, SDK permission, and the packaged runtime. The
-commit-message model preference resolves to `CopilotModelRequest`, including
-BYOK credentials. Assisted commits share that picker and preference rather than
-hardcoding a model or effort.
+account-scoped `assisted-commit` model preference resolves to
+`CopilotModelRequest`, including BYOK credentials. The Assisted commits picker
+reuses the existing model picker and persistence, independently of ordinary
+commit-message generation and conflict resolution. An absent selection uses
+the normal default model resolution, not the ordinary-generation preference.
+Built-in models retain the SDK's default reasoning effort; BYOK models retain
+their configured effort and provider timeout. Model changes apply to future
+first-click intents, never to an already prepared or active run. SDK client
+attribution and account eligibility still use the existing commit-message
+generation routing.
 
 Unknown co-author and filtered-hidden-selection confirmations remain ahead of
 execution. Desktop first prepares an opaque, weakly owned first-click intent
