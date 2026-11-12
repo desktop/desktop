@@ -56,6 +56,14 @@ type LookupResult = {
 }
 
 /**
+ * Matches `owner/repo#123` at a given position (sticky). Owners may contain
+ * letters, digits and hyphens; repositories may also contain dots and
+ * underscores. The issue number must not be followed by a word character, so
+ * `owner/repo#12abc` is not a reference.
+ */
+const externalIssueRe = /([A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+)#(\d+)(?!\w)/y
+
+/**
  * A look-ahead tokenizer designed for scanning commit messages for emoji, issues, mentions and links.
  */
 export class Tokenizer {
@@ -176,6 +184,47 @@ export class Tokenizer {
     const url = `${repository.htmlURL}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
+  }
+
+  /**
+   * Match a cross-repository issue reference such as `owner/repo#1234` that
+   * starts exactly at `index`. The whole reference becomes the link text and
+   * the link points at the issue in the referenced repository, on the same
+   * host as the current repository.
+   *
+   * This is only attempted at the start of a word (see `isWordStart`) so that
+   * ordinary text is never rescanned from every character.
+   */
+  private scanForExternalIssue(
+    text: string,
+    index: number,
+    repository: GitHubRepository
+  ): LookupResult | null {
+    if (!this.isWordStart(text, index)) {
+      return null
+    }
+
+    externalIssueRe.lastIndex = index
+    const match = externalIssueRe.exec(text)
+    if (match === null) {
+      return null
+    }
+
+    const [reference, nameWithOwner, id] = match
+    const origin = new URL(repository.htmlURL ?? '').origin
+
+    this.flush()
+    this._results.push({
+      kind: TokenType.Link,
+      text: reference,
+      url: `${origin}/${nameWithOwner}/issues/${parseInt(id, 10)}`,
+    })
+    return { nextIndex: index + reference.length }
+  }
+
+  /** Whether `index` begins a word, i.e. isn't preceded by a name character. */
+  private isWordStart(text: string, index: number): boolean {
+    return index === 0 || !/[\w/.-]/.test(text[index - 1])
   }
 
   private scanForMention(
@@ -321,16 +370,22 @@ export class Tokenizer {
           )
           break
 
-        case 'h':
-          i = this.inspectAndMove(element, i, () =>
-            this.scanForHyperlink(text, i, repository)
-          )
+        default: {
+          // `owner/repo#123` can begin with any letter or digit and
+          // hyperlinks begin with 'h', so try the external issue first.
+          const external = this.scanForExternalIssue(text, i, repository)
+          if (external) {
+            i = external.nextIndex
+          } else if (element === 'h') {
+            i = this.inspectAndMove(element, i, () =>
+              this.scanForHyperlink(text, i, repository)
+            )
+          } else {
+            this.append(element)
+            i++
+          }
           break
-
-        default:
-          this.append(element)
-          i++
-          break
+        }
       }
     }
 
