@@ -114,45 +114,24 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
             .
           </p>
         </Row>
-        {this.renderFeatureModelPicker(
-          copilotModels,
-          'commit-message-generation',
-          __DARWIN__
-            ? 'Commit Message Generation'
-            : 'Commit message generation',
-          this.onCommitMessageModelChanged,
-          350
-        )}
-        <p className="settings-description">
-          <LinkButton uri="https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop#write-a-commit-message-and-push-your-changes">
-            Learn more about generating commit messages.
-          </LinkButton>
-        </p>
-        {this.renderFeatureModelPicker(
-          copilotModels,
-          'conflict-resolution',
-          __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
-          this.onConflictResolutionModelChanged,
-          280
-        )}
-        <p className="settings-description">
-          Model changes apply to future conflict resolutions.
-        </p>
-        <Checkbox
-          label={
+        <div className="copilot-section">
+          {this.renderFeatureModelPicker(
+            copilotModels,
+            'commit-message-generation',
             __DARWIN__
-              ? 'Always Use Copilot When Conflicts Are Detected'
-              : 'Always use Copilot when conflicts are detected'
-          }
-          value={
-            this.props.alwaysUseCopilotForConflictResolution
-              ? CheckboxValue.On
-              : CheckboxValue.Off
-          }
-          onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
-        />
+              ? 'Commit Message Generation'
+              : 'Commit message generation',
+            this.onCommitMessageModelChanged,
+            350
+          )}
+          <p className="settings-description">
+            <LinkButton uri="https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop#write-a-commit-message-and-push-your-changes">
+              Learn more about generating commit messages.
+            </LinkButton>
+          </p>
+        </div>
         {enableCopilotAssistedCommit() && (
-          <>
+          <div className="copilot-section">
             {this.renderFeatureModelPicker(
               copilotModels,
               'assisted-commit',
@@ -160,11 +139,33 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
               this.onAssistedCommitModelChanged,
               280
             )}
-            <p className="settings-description">
-              Model changes apply to future assisted commits.
-            </p>
-          </>
+          </div>
         )}
+        <div className="copilot-section">
+          {this.renderFeatureModelPicker(
+            copilotModels,
+            'conflict-resolution',
+            __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
+            this.onConflictResolutionModelChanged,
+            280
+          )}
+          <p className="settings-description">
+            Model changes apply to future conflict resolutions.
+          </p>
+          <Checkbox
+            label={
+              __DARWIN__
+                ? 'Always Use Copilot When Conflicts Are Detected'
+                : 'Always use Copilot when conflicts are detected'
+            }
+            value={
+              this.props.alwaysUseCopilotForConflictResolution
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
+          />
+        </div>
       </>
     )
   }

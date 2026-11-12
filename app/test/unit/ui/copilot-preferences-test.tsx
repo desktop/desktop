@@ -1349,6 +1349,46 @@ describe('CopilotPreferences', () => {
       }
     })
 
+    it('keeps each model setting with its own details and controls in a separate section', () => {
+      const view = render(
+        <CopilotPreferences
+          {...defaults()}
+          selectedCopilotModelsByAccount={selectionsForDefaultAccount({
+            'assisted-commit': 'usage-billed-model',
+          })}
+        />
+      )
+      const sections = getModelPickerButtons(view.container).map(button => {
+        const section = button.closest('.copilot-section')
+        assert.ok(section instanceof HTMLElement)
+        assert.strictEqual(
+          section.querySelectorAll('.copilot-model-picker').length,
+          1
+        )
+        return section
+      })
+      assert.strictEqual(sections.length, 3)
+      assert.strictEqual(new Set(sections).size, 3)
+      assert.ok(
+        within(sections[0]).getByText(
+          'Learn more about generating commit messages.'
+        )
+      )
+      assert.ok(
+        within(sections[1]).getByText('Lightweight model. Use of credits: low')
+      )
+      assert.ok(
+        within(sections[2]).getByText(
+          'Model changes apply to future conflict resolutions.'
+        )
+      )
+      assert.ok(
+        within(sections[2]).getByRole('checkbox', {
+          name: /Always use Copilot when conflicts are detected/i,
+        })
+      )
+    })
+
     for (const darwin of [true, false]) {
       it(`renders three independently selected, platform-labeled pickers (darwin=${darwin})`, t => {
         const previousDarwin = __DARWIN__
@@ -1382,7 +1422,7 @@ describe('CopilotPreferences', () => {
           getModelPickerButtons(view.container).map(
             button => button.textContent
           ),
-          ['Claude Sonnet (2x)', 'Auto (default)', 'Usage Billed Model']
+          ['Claude Sonnet (2x)', 'Usage Billed Model', 'Auto (default)']
         )
         assert.ok(screen.getByText('Lightweight model. Use of credits: low'))
       })
@@ -1415,7 +1455,7 @@ describe('CopilotPreferences', () => {
             }
           />
         )
-        const button = getModelPickerButtons(view.container)[2]
+        const button = getModelPickerButtons(view.container)[1]
         assert.ok(button)
         fireEvent.click(button)
         const popover = document.querySelector('.popover-dropdown-content')
@@ -1462,7 +1502,7 @@ describe('CopilotPreferences', () => {
             })}
           />
         )
-        const button = getModelPickerButtons(view.container)[2]
+        const button = getModelPickerButtons(view.container)[1]
         assert.ok(button)
         assert.strictEqual(button.textContent, 'Auto (default)')
       })
@@ -1473,6 +1513,16 @@ describe('CopilotPreferences', () => {
       const view = render(<CopilotPreferences {...defaults()} />)
       assert.strictEqual(getModelPickerButtons(view.container).length, 2)
       assert.strictEqual(screen.queryByText(/Assisted [Cc]ommits/), null)
+      const modelSection = getModelPickerButton(view.container).closest(
+        '.copilot-section'
+      )
+      assert.ok(modelSection instanceof HTMLElement)
+      assert.strictEqual(
+        modelSection.parentElement?.querySelectorAll(
+          ':scope > .copilot-section'
+        ).length,
+        2
+      )
     })
   })
 })
