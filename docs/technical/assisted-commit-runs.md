@@ -149,9 +149,9 @@ commit-message generation and conflict resolution. An absent selection uses
 the normal default model resolution, not the ordinary-generation preference.
 Built-in models retain the SDK's default reasoning effort; BYOK models retain
 their configured effort and provider timeout. Model changes apply to future
-first-click intents, never to an already prepared or active run. SDK client
-attribution still uses the existing commit-message generation routing, separately
-from feature-specific eligibility checks.
+first-click intents, never to an already prepared or active run. Assisted SDK
+sessions use the distinct `github/desktop:assisted-commit` client attribution;
+ordinary generation and conflict resolution retain their own client identifiers.
 
 Unknown co-author and filtered-hidden-selection confirmations remain ahead of
 execution. Desktop first prepares an opaque, weakly owned first-click intent

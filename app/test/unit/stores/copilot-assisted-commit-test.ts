@@ -191,6 +191,7 @@ describe('CopilotStore constrained assisted planner', () => {
       }
       for (const call of mock.createSession.mock.calls) {
         const config = call.arguments[0]
+        assert.strictEqual(config.clientName, 'github/desktop:assisted-commit')
         assert.strictEqual(config.model, 'chosen-model')
         assert.strictEqual(config.reasoningEffort, undefined)
         assert.strictEqual(config.provider, undefined)

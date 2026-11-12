@@ -384,10 +384,7 @@ describe('assisted runs with repository-assigned accounts', () => {
               }
             : undefined
         )
-        assert.equal(
-          config.clientName,
-          'github/desktop:commit-message-generation'
-        )
+        assert.equal(config.clientName, 'github/desktop:assisted-commit')
         assert.equal(secret.mock.callCount(), byok ? 1 : 0)
         if (byok) {
           assert.ok(

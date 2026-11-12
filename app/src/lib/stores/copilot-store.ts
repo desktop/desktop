@@ -219,14 +219,11 @@ export type CopilotFeature =
  * This attribution exposes resolved models and CLI success or failure behavior,
  * but it does not connect those events to Desktop outcomes such as acceptance,
  * overrides, or abandonment.
- * Assisted commits have a separate model preference but retain commit-message
- * generation's runtime attribution.
  */
-const CopilotClientNames: Readonly<
-  Record<Exclude<CopilotFeature, 'assisted-commit'>, string>
-> = {
+const CopilotClientNames: Readonly<Record<CopilotFeature, string>> = {
   'commit-message-generation': 'github/desktop:commit-message-generation',
   'conflict-resolution': 'github/desktop:conflict-resolution',
+  'assisted-commit': 'github/desktop:assisted-commit',
 }
 
 /** Concrete session config produced by resolving a {@link CopilotModelRequest}. */
@@ -1182,7 +1179,7 @@ export class CopilotStore extends BaseStore {
               repositoryPath,
               buildAssistedCommitSystemPrompt(tags, mode)
             ),
-            clientName: CopilotClientNames['commit-message-generation'],
+            clientName: CopilotClientNames['assisted-commit'],
             model: modelId,
             reasoningEffort,
             provider,
