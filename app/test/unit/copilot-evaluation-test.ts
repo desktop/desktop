@@ -3,8 +3,11 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { describe, it } from 'node:test'
 import { join } from 'path'
+import { mkdir, writeFile } from 'fs/promises'
 import { runCopilotEvaluation } from '../../src/lib/copilot-evaluation'
 import { CopilotAssistedCommitResponseSchema } from '../../src/lib/copilot-assisted-commit'
+import { isolateGitConfig } from '../helpers/git-config'
+import { createTempDirectory } from '../helpers/temp'
 import {
   EvaluationRequestError,
   parseCopilotEvaluationRequest,
@@ -182,6 +185,46 @@ describe('Copilot evaluation bridge', () => {
     assert.strictEqual(result.analysis?.changes.length, 1)
     assert.ok(result.turns[0].userPrompt.includes('selected change'))
     assert.ok(!result.turns[0].userPrompt.includes('UNSELECTED_'))
+  })
+
+  it('keeps hunk selection consistent when ambient Git changes diff context', async t => {
+    await isolateGitConfig(t)
+    const config = process.env.GIT_CONFIG_GLOBAL
+    assert.ok(config)
+    await writeFile(config, '[diff]\n\tcontext = 100\n')
+    const lines = Array.from({ length: 40 }, (_, i) => `line ${i}\n`)
+    const changed = [...lines]
+    changed[1] = 'UNSELECTED_HUNK_SENTINEL\n'
+    changed[30] = 'selected change\n'
+    const result = await runCopilotEvaluation(
+      request({
+        kind: 'repository',
+        baseFiles: { 'file.txt': lines.join('') },
+        files: { 'file.txt': changed.join('') },
+        selection: [{ path: 'file.txt', hunks: [1] }],
+      })
+    )
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.ok(result.turns[0].userPrompt.includes('+selected change'))
+    assert.ok(!result.turns[0].userPrompt.includes('UNSELECTED_'))
+  })
+
+  it('does not use ambient XDG ignore rules when seeding a fixture', async t => {
+    const xdg = await createTempDirectory(t)
+    await mkdir(join(xdg, 'git'))
+    await writeFile(join(xdg, 'git', 'ignore'), 'file.txt\n')
+    const previous = process.env.XDG_CONFIG_HOME
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.XDG_CONFIG_HOME
+      } else {
+        process.env.XDG_CONFIG_HOME = previous
+      }
+    })
+    process.env.XDG_CONFIG_HOME = xdg
+    const result = await runCopilotEvaluation(request(repository))
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.ok(result.analysis?.changes[0].diff?.includes('-old'))
   })
 
   it('handles binary fixture changes as indivisible atomic units', async () => {

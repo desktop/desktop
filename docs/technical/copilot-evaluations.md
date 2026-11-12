@@ -85,7 +85,8 @@ inside owned temporary fixture repositories. HEAD, index, and worktree contents
 are compared before and after planning, including failed plans. Fixture
 directories and isolated SDK configuration are removed before returning.
 
-The local Git host supplies a clean Git configuration without application
+The local Git host supplies a clean Git configuration, including snapshot
+configuration capture and XDG ignore sources, without application
 credential/trampoline services. It does not replace Git execution, ownership
 fences, or snapshot/tree validation. Requests for application credentials or
 intercepted hooks through this host fail explicitly. Normal application Git

@@ -19,13 +19,20 @@ export function withLocalGitEnvironment<T>(
   return localEnvironments.run({ ...environment }, operation)
 }
 
+/** Get local host overrides for Git calls that must bypass application services. */
+export function getLocalGitEnvironment():
+  | Readonly<Record<string, string | undefined>>
+  | undefined {
+  return localEnvironments.getStore()
+}
+
 /** Provision application services lazily, or use an explicit local-only host. */
 export async function withGitExecutionEnvironment<T>(
   operation: (environment: Record<string, string | undefined>) => Promise<T>,
   path: string,
   options?: IGitExecutionOptions
 ): Promise<T> {
-  const local = localEnvironments.getStore()
+  const local = getLocalGitEnvironment()
   if (local !== undefined) {
     if (options?.interceptHooks || options?.fallbackAccount !== undefined) {
       throw new Error(
