@@ -4,6 +4,7 @@ import {
 } from '../../../src/lib/stores/copilot-store'
 import { encodeModelKey, IBYOKProvider } from '../../../src/lib/copilot/byok'
 import { TokenStore } from '../../../src/lib/stores/token-store'
+import { API } from '../../../src/lib/api'
 import assert from 'node:assert/strict'
 import { describe, it, TestContext } from 'node:test'
 import { access, readFile, writeFile } from 'fs/promises'
@@ -146,6 +147,65 @@ describe('assisted runs with repository-assigned accounts', () => {
   })
 
   describe('assisted commit model preferences', () => {
+    it('uses the SDK without rollout or preview flags and keeps the ordinary model independent', async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const account = h.appStore['accounts'][0]
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const legacy = t.mock.method(API, 'fromAccount', () => {
+        throw new Error('Legacy commit-message API must not be used')
+      })
+      h.appStore['commitMessageGenerationDisclaimerLastSeen'] = Date.now()
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'commit-message-generation',
+        'copilot:ordinary-model'
+      )
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'assisted-commit',
+        'copilot:assisted-model'
+      )
+      const generate = t.mock.method(
+        h.planner.store,
+        'generateCommitMessage',
+        async () => ({ title: 'Ordinary generated title', description: '' })
+      )
+      const generated = await h.appStore._generateCommitMessage(
+        repository,
+        h.request(repository).files
+      )
+      assert.equal(generated, true)
+      assert.equal(legacy.mock.callCount(), 0)
+      assert.equal(generate.mock.calls[0].arguments[0], account)
+      assert.deepEqual(generate.mock.calls[0].arguments[3], {
+        kind: 'copilot',
+        modelId: 'ordinary-model',
+      })
+      assert.equal(
+        h.state(repository).changesState.commitMessage.summary,
+        'Ordinary generated title'
+      )
+      assert.equal(h.propose.mock.callCount(), 0)
+    })
+
+    it('auto-routes conflicts only for an eligible account without requiring rollout flags', async t => {
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(await seed(t, { file: 'before\n' }))
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      h.appStore._setAlwaysUseCopilotForConflictResolution(true)
+      assert.equal(
+        h.appStore['shouldAutoRouteToCopilotConflictResolution'](repository),
+        true
+      )
+      h.appStore['accounts'] = []
+      assert.equal(
+        h.appStore['shouldAutoRouteToCopilotConflictResolution'](repository),
+        false
+      )
+    })
     it('saves, reloads and resets each feature independently per account, including equal IDs on different hosts', async t => {
       const h = await createAssistedCommitRunHarness(t)
       const account = h.appStore['accounts'][0]

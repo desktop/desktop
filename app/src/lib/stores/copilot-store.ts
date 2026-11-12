@@ -70,7 +70,6 @@ import { randomBytes } from 'crypto'
 import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
-import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
 import type { AccountQuotaSnapshot, Model } from '../copilot/types'
 import { isGHE } from '../endpoint-capabilities'
 import {
@@ -1816,19 +1815,16 @@ export class CopilotStore extends BaseStore {
    * Lists the available Copilot models for the account from the SDK, using a
    * cached result if it is less than {@link ModelListCacheTTL} old.
    *
-   * Returns `null` when the model list is unavailable (the account cannot use
-   * the SDK, it is no longer signed in, or the SDK fetch failed and we have no
-   * prior cache). Callers should distinguish this from an empty array, which
+   * Returns `null` when the model list is unavailable (the account is no longer
+   * signed in, or the SDK fetch failed and we have no prior cache).
+   * Callers should distinguish this from an empty array, which
    * would mean Copilot legitimately reports no models.
    */
   public async listModels(
     account: Account
   ): Promise<ReadonlyArray<Model> | null> {
     const key = getCopilotModelCacheKey(account)
-    if (
-      !this.signedInAccountKeys.has(key) ||
-      !enableCopilotSdkCommitMessageGeneration(account)
-    ) {
+    if (!this.signedInAccountKeys.has(key)) {
       return null
     }
 
@@ -1851,10 +1847,7 @@ export class CopilotStore extends BaseStore {
     account: Account
   ): Promise<CopilotQuotaSnapshots | null> {
     const key = getCopilotAccountCacheKey(account)
-    if (
-      !this.signedInAccountKeys.has(key) ||
-      !enableCopilotSdkCommitMessageGeneration(account)
-    ) {
+    if (!this.signedInAccountKeys.has(key)) {
       return null
     }
 

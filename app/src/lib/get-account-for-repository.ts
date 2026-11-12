@@ -1,10 +1,6 @@
 import { Repository, getRepositoryAccountIdentity } from '../models/repository'
 import { Account, isSameAccount } from '../models/account'
-import {
-  enableCommitMessageGeneration,
-  enableCopilotConflictResolution,
-  enableCopilotSdkCommitMessageGeneration,
-} from './feature-flag'
+import { enableCopilotAssistedCommit } from './feature-flag'
 
 /** Get the authenticated account for the repository. */
 export function getAccountForRepository(
@@ -16,9 +12,11 @@ export function getAccountForRepository(
 }
 
 /**
- * Get the authenticated account to use for commit message generation.
+ * Get a Desktop-enabled account for Copilot, preferring the repository's account.
+ *
+ * Callers retain their feature-specific runtime and authorization checks.
  */
-export function getAccountForCommitMessageGeneration(
+export function getAccountForCopilot(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | undefined {
@@ -26,49 +24,22 @@ export function getAccountForCommitMessageGeneration(
   const repositoryAccount = getAccountForRepository(accounts, repository)
   if (
     repositoryAccount !== null &&
-    enableCommitMessageGeneration(repositoryAccount)
+    repositoryAccount.isCopilotDesktopEnabled === true
   ) {
     return repositoryAccount
   }
 
-  return accounts.find(enableCommitMessageGeneration)
+  return accounts.find(account => account.isCopilotDesktopEnabled === true)
 }
 
 /**
- * Predicate used to determine whether a given account is eligible to
- * use Copilot-powered conflict resolution. Combines the dev-only
- * feature-flag gate with the account's Copilot for Desktop capability,
- * which covers both "no Copilot subscription" and "disabled by org
- * policy".
- *
- * IMPORTANT: Do not remove the `isCopilotDesktopEnabled` check without
- * replacing it with the appropriate replacement.
- *
- * Also gated on `enableCopilotSdkCommitMessageGeneration`, which currently
- * controls whether we're allowed to use the Copilot SDK at all (beta/dev
- * builds). This keeps conflict resolution from running when the SDK is off.
+ * Get a Desktop-enabled account for assisted commits when the feature is enabled.
  */
-const isAccountEligibleForCopilotConflictResolution = (account: Account) =>
-  enableCopilotConflictResolution() &&
-  enableCopilotSdkCommitMessageGeneration(account) &&
-  account.isCopilotDesktopEnabled === true
-
-/**
- * Get the authenticated account to use for Copilot-powered merge conflict
- * resolution. Mirrors `getAccountForCommitMessageGeneration`.
- */
-export function getAccountForCopilotConflictResolution(
+export function getAccountForCopilotAssistedCommits(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | undefined {
-  // Prefer the account that is associated to this repository.
-  const repositoryAccount = getAccountForRepository(accounts, repository)
-  if (
-    repositoryAccount !== null &&
-    isAccountEligibleForCopilotConflictResolution(repositoryAccount)
-  ) {
-    return repositoryAccount
-  }
-
-  return accounts.find(isAccountEligibleForCopilotConflictResolution)
+  return enableCopilotAssistedCommit()
+    ? getAccountForCopilot(accounts, repository)
+    : undefined
 }

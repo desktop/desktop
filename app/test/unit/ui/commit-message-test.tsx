@@ -82,8 +82,7 @@ function createAccount() {
     'Mona Lisa',
     'free',
     'https://copilot-proxy.githubusercontent.com',
-    true,
-    ['desktop_copilot_generate_commit_message']
+    true
   )
 }
 
@@ -219,6 +218,17 @@ afterEach(() => {
 })
 
 describe('CommitMessage', () => {
+  it('offers the generation button and menu without rollout flags when Desktop entitlement is enabled', () => {
+    const component = new CommitMessage(
+      createProps({ isGeneratingCommitMessage: false })
+    )
+    assert.ok(component['renderCopilotButton']())
+    assert.strictEqual(
+      component['getGenerateCommitMessageMenuItem']()?.enabled,
+      true
+    )
+  })
+
   it(
     'clears the committed draft before automatic push and preserves edits made during push',
     { timeout: 30000 },
@@ -303,7 +313,7 @@ describe('CommitMessage', () => {
     }
   )
 
-  it('does not allow cancelling commit message generation when the Copilot SDK is disabled', async () => {
+  it('allows cancelling commit message generation without SDK rollout or preview flags', async () => {
     delete process.env[PreviewFeaturesEnv]
 
     let cancelCount = 0
@@ -319,15 +329,15 @@ describe('CommitMessage', () => {
 
     const buttonProps = getCopilotButtonProps(component)
 
-    assert.equal(buttonProps.ariaLabel, 'Generating commit details…')
-    assert.equal(buttonProps.disabled, true)
+    assert.equal(buttonProps.ariaLabel, 'Cancel generating commit details')
+    assert.equal(buttonProps.disabled, false)
 
     await clickCopilotButton(component)
 
-    assert.equal(cancelCount, 0)
+    assert.equal(cancelCount, 1)
   })
 
-  it('allows cancelling commit message generation when the Copilot SDK is enabled', async () => {
+  it('also allows cancelling commit message generation with preview features enabled', async () => {
     process.env[PreviewFeaturesEnv] = '1'
 
     let cancelCount = 0
@@ -999,7 +1009,7 @@ describe('CommitMessage', () => {
             account.name,
             'free',
             account.copilotEndpoint,
-            true,
+            undefined,
             []
           ),
         ],

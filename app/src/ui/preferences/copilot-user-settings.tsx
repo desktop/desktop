@@ -4,10 +4,7 @@ import {
   parseModelKey,
   type IBYOKProvider,
 } from '../../lib/copilot/byok'
-import {
-  enableCopilotAssistedCommit,
-  enableCopilotConflictResolution,
-} from '../../lib/feature-flag'
+import { enableCopilotAssistedCommit } from '../../lib/feature-flag'
 import {
   DefaultCopilotModel,
   type CopilotFeature,
@@ -131,33 +128,29 @@ export class CopilotUserSettings extends React.Component<ICopilotUserSettingsPro
             Learn more about generating commit messages.
           </LinkButton>
         </p>
-        {enableCopilotConflictResolution() && (
-          <>
-            {this.renderFeatureModelPicker(
-              copilotModels,
-              'conflict-resolution',
-              __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
-              this.onConflictResolutionModelChanged,
-              280
-            )}
-            <p className="settings-description">
-              Model changes apply to future conflict resolutions.
-            </p>
-            <Checkbox
-              label={
-                __DARWIN__
-                  ? 'Always Use Copilot When Conflicts Are Detected'
-                  : 'Always use Copilot when conflicts are detected'
-              }
-              value={
-                this.props.alwaysUseCopilotForConflictResolution
-                  ? CheckboxValue.On
-                  : CheckboxValue.Off
-              }
-              onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
-            />
-          </>
+        {this.renderFeatureModelPicker(
+          copilotModels,
+          'conflict-resolution',
+          __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
+          this.onConflictResolutionModelChanged,
+          280
         )}
+        <p className="settings-description">
+          Model changes apply to future conflict resolutions.
+        </p>
+        <Checkbox
+          label={
+            __DARWIN__
+              ? 'Always Use Copilot When Conflicts Are Detected'
+              : 'Always use Copilot when conflicts are detected'
+          }
+          value={
+            this.props.alwaysUseCopilotForConflictResolution
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
+        />
         {enableCopilotAssistedCommit() && (
           <>
             {this.renderFeatureModelPicker(

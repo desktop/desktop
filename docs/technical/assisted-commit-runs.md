@@ -135,8 +135,14 @@ cleared by assisted success, failure, cancellation, or an empty commit.
 ## Admission, consent, and frozen inputs
 
 Execution preconditions checked by both UI and backend include an authenticated
-Desktop-enabled eligible account, SDK permission, and the packaged runtime. The
-account-scoped `assisted-commit` model preference resolves to
+Desktop-enabled eligible account and the packaged runtime.
+Shared `getAccountForCopilot` selection serves ordinary generation and conflict
+resolution, preferring the repository-assigned account, then the first
+Desktop-enabled account. `getAccountForCopilotAssistedCommits` uses that same
+selection policy only when the assisted-commit feature flag is enabled.
+Desktop entitlement remains required; retired commit-message, SDK and conflict
+rollout flags are not eligibility gates. Ordinary generation always uses the SDK.
+The account-scoped `assisted-commit` model preference resolves to
 `CopilotModelRequest`, including BYOK credentials. The Assisted commits picker
 reuses the existing model picker and persistence, independently of ordinary
 commit-message generation and conflict resolution. An absent selection uses
@@ -144,8 +150,8 @@ the normal default model resolution, not the ordinary-generation preference.
 Built-in models retain the SDK's default reasoning effort; BYOK models retain
 their configured effort and provider timeout. Model changes apply to future
 first-click intents, never to an already prepared or active run. SDK client
-attribution and account eligibility still use the existing commit-message
-generation routing.
+attribution still uses the existing commit-message generation routing, separately
+from feature-specific eligibility checks.
 
 Unknown co-author and filtered-hidden-selection confirmations remain ahead of
 execution. Desktop first prepares an opaque, weakly owned first-click intent

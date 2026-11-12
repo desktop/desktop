@@ -62,9 +62,7 @@ function makeAccount(options: IAccountOptions = {}): Account {
     'free',
     'https://copilot-proxy.githubusercontent.com',
     isCopilotDesktopEnabled,
-    options.features ?? [
-      'desktop_enable_copilot_sdk_commit_message_generation',
-    ],
+    options.features ?? [],
     copilotLicenseType
   )
 }
@@ -575,7 +573,7 @@ describe('CopilotPreferences', () => {
     )
   })
 
-  it('excludes accounts without Copilot SDK access from settings', () => {
+  it('includes licensed Desktop-enabled accounts without SDK rollout flags', () => {
     render(
       <CopilotPreferences
         {...defaults()}
@@ -593,13 +591,9 @@ describe('CopilotPreferences', () => {
       />
     )
 
-    assert.ok(screen.getAllByRole('button', { name: /Auto/ }).length > 0)
     assert.ok(screen.getByText('Mona Lisa'))
-    assert.strictEqual(screen.queryByText('@octo (Octo Cat)'), null)
-    assert.strictEqual(
-      screen.queryByRole('heading', { name: 'GitHub Enterprise' }),
-      null
-    )
+    assert.ok(screen.getByText('@octo (Octo Cat)'))
+    assert.ok(screen.getByRole('heading', { name: 'GitHub Enterprise' }))
   })
 
   it('makes multiple account Snapshot cards scrollable', () => {
