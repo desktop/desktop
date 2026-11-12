@@ -23,14 +23,30 @@ if (process.argv[2] === '--describe') {
     ],
     {
       cwd: fileURLToPath(new URL('../', import.meta.url)),
-      stdio: 'inherit',
+      stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
       env: Object.fromEntries(
         Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
       ),
     }
   )
+  let ready = false
+  let cancellationRequested = false
+  const cancel = () => {
+    cancellationRequested = true
+    if (ready && child.connected) {
+      child.send('cancel')
+    }
+  }
+  child.on('message', message => {
+    if (message === 'ready') {
+      ready = true
+      if (cancellationRequested) {
+        cancel()
+      }
+    }
+  })
   for (const signal of ['SIGINT', 'SIGTERM']) {
-    process.on(signal, () => child.kill(signal))
+    process.on(signal, cancel)
   }
   child.on('error', error => {
     console.error(error.message)

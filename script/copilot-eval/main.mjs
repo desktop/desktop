@@ -5,8 +5,25 @@ import evaluation from '../../app/src/lib/copilot-evaluation.ts'
 const { parseCopilotEvaluationRequest, EvaluationRequestError } = protocol
 const { listCopilotEvaluationModels, runCopilotEvaluation } = evaluation
 const controller = new AbortController()
-for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, () => controller.abort())
+const cancel = () => controller.abort()
+const onMessage = message => {
+  if (message === 'cancel') {
+    cancel()
+  }
+}
+const signals = ['SIGINT', 'SIGTERM']
+for (const signal of signals) {
+  process.on(signal, cancel)
+}
+process.on('message', onMessage)
+process.once('disconnect', cancel)
+if (process.connected) {
+  process.send('ready', error => {
+    if (error) {
+      console.error(error.message)
+      cancel()
+    }
+  })
 }
 
 try {
@@ -65,4 +82,13 @@ try {
     })
   )
   process.exitCode = 1
+} finally {
+  for (const signal of signals) {
+    process.removeListener(signal, cancel)
+  }
+  process.removeListener('message', onMessage)
+  process.removeListener('disconnect', cancel)
+  if (process.connected) {
+    process.disconnect()
+  }
 }

@@ -22,6 +22,9 @@ envelope and nonzero exit status. Startup/dependency failures can prevent an
 envelope from being produced and must be treated as infrastructure failures.
 SIGINT and SIGTERM cancel input collection, model preflight, and active planning;
 preflight also retains its independent 60-second deadline.
+The launcher forwards cancellation through IPC rather than force-killing the
+worker on Windows. Early cancellation waits for worker readiness; losing the
+launcher connection also cancels the worker so owned resources can be cleaned up.
 
 The versioned contracts are in `script/copilot-eval/protocol.ts`. Unknown
 versions, fields, features, input kinds, and escaping fixture paths are rejected.
