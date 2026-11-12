@@ -8,14 +8,17 @@ export type RepositoryType =
   | { kind: 'regular'; topLevelWorkingDirectory: string; gitDir: string }
   | { kind: 'missing' }
   | { kind: 'unsafe'; path: string }
+  | { kind: 'inaccessible' }
 
 /**
  * Attempts to fulfill the work of isGitRepository and isBareRepository while
  * requiring only one Git process to be spawned.
  *
- * Returns 'bare', 'regular', 'unsafe', or 'missing' if the repository couldn't
- * be found. An unsafe path is a canonical directory containing the requested
- * path, verified against Git's ownership diagnostic.
+ * Returns 'bare', 'regular', 'unsafe', 'inaccessible', or 'missing' if the
+ * repository couldn't be found. An unsafe path is a canonical directory
+ * containing the requested path, verified against Git's ownership diagnostic.
+ * An inaccessible path exists but Git isn't allowed to read it, typically
+ * because macOS privacy protections block access to the folder or volume.
  */
 export async function getRepositoryType(path: string): Promise<RepositoryType> {
   if (!(await directoryExists(path))) {
@@ -79,6 +82,12 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
         }
         candidate = parent
       }
+    }
+
+    if (
+      stderr.includes('\nfatal: Unable to read current working directory: ')
+    ) {
+      return { kind: 'inaccessible' }
     }
 
     return { kind: 'missing' }

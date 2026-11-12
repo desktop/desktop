@@ -19,6 +19,7 @@ interface IMissingRepositoryProps {
 interface IMissingRepositoryState {
   readonly isPathUnsafe: boolean
   readonly unsafePath?: string
+  readonly isPathInaccessible: boolean
   readonly isTrustingPath: boolean
 }
 
@@ -29,7 +30,11 @@ export class MissingRepository extends React.Component<
 > {
   public constructor(props: IMissingRepositoryProps) {
     super(props)
-    this.state = { isPathUnsafe: false, isTrustingPath: false }
+    this.state = {
+      isPathUnsafe: false,
+      isTrustingPath: false,
+      isPathInaccessible: false,
+    }
   }
 
   private onTrustDirectory = async () => {
@@ -69,13 +74,14 @@ export class MissingRepository extends React.Component<
       this.setState({
         isPathUnsafe: type.kind === 'unsafe',
         unsafePath: type.kind === 'unsafe' ? type.path : undefined,
+        isPathInaccessible: type.kind === 'inaccessible',
       })
     }
   }
 
   public render() {
     const buttons = new Array<JSX.Element>()
-    const { isPathUnsafe, unsafePath } = this.state
+    const { isPathUnsafe, unsafePath, isPathInaccessible } = this.state
 
     if (!isPathUnsafe) {
       buttons.push(
@@ -84,7 +90,7 @@ export class MissingRepository extends React.Component<
         </Button>
       )
 
-      if (this.canCloneAgain()) {
+      if (!isPathInaccessible && this.canCloneAgain()) {
         buttons.push(
           <Button key="clone-again" onClick={this.cloneAgain}>
             Clone Again
@@ -127,6 +133,38 @@ export class MissingRepository extends React.Component<
               <p>
                 If you trust the owner of the directory you can add an exception
                 for this directory in order to continue.
+              </p>
+            </div>
+          </div>
+
+          <Row>{buttons}</Row>
+        </UiView>
+      )
+    }
+
+    if (isPathInaccessible) {
+      return (
+        <UiView id="missing-repository-view">
+          <div className="title-container">
+            <div className="title">
+              Can't access "{this.props.repository.name}"
+            </div>
+            <div className="details">
+              <p>
+                GitHub Desktop doesn't have permission to read{' '}
+                <span className="path">{this.props.repository.path}</span>.
+              </p>
+              {__DARWIN__ && (
+                <p>
+                  Allow GitHub Desktop to access this folder in System Settings
+                  → Privacy & Security → Files and Folders (or Full Disk
+                  Access).
+                </p>
+              )}
+              <p>
+                <LinkButton onClick={this.checkAgain}>
+                  Check&nbsp;again.
+                </LinkButton>
               </p>
             </div>
           </div>

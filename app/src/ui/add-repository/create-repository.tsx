@@ -215,7 +215,8 @@ export class CreateRepository extends React.Component<
       return { kind: 'missing' } as RepositoryType
     })
 
-    let isRepository: boolean = type.kind !== 'missing'
+    let isRepository: boolean =
+      type.kind !== 'missing' && type.kind !== 'inaccessible'
     let isSubFolderOfRepository = false
     if (type.kind === 'unsafe') {
       // If the path is considered unsafe by Git we won't be able to
