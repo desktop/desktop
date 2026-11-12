@@ -227,6 +227,21 @@ describe('Copilot evaluation bridge', () => {
     assert.ok(result.analysis?.changes[0].diff?.includes('-old'))
   })
 
+  it('tracks declared baseline files even when fixture ignore rules match them', async () => {
+    for (const ignore of ['file.txt\n', '*\n']) {
+      const result = await runCopilotEvaluation(
+        request({
+          ...repository,
+          baseFiles: { ...repository.baseFiles, '.gitignore': ignore },
+        })
+      )
+      assert.strictEqual(result.status, 'ok', result.error?.message)
+      assert.ok(result.analysis?.changes[0].diff?.includes('-old'))
+      assert.ok(result.analysis?.changes[0].diff?.includes('+new'))
+      assert.strictEqual(result.validation?.preservedIndex, true)
+    }
+  })
+
   it('handles binary fixture changes as indivisible atomic units', async () => {
     const result = await runCopilotEvaluation(
       request({

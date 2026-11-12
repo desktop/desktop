@@ -466,7 +466,7 @@ export async function runCopilotEvaluation(
         const native = async (args: string[]) =>
           (await git(args, repositoryPath, 'copilotEvaluationFixture')).stdout
         await native(['init', '--initial-branch=fixture'])
-        await native(['add', '--all', '--', '.'])
+        await native(['add', '--all', '--force', '--', '.'])
         await native([
           '-c',
           'commit.gpgSign=false',

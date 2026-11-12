@@ -26,6 +26,8 @@ versions, fields, features, input kinds, and escaping fixture paths are rejected
 The initial feature is `assisted-commit`; inputs are either selected-only analysis
 or a disposable repository fixture. File contents are UTF-8 strings, including
 NUL-containing binary fixtures. Changed-file values of `null` delete files.
+Every `baseFiles` entry is tracked in the seed commit, even if fixture
+`.gitignore` rules match it.
 Repository selection lists paths and optional zero-based text hunk indices.
 Rename setup and arbitrary binary encodings are not part of this initial fixture
 format; analysis fixtures can describe atomic renames.
