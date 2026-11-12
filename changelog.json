@@ -1,5 +1,18 @@
 {
   "releases": {
+    "3.6.12-beta1": [
+      "[Added] Add a \"Push after committing\" option for manual commits",
+      "[Fixed] Highlighted names and paths in dialogs no longer break in the middle of short words - #23152. Thanks @DylanDevelops!",
+      "[Fixed] Pull request preview for forks compares against the parent repository's default branch - #23151. Thanks @DylanDevelops!",
+      "[Fixed] Resolve account selection errors by removing an obsolete database index so Git credentials for the chosen account are found correctly",
+      "[Fixed] Resolve commit message generation and conflict resolution errors when a custom AI provider exposes a model literally named \"auto\"",
+      "[Fixed] Git operations on a specific file (such as resolving conflicts, discarding changes, or diffing) now always act on that exact file instead of treating special characters in its name as a Git pathspec pattern that could match unrelated files",
+      "[Fixed] Accept local repository paths wrapped in quotes (as copied from Windows Explorer) instead of rejecting them",
+      "[Improved] Update embedded Git to 2.56.1",
+      "[Improved] The \"Repository account\" dialog now uses the same filterable account picker (avatar, login and host) used for clone, publish and no-repositories flows, instead of a plain dropdown, and no longer offers signing in to another account from within it",
+      "[Improved] Show a friendly host name (e.g. \"GitHub.com\" or the GitHub Enterprise host) instead of the raw API endpoint URL in the \"Repository account\" dialog"
+    ],
+    "3.6.11": ["[Improved] Update Git to 2.56.1"],
     "3.6.11-beta1": [
       "[New] Work with personal and work accounts side by side without signing out, with support for multiple accounts on GitHub.com and on the same GitHub Enterprise server - #23020",
       "[Added] Choose the account used for each repository's GitHub access and HTTPS authentication in Repository Settings or the repository's Account context menu, without changing your Git author name or email - #23020, #23023",

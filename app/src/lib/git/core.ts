@@ -113,14 +113,6 @@ export interface IGitExecutionOptions
   readonly fallbackAccount?: IAccountIdentity
 
   readonly interceptHooks?: string[]
-
-  /**
-   * Prepare a trusted ownership fence after hooks and credentials are ready.
-   *
-   * The returned synchronous check runs immediately before invoking native Git.
-   * Unlike observers, this callback retains the admitted operation context.
-   */
-  readonly prepareForSpawn?: () => Promise<() => void>
 }
 
 /**
@@ -315,14 +307,8 @@ export async function git(
         withTrampolineEnv(
           async env => {
             const commandName = `${name}: git ${args.join(' ')}`
-            const enter =
-              opts.prepareForSpawn === undefined
-                ? undefined
-                : await opts.prepareForSpawn()
-
             const result = await GitPerf.measure(commandName, () => {
               verifyRepositoryGitSpawnFence()
-              enter?.()
               return exec(args, path, {
                 ...opts,
                 env: {

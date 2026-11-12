@@ -33,7 +33,6 @@ import {
 } from './recovery'
 import { AssistedCommitSelection } from './selection'
 import { AssistedCommitState } from './state'
-import { AssistedCommitPush } from './push'
 import {
   AssistedCommitModelResolver,
   createAssistedCommitSettlement,
@@ -57,8 +56,6 @@ export class AssistedCommitCoordinator {
   public readonly context: AssistedCommitContext
   /** Retained recovery capabilities and settlement. */
   public readonly recovery: AssistedCommitRecovery
-  /** Optional native push and push-only retry retain the accepted run owner. */
-  public readonly push: AssistedCommitPush
 
   public constructor(
     cache: RepositoryStateCache,
@@ -96,17 +93,7 @@ export class AssistedCommitCoordinator {
       this.readers,
       this.selections,
       this.context,
-      repository,
-      () => this.push
-    )
-    this.push = new AssistedCommitPush(
-      this.state,
-      this.context,
-      this.dialogs,
-      this.readers,
-      this.recovery,
-      repository,
-      (run, result) => this.acceptLocal(run, result)
+      repository
     )
   }
 
@@ -134,18 +121,8 @@ export class AssistedCommitCoordinator {
     const frozen = freezeAssistedCommitRequest(request)
     const providerDefinition = this.context.providerDefinition(modelSelection)
     const providerRevision = this.context.providerRevision(modelSelection)
-    const { versions, pushDestination } = await this.readers.read(
-      repository,
-      undefined,
-      async () => ({
-        pushDestination: initialState.changesState.pushAfterAssistedCommit
-          ? await this.push.readDestination(repository, initialState)
-          : undefined,
-        versions: await this.selections.verifyRequested(
-          repository,
-          frozen.files
-        ),
-      })
+    const versions = await this.readers.read(repository, undefined, () =>
+      this.selections.verifyRequested(repository, frozen.files)
     )
     const intent = Object.freeze({ id: randomUUID() })
     this.state.intents.set(intent, {
@@ -157,7 +134,6 @@ export class AssistedCommitCoordinator {
       providerDefinition,
       providerRevision,
       versions,
-      pushDestination,
     })
     return Object.freeze({ ...frozen, intent })
   }
@@ -165,7 +141,7 @@ export class AssistedCommitCoordinator {
   /**
    * Accept verified local history without an await after the final auth/cancel check.
    *
-   * Push instead finalizes inside its synchronous native before-mutation fence.
+   * Cancellation and rollback end here, before any optional ordinary Push.
    */
   public acceptLocal(
     run: IAssistedCommitRun,
@@ -213,10 +189,7 @@ export class AssistedCommitCoordinator {
       repository,
       request: freezeAssistedCommitRequest(request),
       initialState,
-      pushAfterAssistedCommit:
-        initialState.changesState.pushAfterAssistedCommit,
-      pushDestination: prepared?.pushDestination,
-      publicationResources: { locks: [] },
+      pushAfterCommit: initialState.changesState.pushAfterCommit,
       account,
       modelSelection,
       controller: new AbortController(),
@@ -244,7 +217,6 @@ export class AssistedCommitCoordinator {
         dialogs: this.dialogs,
         readers: this.readers,
         selections: this.selections,
-        push: this.push,
       })
       if (run.lease === undefined) {
         throw new AssistedCommitError(
@@ -280,27 +252,23 @@ export class AssistedCommitCoordinator {
           workingDirectory: changes.workingDirectory.withIncludeAllFiles(false),
         }))
       }
-      if (run.pushAfterAssistedCommit) {
-        outcome = await this.push.execute(run, result)
-      } else {
-        await run.lease.run(
-          () =>
-            acceptVerifiedAssistedCommitTransaction(
-              result,
-              () => {
-                this.context.check(run)
-                this.state.set(run, {
-                  kind: 'closing',
-                  runId: run.id,
-                })
-              },
-              options
-            ),
-          true
-        )
-        this.acceptLocal(run, result)
-        outcome = { kind: 'local-ready', result }
-      }
+      await run.lease.run(
+        () =>
+          acceptVerifiedAssistedCommitTransaction(
+            result,
+            () => {
+              this.context.check(run)
+              this.state.set(run, {
+                kind: 'closing',
+                runId: run.id,
+              })
+            },
+            options
+          ),
+        true
+      )
+      this.acceptLocal(run, result)
+      outcome = { kind: 'local-ready', result }
     } catch (error) {
       const failure = await this.recovery.handleFailure(run, error)
       outcome = failure.outcome

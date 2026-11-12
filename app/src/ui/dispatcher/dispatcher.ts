@@ -256,11 +256,8 @@ export class Dispatcher {
   }
 
   /** Persist this repository's assisted-push opt-in, independently of manual options. */
-  public setPushAfterAssistedCommit(
-    repository: Repository,
-    enabled: boolean
-  ): void {
-    this.appStore._setPushAfterAssistedCommit(repository, enabled)
+  public setPushAfterCommit(repository: Repository, enabled: boolean): void {
+    this.appStore._setPushAfterCommit(repository, enabled)
   }
 
   /** Freeze first-click intent and certify Desktop selections before warning dialogs. */
@@ -296,14 +293,6 @@ export class Dispatcher {
     runId: string
   ): Promise<void> {
     return this.appStore._retryCopilotAssistedCommitRecovery(repository, runId)
-  }
-
-  /** Retry only the frozen push intent. Never plan, commit, or roll history back. */
-  public retryCopilotAssistedCommitPush(
-    repository: Repository,
-    runId: string
-  ): Promise<AssistedCommitRunOutcome | undefined> {
-    return this.appStore._retryCopilotAssistedCommitPush(repository, runId)
   }
 
   /** Dismiss a settled error, but never abandon unresolved recovery ownership. */

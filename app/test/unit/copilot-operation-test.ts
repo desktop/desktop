@@ -9,6 +9,7 @@ import {
   awaitCancellableCopilotOperation,
   ICopilotMessageSession,
   ICopilotPlanningSession,
+  CopilotResponseEvent,
   sendCopilotMessageRequest,
   sendCopilotPlanningRequest,
 } from '../../src/lib/copilot-operation'
@@ -281,32 +282,48 @@ describe('sendCopilotMessageRequest', () => {
   }
 })
 
-describe('sendCopilotPlanningRequest ordering remains planner-specific', () => {
+function createPlanningSession(send: () => Promise<string>) {
+  const handlers = new Set<(event: CopilotResponseEvent) => void>()
+  const fake = createMessageSession(async () => {
+    throw new Error('Event-driven requests must not use SDK sendAndWait')
+  })
+  const session: ICopilotPlanningSession = {
+    ...fake.session,
+    send,
+    onResponseEvent: handler => {
+      handlers.add(handler)
+      return () => handlers.delete(handler)
+    },
+  }
+  return {
+    session,
+    emit: (event: CopilotResponseEvent) =>
+      handlers.forEach(handler => handler(event)),
+    listenerCount: () => handlers.size + fake.listenerCount(),
+  }
+}
+
+function idleEvent(
+  data: SessionEventPayload<'session.idle'>['data'] = {}
+): SessionEventPayload<'session.idle'> {
+  return {
+    ...assistantMessage(''),
+    type: 'session.idle',
+    ephemeral: true,
+    data,
+  }
+}
+
+describe('sendCopilotPlanningRequest correlated completion', () => {
   for (const ackFirst of [false, true]) {
-    it(`waits for both send ACK and idle (ACK first=${ackFirst})`, async t => {
+    it(`returns the final corrected root response after ACK and completion (ACK first=${ackFirst})`, async t => {
       const ack = deferred<string>()
-      const messages = new Set<(event: AssistantMessageEvent) => void>()
-      const idle = new Set<() => void>()
-      const fake = createMessageSession(async () => {
-        throw new Error('Planner must not use SDK sendAndWait')
-      })
-      const session: ICopilotPlanningSession = {
-        ...fake.session,
-        send: () => ack.promise,
-        onAssistantMessage: handler => {
-          messages.add(handler)
-          return () => messages.delete(handler)
-        },
-        onIdle: handler => {
-          idle.add(handler)
-          return () => idle.delete(handler)
-        },
-      }
+      const fake = createPlanningSession(() => ack.promise)
       const controller = new AbortController()
       const remove = t.mock.method(controller.signal, 'removeEventListener')
       let completed = false
       const operation = sendCopilotPlanningRequest(
-        session,
+        fake.session,
         { prompt: 'Synthetic prompt' },
         controller.signal,
         cancellationError
@@ -314,26 +331,201 @@ describe('sendCopilotPlanningRequest ordering remains planner-specific', () => {
         completed = true
         return response
       })
+      fake.emit(idleEvent())
       if (ackFirst) {
-        ack.resolve('synthetic-id')
-      } else {
-        idle.forEach(handler => handler())
+        ack.resolve('synthetic-request')
       }
+      fake.emit(assistantMessage('Intermediate response'))
       await new Promise(resolve => setImmediate(resolve))
       assert.equal(completed, false)
-      const primary = assistantMessage('Primary response')
-      messages.forEach(handler => handler(primary))
-      messages.forEach(handler =>
-        handler({ ...assistantMessage('Subagent response'), agentId: 'child' })
-      )
-      if (ackFirst) {
-        idle.forEach(handler => handler())
-      } else {
-        ack.resolve('synthetic-id')
+      const primary = assistantMessage('Corrected response')
+      fake.emit(primary)
+      fake.emit({ ...assistantMessage('Subagent response'), agentId: 'child' })
+      fake.emit({
+        ...assistantMessage('Unrelated root response'),
+        data: {
+          ...primary.data,
+          content: 'Unrelated root response',
+          originatingMessageId: 'other-request',
+        },
+      })
+      fake.emit({
+        ...assistantMessage(''),
+        type: 'session.error',
+        data: {
+          originatingMessageId: 'other-request',
+          errorType: 'query',
+          message: 'Unrelated request failure',
+        },
+      })
+      fake.emit({ ...idleEvent(), agentId: 'child' })
+      fake.emit(idleEvent({ mode: 'autopilot' }))
+      fake.emit(idleEvent())
+      if (!ackFirst) {
+        await new Promise(resolve => setImmediate(resolve))
+        assert.equal(completed, false)
+        ack.resolve('synthetic-request')
       }
       assert.equal(await operation, primary)
-      assert.equal(messages.size + idle.size + fake.listenerCount(), 0)
+      assert.equal(fake.listenerCount(), 0)
       assert.equal(remove.mock.callCount(), 1)
     })
   }
+
+  for (const terminal of [
+    'abort',
+    'error',
+    'autopilot-abort',
+    'autopilot-error',
+  ] as const) {
+    it(`rejects ${terminal} after success-shaped content, including events before ACK`, async () => {
+      const ack = deferred<string>()
+      const fake = createPlanningSession(() => ack.promise)
+      const operation = sendCopilotPlanningRequest(
+        fake.session,
+        { prompt: 'Synthetic' },
+        new AbortController().signal,
+        cancellationError
+      )
+      fake.emit(assistantMessage('Not a completed result'))
+      if (terminal === 'abort') {
+        fake.emit(idleEvent({ aborted: true }))
+      } else if (terminal === 'error') {
+        fake.emit({
+          ...assistantMessage(''),
+          type: 'session.error',
+          data: {
+            originatingMessageId: 'synthetic-request',
+            errorType: 'query',
+            message: 'Structured output failed',
+          },
+        })
+      } else {
+        fake.emit({
+          ...idleEvent(),
+          type: 'session.autopilot_stopped',
+          data: {
+            requestId: 'synthetic-request',
+            reason: terminal === 'autopilot-abort' ? 'aborted' : 'error',
+          },
+        })
+      }
+      ack.resolve('synthetic-request')
+      await assert.rejects(operation, /aborted|failed|error/)
+      assert.equal(fake.listenerCount(), 0)
+    })
+  }
+
+  it('does not reuse earlier content after a final tool-request message', async () => {
+    const fake = createPlanningSession(async () => 'synthetic-request')
+    const operation = sendCopilotPlanningRequest(
+      fake.session,
+      { prompt: 'Synthetic' },
+      new AbortController().signal,
+      cancellationError
+    )
+    fake.emit(assistantMessage('Earlier content'))
+    fake.emit({
+      ...assistantMessage('Tool response'),
+      data: {
+        ...assistantMessage('').data,
+        toolRequests: [{ toolCallId: 'tool', name: 'forbidden' }],
+      },
+    })
+    fake.emit(idleEvent())
+    assert.equal(await operation, undefined)
+    assert.equal(fake.listenerCount(), 0)
+  })
+
+  it('requires a matching origin, not merely a root message', async () => {
+    const fake = createPlanningSession(async () => 'synthetic-request')
+    const operation = sendCopilotPlanningRequest(
+      fake.session,
+      { prompt: 'Synthetic' },
+      new AbortController().signal,
+      cancellationError
+    )
+    fake.emit({
+      ...assistantMessage(''),
+      type: 'user.message',
+      data: { messageId: 'synthetic-request', content: 'Synthetic' },
+    })
+    fake.emit({
+      ...assistantMessage('Legacy uncorrelated response'),
+      data: { messageId: 'legacy', content: 'Not owned' },
+    })
+    fake.emit(idleEvent())
+    assert.equal(await operation, undefined)
+  })
+
+  it('uses only matching root Autopilot completion, not unrelated or child terminals', async () => {
+    const fake = createPlanningSession(async () => 'synthetic-request')
+    let completed = false
+    const operation = sendCopilotPlanningRequest(
+      fake.session,
+      { prompt: 'Synthetic' },
+      new AbortController().signal,
+      cancellationError
+    ).then(response => {
+      completed = true
+      return response
+    })
+    const response = assistantMessage('Final response')
+    fake.emit(response)
+    fake.emit({
+      ...idleEvent(),
+      type: 'session.autopilot_stopped',
+      data: { requestId: 'other-request', reason: 'aborted' },
+    })
+    fake.emit({
+      ...idleEvent(),
+      agentId: 'child',
+      type: 'session.autopilot_stopped',
+      data: { requestId: 'synthetic-request', reason: 'task_complete' },
+    })
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(completed, false)
+    fake.emit({
+      ...idleEvent(),
+      type: 'session.autopilot_stopped',
+      data: { requestId: 'synthetic-request', reason: 'task_complete' },
+    })
+    assert.equal(await operation, response)
+    assert.equal(fake.listenerCount(), 0)
+  })
+
+  it('cancels while admission is pending, releases listeners, and ignores late events/rejection', async () => {
+    const ack = deferred<string>()
+    const fake = createPlanningSession(() => ack.promise)
+    const controller = new AbortController()
+    const operation = sendCopilotPlanningRequest(
+      fake.session,
+      { prompt: 'Synthetic' },
+      controller.signal,
+      cancellationError
+    )
+    fake.emit(assistantMessage('Partial'))
+    controller.abort()
+    await assert.rejects(operation, /Synthetic cancellation/)
+    assert.equal(fake.listenerCount(), 0)
+    fake.emit(idleEvent())
+    ack.reject(new Error('Late admission failure'))
+  })
+
+  it('rejects admission failure even after matching response and idle arrived', async () => {
+    const failure = new Error('Admission failed')
+    const ack = deferred<string>()
+    const fake = createPlanningSession(() => ack.promise)
+    const operation = sendCopilotPlanningRequest(
+      fake.session,
+      { prompt: 'Synthetic' },
+      new AbortController().signal,
+      cancellationError
+    )
+    fake.emit(assistantMessage('Not admitted'))
+    fake.emit(idleEvent())
+    ack.reject(failure)
+    await assert.rejects(operation, error => error === failure)
+    assert.equal(fake.listenerCount(), 0)
+  })
 })

@@ -10,7 +10,6 @@ import type { createAssistedCommitRunHarness } from '../../helpers/assisted-comm
 let harness: typeof import('../../helpers/assisted-commit-run')
 let fixtures: typeof import('../../helpers/assisted-commit')
 let remotes: typeof import('../../helpers/assisted-commit-push')
-let models: typeof import('../../helpers/copilot-assisted-commit')
 let hooks: typeof import('../../../src/lib/hooks/config')
 let popupTypes: typeof import('../../../src/models/popup')
 
@@ -42,11 +41,10 @@ before(async () => {
       }),
     },
   })
-  ;[harness, fixtures, remotes, models, hooks, popupTypes] = await Promise.all([
+  ;[harness, fixtures, remotes, hooks, popupTypes] = await Promise.all([
     import('../../helpers/assisted-commit-run'),
     import('../../helpers/assisted-commit'),
     import('../../helpers/assisted-commit-push'),
-    import('../../helpers/copilot-assisted-commit'),
     import('../../../src/lib/hooks/config'),
     import('../../../src/models/popup'),
   ])
@@ -70,187 +68,69 @@ function resolveHookPopups(
   })
 }
 
-describe('assisted push with native hook interception', () => {
-  it('preserves the configured remote name and exact frozen ref update in native pre-push input', async t => {
-    const source = await fixtures.seed(t, { file: 'before\n' })
-    const remote = await remotes.addBareRemote(t, source)
-    await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
-    const h = await harness.createAssistedCommitRunHarness(t)
-    const repository = await h.register(source)
-    hooks.setHooksEnvEnabled(true)
-    await fixtures.writeHook(
-      repository,
-      'pre-push',
-      'printf "%s\\n" "$1" > hook-remote-name\nprintf "%s\\n" "$2" > hook-remote-url\ncat > hook-update\nexit 0'
-    )
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
-    const outcome = await h.dispatcher.createCopilotAssistedCommits(
-      repository,
-      h.request(repository)
-    )
-    assert.ok(outcome.kind === 'pushed')
-    const fullTip = await fixtures.tip(repository)
-    assert.strictEqual(
-      await FileSystem.readFile(join(source.path, 'hook-remote-name'), 'utf8'),
-      'origin\n'
-    )
-    assert.strictEqual(
-      await FileSystem.readFile(join(source.path, 'hook-remote-url'), 'utf8'),
-      `${remote.path}\n`
-    )
-    assert.strictEqual(
-      await FileSystem.readFile(join(source.path, 'hook-update'), 'utf8'),
-      `${fullTip} ${fullTip} ${remote.remoteRef} ${remote.originalTip}\n`
-    )
-    assert.strictEqual(await remote.tip(), fullTip)
-  })
-
-  for (const action of ['abort', 'ignore'] as const) {
-    it(`${action} joins the actual native pre-push outcome, keeping all planned local commits`, async t => {
-      const source = await fixtures.seed(t, { one: 'one\n', two: 'two\n' })
-      const remote = await remotes.addBareRemote(t, source)
-      await FileSystem.writeFile(join(source.path, 'one'), 'ONE\n')
-      await FileSystem.writeFile(join(source.path, 'two'), 'TWO\n')
-      const h = await harness.createAssistedCommitRunHarness(t)
-      const repository = await h.register(source)
-      hooks.setHooksEnvEnabled(true)
-      await fixtures.writeHook(
-        repository,
-        'pre-push',
-        'echo "native rejecting pre-push" >&2\nexit 1'
-      )
-      h.dispatcher.setPushAfterAssistedCommit(repository, true)
-      h.propose.mock.mockImplementation(async (_account, analysis) =>
-        models.splitResponse(analysis)
-      )
-      const subscription = resolveHookPopups(h, action)
-      t.after(() => subscription.dispose())
-      const outcome = await h.dispatcher.createCopilotAssistedCommits(
-        repository,
-        h.request(repository)
-      )
-      assert.strictEqual(
-        outcome.kind,
-        action === 'ignore' ? 'pushed' : 'push-error'
-      )
-      assert.strictEqual(await fixtures.count(repository), 3)
-      assert.strictEqual(
-        await remote.tip(),
-        action === 'ignore'
-          ? await fixtures.tip(repository)
-          : remote.originalTip
-      )
-      assert.strictEqual(h.propose.mock.callCount(), 1)
-      assert.strictEqual(h.commits.mock.callCount(), 2)
-      assert.strictEqual(h.state(repository).isCommitting, false)
-      assert.strictEqual(h.state(repository).isPushPullFetchInProgress, false)
-      assert.strictEqual(h.state(repository).hookProgress, null)
-      assert.strictEqual(
-        h.appStore['popupManager'].areTherePopupsOfType(
-          popupTypes.PopupType.HookFailed
-        ),
-        false
-      )
-      assert.strictEqual(
-        h.assisted.state['runs'].get(repository.id)?.recoveryCapability,
-        undefined
-      )
-    })
-  }
-
-  it('reruns push hooks on retry without inheriting commit-hook bypass, options resets, or AI eligibility', async t => {
-    const source = await fixtures.seed(t, { file: 'before\n' })
-    const remote = await remotes.addBareRemote(t, source)
-    await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
-    const h = await harness.createAssistedCommitRunHarness(t)
-    const repository = await h.register(source)
-    hooks.setHooksEnvEnabled(true)
-    await fixtures.writeHook(
-      repository,
-      'pre-commit',
-      'echo "commit hook must be bypassed" >&2\nexit 1'
-    )
-    await fixtures.writeHook(
-      repository,
-      'pre-push',
-      'n=0; if test -f hook-count; then n=$(cat hook-count); fi\nn=$((n + 1)); printf "%s" "$n" > hook-count\necho "push hook must run" >&2\nexit 1'
-    )
-    h.dispatcher.updateCommitOptions(repository, { skipCommitHooks: true })
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
-    let subscription = resolveHookPopups(h, 'abort')
-    t.after(() => subscription.dispose())
-    const outcome = await h.dispatcher.createCopilotAssistedCommits(
-      repository,
-      h.request(repository)
-    )
-    assert.ok(outcome.kind === 'push-error')
-    const fullTip = await fixtures.tip(repository)
-    assert.strictEqual(
-      await FileSystem.readFile(join(source.path, 'hook-count'), 'utf8'),
-      '1'
-    )
-    const state = h.state(repository).changesState.assistedCommit
-    assert.ok(state.kind === 'push-error')
-    subscription.dispose()
-    subscription = resolveHookPopups(h, 'ignore')
-    h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
-    h.appStore['accounts'] = []
-    h.runtime.mock.mockImplementation(async () => false)
-    const retry = await h.dispatcher.retryCopilotAssistedCommitPush(
-      repository,
-      state.runId
-    )
-    assert.ok(retry?.kind === 'pushed')
-    assert.strictEqual(
-      await FileSystem.readFile(join(source.path, 'hook-count'), 'utf8'),
-      '2'
-    )
-    assert.strictEqual(await fixtures.tip(repository), fullTip)
-    assert.strictEqual(await remote.tip(), fullTip)
-    assert.strictEqual(await fixtures.count(repository), 2)
-    assert.strictEqual(h.propose.mock.callCount(), 1)
-    assert.strictEqual(h.commits.mock.callCount(), 1)
-    assert.strictEqual(h.state(repository).allowEmptyCommit, true)
-    assert.strictEqual(h.state(repository).skipCommitHooks, true)
-  })
-
-  it('native hook abort after push entry joins the killed process and never rolls history back', async t => {
-    const source = await fixtures.seed(t, { file: 'before\n' })
-    const remote = await remotes.addBareRemote(t, source)
-    await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
-    const h = await harness.createAssistedCommitRunHarness(t)
-    const repository = await h.register(source)
-    hooks.setHooksEnvEnabled(true)
-    await fixtures.writeHook(repository, 'pre-push', 'sleep 10\nexit 0')
-    h.dispatcher.setPushAfterAssistedCommit(repository, true)
-    const subscription = h.appStore.onDidUpdate(() => {
-      const state = h.state(repository)
-      if (
-        state.changesState.assistedCommit.kind === 'pushing' &&
-        state.hookProgress?.status === 'started'
-      ) {
-        h.cancel(repository)
-        state.hookProgress.abort()
+describe('ordinary auto-push with native hook interception', () => {
+  for (const mode of ['manual', 'copilot'] as const) {
+    for (const phase of ['pre-commit', 'pre-push'] as const) {
+      for (const action of ['abort', 'ignore'] as const) {
+        it(`${mode} commit honors intercepted ${phase} ${action} without confusing local and push success`, async t => {
+          const source = await fixtures.seed(t, { file: 'before\n' })
+          const remote = await remotes.addBareRemote(t, source)
+          await FileSystem.writeFile(join(source.path, 'file'), 'after\n')
+          const h = await harness.createAssistedCommitRunHarness(t)
+          const repository = await h.register(source)
+          h.dispatcher.setCommitMode(repository, mode)
+          h.dispatcher.setPushAfterCommit(repository, true)
+          hooks.setHooksEnvEnabled(true)
+          await fixtures.writeHook(
+            source,
+            phase,
+            'echo "synthetic hook refusal" >&2\nexit 1'
+          )
+          const errors: Error[] = []
+          h.appStore.onDidError(error => errors.push(error))
+          const refresh = t.mock.method(h.appStore, '_refreshRepository')
+          const publication = t.mock.fn(
+            h.appStore['pushAfterCommit'].bind(h.appStore)
+          )
+          h.appStore['pushAfterCommit'] = publication
+          const subscription = resolveHookPopups(h, action)
+          t.after(() => subscription.dispose())
+          const outcome =
+            mode === 'manual'
+              ? await h.dispatcher.commitIncludedChanges(repository, {
+                  summary: 'Manual commit with hooks',
+                  description: '',
+                })
+              : await h.dispatcher.createCopilotAssistedCommits(
+                  repository,
+                  h.request(repository)
+                )
+          await Promise.all(publication.mock.calls.map(call => call.result))
+          await Promise.all(refresh.mock.calls.map(call => call.result))
+          const committed = phase === 'pre-push' || action === 'ignore'
+          assert.strictEqual(
+            mode === 'manual'
+              ? outcome
+              : typeof outcome === 'object' && outcome.kind === 'local-ready',
+            committed
+          )
+          assert.strictEqual(await fixtures.count(source), committed ? 2 : 1)
+          assert.strictEqual(
+            await remote.tip(),
+            action === 'ignore'
+              ? await fixtures.tip(source)
+              : remote.originalTip
+          )
+          assert.strictEqual(errors.length, 0)
+          assert.strictEqual(h.commits.mock.callCount(), committed ? 1 : 0)
+          assert.strictEqual(
+            h.propose.mock.callCount(),
+            mode === 'manual' ? 0 : 1
+          )
+          assert.strictEqual(h.state(repository).hookProgress, null)
+          assert.strictEqual(h.state(repository).isCommitting, false)
+        })
       }
-    })
-    t.after(() => subscription.dispose())
-    const abort = resolveHookPopups(h, 'abort')
-    t.after(() => abort.dispose())
-    const outcome = await h.dispatcher.createCopilotAssistedCommits(
-      repository,
-      h.request(repository)
-    )
-    assert.ok(outcome.kind === 'push-error')
-    assert.strictEqual(outcome.attempted, true)
-    assert.strictEqual(await fixtures.count(repository), 2)
-    assert.strictEqual(await remote.tip(), remote.originalTip)
-    assert.strictEqual(h.state(repository).isCommitting, false)
-    assert.strictEqual(h.state(repository).isPushPullFetchInProgress, false)
-    assert.strictEqual(
-      h.appStore['popupManager'].areTherePopupsOfType(
-        popupTypes.PopupType.HookFailed
-      ),
-      false
-    )
-  })
+    }
+  }
 })

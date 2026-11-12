@@ -8,14 +8,13 @@ import { envForRemoteOperation } from './environment'
 
 async function getFetchArgs(
   remote: string,
-  progressCallback: ((progress: IFetchProgress) => void) | undefined,
-  recurseSubmodules: boolean
+  progressCallback: ((progress: IFetchProgress) => void) | undefined
 ) {
   return [
     'fetch',
     ...(progressCallback ? ['--progress'] : []),
     '--prune',
-    `--recurse-submodules=${recurseSubmodules ? 'on-demand' : 'no'}`,
+    '--recurse-submodules=on-demand',
     '--',
     remote,
   ]
@@ -37,14 +36,12 @@ async function getFetchArgs(
  *                           'git fetch'.
  * @param isBackgroundTask  - Whether the fetch is being performed as a
  *                            background task as opposed to being user initiated
- * @param recurseSubmodules - Whether to fetch populated submodules on demand.
  */
 export async function fetch(
   repository: Repository,
   remote: IRemote,
   progressCallback?: (progress: IFetchProgress) => void,
-  isBackgroundTask = false,
-  recurseSubmodules = true
+  isBackgroundTask = false
 ): Promise<void> {
   let opts: IGitStringExecutionOptions = {
     successExitCodes: new Set([0]),
@@ -87,11 +84,7 @@ export async function fetch(
     progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getFetchArgs(
-    remote.name,
-    progressCallback,
-    recurseSubmodules
-  )
+  const args = await getFetchArgs(remote.name, progressCallback)
 
   await git(args, repository.path, 'fetch', opts)
 }
@@ -113,11 +106,10 @@ export async function fetchRefspec(
   )
 }
 
-/** Fast-forward tracking branches, optionally excluding unadmitted submodules. */
+/** Fast-forward tracking branches. */
 export async function fastForwardBranches(
   repository: Repository,
-  branches: ReadonlyArray<ITrackingBranch>,
-  recurseSubmodules = true
+  branches: ReadonlyArray<ITrackingBranch>
 ): Promise<void> {
   if (branches.length === 0) {
     return
@@ -135,7 +127,6 @@ export async function fastForwardBranches(
       '--show-forced-updates',
       // Prevent `git fetch` from touching the `FETCH_HEAD`
       '--no-write-fetch-head',
-      ...(recurseSubmodules ? [] : ['--recurse-submodules=no']),
       // Take branch refs from stdin to circumvent shell max line length
       // limitations (mainly on Windows)
       '--stdin',

@@ -1,17 +1,3 @@
-import {
-  AssistedCommitPushError,
-  prepareAssistedCommitPushOwner,
-} from '../git/assisted-commit-push'
-import {
-  acquireAssistedCommitGitLease,
-  withRepositoryGitSpawnFence,
-} from '../git/repository-operation'
-import {
-  withAcceptedAliasFence,
-  withAcceptedSpawnFence,
-  verifyAcceptedOwner,
-} from './push-ownership'
-import type { AssistedCommitPush } from './push'
 import { AssistedCommitRunOutcome } from '../../models/assisted-commit-run'
 import { Repository } from '../../models/repository'
 import {
@@ -49,8 +35,7 @@ export function createAssistedCommitRecovery(
   readers: AssistedCommitReaders,
   selections: AssistedCommitSelection,
   context: AssistedCommitContext,
-  host: IAssistedCommitRepository,
-  getPush: () => AssistedCommitPush
+  host: IAssistedCommitRepository
 ) {
   const recovery = {
     present,
@@ -80,9 +65,7 @@ export function createAssistedCommitRecovery(
       return undefined
     } catch (error) {
       const state = owner.cache.get(run.repository).changesState.assistedCommit
-      const ownedError =
-        (state.kind === 'error' || state.kind === 'push-error') &&
-        state.runId === run.id
+      const ownedError = state.kind === 'error' && state.runId === run.id
       const failure = ownedError
         ? new AggregateError(
             [state.error, error],
@@ -102,8 +85,8 @@ export function createAssistedCommitRecovery(
           ? owner.fail(
               run,
               metadata,
-              state.kind === 'error' ? state.retry : null,
-              state.kind === 'error' ? state.selectionNeedsReview : false,
+              state.retry,
+              state.selectionNeedsReview,
               false
             )
           : metadata
@@ -173,30 +156,7 @@ export function createAssistedCommitRecovery(
         kind: state.retry === 'recovery' ? 'rolling-back' : 'refreshing',
         runId,
       })
-      if (
-        run.finalized &&
-        run.pushPublicationPending &&
-        run.lease === undefined
-      ) {
-        if (run.protectedPaths === undefined) {
-          throw new Error(
-            'Accepted publication has no retained Git resource admission'
-          )
-        }
-        if (run.pushDestination?.kind !== 'configured') {
-          throw new Error(
-            'Accepted publication has no frozen repository admission'
-          )
-        }
-        owner.protect(run, run.protectedPaths)
-        run.lease = await acquireAssistedCommitGitLease(
-          run.pushDestination.path,
-          run.protectedPaths,
-          () => verifyAcceptedOwner(run)
-        )
-      }
       const capability = run.recoveryCapability
-      let verifyRecoveryAlias: (() => void) | undefined
       const recover = async () => {
         if (state.retry === 'recovery') {
           if (capability !== undefined) {
@@ -223,15 +183,6 @@ export function createAssistedCommitRecovery(
           selections.clearRestored(run.repository)
         }
         return withRepositoryGitErrorPropagation(async () => {
-          if (run.finalized) {
-            await getPush().completePublication(run)
-            if (run.pushDestination?.kind === 'configured') {
-              verifyRecoveryAlias = await prepareAssistedCommitPushOwner(
-                repository,
-                run.pushDestination
-              )
-            }
-          }
           const restore = async () => {
             if (run.finalized) {
               await recovery.refresh(run.repository, true)
@@ -243,43 +194,19 @@ export function createAssistedCommitRecovery(
             const needsReview = await restore()
             const deferredRepository = readers.takeRefresh(repository)
             if (deferredRepository !== undefined) {
-              await withAcceptedAliasFence(
-                run,
-                [deferredRepository ?? repository],
-                () =>
-                  host.refreshAll(
-                    run.finalized
-                      ? run.repository
-                      : deferredRepository ?? repository
-                  )
-              )
+              await host.refreshAll(deferredRepository ?? repository)
             }
             if (!run.finalized) {
               await selections.verifyFence(run)
             }
             return needsReview
           }
-          return verifyRecoveryAlias === undefined
-            ? restoreAndRefresh()
-            : withRepositoryGitSpawnFence(
-                verifyRecoveryAlias,
-                restoreAndRefresh
-              )
+          return restoreAndRefresh()
         })
       }
       const needsReview =
         run.lease === undefined
-          ? await withRepositoryGitOperation(
-              run.finalized
-                ? run.pushDestination?.kind === 'configured'
-                  ? run.pushDestination.path
-                  : run.repository.path
-                : repository.path,
-              'read',
-              () => withAcceptedSpawnFence(run, recover),
-              false,
-              () => verifyAcceptedOwner(run)
-            )
+          ? await withRepositoryGitOperation(repository.path, 'read', recover)
           : await run.lease.run(recover, true)
       run.lease?.release()
       run.lease = undefined
@@ -287,7 +214,6 @@ export function createAssistedCommitRecovery(
       if (run.selectionReadError !== undefined) {
         throw run.selectionReadError
       }
-      verifyRecoveryAlias?.()
       run.finished = true
       owner.cache.update(run.repository, () => ({
         isCommitting: false,
@@ -327,12 +253,6 @@ export function createAssistedCommitRecovery(
         ),
         run.recoveryCapability !== undefined || run.cleanupPending
           ? 'recovery'
-          : assistedCommitErrorCauses(error).some(
-              cause =>
-                cause instanceof AssistedCommitPushError &&
-                cause.publicationStale
-            )
-          ? null
           : 'refresh',
         state.selectionNeedsReview,
         false
@@ -372,11 +292,11 @@ export function createAssistedCommitRecovery(
     const state = owner.cache.get(repository).changesState.assistedCommit
     const run = owner.runs.get(repository.id)
     if (
-      (state.kind !== 'error' && state.kind !== 'push-error') ||
+      state.kind !== 'error' ||
       state.runId !== runId ||
       run?.finished === false ||
       owner.selectionReaders.has(repository.id) ||
-      (state.kind === 'error' && state.retry !== null)
+      state.retry !== null
     ) {
       return
     }
@@ -410,36 +330,17 @@ export function createAssistedCommitRecovery(
     let verifiedCancellation = false
 
     if (run.finalized && run.result !== undefined) {
-      if (run.pushAfterAssistedCommit && !run.pushSucceeded) {
-        const error = owner.failPush(run, originalError)
-        outcome = {
-          kind: 'push-error',
-          result: run.result,
-          error,
-          attempted: run.pushAttempted === true,
-        }
-      } else {
-        const error = owner.fail(
-          run,
-          new Error(
-            run.pushSucceeded
-              ? 'Commits were pushed, but Desktop presentation failed'
-              : 'Commits were accepted locally, but Desktop presentation failed',
-            { cause: originalError }
-          ),
-          assistedCommitErrorCauses(originalError).some(
-            error =>
-              error instanceof AssistedCommitPushError && error.publicationStale
-          )
-            ? null
-            : 'refresh',
-          false,
-          false
-        )
-        outcome = run.pushSucceeded
-          ? { kind: 'pushed', result: run.result, refreshError: error }
-          : { kind: 'local-ready', result: run.result }
-      }
+      owner.fail(
+        run,
+        new Error(
+          'Commits were accepted locally, but Desktop presentation failed',
+          { cause: originalError }
+        ),
+        'refresh',
+        false,
+        false
+      )
+      outcome = { kind: 'local-ready', result: run.result }
     } else {
       run.reconciling = true
       let error = originalError
@@ -559,10 +460,6 @@ export function createAssistedCommitRecovery(
 
     run.reconciling = true
     try {
-      owner.cache.update(repository, () => ({
-        isPushPullFetchInProgress: false,
-        pushPullFetchProgress: null,
-      }))
       run.consent?.resolve(false)
       run.hookFailure?.resolve('abort')
       const state = owner.cache.get(repository).changesState.assistedCommit
@@ -573,31 +470,18 @@ export function createAssistedCommitRecovery(
         if (deferredRepository !== undefined) {
           try {
             const refresh = () =>
-              withAcceptedAliasFence(
-                run,
-                [deferredRepository ?? repository],
-                () =>
-                  withRepositoryGitErrorPropagation(async () => {
-                    await host.refreshAll(
-                      run.finalized
-                        ? run.repository
-                        : deferredRepository ?? repository
-                    )
-                    await selections.verifyFence(run)
-                  })
-              )
+              withRepositoryGitErrorPropagation(async () => {
+                await host.refreshAll(
+                  run.finalized
+                    ? run.repository
+                    : deferredRepository ?? repository
+                )
+                await selections.verifyFence(run)
+              })
             if (run.lease !== undefined) {
               await run.lease.run(refresh, true)
             } else {
-              await withRepositoryGitOperation(
-                run.finalized && run.pushDestination?.kind === 'configured'
-                  ? run.pushDestination.path
-                  : repository.path,
-                'read',
-                refresh,
-                false,
-                () => verifyAcceptedOwner(run)
-              )
+              await withRepositoryGitOperation(repository.path, 'read', refresh)
             }
           } catch (error) {
             const metadata = owner.fail(
@@ -612,13 +496,7 @@ export function createAssistedCommitRecovery(
               true,
               false
             )
-            if (run.pushSucceeded && run.result !== undefined) {
-              outcome = {
-                kind: 'pushed',
-                result: run.result,
-                refreshError: metadata,
-              }
-            } else if (!run.finalized) {
+            if (!run.finalized) {
               outcome = { kind: 'error', error: metadata }
             }
           }
@@ -626,10 +504,7 @@ export function createAssistedCommitRecovery(
         run.lease?.release()
         run.lease = undefined
         await readers.finish(run)
-        if (
-          run.selectionReadError !== undefined &&
-          (!run.finalized || run.pushSucceeded)
-        ) {
+        if (run.selectionReadError !== undefined) {
           const metadata = owner.fail(
             run,
             run.selectionReadError,
@@ -637,14 +512,9 @@ export function createAssistedCommitRecovery(
             true,
             false
           )
-          outcome =
-            run.pushSucceeded && run.result !== undefined
-              ? {
-                  kind: 'pushed',
-                  result: run.result,
-                  refreshError: metadata,
-                }
-              : { kind: 'error', error: metadata }
+          if (!run.finalized) {
+            outcome = { kind: 'error', error: metadata }
+          }
         }
         owner.cache.update(repository, () => ({
           isCommitting: false,
@@ -712,18 +582,7 @@ export function createAssistedCommitRecovery(
         }
       }
       try {
-        const historyError = await readers.resumeHistory(repository, run)
-        if (
-          historyError !== undefined &&
-          run.pushSucceeded &&
-          run.result !== undefined
-        ) {
-          outcome = {
-            kind: 'pushed',
-            result: run.result,
-            refreshError: historyError,
-          }
-        }
+        await readers.resumeHistory(repository, run)
         owner.events.changed()
       } catch (error) {
         log.error('Accepted assisted commits could not be presented', error)
