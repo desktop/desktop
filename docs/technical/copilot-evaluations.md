@@ -110,29 +110,24 @@ Only approved synthetic or appropriately licensed fixtures should be sent to a
 provider. The private evaluator performs model preflight and budgets; the bridge
 itself does not silently substitute models or retry bad answers.
 
-## Development push dispatch
+## Private workflow execution
 
-`.github/workflows/copilot-evals.yml` is a separate, checkout-free bridge from
-each `development` push to the private evaluator. It passes the exact event SHA,
-source run ID, and source URL. It has no path filter or concurrency group that
-would replace pending pushes.
+Evaluation workflows run only in the private `desktop/copilot-evals` repository.
+This public repository has no evaluation or dispatch workflow. It owns only the
+production feature and headless bridge; benchmark data and run results are not
+stored in its Actions logs, summaries, artifacts, or PR comments.
 
-The bridge is disabled until publication/configuration. To enable it:
+Automatic development evaluations use a GitHub App webhook relay owned by the
+private evaluator. The relay verifies signed `desktop/desktop` push events for
+`refs/heads/development` and sends a `desktop-development-push` repository
+dispatch to `desktop/copilot-evals`, carrying only the exact pushed SHA and
+delivery provenance. The private workflow accepts that automatic path only from
+the configured relay App and refuses to run in a public repository.
 
-1. Publish the private evaluator with `evaluate.yml` on its default branch.
-2. Install a GitHub App on `desktop/copilot-evals` with Actions write permission.
-3. Configure `COPILOT_EVALS_APP_ID` as a Desktop repository variable and
-   `COPILOT_EVALS_APP_PRIVATE_KEY` as a Desktop Actions secret.
-4. Configure the evaluator's protected manual environment and trusted automatic
-   environment, plus inference permission or an approved credential. Verify one
-   manual live run before enabling unattended development evaluations.
-5. Set the Desktop variable `COPILOT_EVALS_ENABLED` to `true`.
-
-The App token authorizes dispatch only; it is not an inference credential and is
-never handed to evaluated Desktop code. Dispatch failure fails the bridge job.
-When the API provides a run URL, it appears in the source run's summary.
-Private report access still requires access to the private repository.
-
-Pushes authenticated with a repository `GITHUB_TOKEN` do not ordinarily trigger
-new push workflows. Automated development writers must use an appropriate App
-credential or dispatch evaluations explicitly.
+GitHub Actions has no native cross-repository push subscription. The relay must
+be deployed behind HTTPS and configured with its webhook secret, narrowly scoped
+App installation, and persistent delivery state before automatic runs work.
+Deployment and credentials are separate owner setup, not provisioned by this
+repository. Manual evaluations remain available in the private repository.
+See its README for relay setup, environments, duplicate-delivery handling, and
+failure recovery. Reports and detailed diagnostics remain private.
