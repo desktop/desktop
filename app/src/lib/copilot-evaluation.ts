@@ -470,6 +470,7 @@ export async function runCopilotEvaluation(
                     return getCopilotPlanningClient(sdk, config =>
                       sdk.createSession({
                         ...config,
+                        clientName: 'github/desktop-evals:assisted-commit',
                         enableFileHooks: false,
                         enableConfigDiscovery: false,
                         enableSkills: false,

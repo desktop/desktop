@@ -111,6 +111,11 @@ Live invocations require an explicit `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or
 discovers a logged-in CLI account. The selected model is sent unchanged, with
 the production built-in reasoning default left unset.
 
+Live evaluation sessions use `github/desktop-evals:assisted-commit` feature
+attribution; application sessions retain `github/desktop:assisted-commit`.
+Both use the `copilot-desktop` integration ID, so integration-wide usage metrics
+must filter by feature attribution to separate evaluations from user activity.
+
 The runtime uses a fresh Copilot home and in-memory session storage.
 `instructions.global` and `instructions.repository` supply the intended
 instruction fixtures; ambient user instructions and MCP configuration are not

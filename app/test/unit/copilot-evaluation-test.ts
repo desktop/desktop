@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import { join } from 'path'
 import { mkdir, writeFile } from 'fs/promises'
 import { CopilotClient } from '@github/copilot-sdk'
+import type { SessionConfig } from '@github/copilot-sdk'
 import {
   listCopilotEvaluationModels,
   runCopilotEvaluation,
@@ -239,6 +240,43 @@ describe('Copilot evaluation adapter', () => {
     assert.strictEqual(start.mock.callCount(), 1)
     assert.strictEqual(list.mock.callCount(), 0)
     assert.strictEqual(stop.mock.callCount(), 1)
+  })
+
+  it('uses evaluation attribution for initial and whole-selection planning sessions', async t => {
+    const previous = process.env.COPILOT_GITHUB_TOKEN
+    process.env.COPILOT_GITHUB_TOKEN = 'synthetic-evaluation-token'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.COPILOT_GITHUB_TOKEN
+      } else {
+        process.env.COPILOT_GITHUB_TOKEN = previous
+      }
+    })
+    const captured = new Error('Session configuration captured')
+    const createSession = t.mock.method(
+      CopilotClient.prototype,
+      'createSession',
+      async (_config: SessionConfig) => {
+        throw captured
+      }
+    )
+    t.mock.method(CopilotClient.prototype, 'stop', async () => [])
+    for (const mode of ['plan', 'single-commit'] as const) {
+      const result = await runCopilotEvaluation({
+        ...request(),
+        mode,
+        transport: { kind: 'copilot' },
+      })
+      assert.strictEqual(result.status, 'error')
+      assert.strictEqual(result.error?.message, captured.message)
+    }
+    assert.strictEqual(createSession.mock.callCount(), 2)
+    for (const call of createSession.mock.calls) {
+      assert.strictEqual(
+        call.arguments[0].clientName,
+        'github/desktop-evals:assisted-commit'
+      )
+    }
   })
 
   for (const cancel of [true, false]) {
