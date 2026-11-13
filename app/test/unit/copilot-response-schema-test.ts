@@ -75,7 +75,7 @@ describe('Copilot response schemas', () => {
     }
   })
 
-  it('describes every assisted outcome inside an object root without root unions', () => {
+  it('only permits commit plans or whole-selection messages inside an object root', () => {
     const validate = ajv.compile(CopilotAssistedCommitResponseSchema)
     const plan = {
       ...wholeSelectionResponse(),
@@ -95,11 +95,6 @@ describe('Copilot response schemas', () => {
         title: 'Update all selected changes',
         description: '',
       },
-      {
-        kind: 'unsafe',
-        snapshotId: syntheticAnalysis.snapshotId,
-        reason: 'Cannot safely describe selection',
-      },
     ]) {
       assert.equal(validate({ result }), true, JSON.stringify(validate.errors))
       assert.deepEqual(
@@ -116,8 +111,23 @@ describe('Copilot response schemas', () => {
       { result: { ...plan, reason: 'extra field' } },
       { result: { ...plan, commits: [{ title: 'Missing IDs' }] } },
       { result: { ...plan, commits: 'not an array' } },
+      {
+        result: {
+          kind: 'unsafe',
+          snapshotId: syntheticAnalysis.snapshotId,
+          reason: 'Cannot safely describe selection',
+        },
+      },
     ]) {
       assert.equal(validate(malformed), false)
+      assert.throws(
+        () =>
+          parseCopilotAssistedCommitStructuredResponse(
+            syntheticAnalysis,
+            JSON.stringify(malformed)
+          ),
+        assertPlanningError('invalid-response')
+      )
     }
   })
 

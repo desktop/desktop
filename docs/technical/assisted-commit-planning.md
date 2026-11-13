@@ -57,7 +57,16 @@ or a shared README/UI/style unit spanning multiple features. Such a unit is
 assigned once and may prevent an ideal per-feature split. The prompt asks for
 only necessary linked grouping, not collapse of every independent feature
 because it shares a path. It cannot change snapshot granularity or divide IDs.
-One commit remains correct for a single purpose or unavoidable indivisibility.
+One commit remains correct for a single purpose or unavoidable indivisibility,
+and is also an acceptable outcome whenever the planner cannot confidently split
+the selection. It must still accurately describe and own every selected unit.
+The planner organizes and describes changes; it does not certify code correctness
+or backward compatibility. It must return a commit plan or one whole-selection
+message; there is no model-selected refusal outcome. A behavior change or lack
+of executed tests does not prevent describing the selection. Inability to split
+uses one commit or `uncertain-boundaries`, followed by the same canonical
+validation. Ambiguous changes are described from observable selected content
+without inventing intent.
 Whole-selection fallback omits partitioning reasons and still requires one
 fresh message covering all selected units. Both modes enforce the same schema,
 ownership and validation rules. Synthetic tests verify this prompt contract and
@@ -65,7 +74,7 @@ complete input preservation, not measured model grouping quality.
 
 ## Outcomes and the only fallback
 
-The backend-independent response contract has three exact shapes. SDK model
+The backend-independent response contract has two exact shapes. SDK model
 output wraps exactly one of these outcomes in `{"result": ...}` and requests
 string descriptions (`""` for no body), so strict providers can represent the
 union without a root-level union or optional properties. The SDK adapter unwraps
@@ -94,17 +103,11 @@ only that explicit envelope before applying these existing validators.
 }
 ```
 
-```json
-{
-  "kind": "unsafe",
-  "snapshotId": "opaque-snapshot",
-  "reason": "Why this selection cannot be described safely"
-}
-```
-
 Explicit uncertainty becomes a `createSingleAssistedCommitPlan` request with
 reason `uncertain-boundaries`, followed by normal full-plan validation.
-Explicit unsafe becomes a visible `CopilotAssistedCommitError` with code `unsafe`.
+`plan` may itself contain a single commit covering the entire selection.
+Unsupported outcomes, including the former `unsafe` response, are rejected as
+`invalid-response`; they are not repaired or converted into invented messages.
 There are no agent-initiated questions.
 
 Only `unsafe-plan` from **canonical cumulative-tree validation of an otherwise
@@ -218,7 +221,7 @@ smaller model context limits remain observable SDK errors. Automatic compaction
 and infinite-session workspaces are disabled.
 
 `CopilotAssistedCommitError` carries `code`, `cause` and `cleanupErrors`.
-Codes include `invalid-response`, `unsafe`, `empty-selection`, `prompt-too-large`,
+Codes include `invalid-response`, `empty-selection`, `prompt-too-large`,
 `invalid-request`, `cancelled`, `timed-out` and `cleanup-failed`.
 Canonical engine errors retain their original types/codes. Transport/auth
 failures propagate unchanged; the existing SDK session-error adapter preserves
@@ -314,3 +317,13 @@ controls, visible errors, cancellation, result acceptance/rollback and optional
 push/retry through the coordinator and its execution, recovery and push modules.
 Do not turn a checked plan into a JSON capability or execute it outside the
 active snapshot scope.
+
+## Evaluation
+
+The application store and the [headless evaluation bridge](copilot-evaluations.md)
+share the planner request lifecycle in `copilot-assisted-commit-request.ts`.
+The private evaluation repository owns fixtures, model comparisons, grading,
+and reports; it does not copy the planner's prompts or validation.
+Repository benchmarks run real snapshot capture and cumulative-tree validation
+without publishing commits. Offline scripted responses establish contracts,
+while live runs measure model correctness and output quality separately.
