@@ -7,8 +7,7 @@ import {
   ICopilotEvaluationRequest,
   ICopilotEvaluationResult,
   ICopilotEvaluationTurn,
-} from '../../../script/copilot-eval/protocol'
-import { EvaluationRequestError } from '../../../script/copilot-eval/parse-request'
+} from './copilot-evaluation-protocol'
 import { IAssistedCommitAnalysis } from '../models/assisted-commit'
 import { Repository } from '../models/repository'
 import { AppFileStatusKind, WorkingDirectoryFileChange } from '../models/status'
@@ -32,6 +31,32 @@ import { git } from './git/core'
 import { withLocalGitEnvironment } from './git/execution-environment'
 import { getWorkingDirectoryDiff } from './git/diff'
 import { withAssistedCommitSnapshot } from './git/assisted-commit/snapshot'
+
+/** Invalid adapter input, rejected before the affected operation. */
+class EvaluationRequestError extends Error {
+  public readonly code = 'invalid-request'
+}
+
+function assertEvaluationPath(path: string): void {
+  if (
+    path.length === 0 ||
+    /[\\:\0]/.test(path) ||
+    path.split('/').some(part => {
+      const lower = part.toLowerCase()
+      return (
+        part.length === 0 ||
+        part === '.' ||
+        part === '..' ||
+        lower.replace(/[. ]+$/, '') === '.git' ||
+        /^git~[0-9]+$/i.test(part)
+      )
+    })
+  ) {
+    throw new EvaluationRequestError(
+      `Unsafe fixture path: ${JSON.stringify(path)}`
+    )
+  }
+}
 
 function explicitToken(): string {
   const token =
@@ -275,6 +300,7 @@ async function writeFiles(
   files: Readonly<Record<string, string | null>>
 ): Promise<void> {
   const entries = Object.entries(files)
+  entries.forEach(([path]) => assertEvaluationPath(path))
   for (const [path, content] of entries) {
     if (content === null) {
       await rm(join(root, path))
@@ -374,7 +400,12 @@ async function fixtureSelection(
   )
 }
 
-/** Run a benchmark through production code without accessing a user's repository or account store. */
+/**
+ * Run validated evaluator input through production code without accessing user state.
+ *
+ * The private evaluator owns JSON parsing and process management. This adapter
+ * retains fixture path safety, model execution, and canonical Git validation.
+ */
 export async function runCopilotEvaluation(
   request: ICopilotEvaluationRequest,
   signal?: AbortSignal

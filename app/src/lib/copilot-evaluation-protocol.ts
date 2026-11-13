@@ -1,4 +1,11 @@
-/** Selected-only wire data, independent of application or Electron imports. */
+/** Capabilities exposed to the private evaluator by this Desktop revision. */
+export const CopilotEvaluationCapabilities = {
+  protocolVersion: 1,
+  features: ['assisted-commit'],
+  inputKinds: ['analysis', 'repository'],
+} as const
+
+/** Selected-only adapter data, independent of application or Electron imports. */
 export interface IEvaluationAnalysis {
   readonly snapshotId: string
   readonly changes: ReadonlyArray<{
@@ -59,7 +66,7 @@ export type EvaluationFixtureResponse =
       readonly description?: string
     }
 
-/** Versioned, one-request-per-process bridge input. Credentials are environment-only. */
+/** Versioned adapter input. The private evaluator supplies validated plain data. */
 export interface ICopilotEvaluationRequest {
   readonly protocolVersion: 1
   readonly feature: 'assisted-commit'

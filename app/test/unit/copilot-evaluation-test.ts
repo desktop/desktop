@@ -1,6 +1,4 @@
 import assert from 'node:assert'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import { describe, it } from 'node:test'
 import { join } from 'path'
 import { mkdir, writeFile } from 'fs/promises'
@@ -14,15 +12,10 @@ import { isolateGitConfig } from '../helpers/git-config'
 import { createTempDirectory } from '../helpers/temp'
 import { deferred } from '../helpers/copilot-assisted-commit'
 import {
-  EvaluationRequestError,
-  parseCopilotEvaluationRequest,
-} from '../../../script/copilot-eval/parse-request'
-import {
   ICopilotEvaluationRequest,
   IEvaluationRepositoryInput,
-} from '../../../script/copilot-eval/protocol'
+} from '../../src/lib/copilot-evaluation-protocol'
 
-const execute = promisify(execFile)
 const analysis = {
   snapshotId: 'fixture-snapshot',
   changes: [
@@ -62,35 +55,8 @@ const repository: IEvaluationRepositoryInput = {
   selection: [{ path: 'file.txt' }],
 }
 
-describe('Copilot evaluation bridge', () => {
-  it('round-trips the versioned request and rejects unsupported fields', () => {
-    assert.deepStrictEqual(
-      JSON.parse(JSON.stringify(parseCopilotEvaluationRequest(request()))),
-      request()
-    )
-    for (const invalid of [
-      { ...request(), protocolVersion: 2 },
-      { ...request(), feature: 'unsupported' },
-      { ...request(), extra: true },
-      { ...request(), model: '' },
-      { ...request(), transport: { kind: 'copilot', responses: [] } },
-      { ...request(), instructions: { mcpServers: {} } },
-      {
-        ...request(),
-        transport: {
-          kind: 'fixture',
-          responses: [{ type: 'unsafe', reason: 'Changes not analyzable' }],
-        },
-      },
-    ]) {
-      assert.throws(
-        () => parseCopilotEvaluationRequest(invalid),
-        EvaluationRequestError
-      )
-    }
-  })
-
-  it('rejects escaping paths and Git metadata before materializing fixtures', () => {
+describe('Copilot evaluation adapter', () => {
+  it('rejects escaping paths and Git metadata before materializing fixtures', async () => {
     for (const path of [
       '../outside',
       '/absolute',
@@ -102,50 +68,15 @@ describe('Copilot evaluation bridge', () => {
       'git~1/config',
       'C:/outside',
     ]) {
-      assert.throws(
-        () =>
-          parseCopilotEvaluationRequest({
-            ...request(repository),
-            input: { ...repository, baseFiles: { [path]: 'unsafe' } },
-          }),
-        EvaluationRequestError
+      const result = await runCopilotEvaluation(
+        request({
+          ...repository,
+          baseFiles: { [path]: 'unsafe' },
+        })
       )
+      assert.strictEqual(result.error?.code, 'invalid-request')
+      assert.strictEqual(result.turns.length, 0)
     }
-  })
-
-  it('rejects executable bridge fields without calling getters', () => {
-    const raw = { ...request() }
-    Object.defineProperty(raw, 'model', {
-      get: () => assert.fail('Bridge parser invoked executable input'),
-    })
-    assert.throws(
-      () => parseCopilotEvaluationRequest(raw),
-      EvaluationRequestError
-    )
-  })
-
-  it('executes a fresh Node process without the test bootstrap', async () => {
-    const bridge = join(__dirname, '../../../script/copilot-eval.mjs')
-    const description = await execute(process.execPath, [bridge, '--describe'])
-    assert.strictEqual(JSON.parse(description.stdout).protocolVersion, 1)
-    const result = await new Promise<string>((resolve, reject) => {
-      const child = execFile(
-        process.execPath,
-        [bridge],
-        { timeout: 30000 },
-        (error, stdout, stderr) => {
-          if (error !== null) {
-            reject(new Error(`${error.message}\n${stderr}`))
-          } else {
-            resolve(stdout)
-          }
-        }
-      )
-      child.stdin?.end(JSON.stringify(request(repository)))
-    })
-    const output = JSON.parse(result)
-    assert.strictEqual(output.status, 'ok')
-    assert.strictEqual(output.validation.preservedIndex, true)
   })
 
   it('validates actual Git trees without altering real fixture state', async () => {

@@ -1,33 +1,35 @@
 # Copilot evaluations
 
 The private sibling `desktop/copilot-evals` repository owns benchmark fixtures,
-model presets, grading, workflows, and reports. Desktop owns the feature code.
-The evaluation bridge runs the checked-out Desktop implementation rather than
-maintaining a separate copy of its prompts or validation.
+model presets, grading, workflows, reports, and the headless CLI. Desktop owns
+the feature code and its typed evaluation adapter. The private CLI loads the
+checked-out Desktop adapter rather than maintaining a separate copy of its
+prompts or Git validation.
 
-## Headless bridge
+## Evaluation adapter
 
-After installing Desktop's locked dependencies with `npm ci`, run:
+Install Desktop's locked dependencies with `npm ci`. Then run the evaluator from
+the private sibling repository, passing the Desktop checkout explicitly:
 
 ```sh
-node script/copilot-eval.mjs --describe
-node script/copilot-eval.mjs --list-models
-node script/copilot-eval.mjs < request.json > result.json
+cd ../copilot-evals
+npm run evaluate -- --desktop-path ../desktop --preflight
+npm run evaluate -- --desktop-path ../desktop --list-models
 ```
 
-`npm run copilot:eval -- <arguments>` is also available. Direct invocation
-produces only JSON on stdout; diagnostics go to stderr. Each process accepts
-one JSON request, bounded to 32 MiB. An evaluation error returns a structured
-envelope and nonzero exit status. Startup/dependency failures can prevent an
-envelope from being produced and must be treated as infrastructure failures.
-SIGINT and SIGTERM cancel input collection, model preflight, and active planning;
-preflight also retains its independent 60-second deadline.
-The launcher forwards cancellation through IPC rather than force-killing the
-worker on Windows. Early cancellation waits for worker readiness; losing the
-launcher connection also cancels the worker so owned resources can be cleaned up.
+Desktop provides `runCopilotEvaluation` and `listCopilotEvaluationModels` in
+`app/src/lib/copilot-evaluation.ts`. Its versioned input/output types and
+`CopilotEvaluationCapabilities` are in
+`app/src/lib/copilot-evaluation-protocol.ts`. These modules do not import the
+private repository. The CLI owns JSON parsing, process startup, cancellation
+forwarding, and the Node bootstrap for Desktop's build-time constants; it uses
+the selected checkout's metadata and installed dependencies.
 
-The versioned contracts are in `script/copilot-eval/protocol.ts`. Unknown
-versions, fields, features, input kinds, and escaping fixture paths are rejected.
+The private CLI rejects unknown versions, fields, features, and input kinds
+before invoking the adapter. The adapter independently rejects escaping fixture
+paths and Git metadata paths before writing files. Typed callers must supply
+validated plain request data. Model preflight and active planning accept an
+abort signal; preflight also retains its independent 60-second deadline.
 The initial feature is `assisted-commit`; inputs are either selected-only analysis
 or a disposable repository fixture. File contents are UTF-8 strings, including
 NUL-containing binary fixtures. Changed-file values of `null` delete files.
@@ -65,7 +67,7 @@ For example:
 `copilot` transport uses the real SDK/runtime installed by the selected Desktop
 lockfile. Offline runs establish contract behavior, not real-model quality.
 
-The application and bridge share `runAssistedCommitPlanningRequest`: prompt
+The application and adapter share `runAssistedCommitPlanningRequest`: prompt
 construction, sanitation, model request, deadline, parsing, and cleanup.
 Repository fixtures additionally use real snapshot capture,
 `planAssistedCommits`, and cumulative-tree validation. Only canonical
@@ -75,7 +77,7 @@ Successful repository results expose the final canonical plan.
 
 The shared planner submits `CopilotAssistedCommitResponseSchema` on every turn,
 including the whole-selection fallback. The model-facing response is
-`{"result": <outcome>}`; the bridge's top-level `response` remains the normalized
+`{"result": <outcome>}`; the adapter's top-level `response` remains the normalized
 application outcome, without that wire envelope. Scripted `plan` and uncertainty
 responses construct the current model envelope; `raw` responses are
 sent verbatim and must explicitly include it when testing semantic rejection.
@@ -105,7 +107,7 @@ operations retain the existing hook/trampoline environment.
 ## Live credentials and trust
 
 Live invocations require an explicit `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or
-`GITHUB_TOKEN`, in that order. The bridge never reads Desktop secure storage or
+`GITHUB_TOKEN`, in that order. The adapter never reads Desktop secure storage or
 discovers a logged-in CLI account. The selected model is sent unchanged, with
 the production built-in reasoning default left unset.
 
@@ -118,14 +120,14 @@ instruction expansion or model reasoning.
 Do not run untrusted Desktop branches with inference credentials. The selected
 branch executes code, regardless of the planner's model-tool restrictions.
 Only approved synthetic or appropriately licensed fixtures should be sent to a
-provider. The private evaluator performs model preflight and budgets; the bridge
+provider. The private evaluator performs model preflight and budgets; the adapter
 itself does not silently substitute models or retry bad answers.
 
 ## Private workflow execution
 
 Evaluation workflows run only in the private `desktop/copilot-evals` repository.
 This public repository has no evaluation or dispatch workflow. It owns only the
-production feature and headless bridge; benchmark data and run results are not
+production feature and typed adapter; benchmark data and run results are not
 stored in its Actions logs, summaries, artifacts, or PR comments.
 
 Automatic development evaluations use a GitHub App webhook relay owned by the
