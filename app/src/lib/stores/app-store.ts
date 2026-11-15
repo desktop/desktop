@@ -496,6 +496,8 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  */
 const RecentRepositoriesLength = 3
 
+const PinnedRepositoriesKey = 'pinned-repositories'
+
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
@@ -630,6 +632,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
+  private pinnedRepositories: ReadonlyArray<number> = getNumberArray(
+    PinnedRepositoriesKey
+  )
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -1385,6 +1390,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       accounts: this.accounts,
       repositories,
       recentRepositories: this.recentRepositories,
+      pinnedRepositories: this.pinnedRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -5657,6 +5663,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setRepositoryPinned(repository: Repository, pinned: boolean) {
+    const others = this.pinnedRepositories.filter(id => id !== repository.id)
+    this.pinnedRepositories = pinned ? [...others, repository.id] : others
+    setNumberArray(PinnedRepositoriesKey, this.pinnedRepositories)
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

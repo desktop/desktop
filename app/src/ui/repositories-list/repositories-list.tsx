@@ -35,6 +35,7 @@ interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly repositories: ReadonlyArray<Repositoryish>
   readonly recentRepositories: ReadonlyArray<number>
+  readonly pinnedRepositories: ReadonlyArray<number>
 
   /** A cache of the latest repository state values, keyed by the repository id */
   readonly localRepositoryStateLookup: ReadonlyMap<
@@ -135,14 +136,16 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      pinnedRepositories: ReadonlyArray<number>
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            pinnedRepositories
           )
   )
 
@@ -176,6 +179,8 @@ export class RepositoriesList extends React.Component<
         matches={matches}
         aheadBehind={item.aheadBehind}
         changedFilesCount={item.changedFilesCount}
+        isPinned={this.props.pinnedRepositories.includes(repository.id)}
+        onSetRepositoryPinned={this.onSetRepositoryPinned}
       />
     )
   }
@@ -263,6 +268,8 @@ export class RepositoriesList extends React.Component<
       return group.owner.login
     } else if (kind === 'recent') {
       return 'Recent'
+    } else if (kind === 'pinned') {
+      return 'Pinned'
     } else {
       assertNever(kind, `Unknown repository group kind ${kind}`)
     }
@@ -321,6 +328,8 @@ export class RepositoriesList extends React.Component<
         ? this.onShowWorktrees
         : undefined,
       repository: item.repository,
+      isPinned: this.props.pinnedRepositories.includes(item.repository.id),
+      onSetRepositoryPinned: this.onSetRepositoryPinned,
       shellLabel: this.props.shellLabel,
     })
 
@@ -341,7 +350,8 @@ export class RepositoriesList extends React.Component<
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.recentRepositories,
+      this.props.pinnedRepositories
     )
 
     // So there's two types of selection at play here. There's the repository
@@ -467,6 +477,10 @@ export class RepositoriesList extends React.Component<
 
   private onCreateNewRepository = () => {
     this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
+
+  private onSetRepositoryPinned = (repository: Repository, pinned: boolean) => {
+    this.props.dispatcher.setRepositoryPinned(repository, pinned)
   }
 
   private onChangeRepositoryAlias = (repository: Repository) => {

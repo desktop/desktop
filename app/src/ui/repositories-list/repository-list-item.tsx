@@ -27,7 +27,18 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+
+  /** Whether the repository is pinned to the top of the list */
+  readonly isPinned: boolean
+
+  /** Called when the user clicks the pin/unpin button */
+  readonly onSetRepositoryPinned: (
+    repository: Repository,
+    pinned: boolean
+  ) => void
 }
+
+const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
 
 /** A repository item. */
 export class RepositoryListItem extends React.Component<
@@ -35,6 +46,7 @@ export class RepositoryListItem extends React.Component<
   {}
 > {
   private readonly listItemRef = createObservableRef<HTMLDivElement>()
+  private readonly pinButtonRef = createObservableRef<HTMLButtonElement>()
 
   public render() {
     const repository = this.props.repository
@@ -81,7 +93,38 @@ export class RepositoryListItem extends React.Component<
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
           })}
+
+        {repository instanceof Repository && this.renderPinButton()}
       </div>
+    )
+  }
+
+  private onPinButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const { repository, isPinned } = this.props
+    if (repository instanceof Repository) {
+      this.props.onSetRepositoryPinned(repository, !isPinned)
+    }
+  }
+
+  private renderPinButton() {
+    const { isPinned } = this.props
+    const label = isPinned ? 'Unpin repository' : 'Pin repository'
+
+    return (
+      <button
+        className={classNames('pin-toggle', { pinned: isPinned })}
+        aria-label={label}
+        ref={this.pinButtonRef}
+        tabIndex={-1}
+        onMouseDown={stopPropagation}
+        onMouseUp={stopPropagation}
+        onClick={this.onPinButtonClick}
+      >
+        <Tooltip target={this.pinButtonRef}>{label}</Tooltip>
+        <Octicon className="pin" symbol={octicons.pin} />
+        {isPinned && <Octicon className="unpin" symbol={octicons.pinSlash} />}
+      </button>
     )
   }
 
@@ -109,7 +152,8 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
-        nextProps.matches !== this.props.matches
+        nextProps.matches !== this.props.matches ||
+        nextProps.isPinned !== this.props.isPinned
       )
     } else {
       return true

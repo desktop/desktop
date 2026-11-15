@@ -15,6 +15,7 @@ import {
 } from '../../helpers/ui/timers'
 
 const noMatches: IMatches = { title: [], subtitle: [] }
+const noop = () => {}
 const fixtureRepositoryPath = '/tmp/desktop-fixture'
 
 function createRepository(alias: string | null = null) {
@@ -48,6 +49,8 @@ describe('RepositoryListItem', () => {
         matches={noMatches}
         aheadBehind={{ ahead: 2, behind: 1 }}
         changedFilesCount={3}
+        isPinned={false}
+        onSetRepositoryPinned={noop}
       />
     )
 
@@ -72,6 +75,8 @@ describe('RepositoryListItem', () => {
         matches={noMatches}
         aheadBehind={null}
         changedFilesCount={0}
+        isPinned={false}
+        onSetRepositoryPinned={noop}
       />
     )
 
@@ -91,6 +96,8 @@ describe('RepositoryListItem', () => {
         matches={noMatches}
         aheadBehind={null}
         changedFilesCount={0}
+        isPinned={false}
+        onSetRepositoryPinned={noop}
       />
     )
 
@@ -109,6 +116,58 @@ describe('RepositoryListItem', () => {
     await waitFor(() => {
       assert.ok(screen.getByText('octocat/desktop', { selector: 'strong' }))
       assert.ok(screen.getByText(fixtureRepositoryPath))
+    })
+  })
+
+  it('toggles the pinned state when the pin button is clicked', () => {
+    const repository = createRepository()
+    const calls = new Array<boolean>()
+    const view = render(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+        isPinned={true}
+        onSetRepositoryPinned={(_, pinned) => calls.push(pinned)}
+      />
+    )
+
+    const button = view.container.querySelector('.pin-toggle')
+    if (button === null) {
+      throw new Error('Expected pin button to be rendered')
+    }
+
+    assert.equal(button.getAttribute('aria-label'), 'Unpin repository')
+    fireEvent.click(button)
+    assert.deepEqual(calls, [false])
+  })
+
+  it('shows a tooltip on the pin button', async () => {
+    const view = render(
+      <RepositoryListItem
+        repository={createRepository()}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+        isPinned={false}
+        onSetRepositoryPinned={noop}
+      />
+    )
+
+    const button = view.container.querySelector('.pin-toggle')
+    if (button === null) {
+      throw new Error('Expected pin button to be rendered')
+    }
+
+    fireEvent.mouseEnter(button, { clientX: 20, clientY: 20 })
+    fireEvent.mouseMove(button, { clientX: 20, clientY: 20 })
+    advanceTimersBy(400)
+
+    await waitFor(() => {
+      assert.ok(screen.getByText('Pin repository'))
     })
   })
 })

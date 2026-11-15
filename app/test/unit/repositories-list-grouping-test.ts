@@ -153,4 +153,20 @@ describe('repository list grouping', () => {
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
   })
+
+  it('puts pinned repositories in a group at the top', () => {
+    const repoA = new Repository('a', 1, null, false)
+    const repoB = new Repository('b', 2, null, false)
+
+    const grouped = groupRepositories([repoA, repoB], cache, [], [2])
+
+    assert.equal(grouped.length, 2)
+    assert.equal(grouped[0].identifier.kind, 'pinned')
+    assert.deepEqual(
+      grouped[0].items.map(i => i.repository.id),
+      [2]
+    )
+    assert.equal(grouped[1].identifier.kind, 'other')
+    assert.equal(grouped[1].items.length, 2)
+  })
 })

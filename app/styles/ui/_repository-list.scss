@@ -163,6 +163,43 @@
   }
 }
 
+.repository-list {
+  .pin-toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: var(--spacing-half);
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    // Keeps its space when hidden so names do not shift on hover
+    visibility: hidden;
+
+    .unpin {
+      display: none;
+    }
+
+    &.pinned {
+      visibility: visible;
+    }
+
+    &.pinned:hover {
+      .pin {
+        display: none;
+      }
+      .unpin {
+        display: inline-block;
+      }
+    }
+  }
+
+  .list-item:hover .pin-toggle {
+    visibility: visible;
+  }
+}
+
 .repository-list,
 .repository-list-item-tooltip {
   .repo-indicators {

@@ -24,6 +24,8 @@ interface IRepositoryListItemContextMenuConfig {
   onShowRepository: (repository: Repositoryish) => void
   onOpenInExternalEditor: (repository: Repositoryish) => void
   onRemoveRepository: (repository: Repositoryish) => void
+  isPinned?: boolean
+  onSetRepositoryPinned?: (repository: Repository, pinned: boolean) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
   onCreateWorktree?: (repository: Repository) => void
@@ -47,6 +49,7 @@ export const generateRepositoryListContextMenu = (
     : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
+    ...buildPinMenuItems(config),
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
     ...buildAccountMenuItems(config),
@@ -88,6 +91,26 @@ export const generateRepositoryListContextMenu = (
   ]
 
   return items
+}
+
+const buildPinMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository, isPinned, onSetRepositoryPinned } = config
+
+  if (!(repository instanceof Repository) || !onSetRepositoryPinned) {
+    return []
+  }
+
+  const label = isPinned
+    ? __DARWIN__
+      ? 'Unpin Repository'
+      : 'Unpin repository'
+    : __DARWIN__
+    ? 'Pin Repository'
+    : 'Pin repository'
+
+  return [{ label, action: () => onSetRepositoryPinned(repository, !isPinned) }]
 }
 
 const buildAliasMenuItems = (

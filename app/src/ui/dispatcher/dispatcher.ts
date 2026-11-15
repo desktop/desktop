@@ -934,6 +934,11 @@ export class Dispatcher {
     })
   }
 
+  /** Pins or unpins a repository in the repository list. */
+  public setRepositoryPinned(repository: Repository, pinned: boolean) {
+    this.appStore._setRepositoryPinned(repository, pinned)
+  }
+
   /** Changes the repository alias to a new name. */
   public changeRepositoryAlias(
     repository: Repository,
