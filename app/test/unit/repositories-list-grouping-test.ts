@@ -169,4 +169,21 @@ describe('repository list grouping', () => {
     assert.equal(grouped[1].identifier.kind, 'other')
     assert.equal(grouped[1].items.length, 2)
   })
+
+  it('gives every row a unique id when repositories appear in several groups', () => {
+    // More than 7 repositories so the Recent group is shown.
+    const repos = [1, 2, 3, 4, 5, 6, 7, 8].map(
+      id => new Repository(`repo${id}`, id, null, false)
+    )
+
+    const grouped = groupRepositories(repos, cache, [1, 2], [1])
+
+    assert.deepEqual(
+      grouped.map(g => g.identifier.kind),
+      ['pinned', 'recent', 'other']
+    )
+
+    const ids = grouped.flatMap(g => g.items.map(i => i.id))
+    assert.equal(new Set(ids).size, ids.length)
+  })
 })

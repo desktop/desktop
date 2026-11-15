@@ -160,7 +160,12 @@ const toSortedListItems = (
 
       return {
         text: r instanceof Repository ? [title, nameOf(r)] : [title],
-        id: r.id.toString(),
+        // Pinned and recent rows duplicate rows in other groups, so prefix
+        // their ids to keep list selection (which matches by id) unique.
+        id:
+          group.kind === 'pinned' || group.kind === 'recent'
+            ? `${group.kind}:${r.id}`
+            : r.id.toString(),
         repository: r,
         needsDisambiguation:
           // If the repository is in the enterprise group and has a duplicate
