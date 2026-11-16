@@ -85,12 +85,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15-xlarge, windows-2022]
+        os: [macos-15-xlarge, windows-x64-large]
         arch: [x64, arm64]
         include:
           - os: macos-15-xlarge
             friendlyName: macOS
-          - os: windows-2022
+          - os: windows-x64-large
             friendlyName: Windows
     timeout-minutes: 60
     environment: ${{ inputs.environment }}
@@ -114,6 +114,50 @@ jobs:
           cd vendor/desktop-trampoline
           npm ci
           npm test
+      - name: Start Windows unit tests alongside the build
+        id: parallel-unit-tests
+        if: |
+          runner.os == 'Windows' && matrix.arch == 'x64' && github.event_name == 'pull_request'
+        shell: pwsh
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+        run: |
+          $directory = Join-Path $env:RUNNER_TEMP 'desktop-unit-tests'
+          New-Item -ItemType Directory -Path $directory | Out-Null
+          $command = @'
+          $ErrorActionPreference = 'Stop'
+          [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+          $OutputEncoding = [Console]::OutputEncoding
+          $directory = Join-Path $env:RUNNER_TEMP 'desktop-unit-tests'
+          $logPath = Join-Path $directory 'output.log'
+          $resultPath = Join-Path $directory 'result.json'
+          $startedAt = [DateTime]::UtcNow
+          $exitCode = 1
+          try {
+            & npm.cmd run test:setup *> $logPath
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) {
+              & npm.cmd run test:unit *>> $logPath
+              $exitCode = $LASTEXITCODE
+            }
+          } catch {
+            $exitCode = 1
+            $_ | Out-String | Add-Content $logPath
+          } finally {
+            @{
+              exitCode = $exitCode
+              startedAt = $startedAt.ToString('o')
+              completedAt = [DateTime]::UtcNow.ToString('o')
+            } | ConvertTo-Json | Set-Content "$resultPath.tmp"
+            Move-Item "$resultPath.tmp" $resultPath
+          }
+          exit $exitCode
+          '@
+          $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+          $process = Start-Process -FilePath (Get-Command pwsh).Source `
+            -ArgumentList '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', $encodedCommand `
+            -WorkingDirectory $env:GITHUB_WORKSPACE -WindowStyle Hidden -PassThru
+          Set-Content (Join-Path $directory 'pid') $process.Id
       - name: Validate notarization API-key secrets
         if:
           runner.os == 'macOS' && contains(fromJSON('["production", "beta",
@@ -165,12 +209,14 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
+        if: steps.parallel-unit-tests.outcome != 'success'
         run: npm run test:setup
         env:
           npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: |
-          (runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64')
+          ((runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64')) &&
+          steps.parallel-unit-tests.outcome != 'success'
         run: npm run test:unit
       - name: Run script tests
         run: npm run test:script
@@ -188,6 +234,36 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+      - name: Wait for Windows unit tests
+        if:
+          ${{ !cancelled() && steps.parallel-unit-tests.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $directory = Join-Path $env:RUNNER_TEMP 'desktop-unit-tests'
+          $resultPath = Join-Path $directory 'result.json'
+          $processId = [int](Get-Content (Join-Path $directory 'pid'))
+          try {
+            while (-not (Test-Path $resultPath)) {
+              if ($null -eq (Get-Process -Id $processId -ErrorAction SilentlyContinue)) {
+                throw 'The unit-test process exited without recording a result.'
+              }
+              Start-Sleep -Seconds 2
+            }
+            $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+            if ($null -ne $process) {
+              $process | Wait-Process
+            }
+          } finally {
+            Get-Content (Join-Path $directory 'output.log') -Encoding utf8
+          }
+          $result = Get-Content $resultPath -Raw | ConvertFrom-Json
+          $duration = ([DateTime]::Parse($result.completedAt) - [DateTime]::Parse($result.startedAt)).TotalSeconds
+          $timing = "Background test setup and unit tests: $([Math]::Round($duration, 1)) seconds ($($result.startedAt) to $($result.completedAt))."
+          Write-Host $timing
+          Add-Content $env:GITHUB_STEP_SUMMARY $timing
+          if ($result.exitCode -ne 0) {
+            throw "Unit tests failed with exit code $($result.exitCode)."
+          }
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         if: ${{ inputs.upload-artifacts }}
@@ -214,7 +290,7 @@ jobs:
           - os: macos-15-xlarge
             friendlyName: macOS
             arch: arm64
-          - os: windows-2022
+          - os: windows-x64-large
             friendlyName: Windows
             arch: x64
     timeout-minutes: 60
