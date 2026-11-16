@@ -204,7 +204,6 @@ import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapsh
 import { TestTokenExpirationDialog } from './preferences/test-token-expiration-dialog'
 import {
   enableCopilotSdkCommitMessageGeneration,
-  enableCopilotAppHandoff,
   enableWorktreeSupport,
 } from '../lib/feature-flag'
 import {
@@ -548,10 +547,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
       case 'open-in-copilot-app':
-        if (
-          enableCopilotAppHandoff() &&
-          this.state.selectedState?.type === SelectionType.Repository
-        ) {
+        if (this.state.selectedState?.type === SelectionType.Repository) {
           return this.props.dispatcher.openInCopilotApp(
             this.state.selectedState.repository.path
           )
