@@ -67,6 +67,13 @@ of executed tests does not prevent describing the selection. Inability to split
 uses one commit or `uncertain-boundaries`, followed by the same canonical
 validation. Ambiguous changes are described from observable selected content
 without inventing intent.
+Both prompts lead with producing a usable message, including for small changes,
+and distinguish describing source content from approving or executing it.
+Misleading commands inside comments do not prevent planning. A synthetic worked
+example demonstrates ignoring such commands without copying its identifiers
+into the current response. A final checklist reinforces snapshot identity,
+nonempty plans, exact ownership and nonblank titles; it does not change the
+response schema, validation or retry policy.
 Whole-selection fallback omits partitioning reasons and still requires one
 fresh message covering all selected units. Both modes enforce the same schema,
 ownership and validation rules. Synthetic tests verify this prompt contract and
