@@ -120,8 +120,14 @@ signed in. It shouldn't be passed merely because an account is available.
   configuration and agent, not Desktop's HTTPS account token.
 - **Copilot identity controls (deferred):** preserve the existing fallback to
   another Copilot-eligible account when the repository account lacks access.
-- **Repository-list presentation (follow-up):** consider displaying account
-  assignments and grouping or filtering repositories by account.
+- **Repository-list grouping (included):** preserve GitHub.com owner groups and
+  enterprise hostname groups. When an endpoint has multiple retained account
+  identities, split those groups by assigned login, with an `Unassociated`
+  subgroup for repositories without an assignment. Retained identities include
+  signed-in accounts and assignments kept on repositories after sign-out.
+  Single-identity endpoints keep their existing headings. Local-only repositories
+  with a stored login appear in `Other — @login` groups; unassigned local-only
+  repositories remain under `Other`. The `Recent` section is unchanged.
 - **Authenticated images and avatars (deferred):** avatar API lookups and private
   image loading still resolve credentials by endpoint rather than repository.
 - **Orphaned account-scoped metadata (follow-up):** reassigning a repository
