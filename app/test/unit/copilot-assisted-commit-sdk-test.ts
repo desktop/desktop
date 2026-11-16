@@ -345,6 +345,7 @@ describe('production structured output with the shipped SDK/runtime and a local 
           ),
         })
         t.after(() => client.forceStop())
+        const createSession = t.mock.method(client, 'createSession')
         const account = makeCopilotAccount()
         const accounts = createTestAccountsStore()
         await accounts.addAccount(account)
@@ -430,6 +431,15 @@ describe('production structured output with the shipped SDK/runtime and a local 
           })
         }
         assert.strictEqual(model.requests.length, 1)
+        assert.strictEqual(createSession.mock.callCount(), 1)
+        assert.strictEqual(
+          createSession.mock.calls[0].arguments[0].clientName,
+          feature === 'assisted'
+            ? 'github/desktop:assisted-commit'
+            : feature === 'message'
+            ? 'github/desktop:commit-message-generation'
+            : 'github/desktop:conflict-resolution'
+        )
       })
     }
   }

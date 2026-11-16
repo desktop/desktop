@@ -14,7 +14,7 @@ import {
   CopilotAssistedCommitResponseSchema,
 } from '../../../src/lib/copilot-assisted-commit'
 import { ICopilotPlanningClient } from '../../../src/lib/copilot-operation'
-import { enableCommitMessageGeneration } from '../../../src/lib/feature-flag'
+import { getAccountForCopilot } from '../../../src/lib/get-account-for-repository'
 import {
   assistantMessage,
   assertPlanningError,
@@ -27,6 +27,7 @@ import {
 } from '../../helpers/copilot-assisted-commit'
 import { createTestAccountsStore } from '../../helpers/app-store-test-harness'
 import { Account } from '../../../src/models/account'
+import { Repository } from '../../../src/models/repository'
 import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
 
 const account = makeCopilotAccount()
@@ -190,6 +191,7 @@ describe('CopilotStore constrained assisted planner', () => {
       }
       for (const call of mock.createSession.mock.calls) {
         const config = call.arguments[0]
+        assert.strictEqual(config.clientName, 'github/desktop:assisted-commit')
         assert.strictEqual(config.model, 'chosen-model')
         assert.strictEqual(config.reasoningEffort, undefined)
         assert.strictEqual(config.provider, undefined)
@@ -387,8 +389,9 @@ describe('CopilotStore constrained assisted planner', () => {
     )
   })
 
-  it('retains the existing feature and organization entitlement gate for layer 4 callers', () => {
-    assert.strictEqual(enableCommitMessageGeneration(account), true)
+  it('retains Desktop entitlement for planner callers without rollout flags', () => {
+    const repository = new Repository(repositoryPath, 1, null, false)
+    assert.strictEqual(getAccountForCopilot([account], repository), account)
     const disabled = new Account(
       account.login,
       account.endpoint,
@@ -403,7 +406,7 @@ describe('CopilotStore constrained assisted planner', () => {
       account.features,
       'NO_ACCESS'
     )
-    assert.strictEqual(enableCommitMessageGeneration(disabled), false)
+    assert.strictEqual(getAccountForCopilot([disabled], repository), undefined)
   })
 
   it('cancels before any setup when already aborted', async t => {

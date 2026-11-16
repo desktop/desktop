@@ -190,10 +190,14 @@ defaults. The planner omits the obsolete `remoteSession` option: SDK 1.0.18
 documents local-only `"off"` as its default, while 1.0.27-preview.1 no longer
 exposes that option. No replacement remote/export policy is emulated.
 
-Callers share the commit-message feature's account selection, organization
-entitlement gate and model preference; the feature's dialog owner manages
-assisted consent.
-Model selection uses the same picker and persisted preference.
+Callers use `getAccountForCopilotAssistedCommits`, which filters accounts by the
+assisted rollout before shared `getAccountForCopilot` selection and Desktop
+entitlement. Development/preview enables the rollout for all accounts; otherwise
+the selected account must have `desktop_copilot_assisted_commits` in `features`.
+Runtime availability and issuing-session authorization remain required; the
+feature's dialog owner manages assisted consent. The independent `assisted-commit`
+model preference reuses the existing picker and account-scoped persistence, not
+the ordinary commit-message preference.
 Explicit built-in model IDs are retained when metadata is unavailable; planning
 borrows already cached metadata and never starts an unowned shared-cache fetch.
 Built-in models, including `auto`, leave
@@ -252,8 +256,8 @@ cleanup. The planner never assumes ownership of it.
 ## Run orchestration
 
 Apply existing account eligibility and consent **before** capture or any model
-request, resolve the existing commit-message model selection, and pause
-index-refreshing status requests while the snapshot is active.
+request, resolve the account's independent assisted-commit model selection, and
+pause index-refreshing status requests while the snapshot is active.
 The execution owner can then compose the backend contracts:
 
 ```ts
