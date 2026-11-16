@@ -275,7 +275,11 @@ const repositoriesStore = new RepositoriesStore(
 
 trampolineServer.registerCommandHandler(
   TrampolineCommandIdentifier.CredentialHelper,
-  createCredentialHelperTrampolineHandler(accountsStore, repositoriesStore)
+  createCredentialHelperTrampolineHandler(
+    accountsStore,
+    repositoriesStore,
+    outcome => statsStore.recordCredentialOutcome(outcome)
+  )
 )
 
 const pullRequestStore = new PullRequestStore(
