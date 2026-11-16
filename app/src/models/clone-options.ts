@@ -26,4 +26,9 @@ export type CloneRepositoryOptions = {
    * than using another account that happens to have access.
    */
   readonly account?: IAccountIdentity
+  /**
+   * Whether the clone was started from the clone dialog. Only these clones
+   * are recorded in the clone account usage stats.
+   */
+  readonly fromCloneDialog?: boolean
 }
