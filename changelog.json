@@ -1,7 +1,8 @@
 {
   "releases": {
     "3.6.12-beta2": [
-      "[Fixed] Reduce response-format failures when generating commit messages and resolving conflicts with Copilot - #23170"
+      "[Fixed] Reduce response-format failures when generating commit messages and resolving conflicts with Copilot - #23170",
+      "[Improved] Repositories are grouped by their assigned account when multiple GitHub accounts are used on the same host - #23186"
     ],
     "3.6.12-beta1": [
       "[Added] Add a \"Push after committing\" option for manual commits",

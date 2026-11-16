@@ -331,6 +331,23 @@ describe('CopilotStore model cache', () => {
     }
   })
 
+  it('fetches models without SDK rollout or preview flags', async t => {
+    const previousPreview = process.env[PreviewFeaturesEnv]
+    delete process.env[PreviewFeaturesEnv]
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env[PreviewFeaturesEnv]
+      } else {
+        process.env[PreviewFeaturesEnv] = previousPreview
+      }
+    })
+    const account = makeAccount()
+    const models = [makeModel({ id: 'model-a', name: 'Model A' })]
+    const { accountsStore, store } = createCopilotStoreWithModels(() => models)
+    await accountsStore.addAccount(account)
+    assert.strictEqual(await store.listModels(account), models)
+  })
+
   it('reuses cached models for the same account', async () => {
     const account = makeAccount()
     const models = [makeModel({ id: 'model-a', name: 'Model A' })]
@@ -476,7 +493,16 @@ describe('CopilotStore quota snapshots', () => {
     }
   })
 
-  it('defaults missing token-based billing metadata without dropping snapshots', async () => {
+  it('defaults missing token-based billing metadata without dropping snapshots or requiring SDK rollout flags', async t => {
+    const previousPreview = process.env[PreviewFeaturesEnv]
+    delete process.env[PreviewFeaturesEnv]
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env[PreviewFeaturesEnv]
+      } else {
+        process.env[PreviewFeaturesEnv] = previousPreview
+      }
+    })
     const account = makeAccount()
     const { accountsStore, store } = createCopilotStoreWithQuotaSnapshots({
       chat: { ...makeQuotaSnapshot(), tokenBasedBilling: true },
