@@ -260,7 +260,7 @@ describe('CloneRepository path validation', () => {
     assert.deepStrictEqual(clone.mock.calls[0].arguments, [
       url,
       path,
-      { defaultBranch: undefined },
+      { defaultBranch: undefined, fromCloneDialog: true },
     ])
   })
 
@@ -302,7 +302,7 @@ describe('CloneRepository URL tab without an accessible account', () => {
     assert.deepStrictEqual(clone.mock.calls[0].arguments, [
       url,
       pathInput.value,
-      { defaultBranch: undefined },
+      { defaultBranch: undefined, fromCloneDialog: true },
     ])
   })
 
@@ -485,14 +485,16 @@ describe('CloneRepository GitHub tab account changes', () => {
     await waitForCloneEnabled(cloneButton, true)
 
     // Alice is signed out while the dialog is open, so the tab falls back to
-    // Carol on another host.
+    // Carol on another host. With one account left the picker is hidden.
     rerender([carol], null)
     await waitFor(() =>
-      assert.strictEqual(
-        view.container.querySelector('.account-picker .login')?.textContent,
-        '@carol'
+      assert.match(
+        view.container.querySelector('.empty-repository-list')?.textContent ??
+          '',
+        /no repositories for carol on ghe\.example\.com/
       )
     )
+    assert.strictEqual(view.container.querySelector('.account-picker'), null)
     await waitForCloneEnabled(cloneButton, false)
 
     assert.strictEqual(
@@ -581,6 +583,7 @@ describe('CloneRepository GitHub tab account changes', () => {
     assert.deepStrictEqual(options, {
       defaultBranch: 'main',
       account: { endpoint: dotCom, login: 'alice' },
+      fromCloneDialog: true,
     })
   })
 })

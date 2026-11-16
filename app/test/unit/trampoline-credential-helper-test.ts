@@ -471,4 +471,86 @@ describe('repository-aware credential trampoline', () => {
       )
     })
   })
+
+  describe('credential outcomes', () => {
+    const outcomesFor = async (
+      accounts: ReadonlyArray<Account>,
+      login: string | null,
+      parameter = 'get'
+    ) => {
+      const outcomes = new Array<string>()
+      const handler = createHandler(
+        new TestAccountsStore(accounts),
+        new TestRepositoriesStore([repository(login)]),
+        outcome => {
+          outcomes.push(outcome)
+        }
+      )
+      await handler({ ...command(), parameters: [parameter] })
+      return outcomes
+    }
+
+    it('reports a credential from the assigned account', async () => {
+      assert.deepEqual(await outcomesFor([alice, bob], 'bob'), [
+        'assigned-account',
+      ])
+    })
+
+    it('reports a credential provided after prompting', async () => {
+      prompt.mock.mockImplementationOnce(async () => bob)
+      assert.deepEqual(await outcomesFor([alice, bob], null), ['after-prompt'])
+    })
+
+    it('reports a cancelled prompt as not provided', async () => {
+      prompt.mock.mockImplementationOnce(async () => undefined)
+      assert.deepEqual(await outcomesFor([alice], null), ['not-provided'])
+    })
+
+    it('reports a background request without an account', async () => {
+      background = true
+      try {
+        assert.deepEqual(await outcomesFor([alice], 'bob'), [
+          'unavailable-in-background',
+        ])
+      } finally {
+        background = false
+      }
+    })
+
+    it('reports Git rejecting a GitHub credential', async () => {
+      assert.deepEqual(await outcomesFor([alice], 'alice', 'erase'), [
+        'rejected',
+      ])
+    })
+
+    it('reports a failed credential lease before propagating it', async () => {
+      class FailingLeaseStore extends TestAccountsStore {
+        public async leaseAccountToken(
+          _account: Account,
+          _holder: string
+        ): Promise<never> {
+          throw new Error('network error')
+        }
+      }
+      const outcomes = new Array<string>()
+      const handler = createHandler(
+        new FailingLeaseStore([alice]),
+        new TestRepositoriesStore([repository('alice')]),
+        outcome => {
+          outcomes.push(outcome)
+        }
+      )
+      assert.equal(await handler(command()), undefined)
+      assert.deepEqual(outcomes, ['not-provided'])
+    })
+
+    it('does not report requests unrelated to a repository account', async () => {
+      path = '/elsewhere'
+      try {
+        assert.deepEqual(await outcomesFor([alice], 'alice'), [])
+      } finally {
+        path = '/repo'
+      }
+    })
+  })
 })

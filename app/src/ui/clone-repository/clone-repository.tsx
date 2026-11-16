@@ -901,10 +901,11 @@ export class CloneRepository extends React.Component<
       url,
       path,
       account === null
-        ? { defaultBranch }
+        ? { defaultBranch, fromCloneDialog: true }
         : {
             defaultBranch,
             account: { endpoint: account.endpoint, login: account.login },
+            fromCloneDialog: true,
           }
     )
     this.props.onDismissed()

@@ -5,7 +5,11 @@ import { Account } from '../../src/models/account'
 import { Repository } from '../../src/models/repository'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Owner } from '../../src/models/owner'
-import { getAccountForRepository } from '../../src/lib/get-account-for-repository'
+import {
+  getAccountForRepository,
+  getAccountForCopilot,
+  getAccountForCopilotAssistedCommits,
+} from '../../src/lib/get-account-for-repository'
 import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { createMockAPIRepository } from '../helpers/mock-api'
@@ -58,6 +62,152 @@ describe('Repository account resolution', () => {
     assert.equal(
       getAccountForRepository([enterprise], repository('alice')),
       null
+    )
+  })
+})
+
+describe('Copilot account resolution', () => {
+  function withCopilotAccess(
+    account: Account,
+    enabled: boolean | undefined,
+    features?: ReadonlyArray<string>
+  ) {
+    return new Account(
+      account.login,
+      account.endpoint,
+      account.token,
+      account.emails,
+      account.avatarURL,
+      account.id,
+      account.name,
+      account.plan,
+      account.copilotEndpoint,
+      enabled,
+      features
+    )
+  }
+
+  it('prefers the repository-assigned Desktop-enabled account without rollout flags', () => {
+    const assigned = withCopilotAccess(alice, true)
+    const fallback = withCopilotAccess(bob, true)
+    assert.equal(
+      getAccountForCopilot(
+        [fallback, withCopilotAccess(enterprise, true), assigned],
+        repository('ALICE')
+      ),
+      assigned
+    )
+  })
+
+  it('keeps the first Desktop-enabled fallback for unassigned, signed-out or disabled assignments', () => {
+    const disabled = withCopilotAccess(alice, false)
+    const fallback = withCopilotAccess(enterprise, true)
+    const other = withCopilotAccess(bob, true)
+    for (const login of [null, 'missing', 'alice']) {
+      assert.equal(
+        getAccountForCopilot([disabled, fallback, other], repository(login)),
+        fallback
+      )
+    }
+  })
+
+  it('rejects accounts without explicit Desktop entitlement', () => {
+    for (const accounts of [
+      [],
+      [withCopilotAccess(alice, false), withCopilotAccess(bob, undefined)],
+    ]) {
+      assert.equal(
+        getAccountForCopilot(accounts, repository('alice')),
+        undefined
+      )
+    }
+  })
+
+  it('gates only assisted account selection on its own feature flag', t => {
+    const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    const previousChannel = __RELEASE_CHANNEL__
+    delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    Object.assign(globalThis, { __RELEASE_CHANNEL__: 'production' })
+    t.after(() => {
+      Object.assign(globalThis, { __RELEASE_CHANNEL__: previousChannel })
+      if (previousPreview === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreview
+      }
+    })
+    const account = withCopilotAccess(alice, true)
+    assert.equal(getAccountForCopilot([account], repository('alice')), account)
+    assert.equal(
+      getAccountForCopilotAssistedCommits([account], repository('alice')),
+      undefined
+    )
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    const fallback = withCopilotAccess(bob, true)
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [fallback, account],
+        repository('alice')
+      ),
+      account
+    )
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [withCopilotAccess(alice, false), fallback],
+        repository('alice')
+      ),
+      fallback
+    )
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [withCopilotAccess(alice, undefined)],
+        repository('alice')
+      ),
+      undefined
+    )
+  })
+  it('selects only entitled accounts with their own assisted rollout flag outside preview', t => {
+    const previousPreview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    t.after(() => {
+      if (previousPreview === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreview
+      }
+    })
+    const features = ['desktop_copilot_assisted_commits']
+    const assigned = withCopilotAccess(alice, true)
+    const optedIn = withCopilotAccess(bob, true, features)
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [assigned, optedIn],
+        repository('alice')
+      ),
+      optedIn
+    )
+    const assignedOptedIn = withCopilotAccess(alice, true, features)
+    assert.equal(
+      getAccountForCopilotAssistedCommits(
+        [optedIn, assignedOptedIn],
+        repository('ALICE')
+      ),
+      assignedOptedIn
+    )
+    for (const account of [
+      assigned,
+      withCopilotAccess(alice, true, ['unrelated-feature']),
+      withCopilotAccess(alice, false, features),
+      withCopilotAccess(alice, undefined, features),
+    ]) {
+      assert.equal(
+        getAccountForCopilotAssistedCommits([account], repository('alice')),
+        undefined
+      )
+    }
+    assert.equal(
+      getAccountForCopilot([assigned, optedIn], repository('alice')),
+      assigned
     )
   })
 })
