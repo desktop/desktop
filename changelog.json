@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.12-beta2": [
+      "Reduce response-format failures when generating commit messages and resolving conflicts with Copilot - #23170"
+    ],
     "3.6.12-beta1": [
       "[Added] Add a \"Push after committing\" option for manual commits",
       "[Fixed] Highlighted names and paths in dialogs no longer break in the middle of short words - #23152. Thanks @DylanDevelops!",
