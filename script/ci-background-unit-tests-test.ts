@@ -10,7 +10,7 @@ const execFileAsync = promisify(execFile)
 const workflowPath = resolve(__dirname, '../.github/workflows/ci.yml')
 
 async function getWorkflowScript(stepName: string) {
-  const workflow = await readFile(workflowPath, 'utf8')
+  const workflow = (await readFile(workflowPath, 'utf8')).replace(/\r\n/g, '\n')
   const step = workflow
     .split(`      - name: ${stepName}\n`)[1]
     ?.split('\n      - ')[0]
