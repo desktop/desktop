@@ -46,9 +46,20 @@ You can find past releases at https://desktop.githubusercontent.com. After insta
 
 There are several community-supported package managers that can be used to
 install GitHub Desktop:
- - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:\> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
- - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew install --cask github`
+- Windows users can install using [winget](https://docs.microsoft.com/windows/package-manager/winget/) or [Chocolatey](https://chocolatey.org/):
+
+  ```shell
+  winget install github-desktop
+  ```
+
+  ```shell
+  choco install github-desktop
+  ```
+- macOS users can install using the [Homebrew](https://brew.sh/) package manager:
+
+  ```shell
+  brew install --cask github
+  ```
 
 Installers for various Linux distributions can be found on the
 [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.
