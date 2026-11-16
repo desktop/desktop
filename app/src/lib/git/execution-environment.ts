@@ -9,14 +9,20 @@ const localEnvironments =
 /**
  * Run local-only Git work without application credential or hook services.
  *
- * This changes host environment provisioning, not Git execution, ownership
- * fences, snapshot validation, or error handling. Hooks cannot be intercepted.
+ * Inherited Git overrides are cleared before applying the host and operation
+ * environments. This does not change Git execution, ownership fences, snapshot
+ * validation, or error handling. Hooks cannot be intercepted.
  */
 export function withLocalGitEnvironment<T>(
   environment: Readonly<Record<string, string | undefined>>,
   operation: () => Promise<T>
 ): Promise<T> {
-  return localEnvironments.run({ ...environment }, operation)
+  const inherited = Object.fromEntries(
+    Object.keys(process.env)
+      .filter(key => key.toUpperCase().startsWith('GIT_'))
+      .map(key => [key, undefined])
+  )
+  return localEnvironments.run({ ...inherited, ...environment }, operation)
 }
 
 /** Get local host overrides for Git calls that must bypass application services. */

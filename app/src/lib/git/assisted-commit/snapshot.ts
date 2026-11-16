@@ -31,6 +31,7 @@ import {
 } from '../../../models/diff'
 import { DiffParser } from '../../diff-parser'
 import { git } from '../core'
+import { getLocalGitEnvironment } from '../execution-environment'
 import {
   AssistedCommitError,
   checkAssistedCommitCancellation,
@@ -456,7 +457,8 @@ export async function captureAssistedCommitSnapshot(
   input: ICopilotAssistedCommitRequest,
   options: IAssistedCommitOperationOptions = {}
 ): Promise<IAssistedCommitSnapshot> {
-  const incomingAttributeSource = process.env.GIT_ATTR_SOURCE
+  const incomingAttributeSource = (getLocalGitEnvironment() ?? process.env)
+    .GIT_ATTR_SOURCE
   checkAssistedCommitCancellation(options.signal)
   const request = cloneRequest(input)
   validateSelectionPaths(request)

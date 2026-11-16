@@ -500,7 +500,8 @@ export async function initializePrivateRepository(
     removeGitLineEnding(attributesPath.stdout)
   )
   const shallow = await readOptionalFile(
-    process.env.GIT_SHALLOW_FILE ?? (await gitPath(repository, 'shallow'))
+    (getLocalGitEnvironment() ?? process.env).GIT_SHALLOW_FILE ??
+      (await gitPath(repository, 'shallow'))
   )
   await mkdir(join(directory, 'refs'), { recursive: true })
   await mkdir(join(directory, 'info'), { recursive: true })
@@ -877,7 +878,8 @@ export async function ensureNoRepositoryOperation(
   if (
     replacements.stdout.length > 0 ||
     (await optionalStat(
-      process.env.GIT_GRAFT_FILE ?? (await gitPath(repository, 'info/grafts'))
+      (getLocalGitEnvironment() ?? process.env).GIT_GRAFT_FILE ??
+        (await gitPath(repository, 'info/grafts'))
     )) !== null
   ) {
     throw new AssistedCommitError(

@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import { join } from 'path'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { CopilotClient } from '@github/copilot-sdk'
 import type { SessionConfig } from '@github/copilot-sdk'
 import {
@@ -102,6 +102,43 @@ describe('Copilot evaluation adapter', () => {
     })
   })
 
+  it('does not seed an inherited external index', async t => {
+    const index = join(await createTempDirectory(t), 'external-index')
+    const previous = process.env
+    t.after(() => {
+      process.env = previous
+    })
+    process.env = { ...previous, GIT_INDEX_FILE: index }
+
+    const result = await runCopilotEvaluation(request(repository))
+    await assert.rejects(readFile(index), { code: 'ENOENT' })
+    assert.strictEqual(result.status, 'ok', result.error?.message)
+    assert.strictEqual(result.validation?.preservedIndex, true)
+  })
+
+  it('does not capture inherited attribute or history sources', async t => {
+    const source = join(await createTempDirectory(t), 'external-source')
+    await writeFile(source, 'not-a-fixture-object\n')
+    const previous = process.env
+    t.after(() => {
+      process.env = previous
+    })
+    for (const name of [
+      'GIT_ATTR_SOURCE',
+      'GIT_GRAFT_FILE',
+      'GIT_SHALLOW_FILE',
+    ]) {
+      process.env = { ...previous, [name]: source }
+      const result = await runCopilotEvaluation(request(repository))
+      assert.strictEqual(
+        result.status,
+        'ok',
+        `${name}: ${result.error?.message}`
+      )
+      assert.strictEqual(result.validation?.preservedIndex, true)
+    }
+  })
+
   it('passes only selected hunks and excludes unselected files from prompts', async () => {
     const lines = Array.from({ length: 40 }, (_, i) => `line ${i}\n`)
     const changed = [...lines]
@@ -144,6 +181,46 @@ describe('Copilot evaluation adapter', () => {
     assert.strictEqual(result.status, 'ok', result.error?.message)
     assert.ok(result.turns[0].userPrompt.includes('+selected change'))
     assert.ok(!result.turns[0].userPrompt.includes('UNSELECTED_'))
+  })
+
+  it('ignores inherited command configuration during diff and snapshot capture', async t => {
+    const hooks = await createTempDirectory(t)
+    await writeFile(join(hooks, 'pre-commit'), '#!/bin/sh\nexit 1\n', {
+      mode: 0o755,
+    })
+    const previous = process.env
+    t.after(() => {
+      process.env = previous
+    })
+    const lines = Array.from({ length: 40 }, (_, i) => `line ${i}\n`)
+    const changed = [...lines]
+    changed[1] = 'UNSELECTED_HUNK_SENTINEL\n'
+    changed[30] = 'selected change\n'
+    for (const configuration of [
+      {
+        GIT_CONFIG_PARAMETERS: `'diff.context=100' 'core.hooksPath=${hooks}'`,
+      },
+      {
+        GIT_CONFIG_COUNT: '2',
+        GIT_CONFIG_KEY_0: 'diff.context',
+        GIT_CONFIG_VALUE_0: '100',
+        GIT_CONFIG_KEY_1: 'core.hooksPath',
+        GIT_CONFIG_VALUE_1: hooks,
+      },
+    ]) {
+      process.env = { ...previous, ...configuration }
+      const result = await runCopilotEvaluation(
+        request({
+          kind: 'repository',
+          baseFiles: { 'file.txt': lines.join('') },
+          files: { 'file.txt': changed.join('') },
+          selection: [{ path: 'file.txt', hunks: [1] }],
+        })
+      )
+      assert.strictEqual(result.status, 'ok', result.error?.message)
+      assert.ok(result.turns[0].userPrompt.includes('+selected change'))
+      assert.ok(!result.turns[0].userPrompt.includes('UNSELECTED_'))
+    }
   })
 
   it('does not use ambient XDG ignore rules when seeding a fixture', async t => {

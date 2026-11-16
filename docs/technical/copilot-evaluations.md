@@ -103,6 +103,10 @@ credential/trampoline services. It does not replace Git execution, ownership
 fences, or snapshot/tree validation. Requests for application credentials or
 intercepted hooks through this host fail explicitly. Normal application Git
 operations retain the existing hook/trampoline environment.
+Inherited `GIT_*` environment overrides are cleared before fixture seeding and
+snapshot capture, including index/repository routing, command-scoped
+configuration, and attribute/history sources. Explicit host and per-operation
+overrides still apply, including the snapshot's private index and configuration.
 
 ## Live credentials and trust
 

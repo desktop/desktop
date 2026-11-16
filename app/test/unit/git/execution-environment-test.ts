@@ -8,7 +8,11 @@ import {
 describe('local-only Git host environment', () => {
   it('preserves explicit operation overrides without invoking application services', async () => {
     const result = await withLocalGitEnvironment(
-      { HOST_SENTINEL: 'host', SHARED_SENTINEL: 'host' },
+      {
+        HOST_SENTINEL: 'host',
+        SHARED_SENTINEL: 'host',
+        GIT_INDEX_FILE: 'host-index',
+      },
       () =>
         withGitExecutionEnvironment(
           async environment => environment,
@@ -17,15 +21,15 @@ describe('local-only Git host environment', () => {
             env: {
               OPERATION_SENTINEL: 'operation',
               SHARED_SENTINEL: 'operation',
+              GIT_INDEX_FILE: 'operation-index',
             },
           }
         )
     )
-    assert.deepStrictEqual(result, {
-      HOST_SENTINEL: 'host',
-      OPERATION_SENTINEL: 'operation',
-      SHARED_SENTINEL: 'operation',
-    })
+    assert.strictEqual(result.HOST_SENTINEL, 'host')
+    assert.strictEqual(result.OPERATION_SENTINEL, 'operation')
+    assert.strictEqual(result.SHARED_SENTINEL, 'operation')
+    assert.strictEqual(result.GIT_INDEX_FILE, 'operation-index')
   })
 
   it('keeps overlapping asynchronous hosts isolated and restores nested hosts', async () => {
