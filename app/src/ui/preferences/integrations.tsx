@@ -7,10 +7,7 @@ import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import {
-  enableCopilotAppHandoff,
-  enableCustomIntegration,
-} from '../../lib/feature-flag'
+import { enableCopilotAppHandoff } from '../../lib/feature-flag'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { InputError } from '../lib/input-description/input-error'
@@ -106,26 +103,24 @@ export class Integrations extends React.Component<
   }
 
   public componentDidMount(): void {
-    if (enableCustomIntegration()) {
-      const {
-        availableEditors,
-        availableShells,
-        useCustomEditor,
-        useCustomShell,
-      } = this.props
+    const {
+      availableEditors,
+      availableShells,
+      useCustomEditor,
+      useCustomShell,
+    } = this.props
 
-      // When there are no available editors or shells, the `Select` component
-      // will have the custom editor or shell already selected, but we need
-      // to handle that as initial value, otherwise the custom integration
-      // form won't be rendered.
+    // When there are no available editors or shells, the `Select` component
+    // will have the custom editor or shell already selected, but we need
+    // to handle that as initial value, otherwise the custom integration
+    // form won't be rendered.
 
-      if (availableEditors.length === 0 && !useCustomEditor) {
-        this.setSelectedEditor(CustomIntegrationValue)
-      }
+    if (availableEditors.length === 0 && !useCustomEditor) {
+      this.setSelectedEditor(CustomIntegrationValue)
+    }
 
-      if (availableShells.length === 0 && !useCustomShell) {
-        this.setSelectedShell(CustomIntegrationValue)
-      }
+    if (availableShells.length === 0 && !useCustomShell) {
+      this.setSelectedShell(CustomIntegrationValue)
     }
   }
 
@@ -198,30 +193,9 @@ export class Integrations extends React.Component<
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const { selectedExternalEditor, useCustomEditor } = this.state
-    const label = __DARWIN__ ? 'External Editor' : 'External editor'
-
-    if (!enableCustomIntegration() && options.length === 0) {
-      // this is emulating the <Select/> component's UI so the styles are
-      // consistent for either case.
-      //
-      // TODO: see whether it makes sense to have a fallback UI
-      // which we display when the select list is empty
-      return (
-        <div className="select-component no-options-found">
-          <label>{label}</label>
-          <span>
-            No editors found.{' '}
-            <LinkButton uri={suggestedExternalEditor.url}>
-              Install {suggestedExternalEditor.name}?
-            </LinkButton>
-          </span>
-        </div>
-      )
-    }
 
     return (
       <Select
-        label={enableCustomIntegration() ? undefined : label}
         aria-label="External editor"
         value={
           useCustomEditor
@@ -235,13 +209,9 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        {enableCustomIntegration() && (
-          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
-            {__DARWIN__
-              ? 'Configure Custom Editor…'
-              : 'Configure custom editor…'}
-          </option>
-        )}
+        <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+          {__DARWIN__ ? 'Configure Custom Editor…' : 'Configure custom editor…'}
+        </option>
       </Select>
     )
   }
@@ -309,7 +279,6 @@ export class Integrations extends React.Component<
 
     return (
       <Select
-        label={enableCustomIntegration() ? undefined : 'Shell'}
         aria-label="Shell"
         value={useCustomShell ? CustomIntegrationValue : selectedShell}
         onChange={this.onSelectedShellChanged}
@@ -319,11 +288,9 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        {enableCustomIntegration() && (
-          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
-            {__DARWIN__ ? 'Configure Custom Shell…' : 'Configure custom shell…'}
-          </option>
-        )}
+        <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+          {__DARWIN__ ? 'Configure Custom Shell…' : 'Configure custom shell…'}
+        </option>
       </Select>
     )
   }
@@ -439,17 +406,6 @@ export class Integrations extends React.Component<
   }
 
   public render() {
-    if (!enableCustomIntegration()) {
-      return (
-        <DialogContent>
-          <h2>Applications</h2>
-          <Row>{this.renderExternalEditor()}</Row>
-          <Row>{this.renderSelectedShell()}</Row>
-          {this.renderCopilotApp()}
-        </DialogContent>
-      )
-    }
-
     return (
       <DialogContent>
         <fieldset>

@@ -90,8 +90,6 @@ export function enableImagePreviewsForDDSFiles(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableCustomIntegration = () => true
-
 export const enableResizingToolbarButtons = () => true
 
 /**

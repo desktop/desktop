@@ -342,11 +342,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableCopilotAppHandoff,
-  enableCustomIntegration,
-  enableWorktreeSupport,
-} from '../feature-flag'
+import { enableCopilotAppHandoff, enableWorktreeSupport } from '../feature-flag'
 import { isDotCom, isGHE, isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -2830,13 +2826,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
-    this.useCustomEditor =
-      enableCustomIntegration() && getBoolean(useCustomEditorKey, false)
+    this.useCustomEditor = getBoolean(useCustomEditorKey, false)
     this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
     this.copilotAppPath = localStorage.getItem(copilotAppPathKey)
 
-    this.useCustomShell =
-      enableCustomIntegration() && getBoolean(useCustomShellKey, false)
+    this.useCustomShell = getBoolean(useCustomShellKey, false)
     this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
 
     // Migrate custom editor and shell to the new format if needed. This
