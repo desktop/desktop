@@ -103,7 +103,7 @@ describe('CredentialSessions token refresh lifecycle events', () => {
         )
       )
       assert.deepEqual(refreshEvents, [
-        'attempt',
+        { kind: 'attempt' },
         { kind: 'transient-failure', failureKind },
       ])
       assert.deepEqual(signedOut, [])
@@ -125,10 +125,10 @@ describe('CredentialSessions token refresh lifecycle events', () => {
       sessions.resolveToken(account.endpoint, account.token),
       sessions.createTokenGetter(account)(),
     ])
-    assert.deepEqual(refreshEvents, ['attempt'])
+    assert.deepEqual(refreshEvents, [{ kind: 'attempt' }])
     complete(renewed)
     await tokens
-    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+    assert.deepEqual(refreshEvents, [{ kind: 'attempt' }, { kind: 'success' }])
     assert.equal(sessions.trackToken(account)(), renewed.accessToken)
   })
 
@@ -152,16 +152,16 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     sessions.restore(account, expiring)
     await assert.rejects(sessions.getFreshToken(account), /Unable to renew/)
     assert.deepEqual(refreshEvents, [
-      'attempt',
+      { kind: 'attempt' },
       { kind: 'transient-failure', failureKind: 'unknown' },
     ])
     assert.deepEqual(signedOut, [])
     await sessions.getFreshToken(account)
     assert.deepEqual(refreshEvents, [
-      'attempt',
+      { kind: 'attempt' },
       { kind: 'transient-failure', failureKind: 'unknown' },
-      'attempt',
-      'success',
+      { kind: 'attempt' },
+      { kind: 'success' },
     ])
   })
 
@@ -180,9 +180,9 @@ describe('CredentialSessions token refresh lifecycle events', () => {
       ])
       assert.ok(results.every(result => result.status === 'rejected'))
       assert.deepEqual(refreshEvents, [
-        'attempt',
-        'non-transient-failure',
-        'required-sign-in',
+        { kind: 'attempt' },
+        { kind: 'non-transient-failure' },
+        { kind: 'required-sign-in' },
       ])
     })
   }
@@ -204,7 +204,10 @@ describe('CredentialSessions token refresh lifecycle events', () => {
       sessions.retire(account)
       complete()
       await failure
-      assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+      assert.deepEqual(refreshEvents, [
+        { kind: 'attempt' },
+        { kind: 'abandoned' },
+      ])
     })
   }
 
@@ -227,7 +230,10 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     })
     complete(renewed)
     await failure
-    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+    assert.deepEqual(refreshEvents, [
+      { kind: 'attempt' },
+      { kind: 'abandoned' },
+    ])
     assert.equal(await sessions.getFreshToken(replacement), replacement.token)
   })
 
@@ -247,11 +253,14 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     })
     const token = sessions.getFreshToken(account)
     await started
-    assert.deepEqual(refreshEvents, ['attempt'])
+    assert.deepEqual(refreshEvents, [{ kind: 'attempt' }])
     sessions.retire(account)
     finish()
     await assert.rejects(token, AccountRequiresSignInError)
-    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+    assert.deepEqual(refreshEvents, [
+      { kind: 'attempt' },
+      { kind: 'abandoned' },
+    ])
   })
 
   it('counts required sign-in but no success or persistence-failure metric when secure storage fails', async t => {
@@ -261,7 +270,10 @@ describe('CredentialSessions token refresh lifecycle events', () => {
       throw new Error('storage unavailable')
     })
     await assert.rejects(sessions.getFreshToken(account), /Unable to save/)
-    assert.deepEqual(refreshEvents, ['attempt', 'required-sign-in'])
+    assert.deepEqual(refreshEvents, [
+      { kind: 'attempt' },
+      { kind: 'required-sign-in' },
+    ])
   })
 
   it('does not count debug override renewals, but resumes reporting after renewal', async t => {
@@ -285,7 +297,7 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     assert.deepEqual(refreshEvents, [])
     clock = renewed.expiresAt ?? now
     await sessions.getFreshToken(account)
-    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+    assert.deepEqual(refreshEvents, [{ kind: 'attempt' }, { kind: 'success' }])
   })
 
   it('records normal renewals after resetting an override', async t => {
@@ -303,7 +315,7 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     sessions.setTokenExpirationForTesting(account, now + 8 * 60 * 60_000)
     sessions.setTokenExpirationForTesting(account, undefined)
     await sessions.getFreshToken(account)
-    assert.deepEqual(refreshEvents, ['attempt', 'success'])
+    assert.deepEqual(refreshEvents, [{ kind: 'attempt' }, { kind: 'success' }])
   })
 
   it('excludes non-transient failures and forced sign-ins during debug override testing', async t => {
@@ -342,7 +354,10 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     sessions.retire(account)
     fail(new OAuthTokenRequestError('timeout'))
     await request
-    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+    assert.deepEqual(refreshEvents, [
+      { kind: 'attempt' },
+      { kind: 'abandoned' },
+    ])
   })
 
   it('suppresses typed transient failure events from debug expiry overrides', async t => {

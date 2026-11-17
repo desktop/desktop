@@ -113,12 +113,12 @@ describe('StatsStore', () => {
       }
     )
     const events: ReadonlyArray<TokenRefreshEvent> = [
-      'attempt',
-      'success',
+      { kind: 'attempt' },
+      { kind: 'success' },
       { kind: 'transient-failure', failureKind: 'network' },
-      'non-transient-failure',
-      'abandoned',
-      'required-sign-in',
+      { kind: 'non-transient-failure' },
+      { kind: 'abandoned' },
+      { kind: 'required-sign-in' },
     ]
     await Promise.all(events.map(event => store.recordTokenRefreshEvent(event)))
     store.setUsesShortLivedToken(true)
@@ -282,7 +282,7 @@ describe('StatsStore', () => {
         }
       )
       store.setUsesShortLivedToken(true)
-      await store.recordTokenRefreshEvent('attempt')
+      await store.recordTokenRefreshEvent({ kind: 'attempt' })
       assert.strictEqual(await store.sendStats([], []), false)
       assert.strictEqual(posted, 0)
     } finally {

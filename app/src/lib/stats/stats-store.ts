@@ -749,7 +749,7 @@ export class StatsStore implements IStatsStore {
 
   /** Count a single token refresh lifecycle event without credential metadata. */
   public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
-    if (typeof event !== 'string') {
+    if (event.kind === 'transient-failure') {
       const measures = {
         timeout: 'tokenRefreshTransientFailureTimeoutCount',
         network: 'tokenRefreshTransientFailureNetworkCount',
@@ -768,7 +768,10 @@ export class StatsStore implements IStatsStore {
       }))
     }
     const measures: Readonly<
-      Record<Extract<TokenRefreshEvent, string>, keyof NumericMeasures>
+      Record<
+        Exclude<TokenRefreshEvent['kind'], 'transient-failure'>,
+        keyof NumericMeasures
+      >
     > = {
       attempt: 'tokenRefreshAttemptCount',
       success: 'tokenRefreshSuccessCount',
@@ -776,7 +779,7 @@ export class StatsStore implements IStatsStore {
       abandoned: 'tokenRefreshAbandonedCount',
       'required-sign-in': 'tokenRefreshRequiredSignInCount',
     }
-    return this.increment(measures[event])
+    return this.increment(measures[event.kind])
   }
 
   /** Report any stats which are eligible for reporting. */

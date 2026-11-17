@@ -151,7 +151,7 @@ describe('AppStore token refresh usage stats wiring', () => {
     await Promise.all(record.mock.calls.map(call => call.result))
     assert.deepEqual(
       record.mock.calls.map(call => call.arguments[0]),
-      ['attempt', 'success']
+      [{ kind: 'attempt' }, { kind: 'success' }]
     )
     assert.equal(adoption.mock.calls.at(-1)?.arguments[0], true)
     assert.equal(
@@ -175,11 +175,11 @@ describe('AppStore token refresh usage stats wiring', () => {
     assert.deepEqual(
       record.mock.calls.map(call => call.arguments[0]),
       [
-        'attempt',
-        'success',
-        'attempt',
-        'non-transient-failure',
-        'required-sign-in',
+        { kind: 'attempt' },
+        { kind: 'success' },
+        { kind: 'attempt' },
+        { kind: 'non-transient-failure' },
+        { kind: 'required-sign-in' },
       ]
     )
     assert.equal(
@@ -221,7 +221,10 @@ describe('AppStore token refresh usage stats wiring', () => {
     await Promise.all(record.mock.calls.map(call => call.result))
     assert.deepEqual(
       record.mock.calls.map(call => call.arguments[0]),
-      ['attempt', { kind: 'transient-failure', failureKind: 'server' }]
+      [
+        { kind: 'attempt' },
+        { kind: 'transient-failure', failureKind: 'server' },
+      ]
     )
     const measures = await statsDb.dailyMeasures.limit(1).first()
     assert.equal(measures?.tokenRefreshTransientFailureCount, 1)
