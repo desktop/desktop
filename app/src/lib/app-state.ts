@@ -12,6 +12,7 @@ import type {
   ICopilotSkippedFile,
 } from './copilot-conflict-resolution'
 import { Account, IAccountIdentity } from '../models/account'
+import { ICommitIdentitySettings } from './managed-commit-identity'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
@@ -94,6 +95,7 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  readonly commitIdentitySettings: ICommitIdentitySettings
   /**
    * The current list of repositories tracked in the application
    */

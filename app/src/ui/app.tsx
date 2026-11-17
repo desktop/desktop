@@ -1736,6 +1736,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Preferences
             key="preferences"
+            commitIdentitySettings={this.state.commitIdentitySettings}
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             accounts={this.state.accounts}
@@ -1866,6 +1867,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            commitIdentitySettings={this.state.commitIdentitySettings}
             initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}

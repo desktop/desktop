@@ -188,6 +188,7 @@ export class CommitMessageDialog extends React.Component<
             filesSelected={[]}
             onCommitMessageFocusSet={noop}
             onRefreshAuthor={this.onRefreshAuthor}
+            onUpdateCommitEmail={this.onUpdateCommitEmail}
             onShowPopup={this.onShowPopup}
             onShowFoldout={this.onShowFoldout}
             onCommitSpellcheckEnabledChanged={
@@ -229,6 +230,9 @@ export class CommitMessageDialog extends React.Component<
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onUpdateCommitEmail = (email: string) =>
+    this.props.dispatcher.updateCommitEmail(this.props.repository, email)
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
   private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)

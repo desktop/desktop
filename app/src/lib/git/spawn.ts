@@ -1,6 +1,7 @@
 import { spawn, IGitSpawnOptions } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { getManagedCommitEnvironment } from '../managed-commit-identity'
 
 type SpawnOptions = IGitSpawnOptions & {
   /**
@@ -29,7 +30,11 @@ export const spawnGit = (
       GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
         spawn(args, path, {
           ...options,
-          env: { ...options?.env, ...trampolineEnv },
+          env: {
+            ...getManagedCommitEnvironment(path),
+            ...options?.env,
+            ...trampolineEnv,
+          },
         })
       ),
     path,

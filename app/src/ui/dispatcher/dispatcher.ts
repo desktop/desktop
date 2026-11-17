@@ -61,6 +61,10 @@ import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
 import { Account, IAccountIdentity } from '../../models/account'
+import {
+  CommitIdentityMode,
+  ICommitIdentityEdit,
+} from '../../lib/managed-commit-identity'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
@@ -1353,6 +1357,22 @@ export class Dispatcher {
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
     return this.appStore._signOutAccount(account)
+  }
+
+  /** Save Desktop's authorship mode and explicitly edited account identity fields. */
+  public updateCommitIdentitySettings(
+    mode: CommitIdentityMode,
+    edits: ReadonlyArray<ICommitIdentityEdit>
+  ): Promise<void> {
+    return this.appStore._updateCommitIdentitySettings(mode, edits)
+  }
+
+  /** Update the identity supplying this repository's future commit email. */
+  public updateCommitEmail(
+    repository: Repository,
+    email: string
+  ): Promise<void> {
+    return this.appStore._updateCommitEmail(repository, email)
   }
 
   /** Explicitly change the account assigned to a local repository. */

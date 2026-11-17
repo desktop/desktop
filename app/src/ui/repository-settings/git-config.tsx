@@ -6,8 +6,11 @@ import { Row } from '../lib/row'
 import { RadioGroup } from '../lib/radio-group'
 import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
+import { IManagedCommitIdentity } from '../../lib/managed-commit-identity'
 
 interface IGitConfigProps {
+  readonly managedCommitIdentityEnabled?: boolean
+  readonly managedCommitIdentity?: IManagedCommitIdentity
   readonly account: Account | null
 
   readonly gitConfigLocation: GitConfigLocation
@@ -49,6 +52,30 @@ export class GitConfig extends React.Component<IGitConfigProps> {
   }
 
   public render() {
+    const identity = this.props.managedCommitIdentity
+    if (this.props.managedCommitIdentityEnabled) {
+      return (
+        <DialogContent>
+          <h2>GitHub Desktop manages this repository's commit identity</h2>
+          {identity === undefined ? (
+            <p role="alert">
+              Sign in to this repository's account once to initialize its commit
+              identity.
+            </p>
+          ) : (
+            <p>
+              {identity.name} &lt;{identity.email}&gt;
+            </p>
+          )}
+          <p className="settings-description">
+            Edit this account's identity in{' '}
+            {__DARWIN__ ? 'Preferences' : 'Options'} &gt; Git. External
+            applications continue using the repository's existing Git
+            configuration.
+          </p>
+        </DialogContent>
+      )
+    }
     const configOptions = [GitConfigLocation.Global, GitConfigLocation.Local]
     const selectionOption =
       configOptions.find(o => o === this.props.gitConfigLocation) ??

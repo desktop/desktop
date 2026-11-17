@@ -141,10 +141,52 @@ describe('AppStore repository accounts', () => {
         popups.splice(popups.indexOf(popup), 1)
         return popup
       }
+
       await setImmediate()
     }
     assert.fail(`No ${type} popup`)
   }
+
+  it('resolves managed authorship by repository assignment, not signed-in credentials', async () => {
+    const repository = await addRepository('/managed-authorship', 'bob')
+    const unassigned = await addRepository('/unmanaged-authorship', null)
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(repository.path),
+      undefined
+    )
+    await appStore._updateCommitIdentitySettings('desktop', [
+      {
+        endpoint,
+        login: 'bob',
+        name: 'Managed Bob',
+        email: 'bob@example.com',
+      },
+    ])
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(repository.path)?.email,
+      'bob@example.com'
+    )
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(unassigned.path),
+      undefined
+    )
+    await stores.accountsStore.removeAccount(bob)
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(repository.path)?.name,
+      'Managed Bob'
+    )
+    await stores.accountsStore.addAccount(bob)
+    await appStore._updateRepositoryAccount(repository, 'alice')
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(repository.path)?.name,
+      'Alice'
+    )
+    await appStore._updateCommitIdentitySettings('git', [])
+    assert.equal(
+      appStore.getManagedCommitIdentityForPath(repository.path),
+      undefined
+    )
+  })
 
   it('deduplicates prompts and persists the selected account', async () => {
     const repository = await addRepository('/unassigned', null)

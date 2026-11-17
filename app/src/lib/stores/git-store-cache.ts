@@ -51,6 +51,13 @@ export class GitStoreCache {
     return this.gitStores.has(getRepositoryStateKey(repository))
   }
 
+  /** Latest known association for this working directory, without creating a store. */
+  public getRepository(repository: Repository): Repository {
+    return (
+      this.repositories.get(getRepositoryStateKey(repository)) ?? repository
+    )
+  }
+
   /**
    * Get the store for the repository, creating it if necessary.
    *
@@ -65,7 +72,7 @@ export class GitStoreCache {
     }
 
     const gitStore = new GitStore(
-      this.repositories.get(key) ?? repository,
+      this.getRepository(repository),
       this.shell,
       this.statsStore
     )

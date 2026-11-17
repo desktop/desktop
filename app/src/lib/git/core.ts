@@ -18,6 +18,7 @@ import { withHooksEnv } from '../hooks/with-hooks-env'
 import { coerceToString } from './coerce-to-string'
 import { pushTerminalChunk } from './push-terminal-chunk'
 import { IAccountIdentity } from '../../models/account'
+import { getManagedCommitEnvironment } from '../managed-commit-identity'
 import {
   getRepositoryGitReadEnvironment,
   getRepositoryGitOperationPath,
@@ -260,7 +261,11 @@ export async function git(
     maxBuffer: options?.encoding === 'buffer' ? Infinity : kStringMaxLength,
   }
 
-  const opts = { ...defaultOptions, ...options }
+  const opts = {
+    ...defaultOptions,
+    ...options,
+    env: { ...getManagedCommitEnvironment(path), ...options?.env },
+  }
 
   // The combined contents of stdout and stderr with some light processing
   // applied to remove redundant lines caused by Git's use of `\r` to "erase"
@@ -418,7 +423,7 @@ export async function git(
           options?.fallbackAccount
         ),
       path,
-      options
+      opts
     )
   const operationPath = getRepositoryGitOperationPath(args, path)
   return operationPath === undefined

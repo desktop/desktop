@@ -156,6 +156,7 @@ function createProps(
     onCancelGenerateCommitMessage: () => {},
     onCommitMessageFocusSet: () => {},
     onRefreshAuthor: () => {},
+    onUpdateCommitEmail: async () => {},
     onShowPopup: () => {},
     onShowFoldout: () => {},
     onCommitSpellcheckEnabledChanged: () => {},

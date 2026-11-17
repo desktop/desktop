@@ -13,6 +13,117 @@
     .hooks-warning {
       margin-bottom: var(--spacing);
     }
+
+    .managed-identity-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+    }
+
+    .managed-identity {
+      padding: var(--spacing) var(--spacing);
+
+      &:not(:last-child) {
+        border-bottom: var(--base-border);
+      }
+
+      &.expanded {
+        background: var(--box-alt-background-color);
+      }
+    }
+
+    .managed-identity-summary {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+
+      .button-component {
+        flex-shrink: 0;
+        min-width: 56px;
+      }
+    }
+
+    .managed-identity-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .managed-identity-primary,
+    .managed-identity-account {
+      display: flex;
+      align-items: baseline;
+      gap: var(--spacing-half);
+      min-width: 0;
+      white-space: nowrap;
+
+      > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .managed-identity-name {
+      flex-shrink: 0;
+      max-width: 50%;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .managed-identity-email {
+      color: var(--text-secondary-color);
+    }
+
+    .managed-identity-name.missing,
+    .managed-identity-email.missing {
+      font-style: italic;
+      font-weight: normal;
+      color: var(--text-secondary-color);
+    }
+
+    .managed-identity-account {
+      margin-top: var(--spacing-third);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+
+      > span {
+        flex-shrink: 0;
+      }
+
+      > span:not(:first-child)::before {
+        content: '·';
+        margin-right: var(--spacing-half);
+      }
+    }
+
+    .managed-identity-attention {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      margin-top: var(--spacing-third);
+      font-size: var(--font-size-sm);
+      color: var(--input-error-text-color);
+
+      .octicon {
+        fill: var(--input-error-text-color);
+      }
+    }
+
+    .managed-identity-editor {
+      margin-top: var(--spacing);
+    }
+
+    .managed-identity-field:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
+
+    .managed-identity-field .input-description {
+      margin-top: var(--spacing-third);
+    }
+
+    .managed-identity-field .input-description-caption {
+      color: var(--text-secondary-color);
+    }
   }
 
   .preferences-container {

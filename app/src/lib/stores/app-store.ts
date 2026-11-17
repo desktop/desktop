@@ -3,6 +3,10 @@ import { verifyRepositoryGitSpawnFence } from '../git/repository-operation'
 import { AssistedCommitCoordinator } from '../assisted-commit/coordinator'
 import { getStatus } from '../git/status'
 import * as Path from 'path'
+import {
+  CommitIdentityMode,
+  ICommitIdentityEdit,
+} from '../managed-commit-identity'
 import { writeFile } from 'fs/promises'
 import {
   AccountsStore,
@@ -254,6 +258,7 @@ import {
   addWorktree,
   IAddWorktreeOptions,
   setConfigValue,
+  setGlobalConfigValue,
   removeConfigValue,
   resolveMainWorktreePath,
   removeWorktree,
@@ -1387,6 +1392,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return {
       accounts: this.accounts,
+      commitIdentitySettings: this.accountsStore.getCommitIdentitySettings(),
       repositories,
       recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
@@ -4726,6 +4732,67 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** Resolve authorship independently of credentials, including signed-out accounts. */
+  public getManagedCommitIdentityForPath(path: string) {
+    const settings = this.accountsStore.getCommitIdentitySettings()
+    if (settings.mode !== 'desktop') {
+      return undefined
+    }
+    const resolvedPath = Path.resolve(path)
+    const repository = this.repositories
+      .map(r => this.gitStoreCache.getRepository(r))
+      .find(
+        r =>
+          Path.resolve(r.path) === resolvedPath ||
+          (r.mainWorktreePath !== undefined &&
+            Path.resolve(r.mainWorktreePath) === resolvedPath) ||
+          (this.repositoryStateCache.has(r) &&
+            this.repositoryStateCache
+              .get(r)
+              .worktrees.some(w => Path.resolve(w.path) === resolvedPath))
+      )
+    const account =
+      repository === undefined ? null : getRepositoryAccountIdentity(repository)
+    if (account === null) {
+      return undefined
+    }
+    const identity = settings.identities.find(i => isSameAccount(i, account))
+    if (identity === undefined) {
+      throw new Error(
+        'Sign in to the repository account once to initialize its managed commit identity.'
+      )
+    }
+    return identity
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _updateCommitIdentitySettings(
+    mode: CommitIdentityMode,
+    edits: ReadonlyArray<ICommitIdentityEdit>
+  ): Promise<void> {
+    this.accountsStore.updateCommitIdentitySettings(mode, edits)
+    if (this.selectedRepository instanceof Repository) {
+      await this._refreshAuthor(this.selectedRepository)
+    }
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _updateCommitEmail(
+    repository: Repository,
+    email: string
+  ): Promise<void> {
+    const identity = this.getManagedCommitIdentityForPath(repository.path)
+    if (identity === undefined) {
+      await setGlobalConfigValue('user.email', email)
+    } else {
+      this.accountsStore.updateCommitIdentitySettings('desktop', [
+        { endpoint: identity.endpoint, login: identity.login, email },
+      ])
+    }
+    await this._refreshAuthor(repository)
+  }
+
   private async _refreshWorktrees(repository: Repository): Promise<void> {
     try {
       const worktrees = await listWorktrees(repository)
@@ -5630,6 +5697,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (!isRepositoryWithGitHubRepository(repository)) {
       return
+    }
+
+    if (this.accountsStore.getCommitIdentitySettings().mode === 'desktop') {
+      await this._refreshAuthor(repository)
     }
 
     this.stopPullRequestUpdater()
@@ -9524,6 +9595,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.adoptRepository(updated)
     this.setRepositories(await this.repositoriesStore.getAll())
     this.updateRepositorySelectionAfterRepositoriesChanged()
+    if (this.isSelectedRepository(updated)) {
+      await this._refreshAuthor(updated)
+    }
     this.emitUpdate()
     return updated
   }

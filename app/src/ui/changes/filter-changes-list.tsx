@@ -1027,6 +1027,7 @@ export class FilterChangesList extends React.Component<
         onCancelGenerateCommitMessage={this.onCancelGenerateCommitMessage}
         onCommitMessageFocusSet={this.onCommitMessageFocusSet}
         onRefreshAuthor={this.onRefreshAuthor}
+        onUpdateCommitEmail={this.onUpdateCommitEmail}
         onShowPopup={this.onShowPopup}
         onShowFoldout={this.onShowFoldout}
         onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
@@ -1086,6 +1087,9 @@ export class FilterChangesList extends React.Component<
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onUpdateCommitEmail = (email: string) =>
+    this.props.dispatcher.updateCommitEmail(this.props.repository, email)
 
   private onCommitMessageFocusSet = () =>
     this.props.dispatcher.setCommitMessageFocus(false)

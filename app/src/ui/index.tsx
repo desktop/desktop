@@ -3,6 +3,7 @@ import '../lib/logging/renderer/install'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
+import { setCommitIdentityProvider } from '../lib/managed-commit-identity'
 import { App } from './app'
 import { API } from '../lib/api'
 import { installAuthenticatedImageTokenHandler } from '../lib/authenticated-image-token-handler'
@@ -330,6 +331,10 @@ const appStore = new AppStore(
   apiRepositoriesStore,
   notificationsStore,
   copilotStore
+)
+
+setCommitIdentityProvider(path =>
+  appStore.getManagedCommitIdentityForPath(path)
 )
 
 appStore.onDidUpdate(state => {

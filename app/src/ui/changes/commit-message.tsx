@@ -47,7 +47,6 @@ import {
   isAttributableEmailFor,
   lookupPreferredEmail,
 } from '../../lib/email'
-import { setGlobalConfigValue } from '../../lib/git/config'
 import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
@@ -243,6 +242,7 @@ interface ICommitMessageProps {
    * the repository state.
    */
   readonly onRefreshAuthor: () => void
+  readonly onUpdateCommitEmail: (email: string) => Promise<void>
 
   readonly onShowPopup: (popup: Popup) => void
   readonly onShowFoldout: (foldout: Foldout) => void
@@ -1156,7 +1156,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onUpdateUserEmail = async (email: string) => {
-    await setGlobalConfigValue('user.email', email)
+    await this.props.onUpdateCommitEmail(email)
     this.props.onRefreshAuthor()
   }
 
