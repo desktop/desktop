@@ -72,10 +72,81 @@ describe('managed authorship preferences', () => {
       descriptionOf(desktopRadio),
       /GitHub Desktop doesn't change your Git config/
     )
-    assert.ok(screen.getByDisplayValue('Git name'))
+    assert.ok(screen.getByText('Git name'))
+    assert.ok(screen.getByText('git@example.com'))
+    assert.equal(screen.queryByRole('textbox'), null)
     assert.equal(screen.queryByDisplayValue('Managed name'), null)
     fireEvent.click(desktopRadio)
     assert.equal(selected, 'desktop')
+  })
+
+  it('edits Git configuration inline and shows the updated draft after Done', () => {
+    let name = 'Git name'
+    let email = 'git@example.com'
+    const initial = {
+      ...props(),
+      onNameChanged: (value: string) => {
+        name = value
+      },
+      onEmailChanged: (value: string) => {
+        email = value
+      },
+    }
+    const view = render(<Git {...initial} />)
+
+    const edit = screen.getByRole('button', {
+      name: 'Edit global Git identity',
+    })
+    assert.equal(edit.getAttribute('aria-expanded'), 'false')
+    assert.ok(screen.getByText('Global Git configuration'))
+    fireEvent.click(edit)
+
+    const done = screen.getByRole('button', {
+      name: 'Done editing global Git identity',
+    })
+    assert.equal(done.getAttribute('aria-expanded'), 'true')
+    assert.ok(screen.getByRole('group', { name: 'Global Git configuration' }))
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Updated name' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'updated@example.com' },
+    })
+    assert.equal(name, 'Updated name')
+    assert.equal(email, 'updated@example.com')
+
+    view.rerender(<Git {...initial} name={name} email={email} />)
+    fireEvent.click(done)
+    assert.equal(screen.queryByRole('textbox'), null)
+    assert.ok(screen.getByText('Updated name'))
+    assert.ok(screen.getByText('updated@example.com'))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Edit global Git identity' })
+    )
+    assert.ok(screen.getByDisplayValue('Updated name'))
+    assert.ok(screen.getByDisplayValue('updated@example.com'))
+    assert.ok(
+      screen.getByRole('button', { name: 'edit your global Git config file' })
+    )
+  })
+
+  it('waits for Git configuration to load before allowing edits', () => {
+    const initial = props()
+    const view = render(
+      <Git {...initial} name="" email="" isLoadingGitConfig={true} />
+    )
+    const edit = screen.getByRole('button', {
+      name: 'Edit global Git identity',
+    })
+    assert.equal(edit.getAttribute('aria-disabled'), 'true')
+    assert.ok(screen.getByText('Loading Git configuration...'))
+    assert.equal(screen.queryByText('No name'), null)
+    fireEvent.click(edit)
+    assert.equal(screen.queryByRole('textbox'), null)
+    view.rerender(<Git {...initial} />)
+    assert.equal(edit.getAttribute('aria-disabled'), null)
+    fireEvent.click(edit)
+    assert.ok(screen.getByDisplayValue('Git name'))
   })
 
   it('shows compact rows and edits one signed-out identity in place', () => {

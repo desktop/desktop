@@ -74,12 +74,13 @@ const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
 interface IGitState {
   /** The account key of the single identity row being edited, if any. */
   readonly expandedIdentityKey: string | null
+  readonly isGitIdentityExpanded: boolean
 }
 
 export class Git extends React.Component<IGitProps, IGitState> {
   public constructor(props: IGitProps) {
     super(props)
-    this.state = { expandedIdentityKey: null }
+    this.state = { expandedIdentityKey: null, isGitIdentityExpanded: false }
   }
 
   private get selectedTabIndex() {
@@ -270,19 +271,71 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderGitIdentity() {
+    const expanded = this.state.isGitIdentityExpanded
     return (
-      <>
-        <GitConfigUserForm
-          email={this.props.email}
-          name={this.props.name}
-          isLoadingGitConfig={this.props.isLoadingGitConfig}
-          accounts={this.props.accounts}
-          onEmailChanged={this.props.onEmailChanged}
-          onNameChanged={this.props.onNameChanged}
-        />
-        {this.renderEditGlobalGitConfigInfo()}
-      </>
+      <div className="managed-identity-list">
+        <div className={classNames('managed-identity', { expanded })}>
+          <div className="managed-identity-summary">
+            <div className="managed-identity-details">
+              {this.props.isLoadingGitConfig ? (
+                <div className="managed-identity-primary">
+                  Loading Git configuration...
+                </div>
+              ) : (
+                <IdentityNameAndEmail
+                  name={this.props.name}
+                  email={this.props.email}
+                />
+              )}
+              <div
+                className="managed-identity-account"
+                id="git-identity-description"
+              >
+                Global Git configuration
+              </div>
+            </div>
+            <Button
+              size="small"
+              onClick={this.onToggleGitIdentityExpanded}
+              disabled={this.props.isLoadingGitConfig}
+              ariaExpanded={expanded}
+              ariaControls={expanded ? 'git-identity-editor' : undefined}
+              ariaLabel={
+                expanded
+                  ? 'Done editing global Git identity'
+                  : 'Edit global Git identity'
+              }
+            >
+              {expanded ? 'Done' : 'Edit'}
+            </Button>
+          </div>
+          {expanded && (
+            <div
+              id="git-identity-editor"
+              className="managed-identity-editor"
+              role="group"
+              aria-labelledby="git-identity-description"
+            >
+              <GitConfigUserForm
+                email={this.props.email}
+                name={this.props.name}
+                isLoadingGitConfig={this.props.isLoadingGitConfig}
+                accounts={this.props.accounts}
+                onEmailChanged={this.props.onEmailChanged}
+                onNameChanged={this.props.onNameChanged}
+              />
+              {this.renderEditGlobalGitConfigInfo()}
+            </div>
+          )}
+        </div>
+      </div>
     )
+  }
+
+  private onToggleGitIdentityExpanded = () => {
+    this.setState(state => ({
+      isGitIdentityExpanded: !state.isGitIdentityExpanded,
+    }))
   }
 
   private renderDefaultBranchSetting() {
@@ -371,28 +424,7 @@ function ManagedIdentityRow({
     >
       <div className="managed-identity-summary">
         <div className="managed-identity-details">
-          <div className="managed-identity-primary">
-            <TooltippedContent
-              tagName="span"
-              className={classNames('managed-identity-name', {
-                missing: name.trim().length === 0,
-              })}
-              tooltip={name}
-              onlyWhenOverflowed={true}
-            >
-              {name.trim().length > 0 ? name : 'No name'}
-            </TooltippedContent>
-            <TooltippedContent
-              tagName="span"
-              className={classNames('managed-identity-email', {
-                missing: email.trim().length === 0,
-              })}
-              tooltip={email}
-              onlyWhenOverflowed={true}
-            >
-              {email.trim().length > 0 ? email : 'No email'}
-            </TooltippedContent>
-          </div>
+          <IdentityNameAndEmail name={name} email={email} />
           <div className="managed-identity-account" id={accountId}>
             <span className="managed-identity-login">@{login}</span>
             <span className="managed-identity-host">{host}</span>
@@ -447,6 +479,36 @@ function ManagedIdentityRow({
         </div>
       )}
     </li>
+  )
+}
+
+function IdentityNameAndEmail({
+  name,
+  email,
+}: Pick<IManagedCommitIdentity, 'name' | 'email'>) {
+  return (
+    <div className="managed-identity-primary">
+      <TooltippedContent
+        tagName="span"
+        className={classNames('managed-identity-name', {
+          missing: name.trim().length === 0,
+        })}
+        tooltip={name}
+        onlyWhenOverflowed={true}
+      >
+        {name.trim().length > 0 ? name : 'No name'}
+      </TooltippedContent>
+      <TooltippedContent
+        tagName="span"
+        className={classNames('managed-identity-email', {
+          missing: email.trim().length === 0,
+        })}
+        tooltip={email}
+        onlyWhenOverflowed={true}
+      >
+        {email.trim().length > 0 ? email : 'No email'}
+      </TooltippedContent>
+    </div>
   )
 }
 

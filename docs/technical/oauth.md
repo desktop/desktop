@@ -144,6 +144,11 @@ enables a separate name and email for each account. These identities are credent
 They use the profile name (or login) and Desktop's privacy-aware preferred email.
 Each field follows profile refreshes until the user edits that field.
 
+Both modes display compact identity summaries with an **Edit** button to expand
+the name and email fields. **Done** collapses the editor; changes are only applied
+when saving Preferences. In Git configuration mode, edits update the global Git
+configuration, not repository-specific settings.
+
 The repository's assigned account selects its managed identity, even when the
 account is signed out. Unassigned repositories continue using Git's effective
 identity. An account signed out before upgrading to managed identities must sign

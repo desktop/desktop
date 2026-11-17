@@ -27,6 +27,7 @@
     }
 
     .managed-identity {
+      margin: 0;
       padding: var(--spacing) var(--spacing);
 
       &:not(:last-child) {
