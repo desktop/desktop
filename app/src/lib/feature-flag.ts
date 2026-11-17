@@ -106,9 +106,6 @@ export function enableAccessibleListToolTips(): boolean {
 
 export const enableHooksByDefault = enableBetaFeatures
 
-/** Should the app enable worktree support? */
-export const enableWorktreeSupport = () => true
-
 /** Should the app offer handoff to the GitHub Copilot app? */
 export const enableCopilotAppHandoff = () =>
   (__DARWIN__ || __WIN32__) && enableBetaFeatures()

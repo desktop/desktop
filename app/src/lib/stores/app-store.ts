@@ -342,7 +342,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableCopilotAppHandoff, enableWorktreeSupport } from '../feature-flag'
+import { enableCopilotAppHandoff } from '../feature-flag'
 import { isDotCom, isGHE, isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -2914,10 +2914,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * the toolbar reserves space for the dropdown whenever it is visible.
    */
   private isWorktreeDropdownVisible(): boolean {
-    if (!enableWorktreeSupport()) {
-      return false
-    }
-
     const repository = this.selectedRepository
     if (!(repository instanceof Repository)) {
       return false
