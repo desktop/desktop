@@ -137,10 +137,10 @@ signed in. It shouldn't be passed merely because an account is available.
 
 ## Desktop-managed commit identities
 
-Preferences/Options > Git > Author defaults to **Git will manage**, preserving
-Git's existing global and repository-local identity behavior. Selecting
-**GitHub Desktop will manage** enables a separate name and email for each
-account. These identities are credential-free and remain stored after sign-out.
+Preferences/Options > Git > Author > Commit name and email defaults to **Use
+Git configuration**, preserving Git's existing global and repository-local
+identity behavior. Selecting **Use a separate identity for each account**
+enables a separate name and email for each account. These identities are credential-free and remain stored after sign-out.
 They use the profile name (or login) and Desktop's privacy-aware preferred email.
 Each field follows profile refreshes until the user edits that field.
 

@@ -8,6 +8,12 @@ import {
   ICommitIdentityEdit,
 } from '../../../src/lib/managed-commit-identity'
 
+function descriptionOf(element: HTMLElement) {
+  const id = element.getAttribute('aria-describedby')
+  assert.ok(id)
+  return document.getElementById(id)?.textContent ?? ''
+}
+
 describe('managed authorship preferences', () => {
   function props(): React.ComponentProps<typeof Git> {
     return {
@@ -53,13 +59,22 @@ describe('managed authorship preferences', () => {
         }}
       />
     )
-    const radio = screen.getByRole('radio', { name: 'Git will manage' })
+    const radio = screen.getByRole('radio', { name: 'Use Git configuration' })
     assert.ok(radio instanceof HTMLInputElement && radio.checked)
+    assert.match(
+      descriptionOf(radio),
+      /Changes here update your global Git config/
+    )
+    const desktopRadio = screen.getByRole('radio', {
+      name: 'Use a separate identity for each account',
+    })
+    assert.match(
+      descriptionOf(desktopRadio),
+      /GitHub Desktop doesn't change your Git config/
+    )
     assert.ok(screen.getByDisplayValue('Git name'))
     assert.equal(screen.queryByDisplayValue('Managed name'), null)
-    fireEvent.click(
-      screen.getByRole('radio', { name: 'GitHub Desktop will manage' })
-    )
+    fireEvent.click(desktopRadio)
     assert.equal(selected, 'desktop')
   })
 
@@ -103,7 +118,7 @@ describe('managed authorship preferences', () => {
       },
     ])
     assert.ok(
-      screen.getByText(/Unassociated repositories and external applications/)
+      screen.getByText(/Other apps and unassigned repositories keep using/)
     )
 
     fireEvent.click(done)

@@ -203,13 +203,15 @@ export class Git extends React.Component<IGitProps, IGitState> {
   private renderGitConfigAuthorInfo() {
     return (
       <>
-        <h2 id="commit-identity-management">Commit identity</h2>
+        <h2 id="commit-identity-management">Commit name and email</h2>
         <RadioGroup<CommitIdentityMode>
           ariaLabelledBy="commit-identity-management"
+          className="commit-identity-mode"
           selectedKey={this.props.commitIdentityMode}
           radioButtonKeys={['git', 'desktop']}
           onSelectionChanged={this.props.onCommitIdentityModeChanged}
           renderRadioButtonLabelContents={this.renderIdentityModeLabel}
+          renderRadioButtonDescription={this.renderIdentityModeDescription}
         />
         {this.props.commitIdentityMode === 'desktop'
           ? this.renderManagedIdentities()
@@ -219,16 +221,18 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderIdentityModeLabel = (mode: CommitIdentityMode) =>
-    mode === 'git' ? 'Git will manage' : 'GitHub Desktop will manage'
+    mode === 'git'
+      ? 'Use Git configuration'
+      : 'Use a separate identity for each account'
+
+  private renderIdentityModeDescription = (mode: CommitIdentityMode) =>
+    mode === 'git'
+      ? 'Commits use your Git name and email, including any repository-specific settings. Changes here update your global Git config, which other apps also use.'
+      : "Commits use the identity configured for the repository's assigned account. GitHub Desktop doesn't change your Git config. Other apps and unassigned repositories keep using Git configuration."
 
   private renderManagedIdentities() {
     return (
       <>
-        <p className="settings-description">
-          Account identities apply only to associated repositories and
-          operations in GitHub Desktop. Unassociated repositories and external
-          applications continue using their Git configuration.
-        </p>
         {this.props.managedIdentities.length === 0 ? (
           <p>Sign in to an account to configure its commit identity.</p>
         ) : (
