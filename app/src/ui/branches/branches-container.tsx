@@ -33,12 +33,10 @@ import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import {
   enablePullRequestQuickView,
-  enableResizingToolbarButtons,
   enableWorktreeSupport,
 } from '../../lib/feature-flag'
 import { PullRequestQuickView } from '../pull-request-quick-view'
 import { Emoji } from '../../lib/emoji'
-import classNames from 'classnames'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -122,11 +120,8 @@ export class BranchesContainer extends React.Component<
   }
 
   public render() {
-    const classes = classNames('branches-container', {
-      resizable: enableResizingToolbarButtons(),
-    })
     return (
-      <div className={classes}>
+      <div className="branches-container">
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}

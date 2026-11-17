@@ -90,8 +90,6 @@ export function enableImagePreviewsForDDSFiles(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableResizingToolbarButtons = () => true
-
 /**
  * Should we offer the Copilot-assisted commit mode, where Copilot splits the
  * selected changes into commits and writes their messages?
