@@ -135,10 +135,26 @@ cleared by assisted success, failure, cancellation, or an empty commit.
 ## Admission, consent, and frozen inputs
 
 Execution preconditions checked by both UI and backend include an authenticated
-Desktop-enabled eligible account, SDK permission, and the packaged runtime. The
-commit-message model preference resolves to `CopilotModelRequest`, including
-BYOK credentials. Assisted commits share that picker and preference rather than
-hardcoding a model or effort.
+Desktop-enabled eligible account and the packaged runtime.
+Shared `getAccountForCopilot` selection serves ordinary generation and conflict
+resolution, preferring the repository-assigned account, then the first
+Desktop-enabled account. `getAccountForCopilotAssistedCommits` uses that same
+selection policy among accounts whose assisted-commit rollout is enabled:
+development/preview features are enabled **or** that account's `features` contains
+`desktop_copilot_assisted_commits`. A different account's flag cannot authorize
+the selected account. The model picker uses its owning account's rollout.
+Desktop entitlement remains required; retired commit-message, SDK and conflict
+rollout flags are not eligibility gates. Ordinary generation always uses the SDK.
+The account-scoped `assisted-commit` model preference resolves to
+`CopilotModelRequest`, including BYOK credentials. The Assisted commits picker
+reuses the existing model picker and persistence, independently of ordinary
+commit-message generation and conflict resolution. An absent selection uses
+the normal default model resolution, not the ordinary-generation preference.
+Built-in models retain the SDK's default reasoning effort; BYOK models retain
+their configured effort and provider timeout. Model changes apply to future
+first-click intents, never to an already prepared or active run. Assisted SDK
+sessions use the distinct `github/desktop:assisted-commit` client attribution;
+ordinary generation and conflict resolution retain their own client identifiers.
 
 Unknown co-author and filtered-hidden-selection confirmations remain ahead of
 execution. Desktop first prepares an opaque, weakly owned first-click intent

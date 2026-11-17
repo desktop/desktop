@@ -207,8 +207,7 @@ import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import {
-  getAccountForCommitMessageGeneration,
-  getAccountForCopilotConflictResolution,
+  getAccountForCopilot,
   getAccountForRepository,
   getAccountForStatsAttribution,
 } from '../get-account-for-repository'
@@ -343,12 +342,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableCopilotConflictResolution,
-  enableCopilotSdkCommitMessageGeneration,
-  enableCustomIntegration,
-  enableWorktreeSupport,
-} from '../feature-flag'
+import { enableCustomIntegration, enableWorktreeSupport } from '../feature-flag'
 import { isDotCom, isGHE, isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -1204,7 +1198,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.accounts.filter(
       account =>
         !isGHES(account.endpoint) &&
-        enableCopilotSdkCommitMessageGeneration(account) &&
         account.isCopilotDesktopEnabled === true &&
         account.copilotLicenseType !== undefined &&
         account.copilotLicenseType !== CopilotLicenseTypeNoAccess
@@ -7551,8 +7544,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): boolean {
     return (
       this.alwaysUseCopilotForConflictResolution &&
-      enableCopilotConflictResolution() &&
-      getAccountForCopilotConflictResolution(this.accounts, repository) !== null
+      getAccountForCopilot(this.accounts, repository) !== undefined
     )
   }
 
@@ -7568,10 +7560,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<boolean> {
-    const account = getAccountForCommitMessageGeneration(
-      this.accounts,
-      repository
-    )
+    const account = getAccountForCopilot(this.accounts, repository)
 
     if (!account) {
       return false
@@ -7608,23 +7597,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
           return false
         }
 
-        const response = enableCopilotSdkCommitMessageGeneration(account)
-          ? await this.copilotStore.generateCommitMessage(
-              account,
-              diff,
-              repository.path,
-              await this.resolveCopilotModelRequest(
-                this.getSelectedCopilotModels(account)[
-                  'commit-message-generation'
-                ] ?? null
-              ),
-              this.repositoryStateCache
-                .get(repository)
-                ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
-                [],
-              signal
-            )
-          : await API.fromAccount(account).getDiffChangesCommitMessage(diff)
+        const response = await this.copilotStore.generateCommitMessage(
+          account,
+          diff,
+          repository.path,
+          await this.resolveCopilotModelRequest(
+            this.getSelectedCopilotModels(account)[
+              'commit-message-generation'
+            ] ?? null
+          ),
+          this.repositoryStateCache
+            .get(repository)
+            ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
+            [],
+          signal
+        )
 
         this._setCommitMessage(repository, {
           summary: response.title,
@@ -7730,14 +7717,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     readonly summary: ICopilotResolutionSummary
     readonly skippedFiles: ReadonlyArray<ICopilotSkippedFile>
   } | null> {
-    if (!enableCopilotConflictResolution()) {
-      return null
-    }
-
-    const account = getAccountForCopilotConflictResolution(
-      this.accounts,
-      repository
-    )
+    const account = getAccountForCopilot(this.accounts, repository)
     if (!account) {
       return null
     }
@@ -8083,10 +8063,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const account = getAccountForCopilotConflictResolution(
-      this.accounts,
-      repository
-    )
+    const account = getAccountForCopilot(this.accounts, repository)
 
     if (!account) {
       return
@@ -8163,10 +8140,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { conflictState } = step
-    const account = getAccountForCopilotConflictResolution(
-      this.accounts,
-      repository
-    )
+    const account = getAccountForCopilot(this.accounts, repository)
     if (!account) {
       return
     }
