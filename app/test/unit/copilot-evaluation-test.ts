@@ -419,93 +419,91 @@ describe('Copilot evaluation adapter', () => {
       },
     })
 
-    it('rejects legacy bare outcomes instead of bypassing the structured envelope', async () => {
-      const result = await runCopilotEvaluation({
-        ...request(),
-        transport: {
-          kind: 'fixture',
-          responses: [
-            {
-              type: 'raw',
-              content: JSON.stringify({
-                kind: 'plan',
-                snapshotId: analysis.snapshotId,
-                commits: [
-                  {
-                    title: 'Update file',
-                    description: '',
-                    changeIds: [analysis.changes[0].id],
-                  },
-                ],
-              }),
-            },
-          ],
-        },
-      })
-      assert.strictEqual(result.status, 'error')
-      assert.strictEqual(result.error?.code, 'invalid-response')
-      assert.strictEqual(result.turns.length, 1)
-      assert.ok(result.turns[0].content?.includes(analysis.snapshotId))
-    })
-
-    it('rejects a raw refusal instead of accepting it or inventing a whole-selection message', async () => {
-      const content = JSON.stringify({
-        result: {
-          kind: 'unsafe',
-          snapshotId: analysis.snapshotId,
-          reason: 'Changes not analyzable',
-        },
-      })
-      const result = await runCopilotEvaluation({
-        ...request(),
-        transport: {
-          kind: 'fixture',
-          responses: [{ type: 'raw', content }],
-        },
-      })
-      assert.strictEqual(result.status, 'error')
-      assert.strictEqual(result.error?.code, 'invalid-response')
-      assert.strictEqual(result.response, undefined)
-      assert.strictEqual(result.turns.length, 1)
-      assert.strictEqual(result.turns[0].content, content)
-    })
-
-    it('distinguishes semantically invalid schema envelopes from invalid JSON', async () => {
-      const result = await runCopilotEvaluation({
-        ...request(),
-        transport: {
-          kind: 'fixture',
-          responses: [
-            {
-              type: 'raw',
-              content: JSON.stringify({
-                result: {
-                  kind: 'plan',
-                  snapshotId: analysis.snapshotId,
-                  commits: [
-                    {
-                      title: 'Duplicate ownership',
-                      description: '',
-                      changeIds: [
-                        analysis.changes[0].id,
-                        analysis.changes[0].id,
-                      ],
-                    },
-                  ],
-                },
-              }),
-            },
-          ],
-        },
-      })
-      assert.strictEqual(result.error?.code, 'invalid-response')
-      assert.ok(!result.error.message.includes('invalid or incomplete JSON'))
-      assert.strictEqual(result.turns.length, 1)
-    })
     assert.strictEqual(result.error?.code, 'invalid-response')
     assert.strictEqual(result.turns.length, 1)
     assert.strictEqual(result.turns[0].content, '{')
     assert.strictEqual(result.validation?.preservedWorktree, true)
+  })
+
+  it('rejects legacy bare outcomes instead of bypassing the structured envelope', async () => {
+    const result = await runCopilotEvaluation({
+      ...request(),
+      transport: {
+        kind: 'fixture',
+        responses: [
+          {
+            type: 'raw',
+            content: JSON.stringify({
+              kind: 'plan',
+              snapshotId: analysis.snapshotId,
+              commits: [
+                {
+                  title: 'Update file',
+                  description: '',
+                  changeIds: [analysis.changes[0].id],
+                },
+              ],
+            }),
+          },
+        ],
+      },
+    })
+    assert.strictEqual(result.status, 'error')
+    assert.strictEqual(result.error?.code, 'invalid-response')
+    assert.strictEqual(result.turns.length, 1)
+    assert.ok(result.turns[0].content?.includes(analysis.snapshotId))
+  })
+
+  it('rejects a raw refusal instead of accepting it or inventing a whole-selection message', async () => {
+    const content = JSON.stringify({
+      result: {
+        kind: 'unsafe',
+        snapshotId: analysis.snapshotId,
+        reason: 'Changes not analyzable',
+      },
+    })
+    const result = await runCopilotEvaluation({
+      ...request(),
+      transport: {
+        kind: 'fixture',
+        responses: [{ type: 'raw', content }],
+      },
+    })
+    assert.strictEqual(result.status, 'error')
+    assert.strictEqual(result.error?.code, 'invalid-response')
+    assert.strictEqual(result.response, undefined)
+    assert.strictEqual(result.turns.length, 1)
+    assert.strictEqual(result.turns[0].content, content)
+  })
+
+  it('distinguishes semantically invalid schema envelopes from invalid JSON', async () => {
+    const result = await runCopilotEvaluation({
+      ...request(),
+      transport: {
+        kind: 'fixture',
+        responses: [
+          {
+            type: 'raw',
+            content: JSON.stringify({
+              result: {
+                kind: 'plan',
+                snapshotId: analysis.snapshotId,
+                commits: [
+                  {
+                    title: 'Duplicate ownership',
+                    description: '',
+                    changeIds: [analysis.changes[0].id, analysis.changes[0].id],
+                  },
+                ],
+              },
+            }),
+          },
+        ],
+      },
+    })
+    assert.strictEqual(result.error?.code, 'invalid-response')
+    assert.ok(!result.error.message.includes('invalid or incomplete JSON'))
+    assert.strictEqual(result.turns.length, 1)
   })
 
   it('materializes a replacement child before its parent deletion in the file map', async () => {
