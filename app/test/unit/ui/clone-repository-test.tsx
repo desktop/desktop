@@ -260,7 +260,7 @@ describe('CloneRepository path validation', () => {
     assert.deepStrictEqual(clone.mock.calls[0].arguments, [
       url,
       path,
-      { defaultBranch: undefined },
+      { defaultBranch: undefined, fromCloneDialog: true },
     ])
   })
 
@@ -302,7 +302,7 @@ describe('CloneRepository URL tab without an accessible account', () => {
     assert.deepStrictEqual(clone.mock.calls[0].arguments, [
       url,
       pathInput.value,
-      { defaultBranch: undefined },
+      { defaultBranch: undefined, fromCloneDialog: true },
     ])
   })
 
@@ -583,6 +583,7 @@ describe('CloneRepository GitHub tab account changes', () => {
     assert.deepStrictEqual(options, {
       defaultBranch: 'main',
       account: { endpoint: dotCom, login: 'alice' },
+      fromCloneDialog: true,
     })
   })
 })
