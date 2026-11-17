@@ -342,7 +342,6 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableCopilotAppHandoff } from '../feature-flag'
 import { isDotCom, isGHE, isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -8950,11 +8949,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openInCopilotApp(repositoryPath: string): Promise<void> {
-    if (!enableCopilotAppHandoff()) {
-      log.debug('Ignoring unavailable Copilot app handoff')
-      return
-    }
-
     try {
       const appPath =
         this.copilotAppPath !== null

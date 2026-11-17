@@ -7,7 +7,6 @@ import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import { enableCopilotAppHandoff } from '../../lib/feature-flag'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { InputError } from '../lib/input-description/input-error'
@@ -352,10 +351,6 @@ export class Integrations extends React.Component<
   }
 
   private renderCopilotApp() {
-    if (!enableCopilotAppHandoff()) {
-      return null
-    }
-
     return (
       <fieldset>
         <legend>
