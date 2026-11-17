@@ -1,6 +1,4 @@
-import { round } from './round'
 import { formatCompactNumber } from '../../lib/format-number'
-import { enableFormattingPreferences } from '../../lib/feature-flag'
 
 const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
 
@@ -22,20 +20,10 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  *                      to, defaults to zero
  */
 export function formatBytes(bytes: number, decimals = 0) {
-  if (enableFormattingPreferences()) {
-    return formatCompactNumber(bytes, {
-      base: 1024,
-      units,
-      decimals,
-      unitSeparator: ' ',
-    })
-  }
-
-  // Legacy behavior when feature flag is disabled
-  if (!Number.isFinite(bytes)) {
-    return `${bytes}`
-  }
-  const unitIx = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
-  const value = round(bytes / Math.pow(1024, unitIx), decimals)
-  return `${value} ${units[unitIx]}`
+  return formatCompactNumber(bytes, {
+    base: 1024,
+    units,
+    decimals,
+    unitSeparator: ' ',
+  })
 }

@@ -106,8 +106,6 @@ export function enableAccessibleListToolTips(): boolean {
 
 export const enableHooksByDefault = enableBetaFeatures
 
-export const enableFormattingPreferences = () => true
-
 /** Should the app enable worktree support? */
 export const enableWorktreeSupport = () => true
 
