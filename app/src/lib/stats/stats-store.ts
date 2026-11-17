@@ -48,7 +48,6 @@ import { ValidNotificationPullRequestReviewState } from '../valid-notification-p
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
-import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
 import { getSystemNotificationsPermission } from '../notifications/notification-permission'
@@ -67,8 +66,6 @@ type PullRequestReviewStatFieldSuffix =
 
 type PullRequestReviewStatField =
   `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
-
-const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const StatsEndpoint =
   'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
@@ -673,24 +670,13 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
 }
 
 const defaultPostImplementation = (body: StatsPayload) => {
-  if (enableNewStatsEndpoint()) {
-    return fetch(StatsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'user-agent': getUserAgent(),
-      },
-      body: JSON.stringify(buildStatsPayload(body)),
-    })
-  }
-
-  return fetch(LegacyStatsEndpoint, {
+  return fetch(StatsEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'user-agent': getUserAgent(),
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(buildStatsPayload(body)),
   })
 }
 
