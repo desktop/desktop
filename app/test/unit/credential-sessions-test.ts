@@ -10,6 +10,8 @@ import {
   IOAuthToken,
   OAuthRefreshRejectedError,
   OAuthTokenResponseError,
+  OAuthTokenRequestError,
+  TokenRefreshFailureKind,
 } from '../../src/lib/oauth-token'
 import { deserializeAccountCredential } from '../../src/lib/account-credential'
 import { getKeyForAccount } from '../../src/lib/auth'
@@ -71,6 +73,44 @@ function setup(
 }
 
 describe('CredentialSessions token refresh lifecycle events', () => {
+  const failureKinds: ReadonlyArray<TokenRefreshFailureKind> = [
+    'timeout',
+    'network',
+    'rateLimited',
+    'server',
+    'otherHttp',
+    'otherOAuth',
+    'unknown',
+  ]
+
+  for (const failureKind of failureKinds) {
+    it(`notifies one ${failureKind} transient failure for concurrent token requests`, async () => {
+      const { sessions, refreshEvents, signedOut } = setup(async () => {
+        throw new OAuthTokenRequestError(failureKind)
+      })
+      sessions.restore(account, expiring)
+      const results = await Promise.allSettled([
+        sessions.getFreshToken(account),
+        sessions.getFreshToken(account),
+      ])
+      assert.ok(
+        results.every(
+          result =>
+            result.status === 'rejected' &&
+            result.reason instanceof Error &&
+            result.reason.message ===
+              'Unable to renew your GitHub session. Check your connection and try again shortly.'
+        )
+      )
+      assert.deepEqual(refreshEvents, [
+        'attempt',
+        { kind: 'transient-failure', failureKind },
+      ])
+      assert.deepEqual(signedOut, [])
+      assert.equal(sessions.trackToken(account)(), expiring.accessToken)
+    })
+  }
+
   it('counts one attempt and success for concurrent callers only after installation', async () => {
     let complete: (credential: IOAuthToken) => void = () => {
       throw new Error('Renewal not started')
@@ -111,12 +151,15 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     })
     sessions.restore(account, expiring)
     await assert.rejects(sessions.getFreshToken(account), /Unable to renew/)
-    assert.deepEqual(refreshEvents, ['attempt', 'transient-failure'])
+    assert.deepEqual(refreshEvents, [
+      'attempt',
+      { kind: 'transient-failure', failureKind: 'unknown' },
+    ])
     assert.deepEqual(signedOut, [])
     await sessions.getFreshToken(account)
     assert.deepEqual(refreshEvents, [
       'attempt',
-      'transient-failure',
+      { kind: 'transient-failure', failureKind: 'unknown' },
       'attempt',
       'success',
     ])
@@ -284,6 +327,42 @@ describe('CredentialSessions token refresh lifecycle events', () => {
     )
     assert.deepEqual(refreshEvents, [])
     assert.equal(signedOut.length, 1)
+  })
+
+  it('does not notify a transient subtype for a retired session', async () => {
+    let fail: (error: Error) => void = () => {
+      throw new Error('Refresh not started')
+    }
+    const pending = new Promise<IOAuthToken>((_resolve, reject) => {
+      fail = reject
+    })
+    const { sessions, refreshEvents } = setup(() => pending)
+    sessions.restore(account, expiring)
+    const request = assert.rejects(sessions.getFreshToken(account))
+    sessions.retire(account)
+    fail(new OAuthTokenRequestError('timeout'))
+    await request
+    assert.deepEqual(refreshEvents, ['attempt', 'abandoned'])
+  })
+
+  it('suppresses typed transient failure events from debug expiry overrides', async t => {
+    const previous = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    t.after(() => {
+      if (previous === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previous
+      }
+    })
+    const { sessions, refreshEvents, signedOut } = setup(async () => {
+      throw new OAuthTokenRequestError('network')
+    })
+    sessions.restore(account, renewed)
+    sessions.setTokenExpirationForTesting(account, now - 1)
+    await assert.rejects(sessions.getFreshToken(account), /Unable to renew/)
+    assert.deepEqual(refreshEvents, [])
+    assert.deepEqual(signedOut, [])
   })
 })
 

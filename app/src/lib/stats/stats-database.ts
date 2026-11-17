@@ -47,6 +47,27 @@ export interface IDailyMeasures {
   /** Recoverable token refresh failures that retain credentials. */
   readonly tokenRefreshTransientFailureCount: number
 
+  /** Token refresh requests that reach Desktop's timeout deadline. */
+  readonly tokenRefreshTransientFailureTimeoutCount: number
+
+  /** Token refresh requests that fail before receiving an HTTP response. */
+  readonly tokenRefreshTransientFailureNetworkCount: number
+
+  /** Token refresh requests rejected by HTTP or OAuth rate limiting. */
+  readonly tokenRefreshTransientFailureRateLimitedCount: number
+
+  /** Token refresh requests receiving an HTTP 5xx response. */
+  readonly tokenRefreshTransientFailureServerCount: number
+
+  /** Other unsuccessful HTTP token refresh responses. */
+  readonly tokenRefreshTransientFailureOtherHttpCount: number
+
+  /** Unrecognized OAuth errors in token refresh responses. */
+  readonly tokenRefreshTransientFailureOtherOAuthCount: number
+
+  /** Token refresh failures without a recognized request failure kind. */
+  readonly tokenRefreshTransientFailureUnknownCount: number
+
   /** Rejected refresh tokens or malformed replacement credentials. */
   readonly tokenRefreshNonTransientFailureCount: number
 

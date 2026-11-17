@@ -6,6 +6,8 @@ import {
   IOAuthToken,
   OAuthRefreshRejectedError,
   OAuthTokenResponseError,
+  OAuthTokenRequestError,
+  TokenRefreshFailureKind,
   refreshOAuthToken,
 } from './oauth-token'
 import {
@@ -67,7 +69,10 @@ export interface IAccountTokenExpiration {
 export type TokenRefreshEvent =
   | 'attempt'
   | 'success'
-  | 'transient-failure'
+  | {
+      readonly kind: 'transient-failure'
+      readonly failureKind: TokenRefreshFailureKind
+    }
   | 'non-transient-failure'
   | 'abandoned'
   | 'required-sign-in'
@@ -716,7 +721,11 @@ export class CredentialSessions {
           notifyRefreshEvent('non-transient-failure')
           await requireSignInAfterRefreshFailure()
         } else {
-          notifyRefreshEvent('transient-failure')
+          notifyRefreshEvent({
+            kind: 'transient-failure',
+            failureKind:
+              e instanceof OAuthTokenRequestError ? e.kind : 'unknown',
+          })
           log.warn(
             'OAuth renewal failed; retaining credentials for a later retry.'
           )
