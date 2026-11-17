@@ -53,7 +53,7 @@ flowchart TD
 
 ## Propose commit groups and messages
 
-The planner receives only the analysis view, not private snapshot handles or authority to perform Git operations. Supplied units are indivisible: the planner cannot invent finer hunks, author patches, include unselected content, or edit working-tree files.
+The planner receives only the analysis view, not private snapshot handles or authority to perform Git operations. Supplied units are indivisible: the planner cannot invent finer hunks, author patches, include unselected content, or edit working-tree files. It proposes one or more commits, or one whole-selection message when it cannot split confidently. There is no model-selected refusal outcome; Desktop still rejects malformed responses and invalid plans.
 
 ```mermaid
 flowchart TD
@@ -70,7 +70,7 @@ flowchart TD
     Planner --> Outcome
     Outcome -->|Plan| Groups --> Validate
     Outcome -->|Uncertain boundaries| Whole --> Validate
-    Outcome -->|Unsafe or malformed response| Stop
+    Outcome -->|Malformed response| Stop
 ```
 
 ## Validate the entire plan

@@ -154,7 +154,7 @@ describe('snapshot-only assisted commit planning', () => {
     )
   })
 
-  it('accepts explicit uncertainty as one accurate whole-selection plan and explicit unsafe as an error', async t => {
+  it('accepts one whole-selection plan or uncertainty and rejects unsupported refusals without retrying', async t => {
     const repository = await seed(t, {
       first: 'old first\n',
       second: 'old second\n',
@@ -166,6 +166,16 @@ describe('snapshot-only assisted commit planning', () => {
     const index = await indexPath(repository)
     const originalIndex = await readFile(index)
     await withAssistedCommitSnapshot(repository, input, async snapshot => {
+      const single = t.mock.fn<AssistedCommitPlanner>(async analysis =>
+        wholeSelectionResponse(
+          analysis,
+          'Update both first and second together'
+        )
+      )
+      const singlePlan = await planAssistedCommits(snapshot, single)
+      assert.strictEqual(single.mock.callCount(), 1)
+      assert.strictEqual(singlePlan.plan.commits.length, 1)
+      assert.strictEqual(singlePlan.trees[0], snapshot.selectedTree)
       const uncertainty = t.mock.fn<AssistedCommitPlanner>(async analysis => ({
         kind: 'uncertain-boundaries',
         snapshotId: analysis.snapshotId,
@@ -182,16 +192,21 @@ describe('snapshot-only assisted commit planning', () => {
         checked.plan.commits[0].changeIds,
         snapshot.analysis.changes.map(change => change.id)
       )
-      const unsafe = t.mock.fn<AssistedCommitPlanner>(async analysis => ({
-        kind: 'unsafe',
-        snapshotId: analysis.snapshotId,
-        reason: 'Cannot describe this selection safely',
-      }))
-      await assert.rejects(
-        planAssistedCommits(snapshot, unsafe),
-        assertPlanningError('unsafe')
+      const refusal = t.mock.fn<AssistedCommitPlanner>(async analysis =>
+        parseCopilotAssistedCommitResponse(
+          analysis,
+          JSON.stringify({
+            kind: 'unsafe',
+            snapshotId: analysis.snapshotId,
+            reason: 'Cannot describe this selection safely',
+          })
+        )
       )
-      assert.strictEqual(unsafe.mock.callCount(), 1)
+      await assert.rejects(
+        planAssistedCommits(snapshot, refusal),
+        assertPlanningError('invalid-response')
+      )
+      assert.strictEqual(refusal.mock.callCount(), 1)
       assert.strictEqual(uncertainty.mock.callCount(), 1)
       assert.strictEqual(await tip(repository), originalTip)
       assert.deepStrictEqual(await readFile(index), originalIndex)
