@@ -240,7 +240,10 @@ async function requestOAuthToken(
 
     return await Promise.race([request(), deadline])
   } catch (error) {
-    if (controller.signal.aborted) {
+    const timedOut = controller.signal.aborted
+    // Stop discarded response bodies without treating cleanup as a timeout.
+    controller.abort()
+    if (timedOut) {
       throw new OAuthTokenRequestError('timeout')
     }
     if (

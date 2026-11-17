@@ -123,6 +123,52 @@ describe('OAuth request failure kinds', () => {
     })
   }
 
+  for (const [grant, requestToken] of [
+    ['authorization code', exchangeOAuthToken],
+    ['refresh token', refreshOAuthToken],
+  ] as const) {
+    for (const [status, kind] of [
+      [403, 'rateLimited'],
+      [429, 'rateLimited'],
+      [503, 'server'],
+    ] as const) {
+      it(`aborts an unread HTTP ${status} response during ${grant} exchange without changing its failure kind`, async t => {
+        t.mock.timers.enable({ apis: ['setTimeout'] })
+        const response = new Response(new ReadableStream(), {
+          status,
+          headers: { 'x-ratelimit-remaining': '0' },
+        })
+        t.after(async () => {
+          await response.body?.cancel()
+        })
+        const readBody = t.mock.method(response, 'json')
+        let signal: AbortSignal | null | undefined
+        const fetchMock = t.mock.method(
+          globalThis,
+          'fetch',
+          async (_input: RequestInfo | URL, init?: RequestInit) => {
+            signal = init?.signal
+            return response
+          }
+        )
+
+        await assert.rejects(
+          requestToken('https://github.com', 'test-credential'),
+          error => {
+            assert.ok(error instanceof Error && 'kind' in error)
+            assert.strictEqual(error.kind, kind)
+            assert.strictEqual(error.message, 'The OAuth token request failed.')
+            return true
+          }
+        )
+        assert.strictEqual(signal?.aborted, true)
+        assert.strictEqual(readBody.mock.callCount(), 0)
+        assert.strictEqual(fetchMock.mock.callCount(), 1)
+        t.mock.timers.tick(30_000)
+      })
+    }
+  }
+
   it('classifies a fetch rejection as network without retaining the original error', async t => {
     t.mock.method(globalThis, 'fetch', async () => {
       throw new TypeError('secret-network-url')
