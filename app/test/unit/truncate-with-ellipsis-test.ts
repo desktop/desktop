@@ -38,4 +38,10 @@ describe('truncateWithEllipsis', () => {
     const result = truncateWithEllipsis(str, 13)
     assert.equal(result, '🌝🌛🌜🌚🌕🌖🌗🌘🌑🌒🌓🌔☀\uFE0F…')
   })
+
+  it('returns empty string when maxLength is zero or negative', () => {
+    assert.equal(truncateWithEllipsis('hello world', 0), '')
+    assert.equal(truncateWithEllipsis('hello world', -1), '')
+    assert.equal(truncateWithEllipsis('hello world', -5), '')
+  })
 })
