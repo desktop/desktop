@@ -79,10 +79,7 @@ import {
   setTimeFormatPreference,
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
-import {
-  enableCopilotAppHandoff,
-  enableFormattingPreferences,
-} from '../../lib/feature-flag'
+import { enableFormattingPreferences } from '../../lib/feature-flag'
 import { validateCopilotAppPath } from '../../lib/copilot-app'
 
 interface IPreferencesProps {
@@ -1011,7 +1008,6 @@ export class Preferences extends React.Component<
     const copilotAppPathChanged = copilotAppPath !== initialCopilotAppPath
 
     if (
-      enableCopilotAppHandoff() &&
       copilotAppPathChanged &&
       copilotAppPath.length > 0 &&
       !(await validateCopilotAppPath(copilotAppPath))
@@ -1119,7 +1115,7 @@ export class Preferences extends React.Component<
       dispatcher.setCustomShell(customShell)
     }
 
-    if (enableCopilotAppHandoff() && copilotAppPathChanged) {
+    if (copilotAppPathChanged) {
       await dispatcher.setCopilotAppPath(
         copilotAppPath.length === 0 ? null : copilotAppPath
       )
