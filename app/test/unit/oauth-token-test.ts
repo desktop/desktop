@@ -19,13 +19,219 @@ const tokenResponse = {
   scope: 'repo,user,workflow',
 }
 
-describe('parseOAuthToken', () => {
-  it('parses rotating credentials and absolute expiration times', () => {
-    assert.deepStrictEqual(parseOAuthToken(tokenResponse, issuedAt), {
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token,
-      expiresAt: issuedAt + 28_800_000,
-      refreshTokenExpiresAt: issuedAt + 15_897_600_000,
+describe('OAuth request failure kinds', () => {
+  const cases: ReadonlyArray<{
+    readonly description: string
+    readonly status: number
+    readonly body: unknown
+    readonly headers?: Record<string, string>
+    readonly kind: string
+  }> = [
+    { description: 'HTTP 429', status: 429, body: {}, kind: 'rateLimited' },
+    {
+      description: 'exhausted HTTP 403 rate limit',
+      status: 403,
+      body: {},
+      headers: { 'x-ratelimit-remaining': '0' },
+      kind: 'rateLimited',
+    },
+    {
+      description: 'HTTP 403 retry-after',
+      status: 403,
+      body: {},
+      headers: { 'retry-after': '60' },
+      kind: 'rateLimited',
+    },
+    {
+      description: 'HTTP 503',
+      status: 503,
+      body: { error: 'invalid_grant' },
+      kind: 'server',
+    },
+    {
+      description: 'HTTP 401 without OAuth error',
+      status: 401,
+      body: {},
+      kind: 'otherHttp',
+    },
+    {
+      description: 'HTTP 403 without rate limit evidence',
+      status: 403,
+      body: {},
+      kind: 'otherHttp',
+    },
+    {
+      description: 'unrecognized OAuth error',
+      status: 200,
+      body: { error: 'unknown-error', error_description: 'secret-description' },
+      kind: 'otherOAuth',
+    },
+    {
+      description: 'OAuth slow_down',
+      status: 400,
+      body: { error: 'slow_down' },
+      kind: 'rateLimited',
+    },
+    {
+      description: 'OAuth rate_limit_exceeded',
+      status: 200,
+      body: { error: 'rate_limit_exceeded' },
+      kind: 'rateLimited',
+    },
+  ]
+
+  for (const { description, status, body, headers, kind } of cases) {
+    it(`classifies ${description} without leaking the response or credentials`, async t => {
+      const request = t.mock.method(globalThis, 'fetch', async () =>
+        Response.json(body, { status, headers })
+      )
+      await assert.rejects(
+        refreshOAuthToken('https://github.com', 'secret-refresh'),
+        error => {
+          assert.ok(error instanceof Error && 'kind' in error)
+          assert.strictEqual(error.kind, kind)
+          assert.strictEqual(error.message, 'The OAuth token request failed.')
+          assert.strictEqual('cause' in error, false)
+          assert.ok(!JSON.stringify(error).includes('secret'))
+          return true
+        }
+      )
+      assert.strictEqual(request.mock.callCount(), 1)
+    })
+  }
+
+  for (const [status, kind] of [
+    [429, 'rateLimited'],
+    [503, 'server'],
+    [401, 'otherHttp'],
+  ] as const) {
+    it(`classifies non-JSON HTTP ${status} before parsing its body`, async t => {
+      const response = new Response('<html>secret-response</html>', { status })
+      const readBody = t.mock.method(response, 'json')
+      t.mock.method(globalThis, 'fetch', async () => response)
+      await assert.rejects(
+        refreshOAuthToken('https://github.com', 'secret-refresh'),
+        error => {
+          assert.ok(error instanceof Error && 'kind' in error)
+          assert.strictEqual(error.kind, kind)
+          return true
+        }
+      )
+      if (status === 429 || status >= 500) {
+        assert.strictEqual(readBody.mock.callCount(), 0)
+      }
+    })
+  }
+
+  for (const [grant, requestToken] of [
+    ['authorization code', exchangeOAuthToken],
+    ['refresh token', refreshOAuthToken],
+  ] as const) {
+    for (const [status, kind] of [
+      [403, 'rateLimited'],
+      [429, 'rateLimited'],
+      [503, 'server'],
+    ] as const) {
+      it(`aborts an unread HTTP ${status} response during ${grant} exchange without changing its failure kind`, async t => {
+        t.mock.timers.enable({ apis: ['setTimeout'] })
+        const response = new Response(new ReadableStream(), {
+          status,
+          headers: { 'x-ratelimit-remaining': '0' },
+        })
+        t.after(async () => {
+          await response.body?.cancel()
+        })
+        const readBody = t.mock.method(response, 'json')
+        let signal: AbortSignal | null | undefined
+        const fetchMock = t.mock.method(
+          globalThis,
+          'fetch',
+          async (_input: RequestInfo | URL, init?: RequestInit) => {
+            signal = init?.signal
+            return response
+          }
+        )
+
+        await assert.rejects(
+          requestToken('https://github.com', 'test-credential'),
+          error => {
+            assert.ok(error instanceof Error && 'kind' in error)
+            assert.strictEqual(error.kind, kind)
+            assert.strictEqual(error.message, 'The OAuth token request failed.')
+            return true
+          }
+        )
+        assert.strictEqual(signal?.aborted, true)
+        assert.strictEqual(readBody.mock.callCount(), 0)
+        assert.strictEqual(fetchMock.mock.callCount(), 1)
+        t.mock.timers.tick(30_000)
+      })
+    }
+  }
+
+  it('classifies a fetch rejection as network without retaining the original error', async t => {
+    t.mock.method(globalThis, 'fetch', async () => {
+      throw new TypeError('secret-network-url')
+    })
+    await assert.rejects(
+      refreshOAuthToken('https://github.com', 'refresh'),
+      error => {
+        assert.ok(error instanceof Error && 'kind' in error)
+        assert.strictEqual(error.kind, 'network')
+        assert.strictEqual(error.message, 'The OAuth token request failed.')
+        assert.strictEqual('cause' in error, false)
+        return true
+      }
+    )
+  })
+
+  it('classifies unexpected processing failures as unknown', async t => {
+    const response = Response.json({}, { status: 403 })
+    t.mock.method(response.headers, 'has', () => {
+      throw new Error('secret-unexpected')
+    })
+    t.mock.method(globalThis, 'fetch', async () => response)
+    await assert.rejects(
+      refreshOAuthToken('https://github.com', 'refresh'),
+      error => {
+        assert.ok(error instanceof Error && 'kind' in error)
+        assert.strictEqual(error.kind, 'unknown')
+        assert.strictEqual(error.message, 'The OAuth token request failed.')
+        return true
+      }
+    )
+
+    describe('parseOAuthToken', () => {
+      it('parses rotating credentials and absolute expiration times', () => {
+        assert.deepStrictEqual(parseOAuthToken(tokenResponse, issuedAt), {
+          accessToken: tokenResponse.access_token,
+          refreshToken: tokenResponse.refresh_token,
+          expiresAt: issuedAt + 28_800_000,
+          refreshTokenExpiresAt: issuedAt + 15_897_600_000,
+        })
+      })
+
+      it('classifies the body-read deadline as timeout', async t => {
+        t.mock.timers.enable({ apis: ['setTimeout'] })
+        const response = Response.json({})
+        t.mock.method(response, 'json', () => new Promise<unknown>(() => {}))
+        t.mock.method(globalThis, 'fetch', async () => response)
+        const assertion = assert.rejects(
+          refreshOAuthToken('https://github.com', 'refresh'),
+          error => {
+            assert.ok(error instanceof Error && 'kind' in error)
+            assert.strictEqual(error.kind, 'timeout')
+            assert.strictEqual(
+              error.message,
+              'The OAuth token request timed out.'
+            )
+            return true
+          }
+        )
+        await Promise.resolve()
+        t.mock.timers.tick(30_000)
+        await assertion
+      })
     })
   })
 

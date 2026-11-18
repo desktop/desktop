@@ -8,7 +8,19 @@ import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
 import { fakePost } from '../fake-stats-post'
 import { TokenRefreshEvent } from '../../src/lib/credential-sessions'
+import { TokenRefreshFailureKind } from '../../src/lib/oauth-token'
+import { IDailyMeasures } from '../../src/lib/stats/stats-database'
 import { buildStatsPayload } from '../../src/lib/stats/stats-store'
+
+const transientFailureMeasures = {
+  timeout: 'tokenRefreshTransientFailureTimeoutCount',
+  network: 'tokenRefreshTransientFailureNetworkCount',
+  rateLimited: 'tokenRefreshTransientFailureRateLimitedCount',
+  server: 'tokenRefreshTransientFailureServerCount',
+  otherHttp: 'tokenRefreshTransientFailureOtherHttpCount',
+  otherOAuth: 'tokenRefreshTransientFailureOtherOAuthCount',
+  unknown: 'tokenRefreshTransientFailureUnknownCount',
+} as const
 
 describe('StatsStore', () => {
   async function createStatsDb() {
@@ -101,12 +113,12 @@ describe('StatsStore', () => {
       }
     )
     const events: ReadonlyArray<TokenRefreshEvent> = [
-      'attempt',
-      'success',
-      'transient-failure',
-      'non-transient-failure',
-      'abandoned',
-      'required-sign-in',
+      { kind: 'attempt' },
+      { kind: 'success' },
+      { kind: 'transient-failure', failureKind: 'network' },
+      { kind: 'non-transient-failure' },
+      { kind: 'abandoned' },
+      { kind: 'required-sign-in' },
     ]
     await Promise.all(events.map(event => store.recordTokenRefreshEvent(event)))
     store.setUsesShortLivedToken(true)
@@ -160,6 +172,9 @@ describe('StatsStore', () => {
           assert.strictEqual(body.tokenRefreshAbandonedCount, 0)
           assert.strictEqual(body.tokenRefreshRequiredSignInCount, 0)
           assert.strictEqual(body.usesShortLivedToken, false)
+          for (const measure of Object.values(transientFailureMeasures)) {
+            assert.strictEqual(body[measure], 0)
+          }
         }
         return new Response(null, { status: 200 })
       }
@@ -172,8 +187,84 @@ describe('StatsStore', () => {
       Reflect.deleteProperty(record, 'tokenRefreshNonTransientFailureCount')
       Reflect.deleteProperty(record, 'tokenRefreshAbandonedCount')
       Reflect.deleteProperty(record, 'tokenRefreshRequiredSignInCount')
+      for (const measure of Object.values(transientFailureMeasures)) {
+        Reflect.deleteProperty(record, measure)
+      }
     })
     assert.strictEqual(await store.sendStats([], []), true)
+  })
+
+  it('increments the total and exactly one subtype together for each concurrent failure', async () => {
+    statsDb = await createStatsDb()
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    const payloads: ReturnType<typeof buildStatsPayload>[] = []
+    const store = new StatsStore(
+      statsDb,
+      new TestActivityMonitor(),
+      async body => {
+        payloads.push(buildStatsPayload(body))
+        return new Response(null, { status: 200 })
+      }
+    )
+    const kinds: ReadonlyArray<TokenRefreshFailureKind> = [
+      'timeout',
+      'network',
+      'rateLimited',
+      'server',
+      'otherHttp',
+      'otherOAuth',
+      'unknown',
+    ]
+    // Every committed update must already include both the total and subtype.
+    const put = statsDb.dailyMeasures.put.bind(statsDb.dailyMeasures)
+    const committed = mock.method(
+      statsDb.dailyMeasures,
+      'put',
+      async (measures: IDailyMeasures) => {
+        assert.strictEqual(
+          measures.tokenRefreshTransientFailureCount,
+          Object.values(transientFailureMeasures).reduce(
+            (sum, measure) => sum + measures[measure],
+            0
+          )
+        )
+        return put(measures)
+      }
+    )
+    await Promise.all(
+      kinds.map((failureKind, index) =>
+        Promise.all(
+          Array.from({ length: index + 1 }, () =>
+            store.recordTokenRefreshEvent({
+              kind: 'transient-failure',
+              failureKind,
+            })
+          )
+        )
+      )
+    )
+    assert.strictEqual(committed.mock.callCount(), 28)
+    const measures = await statsDb.dailyMeasures.limit(1).first()
+    assert.ok(measures)
+    assert.strictEqual(measures.tokenRefreshTransientFailureCount, 28)
+    kinds.forEach((kind, index) =>
+      assert.strictEqual(measures[transientFailureMeasures[kind]], index + 1)
+    )
+    await store.sendStats([], [])
+    kinds.forEach((kind, index) => {
+      const measure = transientFailureMeasures[kind]
+      assert.strictEqual(payloads[0].events[0].measures?.[measure], index + 1)
+      assert.strictEqual(measure in payloads[0].events[0].dimensions, false)
+    })
+    await store.clearDailyStats()
+    await store.sendStats([], [])
+    assert.strictEqual(
+      payloads[1].events[0].measures?.tokenRefreshTransientFailureCount,
+      0
+    )
+    for (const measure of Object.values(transientFailureMeasures)) {
+      assert.strictEqual(payloads[1].events[0].measures?.[measure], 0)
+    }
   })
 
   it('does not submit token refresh counters or usage dimensions when opted out', async () => {
@@ -191,7 +282,7 @@ describe('StatsStore', () => {
         }
       )
       store.setUsesShortLivedToken(true)
-      await store.recordTokenRefreshEvent('attempt')
+      await store.recordTokenRefreshEvent({ kind: 'attempt' })
       assert.strictEqual(await store.sendStats([], []), false)
       assert.strictEqual(posted, 0)
     } finally {

@@ -111,6 +111,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tokenRefreshAttemptCount: 0,
   tokenRefreshSuccessCount: 0,
   tokenRefreshTransientFailureCount: 0,
+  tokenRefreshTransientFailureTimeoutCount: 0,
+  tokenRefreshTransientFailureNetworkCount: 0,
+  tokenRefreshTransientFailureRateLimitedCount: 0,
+  tokenRefreshTransientFailureServerCount: 0,
+  tokenRefreshTransientFailureOtherHttpCount: 0,
+  tokenRefreshTransientFailureOtherOAuthCount: 0,
+  tokenRefreshTransientFailureUnknownCount: 0,
   tokenRefreshNonTransientFailureCount: 0,
   tokenRefreshAbandonedCount: 0,
   tokenRefreshRequiredSignInCount: 0,
@@ -742,16 +749,37 @@ export class StatsStore implements IStatsStore {
 
   /** Count a single token refresh lifecycle event without credential metadata. */
   public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
-    const measures: Readonly<Record<TokenRefreshEvent, keyof NumericMeasures>> =
-      {
-        attempt: 'tokenRefreshAttemptCount',
-        success: 'tokenRefreshSuccessCount',
-        'transient-failure': 'tokenRefreshTransientFailureCount',
-        'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
-        abandoned: 'tokenRefreshAbandonedCount',
-        'required-sign-in': 'tokenRefreshRequiredSignInCount',
-      }
-    return this.increment(measures[event])
+    if (event.kind === 'transient-failure') {
+      const measures = {
+        timeout: 'tokenRefreshTransientFailureTimeoutCount',
+        network: 'tokenRefreshTransientFailureNetworkCount',
+        rateLimited: 'tokenRefreshTransientFailureRateLimitedCount',
+        server: 'tokenRefreshTransientFailureServerCount',
+        otherHttp: 'tokenRefreshTransientFailureOtherHttpCount',
+        otherOAuth: 'tokenRefreshTransientFailureOtherOAuthCount',
+        unknown: 'tokenRefreshTransientFailureUnknownCount',
+      } as const
+      const measure = measures[event.failureKind]
+      return this.updateDailyMeasures(m => ({
+        ...m,
+        tokenRefreshTransientFailureCount:
+          m.tokenRefreshTransientFailureCount + 1,
+        [measure]: m[measure] + 1,
+      }))
+    }
+    const measures: Readonly<
+      Record<
+        Exclude<TokenRefreshEvent['kind'], 'transient-failure'>,
+        keyof NumericMeasures
+      >
+    > = {
+      attempt: 'tokenRefreshAttemptCount',
+      success: 'tokenRefreshSuccessCount',
+      'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
+      abandoned: 'tokenRefreshAbandonedCount',
+      'required-sign-in': 'tokenRefreshRequiredSignInCount',
+    }
+    return this.increment(measures[event.kind])
   }
 
   /** Report any stats which are eligible for reporting. */

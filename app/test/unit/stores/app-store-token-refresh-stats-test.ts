@@ -5,7 +5,10 @@ import type { AccountsStore } from '../../../src/lib/stores/accounts-store'
 import type { StatsStore } from '../../../src/lib/stats'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
 import { Account } from '../../../src/models/account'
-import { OAuthRefreshRejectedError } from '../../../src/lib/oauth-token'
+import {
+  OAuthRefreshRejectedError,
+  OAuthTokenRequestError,
+} from '../../../src/lib/oauth-token'
 
 describe('AppStore token refresh usage stats wiring', () => {
   let appStore: AppStore
@@ -13,6 +16,7 @@ describe('AppStore token refresh usage stats wiring', () => {
   let statsStore: StatsStore
   let statsDb: TestStatsDatabase
   let rejectRenewal = false
+  let transientRenewal = false
 
   after(() => {
     statsDb?.close()
@@ -64,6 +68,9 @@ describe('AppStore token refresh usage stats wiring', () => {
       new InMemoryStore(),
       new AsyncInMemoryStore(),
       async () => {
+        if (transientRenewal) {
+          throw new OAuthTokenRequestError('server')
+        }
         if (rejectRenewal) {
           throw new OAuthRefreshRejectedError()
         }
@@ -144,7 +151,7 @@ describe('AppStore token refresh usage stats wiring', () => {
     await Promise.all(record.mock.calls.map(call => call.result))
     assert.deepEqual(
       record.mock.calls.map(call => call.arguments[0]),
-      ['attempt', 'success']
+      [{ kind: 'attempt' }, { kind: 'success' }]
     )
     assert.equal(adoption.mock.calls.at(-1)?.arguments[0], true)
     assert.equal(
@@ -168,11 +175,11 @@ describe('AppStore token refresh usage stats wiring', () => {
     assert.deepEqual(
       record.mock.calls.map(call => call.arguments[0]),
       [
-        'attempt',
-        'success',
-        'attempt',
-        'non-transient-failure',
-        'required-sign-in',
+        { kind: 'attempt' },
+        { kind: 'success' },
+        { kind: 'attempt' },
+        { kind: 'non-transient-failure' },
+        { kind: 'required-sign-in' },
       ]
     )
     assert.equal(
@@ -184,6 +191,46 @@ describe('AppStore token refresh usage stats wiring', () => {
       (await accountsStore.getAll()).map(a => a.login),
       ['legacy']
     )
+  })
+
+  it('records a typed transient failure without signing out or losing its subtype', async t => {
+    transientRenewal = true
+    t.after(() => {
+      transientRenewal = false
+    })
+    const record = t.mock.method(statsStore, 'recordTokenRefreshEvent')
+    const account = new Account(
+      'transient',
+      'https://api.github.com',
+      'old-access',
+      [],
+      '',
+      4,
+      'Transient'
+    )
+    const current = await accountsStore.addAccount(account, {
+      accessToken: account.token,
+      refreshToken: 'old-refresh',
+      expiresAt: 0,
+    })
+    assert.ok(current)
+    await assert.rejects(
+      accountsStore.getAccountWithFreshToken(current),
+      /Unable to renew/
+    )
+    await Promise.all(record.mock.calls.map(call => call.result))
+    assert.deepEqual(
+      record.mock.calls.map(call => call.arguments[0]),
+      [
+        { kind: 'attempt' },
+        { kind: 'transient-failure', failureKind: 'server' },
+      ]
+    )
+    const measures = await statsDb.dailyMeasures.limit(1).first()
+    assert.equal(measures?.tokenRefreshTransientFailureCount, 1)
+    assert.equal(measures?.tokenRefreshTransientFailureServerCount, 1)
+    assert.equal(measures?.tokenRefreshTransientFailureUnknownCount, 0)
+    assert.ok((await accountsStore.getAll()).includes(current))
   })
 
   it('logs recording failures without breaking credential renewal', async t => {

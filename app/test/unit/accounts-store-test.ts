@@ -128,7 +128,7 @@ describe('AccountsStore', () => {
     const subscription = store.onTokenRefreshEvent(event => events.push(event))
     t.after(() => subscription.dispose())
     await store.getAccountWithFreshToken(account)
-    assert.deepEqual(events, ['attempt', 'success'])
+    assert.deepEqual(events, [{ kind: 'attempt' }, { kind: 'success' }])
     subscription.dispose()
     await store.addAccount(account, {
       accessToken: account.token,
@@ -136,7 +136,7 @@ describe('AccountsStore', () => {
       expiresAt: 0,
     })
     await store.getAccountWithFreshToken(account)
-    assert.deepEqual(events, ['attempt', 'success'])
+    assert.deepEqual(events, [{ kind: 'attempt' }, { kind: 'success' }])
   })
 
   it('counts actual renewal sign-outs even if deleting secure storage fails', async t => {
@@ -171,9 +171,9 @@ describe('AccountsStore', () => {
     assert.equal(deletion.mock.callCount(), 1)
     assert.deepEqual(await store.getAll(), [])
     assert.deepEqual(events, [
-      'attempt',
-      'non-transient-failure',
-      'required-sign-in',
+      { kind: 'attempt' },
+      { kind: 'non-transient-failure' },
+      { kind: 'required-sign-in' },
     ])
   })
 
