@@ -50,17 +50,73 @@ Desktop previously shipped a renderer-only workaround that replaced the SDK's
 
 ## Architecture
 
+The life of one `CopilotClient`:
+
 ```mermaid
 sequenceDiagram
   participant R as Renderer (sdk-client.ts)
   participant M as Main (copilot-sdk-host-process.ts)
-  participant H as Utility process (copilot-sdk-host)
-  R->>M: request-copilot-sdk-port
-  M->>H: fork (if not running) and send port1
-  M->>R: copilot-sdk-port with port2
-  R->>H: init, calls, callback results
-  H->>R: results, session events, callback requests
+  participant H as Utility process (sdk-host.ts)
+  participant C as copilot-runtime
+
+  Note over R: new CopilotClient(options)
+  R->>M: IPC request-copilot-sdk-port
+  opt Host not running
+    M->>H: utilityProcess.fork(copilot-sdk-host.js)
+  end
+  M->>H: parentPort: port1
+  M->>R: IPC copilot-sdk-port: port2
+  Note over R,H: Everything below goes over the port pair
+  R->>H: init (options, functions as callback IDs)
+  Note over H: new sdk.CopilotClient(options)
+
+  R->>H: call start
+  H->>C: spawn over stdio (JSON-RPC)
+  H-->>R: result
+
+  R->>H: call createSession(config)
+  Note over H: adds an in-memory session filesystem if options.sessionFs is set
+  H->>C: create session
+  opt SDK invokes a callback (e.g. gitHubTokenProvider, onPermissionRequest)
+    H->>R: callback (callbackId, args)
+    Note over R: runs the original function
+    R->>H: callback-result
+  end
+  H-->>R: result: session handle (sessionId)
+
+  R->>H: call session.send(...)
+  C-->>H: session events
+  H->>R: event (sessionId, event)
+  H-->>R: result, after the events it caused
+
+  R->>H: call session.disconnect
+  Note over H: disposes the session filesystem
+  H-->>R: result
+  R->>H: call stop
+  H->>C: stop
+  H-->>R: result
+  R--xH: close port
 ```
+
+The utility process is shared by every client:
+
+```mermaid
+stateDiagram-v2
+  [*] --> NotRunning
+  NotRunning --> Running: First port requested, main forks the host
+  Running --> Running: More ports requested and sent
+  Running --> Idle: Last port closed
+  Idle --> Running: New port arrives
+  Idle --> Reported: No ports for 60s, host sends idle with ports received
+  Reported --> Running: A port was in flight, main ignores the report
+  Reported --> NotRunning: Count matches ports sent, main kills the host
+  Running --> NotRunning: Crash or exit, pending calls reject
+  Running --> NotRunning: App quits, main stops the host
+```
+
+Killing the host also ends its `copilot-runtime` children. The host checks
+for idleness every 10 seconds, so it usually stops 60–70 seconds after its
+last client.
 
 - `app/src/lib/copilot/sdk-client.ts`: renderer `CopilotClient`,
   `CopilotSession` and `RuntimeConnection` proxies. Import these instead of
@@ -97,6 +153,5 @@ If the utility process exits, every pending call rejects.
 
 ## Tests
 
-Unit tests can serve clients in-process with `setCopilotSdkConnector` and a
-`worker_threads` `MessageChannel`; see
-`app/test/helpers/copilot-sdk-host.ts`.
+Unit tests can serve clients in-process with `setCopilotSdkConnector` and an
+in-memory channel pair; see `app/test/helpers/copilot-sdk-host.ts`.
