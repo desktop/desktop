@@ -67,6 +67,7 @@ export class AssistedCommitError extends Error {
   public readonly diagnostic:
     | 'commit-verification-failed'
     | 'plan-rejected'
+    | 'repository-changed'
     | undefined
 
   public constructor(
@@ -76,7 +77,10 @@ export class AssistedCommitError extends Error {
       readonly cause?: unknown
       readonly recovery?: IAssistedCommitRecovery
       readonly cleanupToken?: IAssistedCommitCleanupToken
-      readonly diagnostic?: 'commit-verification-failed' | 'plan-rejected'
+      readonly diagnostic?:
+        | 'commit-verification-failed'
+        | 'plan-rejected'
+        | 'repository-changed'
     }
   ) {
     super(message, { cause: options?.cause })

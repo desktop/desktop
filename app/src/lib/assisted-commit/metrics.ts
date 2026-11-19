@@ -60,11 +60,15 @@ export function createAssistedCommitMetrics(
             causes.add(nestedCause)
           }
         }
-        if (cause.code === 'selection-changed') {
+        if (
+          cause.code === 'selection-changed' &&
+          cause.diagnostic !== 'repository-changed'
+        ) {
           once('copilotAssistedCommitSelectionChangedCount')
         } else if (
           cause.code === 'repository-changed' ||
-          cause.code === 'index-changed'
+          cause.code === 'index-changed' ||
+          cause.diagnostic === 'repository-changed'
         ) {
           once('copilotAssistedCommitRepositoryChangedCount')
         } else if (
