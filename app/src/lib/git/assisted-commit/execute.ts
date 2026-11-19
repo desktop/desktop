@@ -33,7 +33,10 @@ import {
   verifyIndex,
   verifySelectedFiles,
 } from './git'
-import { IAssistedCommitOperationOptions } from './progress'
+import {
+  IAssistedCommitOperationOptions,
+  notifyAssistedCommitRecovery,
+} from './progress'
 import { disposeAssistedCommitSnapshot } from './snapshot'
 import {
   disposedSnapshots,
@@ -257,7 +260,8 @@ async function verifyCreatedCommit(
   ) {
     throw new AssistedCommitError(
       'commit-failed',
-      'A hook introduced private replacement or grafted history'
+      'A hook introduced private replacement or grafted history',
+      { diagnostic: 'commit-verification-failed' }
     )
   }
   const object = await privateGit(
@@ -285,7 +289,8 @@ async function verifyCreatedCommit(
   ) {
     throw new AssistedCommitError(
       'commit-failed',
-      `Git or a hook created unexpected commit content or history (${sha})`
+      `Git or a hook created unexpected commit content or history (${sha})`,
+      { diagnostic: 'commit-verification-failed' }
     )
   }
   const indexTree = await privateGit(
@@ -296,7 +301,8 @@ async function verifyCreatedCommit(
   if (removeGitLineEnding(indexTree.stdout) !== tree) {
     throw new AssistedCommitError(
       'commit-failed',
-      'A hook staged content outside the planned cumulative tree'
+      'A hook staged content outside the planned cumulative tree',
+      { diagnostic: 'commit-verification-failed' }
     )
   }
   const author = header.find(line => line.startsWith('author '))
@@ -721,7 +727,8 @@ export async function executeAssistedCommitPlan(
     if (removeGitLineEnding(finalTree.stdout) !== snapshot.selectedTree) {
       throw new AssistedCommitError(
         'commit-failed',
-        'A hook changed the final index synchronization tree'
+        'A hook changed the final index synchronization tree',
+        { diagnostic: 'commit-verification-failed' }
       )
     }
     await verifyHead(data, expectedTip)
@@ -779,6 +786,7 @@ export async function executeAssistedCommitPlan(
     })
     return result
   } catch (error) {
+    notifyAssistedCommitRecovery(options, 'started')
     const cleanupErrors: unknown[] = [
       ...(await cleanupOwnedLocks(ownedLocks.filter(owned => owned !== lock))),
     ]
@@ -822,6 +830,10 @@ export async function executeAssistedCommitPlan(
       errors: Object.freeze(allErrors),
       ...(retryToken === undefined ? {} : { retryToken }),
     })
+    notifyAssistedCommitRecovery(
+      options,
+      allErrors.length === 0 ? 'succeeded' : 'failed'
+    )
     throw new AssistedCommitError(
       allErrors.length > 0
         ? 'recovery-failed'
@@ -865,6 +877,7 @@ export async function rollbackAssistedCommitTransaction(
     )
   }
   transaction.recovering = true
+  notifyAssistedCommitRecovery(options, 'started')
   try {
     const cleanupErrors: unknown[] = [
       ...(await cleanupOwnedLocks(transaction.ownedLocks)),
@@ -905,7 +918,11 @@ export async function rollbackAssistedCommitTransaction(
     }
     completedTransactions.delete(result)
     finalizedTransactions.add(result)
+    notifyAssistedCommitRecovery(options, 'succeeded')
     return fullRecovery
+  } catch (error) {
+    notifyAssistedCommitRecovery(options, 'failed')
+    throw error
   } finally {
     transaction.recovering = false
   }

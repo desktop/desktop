@@ -63,6 +63,11 @@ export class AssistedCommitError extends Error {
   public readonly recovery: IAssistedCommitRecovery | undefined
   /** Retry owned temporary cleanup, including failures before capture completes. */
   public readonly cleanupToken: IAssistedCommitCleanupToken | undefined
+  /** Bounded diagnosis, preserving the existing transaction error code. */
+  public readonly diagnostic:
+    | 'commit-verification-failed'
+    | 'plan-rejected'
+    | undefined
 
   public constructor(
     code: AssistedCommitErrorCode,
@@ -71,6 +76,7 @@ export class AssistedCommitError extends Error {
       readonly cause?: unknown
       readonly recovery?: IAssistedCommitRecovery
       readonly cleanupToken?: IAssistedCommitCleanupToken
+      readonly diagnostic?: 'commit-verification-failed' | 'plan-rejected'
     }
   ) {
     super(message, { cause: options?.cause })
@@ -78,6 +84,7 @@ export class AssistedCommitError extends Error {
     this.code = code
     this.recovery = options?.recovery
     this.cleanupToken = options?.cleanupToken
+    this.diagnostic = options?.diagnostic
   }
 }
 

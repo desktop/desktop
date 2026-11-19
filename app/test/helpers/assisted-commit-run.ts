@@ -174,6 +174,7 @@ export async function createAssistedCommitRunHarness(
     runtime,
     stores,
     statsStore,
+    measures: () => statsStore['getDailyMeasures'](),
     commits,
     register,
     request,

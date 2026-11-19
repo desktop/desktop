@@ -22,6 +22,37 @@ const transientFailureMeasures = {
   unknown: 'tokenRefreshTransientFailureUnknownCount',
 } as const
 
+const assistedCommitMeasures = [
+  'commitModeDropdownOpenedCount',
+  'commitModeSwitchedToCopilotCount',
+  'commitModeSwitchedToManualCount',
+  'copilotAssistedCommitStartedCount',
+  'copilotAssistedCommitPlanningStartedCount',
+  'copilotAssistedCommitPlanValidatedCount',
+  'copilotAssistedCommitExecutionStartedCount',
+  'copilotAssistedCommitAcceptedCount',
+  'copilotAssistedCommitCancelledCount',
+  'copilotAssistedCommitConsentDeclinedCount',
+  'copilotAssistedCommitErrorCount',
+  'copilotAssistedCommitEmptyCommitCount',
+  'copilotAssistedCommitCreatedCommitCount',
+  'copilotAssistedCommitMultiCommitRunCount',
+  'copilotAssistedCommitFallbackCount',
+  'copilotAssistedCommitSelectionChangedCount',
+  'copilotAssistedCommitRepositoryChangedCount',
+  'copilotAssistedCommitPlanRejectedCount',
+  'copilotAssistedCommitCommitVerificationFailedCount',
+  'copilotAssistedCommitRecoveryRequiredCount',
+  'copilotAssistedCommitRecoveryAttemptCount',
+  'copilotAssistedCommitRecoverySuccessCount',
+  'copilotAssistedCommitRecoveryErrorCount',
+  'copilotAssistedCommitOver15sCount',
+  'copilotAssistedCommitOver30sCount',
+  'copilotAssistedCommitOver60sCount',
+  'copilotAssistedCommitOver120sCount',
+  'manualCommitWorkflowCount',
+] as const
+
 describe('StatsStore', () => {
   async function createStatsDb() {
     const statsDb = new TestStatsDatabase()
@@ -98,6 +129,57 @@ describe('StatsStore', () => {
 
     const statsEntry = await statsDb.dailyMeasures.limit(1).first()
     assert.strictEqual(statsEntry?.openInCopilotAppCount, 1)
+  })
+
+  it('defaults old records and serializes exactly the 28 numeric assisted workflow measures', async () => {
+    statsDb = await createStatsDb()
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    const payloads: ReturnType<typeof buildStatsPayload>[] = []
+    const store = new StatsStore(
+      statsDb,
+      new TestActivityMonitor(),
+      async body => {
+        payloads.push(buildStatsPayload(body))
+        return new Response(null, { status: 200 })
+      }
+    )
+    await store.increment('commits')
+    await statsDb.dailyMeasures.toCollection().modify(record => {
+      for (const field of assistedCommitMeasures) {
+        Reflect.deleteProperty(record, field)
+      }
+    })
+    await store.sendStats([], [])
+    for (const field of assistedCommitMeasures) {
+      assert.strictEqual(payloads[0].events[0].measures?.[field], 0)
+    }
+    await Promise.all(
+      assistedCommitMeasures.map(field => store.increment(field))
+    )
+    await store.sendStats([], [])
+    const measures = payloads[1].events[0].measures ?? {}
+    const expectedFields = [...assistedCommitMeasures].sort()
+    assert.deepStrictEqual(
+      Object.keys(measures)
+        .filter(field =>
+          /^(commitMode|copilotAssistedCommit|manualCommitWorkflow)/.test(field)
+        )
+        .sort(),
+      expectedFields
+    )
+    for (const field of assistedCommitMeasures) {
+      assert.strictEqual(measures[field], 1)
+      assert.strictEqual(field in payloads[1].events[0].dimensions, false)
+    }
+    await store.clearDailyStats()
+    await store.sendStats([], [])
+    for (const field of assistedCommitMeasures) {
+      assert.strictEqual(payloads[2].events[0].measures?.[field], 0)
+    }
+    assert.strictEqual(
+      'commitModeEnabled' in payloads[2].events[0].dimensions,
+      false
+    )
   })
 
   it('persists token refresh counters and serializes short-lived usage as a dimension', async () => {

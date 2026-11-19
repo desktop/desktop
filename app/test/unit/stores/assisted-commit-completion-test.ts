@@ -1,5 +1,5 @@
 import { it, describe } from 'node:test'
-import { seed, count } from '../../helpers/assisted-commit'
+import { seed, count, rawGit } from '../../helpers/assisted-commit'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
@@ -14,6 +14,73 @@ import { PopupType } from '../../../src/models/popup'
 import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
 
 describe('AppStore assisted commit completion and notification settlement', () => {
+  for (const kind of ['ordinary', 'empty', 'amend', 'merge'] as const) {
+    it(`counts only ordinary non-empty Manual actions (${kind})`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      if (kind === 'merge') {
+        await rawGit(source, ['switch', '-c', 'side'])
+        await rawGit(source, ['commit', '--allow-empty', '-m', 'Side history'])
+        const side = await rawGit(source, ['rev-parse', 'HEAD'])
+        await rawGit(source, ['switch', '-'])
+        await rawGit(source, ['commit', '--allow-empty', '-m', 'Main history'])
+        await rawGit(source, ['merge', '--no-commit', '--no-ff', side])
+      }
+      if (kind !== 'empty') {
+        await writeFile(join(source.path, 'file'), 'selected\n')
+      }
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.dispatcher.setCommitMode(repository, 'manual')
+      h.dispatcher.updateCommitOptions(repository, {
+        allowEmptyCommit: kind === 'empty',
+      })
+      h.appStore['_refreshRepositoryAfterCommit'] = async () => {}
+      assert.strictEqual(
+        await h.appStore._commitIncludedChanges(repository, {
+          summary: 'Manual action',
+          description: '',
+          amend: kind === 'amend',
+        }),
+        true
+      )
+      const measures = await h.measures()
+      assert.strictEqual(
+        measures.manualCommitWorkflowCount,
+        kind === 'ordinary' ? 1 : 0
+      )
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 0)
+      assert.strictEqual(measures.commitModeSwitchedToManualCount, 0)
+    })
+  }
+
+  it('keeps acceptance after synchronous and asynchronous metric observer failures', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    let attempts = 0
+    const increment = h.statsStore.increment
+    const failingIncrement: StatsStore['increment'] = (measure, value) => {
+      if (!measure.startsWith('copilotAssistedCommit')) {
+        return increment(measure, value)
+      }
+      if (++attempts % 2 === 0) {
+        return Promise.reject(new Error('Synthetic stats rejection'))
+      }
+      throw new Error('Synthetic stats throw')
+    }
+    t.mock.method(h.statsStore, 'increment', failingIncrement)
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'local-ready')
+    assert.strictEqual(await count(repository), 2)
+    assert.strictEqual(h.state(repository).isCommitting, false)
+    assert.ok(attempts > 0)
+  })
+
   for (const mode of ['manual', 'assisted'] as const) {
     it(`preserves successful ${mode} completion after the actual statistics database closes`, async t => {
       const source = await seed(t, { file: 'before\n' })
@@ -166,6 +233,10 @@ describe('AppStore assisted commit completion and notification settlement', () =
       )
       assert.strictEqual(outcome.kind, 'local-ready')
       assert.strictEqual(h.commits.mock.callCount(), 1)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
       assert.strictEqual(await count(repository), 2)
       assert.strictEqual(h.state(repository).isCommitting, false)
     })

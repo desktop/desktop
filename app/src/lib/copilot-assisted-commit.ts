@@ -98,6 +98,8 @@ export class CopilotAssistedCommitError extends Error {
   public readonly code: CopilotAssistedCommitErrorCode
   /** Cleanup failures, in addition to the original failure in cause. */
   public readonly cleanupErrors: ReadonlyArray<unknown>
+  /** Whether wire validation specifically rejected selected-change coverage. */
+  public readonly invalidCoverage: boolean
 
   public constructor(
     code: CopilotAssistedCommitErrorCode,
@@ -105,12 +107,14 @@ export class CopilotAssistedCommitError extends Error {
     options?: {
       readonly cause?: unknown
       readonly cleanupErrors?: ReadonlyArray<unknown>
+      readonly invalidCoverage?: boolean
     }
   ) {
     super(message, { cause: options?.cause })
     this.name = 'CopilotAssistedCommitError'
     this.code = code
     this.cleanupErrors = options?.cleanupErrors ?? []
+    this.invalidCoverage = options?.invalidCoverage ?? false
   }
 }
 
@@ -196,8 +200,10 @@ function checkedArray(input: unknown, maximum: number): ReadonlyArray<unknown> {
         (key !== 'length' && !/^(?:0|[1-9][0-9]*)$/.test(key))
     )
   ) {
-    return invalidResponse(
-      'Copilot returned invalid commit groups or change IDs'
+    throw new CopilotAssistedCommitError(
+      'invalid-response',
+      'Copilot returned invalid commit groups or change IDs',
+      { invalidCoverage: true }
     )
   }
   return input
@@ -302,8 +308,10 @@ export function validateCopilotAssistedCommitResponse(
     const changeIds: string[] = []
     for (const id of ids) {
       if (typeof id !== 'string' || !known.has(id) || owned.has(id)) {
-        return invalidResponse(
-          'Selected change IDs must be known and occur exactly once'
+        throw new CopilotAssistedCommitError(
+          'invalid-response',
+          'Selected change IDs must be known and occur exactly once',
+          { invalidCoverage: true }
         )
       }
       owned.add(id)
@@ -314,7 +322,11 @@ export function validateCopilotAssistedCommitResponse(
     )
   }
   if (owned.size !== known.size) {
-    return invalidResponse('Copilot omitted selected change IDs')
+    throw new CopilotAssistedCommitError(
+      'invalid-response',
+      'Copilot omitted selected change IDs',
+      { invalidCoverage: true }
+    )
   }
   return checkedResponseSize(
     Object.freeze({

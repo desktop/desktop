@@ -172,7 +172,11 @@ describe('snapshot-only assisted commit planning', () => {
           'Update both first and second together'
         )
       )
-      const singlePlan = await planAssistedCommits(snapshot, single)
+      const onFallback = t.mock.fn(() => {})
+      const singlePlan = await planAssistedCommits(snapshot, single, {
+        onFallback,
+      })
+      assert.strictEqual(onFallback.mock.callCount(), 0)
       assert.strictEqual(single.mock.callCount(), 1)
       assert.strictEqual(singlePlan.plan.commits.length, 1)
       assert.strictEqual(singlePlan.trees[0], snapshot.selectedTree)
@@ -182,7 +186,10 @@ describe('snapshot-only assisted commit planning', () => {
         title: 'Update both first and second together',
         description: 'Messages cover the entire selected changeset.',
       }))
-      const checked = await planAssistedCommits(snapshot, uncertainty)
+      const checked = await planAssistedCommits(snapshot, uncertainty, {
+        onFallback,
+      })
+      assert.strictEqual(onFallback.mock.callCount(), 1)
       assert.strictEqual(checked.plan.commits.length, 1)
       assert.strictEqual(
         checked.plan.commits[0].title,

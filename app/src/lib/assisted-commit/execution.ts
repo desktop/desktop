@@ -143,7 +143,11 @@ export async function executeAssistedCommitRun(
   await context.assertFreshInputs(run)
   const onProgress = (progress: AssistedCommitProgress) =>
     withoutRepositoryGitAccess(() => context.progress(run, progress))
-  const options = { signal: run.controller.signal, onProgress }
+  const options = {
+    signal: run.controller.signal,
+    onProgress,
+    onRecovery: run.metrics.recovery,
+  }
   const result = await run.lease.run(() =>
     withAssistedCommitSnapshot(
       repository,
@@ -176,6 +180,7 @@ export async function executeAssistedCommitRun(
                       'Sign in to an account with Copilot for Desktop enabled'
                     )
                   }
+                  run.metrics.once('copilotAssistedCommitPlanningStartedCount')
                   const response = await withoutRepositoryGitAccess(() =>
                     context.copilot.proposeAssistedCommitPlan(
                       account,
@@ -207,11 +212,16 @@ export async function executeAssistedCommitRun(
                         cancelRequested: false,
                       })
                     }),
+                  onFallback: () =>
+                    run.metrics.once('copilotAssistedCommitFallbackCount'),
+                  onPlanRejected: error => run.metrics.diagnose(error),
                 }
               )
         run.plan = checked
+        run.metrics.once('copilotAssistedCommitPlanValidatedCount')
         await validateAssistedCommitMessages(run, context, snapshot, checked)
         context.check(run)
+        run.metrics.once('copilotAssistedCommitExecutionStartedCount')
         const result = await executeAssistedCommitPlan(snapshot, checked, {
           ...options,
           onVerifyCommit: commit => {

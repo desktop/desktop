@@ -774,6 +774,64 @@ export interface IDailyMeasures {
 
   /** The number of Copilot conflict resolutions that took over 120 seconds */
   readonly copilotConflictResolutionOver120sCount: number
+
+  /** Actual openings of the Manual/Commit with Copilot choice. */
+  readonly commitModeDropdownOpenedCount: number
+  /** User-driven Manual to Copilot transitions. */
+  readonly commitModeSwitchedToCopilotCount: number
+  /** User-driven Copilot to Manual transitions. */
+  readonly commitModeSwitchedToManualCount: number
+  /** Admitted non-empty assisted workflows, excluding retries. */
+  readonly copilotAssistedCommitStartedCount: number
+  /** Non-empty workflows that reach model planning. */
+  readonly copilotAssistedCommitPlanningStartedCount: number
+  /** Non-empty workflows with complete validated coverage and cumulative trees. */
+  readonly copilotAssistedCommitPlanValidatedCount: number
+  /** Non-empty workflows that enter native commit execution. */
+  readonly copilotAssistedCommitExecutionStartedCount: number
+  /** Verified locally accepted non-empty workflows. */
+  readonly copilotAssistedCommitAcceptedCount: number
+  /** Non-empty workflows ended by explicit user cancellation. */
+  readonly copilotAssistedCommitCancelledCount: number
+  /** Non-empty workflows whose assisted consent was declined. */
+  readonly copilotAssistedCommitConsentDeclinedCount: number
+  /** Failed non-empty workflows, excluding acceptance, cancellation and decline. */
+  readonly copilotAssistedCommitErrorCount: number
+  /** Successful explicit empty commits in assisted mode, without AI run counts. */
+  readonly copilotAssistedCommitEmptyCommitCount: number
+  /** Commits belonging to locally accepted non-empty assisted workflows. */
+  readonly copilotAssistedCommitCreatedCommitCount: number
+  /** Accepted non-empty workflows that produced more than one commit. */
+  readonly copilotAssistedCommitMultiCommitRunCount: number
+  /** Workflows taking explicit uncertain/unsafe split single-commit fallback. */
+  readonly copilotAssistedCommitFallbackCount: number
+  /** Workflows stopped by changed selected input. */
+  readonly copilotAssistedCommitSelectionChangedCount: number
+  /** Workflows stopped by external HEAD, branch or real-index changes. */
+  readonly copilotAssistedCommitRepositoryChangedCount: number
+  /** Workflows rejecting invalid coverage or unsafe cumulative trees. */
+  readonly copilotAssistedCommitPlanRejectedCount: number
+  /** Workflows detecting unexpected actual commit history/tree or hook index. */
+  readonly copilotAssistedCommitCommitVerificationFailedCount: number
+  /** Workflows retaining required rollback or cleanup intervention. */
+  readonly copilotAssistedCommitRecoveryRequiredCount: number
+  /** Actual automatic or retried rollback/cleanup attempts, excluding no-ops. */
+  readonly copilotAssistedCommitRecoveryAttemptCount: number
+  /** Recovery attempts completing required rollback/cleanup. */
+  readonly copilotAssistedCommitRecoverySuccessCount: number
+  /** Recovery attempts failing or blocked by external interference. */
+  readonly copilotAssistedCommitRecoveryErrorCount: number
+  /** Accepted non-empty workflows taking over 15 processing seconds. */
+  readonly copilotAssistedCommitOver15sCount: number
+  /** Accepted non-empty workflows taking over 30 processing seconds. */
+  readonly copilotAssistedCommitOver30sCount: number
+  /** Accepted non-empty workflows taking over 60 processing seconds. */
+  readonly copilotAssistedCommitOver60sCount: number
+  /** Accepted non-empty workflows taking over 120 processing seconds. */
+  readonly copilotAssistedCommitOver120sCount: number
+  /** Successful ordinary non-empty Manual actions, excluding special continuations. */
+  readonly manualCommitWorkflowCount: number
+
   /** The number of sign-ins that added another account on an endpoint that already had a signed-in account */
   readonly additionalAccountSignInCount: number
 

@@ -35,12 +35,14 @@ export class AssistedCommitDialogs {
 
   /** Request consent without letting cancellation dismiss another owner's popup. */
   public requestConsent(run: IAssistedCommitRun): Promise<boolean> {
+    run.metrics.wait()
     return new Promise<boolean>(resolve => {
       const complete = (accepted: boolean) => {
         const consent = run.consent
         if (consent === undefined) {
           return
         }
+        run.metrics.resume()
         run.consent = undefined
         if (consent.popupId !== undefined) {
           this.popupManager.removePopupById(consent.popupId)
@@ -98,11 +100,21 @@ export class AssistedCommitDialogs {
     if (run.controller.signal.aborted) {
       return Promise.resolve('abort')
     }
+    run.metrics.wait()
     return new Promise(resolve => {
       const complete = (resolution: 'abort' | 'ignore') => {
         const failure = ownedFailure
         if (!this.hookFailures.delete(failure)) {
           return
+        }
+        run.metrics.resume()
+        if (
+          resolution === 'abort' &&
+          failure.popupId !== undefined &&
+          !run.reconciling &&
+          !run.controller.signal.aborted
+        ) {
+          run.cancelledByUser = true
         }
         if (run.hookFailure === failure) {
           run.hookFailure = undefined

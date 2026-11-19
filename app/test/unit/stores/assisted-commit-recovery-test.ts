@@ -154,6 +154,10 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
     )
     assert.ok(run.resourceProtection !== undefined)
     assert.throws(() => h.assisted.state.assertAvailable(repository))
+    assert.strictEqual(
+      (await h.measures()).copilotAssistedCommitRepositoryChangedCount,
+      1
+    )
     await h.dispatcher.retryCopilotAssistedCommitRecovery(
       repository,
       state.runId
@@ -162,6 +166,10 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
     assert.ok(settled.kind === 'error' && settled.retry === null)
     assert.strictEqual(settled.selectionNeedsReview, true)
     assert.strictEqual(run.resourceProtection, undefined)
+    assert.strictEqual(
+      (await h.measures()).copilotAssistedCommitRepositoryChangedCount,
+      1
+    )
   })
 
   it('does not suppress an independent reconciliation failure behind domain cancellation', async t => {

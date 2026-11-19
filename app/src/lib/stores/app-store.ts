@@ -1,6 +1,7 @@
 import { storePushAfterCommit } from './helpers/commit-push-storage'
 import { verifyRepositoryGitSpawnFence } from '../git/repository-operation'
 import { AssistedCommitCoordinator } from '../assisted-commit/coordinator'
+import { recordAssistedCommitMetric } from '../assisted-commit/metrics'
 import { getStatus } from '../git/status'
 import * as Path from 'path'
 import { writeFile } from 'fs/promises'
@@ -883,6 +884,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       {
         changed: () => this.emitUpdate(),
         error: error => this.emitError(error),
+        recordMetric: (measure, count) =>
+          this.statsStore.increment(measure, count),
       }
     )
 
@@ -3937,25 +3940,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       selectedFiles,
       async () => {
-        if (
-          state.changesState.pushAfterCommit &&
+        const ordinaryAction =
           context.amend !== true &&
           state.commitToAmend === null &&
           state.changesState.conflictState === null &&
-          state.multiCommitOperationState === null &&
+          state.multiCommitOperationState === null
+        const pushRequested =
+          ordinaryAction &&
+          state.changesState.pushAfterCommit &&
           !repository.isTutorialRepository
-        ) {
-          const status = await getStatus(repository, false, true)
+        let manualWorkflow = false
+        if (pushRequested || (ordinaryAction && selectedFiles.length > 0)) {
+          // A stale UI can miss clean merge/rebase/cherry-pick continuations.
+          const status = await getStatus(repository, false, true).catch(
+            error => {
+              if (pushRequested) {
+                throw error
+              }
+              log.error(
+                'Could not classify manual commit usage statistics',
+                error
+              )
+              return undefined
+            }
+          )
           if (
+            status !== undefined &&
             !status.mergeHeadFound &&
             !status.squashMsgFound &&
             status.rebaseInternalState === null &&
             !status.isCherryPickingHeadFound
           ) {
-            branchToPush =
-              status.currentBranch === undefined
-                ? null
-                : `refs/heads/${status.currentBranch}`
+            manualWorkflow = selectedFiles.length > 0
+            if (pushRequested) {
+              branchToPush =
+                status.currentBranch === undefined
+                  ? null
+                  : `refs/heads/${status.currentBranch}`
+            }
           }
         }
         const result = await gitStore.performFailableOperation(
@@ -3991,6 +4013,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
         this.assistedCommits.readers.finishManual(repository)
         if (result !== undefined) {
+          if (manualWorkflow) {
+            await recordAssistedCommitMetric(
+              (measure, count) => this.statsStore.increment(measure, count),
+              'manualCommitWorkflowCount'
+            )
+          }
           try {
             await this._recordCommitStats(
               gitStore,

@@ -147,6 +147,7 @@ interface ICommitMessageProps {
   /** Repository-owned preference. Omitted in manual-only contexts. */
   readonly commitMode?: CommitMode
   readonly onCommitModeChanged?: (mode: CommitMode) => void
+  readonly onCommitModeDropdownOpened?: () => void
   readonly pushAfterCommit?: boolean
   readonly canPushAfterCommit?: boolean
   readonly onPushAfterCommitChanged?: (enabled: boolean) => void
@@ -707,7 +708,19 @@ export class CommitMessage extends React.Component<
 
     const commitMode: CommitMode =
       option.id === 'copilot' ? 'copilot' : 'manual'
-    this.props.onCommitModeChanged?.(commitMode)
+    if (
+      this.props.onCommitModeChanged === undefined ||
+      commitMode === (this.isCopilotCommitMode ? 'copilot' : 'manual')
+    ) {
+      return
+    }
+    this.props.onCommitModeChanged(commitMode)
+  }
+
+  private onCommitModeDropdownOpened = () => {
+    if (this.isCopilotAssistedCommitAvailable && !this.isBusy) {
+      this.props.onCommitModeDropdownOpened?.()
+    }
   }
 
   /**
@@ -2095,6 +2108,7 @@ export class CommitMessage extends React.Component<
         ariaDescribedBy={ariaDescribedBy}
         dropdownAriaLabel="Choose how to commit"
         onCheckedOptionChange={this.onCommitModeChanged}
+        onDropdownOpened={this.onCommitModeDropdownOpened}
         onSubmit={this.onSubmit}
         renderInvokeButtonContent={
           isCopilotCommitMode
