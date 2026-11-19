@@ -12,7 +12,6 @@ const config: webpack.Configuration = {
 
 const mainConfig = merge({}, common.main, config)
 const cliConfig = merge({}, common.cli, config)
-const copilotSdkHostConfig = merge({}, common.copilotSdkHost, config)
 const highlighterConfig = merge({}, common.highlighter, config)
 
 const rendererConfig = merge({}, common.renderer, config, {
@@ -68,5 +67,4 @@ export default [
   crashConfig,
   cliConfig,
   highlighterConfig,
-  copilotSdkHostConfig,
 ]

@@ -54,19 +54,9 @@ const commonConfig: webpack.Configuration = {
   },
 }
 
-export const main = merge({}, commonConfig, {
-  entry: { main: path.resolve(__dirname, 'src/main-process/main') },
-  target: 'electron-main',
-  plugins: [
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('main'),
-      })
-    ),
-  ],
-})
-
-export const renderer = merge(
+// The Copilot SDK host shares the main process compiler so that both entries
+// reuse one TypeScript program; another compiler would exceed the heap limit.
+export const main = merge(
   {},
   commonConfig,
   getKoffiWebpackConfig(
@@ -75,50 +65,51 @@ export const renderer = merge(
     getDistArchitecture()
   ),
   {
-    entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
-    target: 'electron-renderer',
-    module: {
-      rules: [
-        {
-          test: /\.(jpe?g|png|gif|ico)$/,
-          use: ['file?name=[path][name].[ext]'],
-        },
-        {
-          test: /\.cmd$/,
-          type: 'asset/resource',
-        },
-      ],
+    entry: {
+      main: path.resolve(__dirname, 'src/main-process/main'),
+      'copilot-sdk-host': path.resolve(__dirname, 'src/copilot-sdk-host/index'),
     },
+    target: 'electron-main',
     plugins: [
-      new HtmlWebpackPlugin({
-        template: path.join(__dirname, 'static', 'index.html'),
-        chunks: ['renderer'],
-      }),
       new webpack.DefinePlugin(
         Object.assign({}, replacements, {
-          __PROCESS_KIND__: JSON.stringify('ui'),
+          __PROCESS_KIND__: JSON.stringify('main'),
         })
       ),
     ],
-    resolve: {
-      // Prevent the renderer from using browser-specific versions of modules
-      aliasFields: [],
-    },
   }
 )
 
-export const copilotSdkHost = merge({}, commonConfig, {
-  entry: {
-    'copilot-sdk-host': path.resolve(__dirname, 'src/copilot-sdk-host/index'),
+export const renderer = merge({}, commonConfig, {
+  entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
+  target: 'electron-renderer',
+  module: {
+    rules: [
+      {
+        test: /\.(jpe?g|png|gif|ico)$/,
+        use: ['file?name=[path][name].[ext]'],
+      },
+      {
+        test: /\.cmd$/,
+        type: 'asset/resource',
+      },
+    ],
   },
-  target: 'electron-main',
   plugins: [
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, 'static', 'index.html'),
+      chunks: ['renderer'],
+    }),
     new webpack.DefinePlugin(
       Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('copilot-sdk-host'),
+        __PROCESS_KIND__: JSON.stringify('ui'),
       })
     ),
   ],
+  resolve: {
+    // Prevent the renderer from using browser-specific versions of modules
+    aliasFields: [],
+  },
 })
 
 export const crash = merge({}, commonConfig, {
