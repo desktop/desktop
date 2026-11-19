@@ -783,7 +783,7 @@ export interface IDailyMeasures {
   readonly commitModeSwitchedToManualCount: number
   /** Admitted non-empty assisted workflows, excluding retries. */
   readonly copilotAssistedCommitStartedCount: number
-  /** Non-empty workflows that reach model planning. */
+  /** Non-empty workflows that dispatch model planning after local preflight. */
   readonly copilotAssistedCommitPlanningStartedCount: number
   /** Non-empty workflows with complete validated coverage and cumulative trees. */
   readonly copilotAssistedCommitPlanValidatedCount: number

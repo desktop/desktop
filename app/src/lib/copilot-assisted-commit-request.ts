@@ -217,7 +217,9 @@ export async function runAssistedCommitPlanningRequest(
       session,
       { prompt, responseSchema: CopilotAssistedCommitResponseSchema },
       signal,
-      cancellationError
+      cancellationError,
+      undefined,
+      options.onPlanningStarted
     )
     throwIfCancelled()
     host.onResponse?.(response?.data.content)

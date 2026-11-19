@@ -74,6 +74,8 @@ export const CopilotAssistedCommitResponseSchema: CopilotResponseSchema = {
 
 /** Caller-selected model, message constraints and cancellation for a planning turn. */
 export interface ICopilotAssistedCommitPlanningOptions {
+  /** Diagnostic notification after dispatch, not local prompt or session preflight. */
+  readonly onPlanningStarted?: () => void
   readonly request?: CopilotModelRequest | null
   readonly commitMessageRules?: ReadonlyArray<
     Pick<IRepoRulesMetadataRule, 'enforced' | 'humanDescription'>

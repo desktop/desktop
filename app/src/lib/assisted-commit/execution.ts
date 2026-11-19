@@ -180,7 +180,6 @@ export async function executeAssistedCommitRun(
                       'Sign in to an account with Copilot for Desktop enabled'
                     )
                   }
-                  run.metrics.once('copilotAssistedCommitPlanningStartedCount')
                   const response = await withoutRepositoryGitAccess(() =>
                     context.copilot.proposeAssistedCommitPlan(
                       account,
@@ -192,6 +191,10 @@ export async function executeAssistedCommitRun(
                           run.initialState.changesState.currentRepoRulesInfo.commitMessagePatterns.getRules(),
                         mode,
                         signal,
+                        onPlanningStarted: () =>
+                          run.metrics.once(
+                            'copilotAssistedCommitPlanningStartedCount'
+                          ),
                       }
                     )
                   )

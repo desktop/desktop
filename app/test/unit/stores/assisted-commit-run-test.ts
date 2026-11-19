@@ -59,6 +59,48 @@ import {
 } from '../../../src/lib/git/repository-operation'
 
 describe('AppStore assisted commit runs', () => {
+  for (const failure of ['prompt-too-large', 'session-setup'] as const) {
+    it(`does not count model planning when ${failure} prevents request dispatch`, async t => {
+      const source = await seed(t, { one: 'before\n', two: 'before\n' })
+      const selected =
+        failure === 'prompt-too-large'
+          ? `${'x'.repeat(2200000)}\n`
+          : 'selected\n'
+      await writeFile(join(source.path, 'one'), selected)
+      await writeFile(join(source.path, 'two'), selected)
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.propose.mock.restore()
+      const setupError = new Error('Synthetic session setup failure')
+      if (failure === 'session-setup') {
+        h.planner.createSession.mock.mockImplementation(async () => {
+          throw setupError
+        })
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(outcome.kind, 'error')
+      if (outcome.kind === 'error') {
+        assert.ok(
+          assistedCommitErrorCauses(outcome.error).some(error =>
+            failure === 'prompt-too-large'
+              ? error instanceof CopilotAssistedCommitError &&
+                error.code === 'prompt-too-large'
+              : error === setupError
+          )
+        )
+      }
+      assert.strictEqual(h.planner.send.mock.callCount(), 0)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    })
+  }
+
   function awaitPopup(
     h: Awaited<ReturnType<typeof createAssistedCommitRunHarness>>,
     type: PopupType
