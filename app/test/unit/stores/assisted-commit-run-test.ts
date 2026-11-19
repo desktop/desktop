@@ -1108,6 +1108,16 @@ describe('AppStore assisted commit runs', () => {
         h.request(repository)
       )
       assert.strictEqual(result.kind, 'error')
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitConsentDeclinedCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+      const run = h.assisted.state.runs.get(repository.id)
+      assert.ok(run?.authorizationError)
+      assert.strictEqual(run.controller.signal.aborted, true)
+      assert.notStrictEqual(run.cancelledByUser, true)
       if (result.kind === 'error') {
         if (change === 'token') {
           assert.ok(

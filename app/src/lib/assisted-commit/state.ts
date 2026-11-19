@@ -254,7 +254,9 @@ export class AssistedCommitState {
     this.cache.updateChangesState(run.repository, () => ({
       assistedCommit: { ...state, cancelRequested: true },
     }))
-    run.cancelledByUser = true
+    if (run.authorizationError === undefined) {
+      run.cancelledByUser = true
+    }
     try {
       run.controller.abort()
     } finally {
