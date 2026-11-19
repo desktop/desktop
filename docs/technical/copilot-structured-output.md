@@ -91,9 +91,10 @@ and no generic JSON retry.
 
 ## Verification and limitations
 
-`copilot-assisted-commit-sdk-test.ts` exercises SDK `1.0.27-preview.1` and its
-bundled runtime `1.0.104-1` using model ID `synthetic-model`, a loopback-only BYOK
-base URL `http://127.0.0.1:1`, and SDK `CopilotRequestHandler` interception.
+`copilot-assisted-commit-sdk-test.ts` exercises the Copilot SDK pinned in
+[`app/package.json`](../../app/package.json) and its bundled runtime. The test
+uses model ID `synthetic-model`, a loopback-only BYOK base URL
+`http://127.0.0.1:1`, and SDK `CopilotRequestHandler` interception.
 Only synthetic prompts, changes and instructions are used; no model provider is
 contacted. All three production paths exercise OpenAI Chat Completions
 (`response_format.json_schema`), OpenAI Responses (`text.format`) and native

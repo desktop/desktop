@@ -3,9 +3,11 @@ import { createHook } from 'async_hooks'
 /**
  * Async operation context using public async-hooks callbacks.
  *
- * Electron renderer realms cannot use Node's AsyncContextFrame-backed
- * AsyncLocalStorage: getStore can fatally crash V8 across the renderer realm.
- * Keep context in JavaScript and propagate it through tracked async resources.
+ * The Electron renderer cannot safely use Node's AsyncContextFrame-backed
+ * AsyncLocalStorage: once optimized, getStore can receive Blink's
+ * non-JavaScript task attribution data and fatally crash V8. See
+ * app/src/lib/copilot/renderer-async-hooks.ts for details. Keep context in
+ * JavaScript and propagate it through tracked async resources.
  */
 export function createRepositoryOperationContext<T>() {
   const resources = new Map<number, T>()

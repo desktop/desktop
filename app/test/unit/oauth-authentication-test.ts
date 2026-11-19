@@ -169,6 +169,38 @@ async function createAuthentication(
 }
 
 describe('OAuth API integration', () => {
+  it('requests Copilot license information with both GraphQL features', async t => {
+    const fetchMock = t.mock.method(
+      globalThis,
+      'fetch',
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        Response.json({
+          data: {
+            viewer: {
+              copilotEndpoints: { api: 'https://api.githubcopilot.com' },
+              copilotLicenseType: 'none',
+              isCopilotDesktopEnabled: false,
+            },
+          },
+        })
+    )
+    const api = new API(endpoint, 'test-token', undefined, false)
+
+    await api.fetchUserCopilotInfo()
+
+    assert.strictEqual(fetchMock.mock.callCount(), 1)
+    const [url, init] = fetchMock.mock.calls[0].arguments
+    assert.strictEqual(url, `${endpoint}/graphql`)
+    const features = new Headers(init?.headers).get('GraphQL-Features')
+    assert.deepStrictEqual(
+      features
+        ?.split(',')
+        .map(feature => feature.trim())
+        .sort(),
+      ['copilot_access_license_type', 'copilot_iap_max_sku']
+    )
+  })
+
   for (const shortLived of [false, true]) {
     for (const [apiEndpoint, htmlHost, supportsRefresh] of [
       [endpoint, 'github.com', true],
