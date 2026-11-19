@@ -51,6 +51,8 @@ describe('IPC channel contract', () => {
     'update-accounts',
     'resolve-image-token',
     'resolved-image-token',
+    'request-copilot-sdk-port',
+    'copilot-sdk-port',
     'quit-and-install-updates',
     'quit-app',
     'minimize-window',
