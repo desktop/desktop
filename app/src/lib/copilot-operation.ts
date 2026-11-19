@@ -1,11 +1,27 @@
 import type {
   AssistantMessageEvent,
-  CopilotClient,
-  CopilotSession,
   MessageOptions,
-  SessionConfig,
   SessionEventPayload,
 } from '@github/copilot-sdk'
+import type { CopilotSession, CopilotSessionConfig } from './copilot/sdk-client'
+
+/**
+ * The session surface used by the adapters below.
+ *
+ * Structural so the renderer proxy and the SDK's own session (used by the
+ * evaluation harness and tests) both satisfy it.
+ */
+export type CopilotOperationSession = Pick<
+  CopilotSession,
+  'on' | 'send' | 'sendAndWait' | 'disconnect'
+>
+
+/** The client surface used by {@link getCopilotPlanningClient}. */
+export interface ICopilotOperationClient {
+  createSession(config: CopilotSessionConfig): Promise<CopilotOperationSession>
+  stop(): Promise<ReadonlyArray<Error>>
+  forceStop(): Promise<void>
+}
 import { getCopilotPaymentRequiredErrorFromSessionError } from './copilot-error'
 
 /** Native response-schema vocabulary shared by the supported strict providers. */
@@ -141,14 +157,14 @@ export interface ICopilotPlanningSession extends ICopilotMessageSession {
 
 /** The existing SDK client surface needed for an owned planning session. */
 export interface ICopilotPlanningClient {
-  createSession(config: SessionConfig): Promise<ICopilotPlanningSession>
+  createSession(config: CopilotSessionConfig): Promise<ICopilotPlanningSession>
   stop(): Promise<ReadonlyArray<Error>>
   forceStop(): Promise<void>
 }
 
 /** Adapt SDK event overloads without weakening their types in callers/tests. */
 export function getCopilotMessageSession(
-  session: CopilotSession
+  session: CopilotOperationSession
 ): ICopilotMessageSession {
   return {
     onSessionError: handler =>
@@ -161,7 +177,7 @@ export function getCopilotMessageSession(
 
 /** Adapt SDK send/events while keeping all response subscriptions owned by Desktop. */
 export function getCopilotPlanningSession(
-  session: CopilotSession
+  session: CopilotOperationSession
 ): ICopilotPlanningSession {
   return {
     ...getCopilotMessageSession(session),
@@ -361,9 +377,10 @@ export async function sendCopilotPlanningRequest(
 
 /** Reuse an existing SDK client; the adapter does not create or own extra resources. */
 export function getCopilotPlanningClient(
-  client: CopilotClient,
-  createSession: (config: SessionConfig) => Promise<CopilotSession> = config =>
-    client.createSession(config)
+  client: ICopilotOperationClient,
+  createSession: (
+    config: CopilotSessionConfig
+  ) => Promise<CopilotOperationSession> = config => client.createSession(config)
 ): ICopilotPlanningClient {
   return {
     createSession: async config =>

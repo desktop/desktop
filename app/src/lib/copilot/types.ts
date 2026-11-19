@@ -1,4 +1,4 @@
-import type { CopilotClient } from '@github/copilot-sdk'
+import type { CopilotClient } from './sdk-client'
 
 /** Model metadata returned by the SDK's public RPC API. */
 export type Model = Awaited<

@@ -1,12 +1,15 @@
-import {
-  CopilotClient,
-  CopilotSession,
-  RuntimeConnection,
+import type {
   SessionConfig,
   ModelBillingTokenPrices,
   GitHubTokenProvider,
   CopilotClientOptions,
 } from '@github/copilot-sdk'
+import {
+  CopilotClient,
+  CopilotSession,
+  CopilotSessionConfig,
+  RuntimeConnection,
+} from '../copilot/sdk-client'
 import { AccountsStore } from './accounts-store'
 import { Account, isDotComAccount } from '../../models/account'
 import {
@@ -34,10 +37,7 @@ import {
   IFileConflictContext,
   formatConflictContextForPrompt,
 } from '../copilot-conflict-context'
-import {
-  createCopilotInMemorySessionFsProvider,
-  getCopilotInMemorySessionFsConfig,
-} from '../copilot-in-memory-session-fs-provider'
+import { getCopilotInMemorySessionFsConfig } from '../copilot-in-memory-session-fs-provider'
 import {
   awaitCancellableCopilotOperation,
   getCopilotMessageSession,
@@ -849,7 +849,7 @@ export class CopilotStore extends BaseStore {
   }
 
   /** Preserve custom instructions without discovering hooks, config, or skills. */
-  private createSession(client: CopilotClient, config: SessionConfig) {
+  private createSession(client: CopilotClient, config: CopilotSessionConfig) {
     const provider = config.provider
     // The runtime reserves 'auto' for Copilot routing. Use a session alias
     // for custom providers where, for whatever reason, the model is named 'auto',
@@ -915,7 +915,7 @@ export class CopilotStore extends BaseStore {
 
   private async createCancellableSession(
     client: CopilotClient,
-    config: SessionConfig,
+    config: CopilotSessionConfig,
     signal: AbortSignal | undefined,
     cancellationError: () => Error
   ): Promise<CopilotSession> {
@@ -1080,7 +1080,6 @@ export class CopilotStore extends BaseStore {
           coauthorEnabled: false,
           availableTools: [],
           enableSessionStore: false,
-          createSessionFsProvider: createCopilotInMemorySessionFsProvider,
           onPermissionRequest: async () => ({
             kind: 'reject',
           }),
@@ -1417,7 +1416,6 @@ export class CopilotStore extends BaseStore {
             streaming: true,
             availableTools: [],
             enableSessionStore: false,
-            createSessionFsProvider: createCopilotInMemorySessionFsProvider,
             systemMessage: {
               mode: 'append',
               content: ConflictResolutionSystemPrompt,
