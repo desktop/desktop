@@ -111,8 +111,8 @@ export async function executeAssistedCommitRun(
   if (run.request.files.length > 0 && !dialogs.isConsentFresh()) {
     const accepted = await dialogs.requestConsent(run)
     if (!accepted && !run.controller.signal.aborted) {
-      await selections.certifyUncaptured(run)
       run.declined = true
+      await selections.certifyUncaptured(run)
       throw new AssistedCommitError(
         'cancelled',
         'Assisted commit consent was declined'

@@ -111,6 +111,17 @@ describe('AppStore assisted commit cancellation', () => {
       const state = h.state(repository).changesState.assistedCommit
       assert.ok(state.kind === 'error' && state.retry === 'refresh')
       assert.strictEqual(h.propose.mock.callCount(), 0)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+      assert.strictEqual(
+        measures.copilotAssistedCommitConsentDeclinedCount,
+        exit === 'decline' ? 1 : 0
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitCancelledCount,
+        exit === 'cancel' ? 1 : 0
+      )
+      assert.strictEqual(measures.copilotAssistedCommitSelectionChangedCount, 1)
     })
   }
 
