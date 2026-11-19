@@ -52,8 +52,14 @@ export function createAssistedCommitMetrics(
     }
   }
   const diagnose = (error: unknown) => {
-    for (const cause of assistedCommitErrorCauses(error)) {
+    const causes = new Set(assistedCommitErrorCauses(error))
+    for (const cause of causes) {
       if (cause instanceof AssistedCommitError) {
+        for (const recoveryError of cause.recovery?.errors ?? []) {
+          for (const nestedCause of assistedCommitErrorCauses(recoveryError)) {
+            causes.add(nestedCause)
+          }
+        }
         if (cause.code === 'selection-changed') {
           once('copilotAssistedCommitSelectionChangedCount')
         } else if (
