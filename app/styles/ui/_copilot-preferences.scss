@@ -23,6 +23,17 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  .copilot-access-state {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    justify-content: safe center;
+    padding: var(--spacing-double);
+    overflow-y: auto;
+    text-align: center;
+  }
 }
 
 #preferences,
