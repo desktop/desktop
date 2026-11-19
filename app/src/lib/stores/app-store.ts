@@ -247,6 +247,8 @@ import {
   reset,
   getBranchAheadBehind,
   getRebaseInternalState,
+  isMergeHeadSet,
+  isSquashMsgSet,
   getCommit,
   appendIgnoreFile,
   getRepositoryType,
@@ -3950,34 +3952,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
           state.changesState.pushAfterCommit &&
           !repository.isTutorialRepository
         let manualWorkflow = false
-        if (pushRequested || (ordinaryAction && selectedFiles.length > 0)) {
-          // A stale UI can miss clean merge/rebase/cherry-pick continuations.
-          const status = await getStatus(repository, false, true).catch(
-            error => {
-              if (pushRequested) {
-                throw error
-              }
-              log.error(
-                'Could not classify manual commit usage statistics',
-                error
-              )
-              return undefined
-            }
-          )
+        if (pushRequested) {
+          const status = await getStatus(repository, false, true)
           if (
-            status !== undefined &&
             !status.mergeHeadFound &&
             !status.squashMsgFound &&
             status.rebaseInternalState === null &&
             !status.isCherryPickingHeadFound
           ) {
             manualWorkflow = selectedFiles.length > 0
-            if (pushRequested) {
-              branchToPush =
-                status.currentBranch === undefined
-                  ? null
-                  : `refs/heads/${status.currentBranch}`
-            }
+            branchToPush =
+              status.currentBranch === undefined
+                ? null
+                : `refs/heads/${status.currentBranch}`
+          }
+        } else if (ordinaryAction && selectedFiles.length > 0) {
+          try {
+            const [
+              mergeHeadFound,
+              squashMsgFound,
+              rebaseInternalState,
+              isCherryPickingHeadFound,
+            ] = await Promise.all([
+              isMergeHeadSet(repository),
+              isSquashMsgSet(repository),
+              getRebaseInternalState(repository),
+              isCherryPickHeadFound(repository),
+            ])
+            manualWorkflow =
+              !mergeHeadFound &&
+              !squashMsgFound &&
+              rebaseInternalState === null &&
+              !isCherryPickingHeadFound
+          } catch (error) {
+            log.error(
+              'Could not classify manual commit usage statistics',
+              error
+            )
           }
         }
         const result = await gitStore.performFailableOperation(
