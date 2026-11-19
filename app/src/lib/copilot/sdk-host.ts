@@ -193,6 +193,13 @@ export function serveCopilotSdkConnection(
     if (!isCopilotSession(session)) {
       throw new Error('The Copilot SDK did not return a session')
     }
+    if (stopped || closed) {
+      // The client stopped while the session was being created, so nothing
+      // else will ever disconnect it.
+      disposeFileSystem(session)
+      void session.disconnect().catch(() => {})
+      throw new Error('The Copilot client was stopped')
+    }
     const { sessionId } = session
     sessions.set(sessionId, session)
     session.on(event => {

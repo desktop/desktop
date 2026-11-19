@@ -2,6 +2,7 @@ import * as copilotSdk from '@github/copilot-sdk'
 import type {
   CopilotClientOptions,
   CopilotSession,
+  GitHubTokenProvider,
   SessionConfig,
 } from '@github/copilot-sdk'
 import assert from 'node:assert/strict'
@@ -25,6 +26,7 @@ import type { IOAuthToken } from '../../../src/lib/oauth-token'
 import { Account } from '../../../src/models/account'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 import type { ICopilotPlanningClient } from '../../../src/lib/copilot-operation'
+import { useInProcessCopilotSdkHost } from '../../helpers/copilot-sdk-host'
 
 const now = 1_800_000_000_000
 const account = new Account(
@@ -46,6 +48,7 @@ let runtimePathExists: () => Promise<boolean> = async () => true
 let assertGenerationCancelled: (error: unknown) => boolean
 let assertConflictCancelled: (error: unknown) => boolean
 let assistedFixtures: typeof import('../../helpers/copilot-assisted-commit')
+let restoreCopilotSdkConnector = () => {}
 
 function createDeferred<T>() {
   let resolveValue: ((value: T) => void) | undefined
@@ -71,12 +74,18 @@ function enablePreviewFeatures(t: TestContext) {
   })
 }
 
+function fakeSession(
+  disconnect: () => Promise<void>
+): Pick<CopilotSession, 'sessionId' | 'on' | 'disconnect'> {
+  return { sessionId: 'session', on: () => () => {}, disconnect }
+}
+
 async function setup(
   t: TestContext,
   credential: IOAuthToken,
   sessionCreation?: (
     config: SessionConfig
-  ) => Promise<Pick<CopilotSession, 'disconnect'>>
+  ) => Promise<Pick<CopilotSession, 'sessionId' | 'on' | 'disconnect'>>
 ) {
   let renewals = 0
   const accountsStore = new AccountsStore(
@@ -93,21 +102,30 @@ async function setup(
   )
   await accountsStore.addAccount(account, credential)
   const store = createStore(accountsStore)
-  const sessionCreationStopped = new Error('Session configuration captured')
+  const stopped = new Error('Session configuration captured')
+  const activeSessions = new Set<Pick<CopilotSession, 'disconnect'>>()
   const createSession = t.mock.method(
     copilotSdk.CopilotClient.prototype,
     'createSession',
     async (config: SessionConfig) => {
       if (sessionCreation !== undefined) {
-        return sessionCreation(config)
+        const session = await sessionCreation(config)
+        activeSessions.add(session)
+        return session
       }
-      throw sessionCreationStopped
+      throw stopped
     }
   )
+  // Like the SDK, stopping the client disconnects its active sessions.
   const stop = t.mock.method(
     copilotSdk.CopilotClient.prototype,
     'stop',
-    async () => []
+    async () => {
+      const sessions = [...activeSessions]
+      activeSessions.clear()
+      await Promise.all(sessions.map(session => session.disconnect()))
+      return []
+    }
   )
   const generate = (
     original = account,
@@ -131,7 +149,8 @@ async function setup(
     store,
     createSession,
     generate,
-    sessionCreationStopped,
+    // Errors cross the SDK host as copies, so match by message.
+    sessionCreationStopped: { message: stopped.message },
     stop,
     renewals: () => renewals,
   }
@@ -184,6 +203,7 @@ describe('CopilotStore session credential wiring', () => {
         },
       },
     })
+    restoreCopilotSdkConnector = useInProcessCopilotSdkHost()
     mock.module('../../../src/lib/path-exists', {
       namedExports: { pathExists: () => runtimePathExists() },
     })
@@ -214,7 +234,10 @@ describe('CopilotStore session credential wiring', () => {
     runtimePathExists = async () => true
   })
 
-  after(() => mock.restoreAll())
+  after(() => {
+    restoreCopilotSdkConnector()
+    mock.restoreAll()
+  })
 
   it('disables hook, configuration, and skill discovery for commit messages', async t => {
     const { createSession, generate, sessionCreationStopped } = await setup(t, {
@@ -315,8 +338,12 @@ describe('CopilotStore session credential wiring', () => {
         const provider = config.gitHubTokenProvider
         assert.ok(provider)
         started.resolve()
-        await provider({ host: 'github.com', reason: 'initial' })
-        return { disconnect }
+        // The provider rejects once the cancelled client disconnects from the
+        // SDK host; the session still resolves late and must be disconnected.
+        await Promise.resolve(
+          provider({ host: 'github.com', reason: 'initial' })
+        ).catch(() => {})
+        return fakeSession(disconnect)
       }
     )
     const lease = await accountsStore.leaseAccountToken(account, 'git')
@@ -343,7 +370,6 @@ describe('CopilotStore session credential wiring', () => {
       assert.equal(cancelled, true)
       assert.equal(clientOptions.length, 1)
       assert.equal(stop.mock.callCount(), 1)
-      assert.equal(disconnect.mock.callCount(), 0)
       assert.equal(renewals(), 0)
     } finally {
       lease.release()
@@ -365,7 +391,7 @@ describe('CopilotStore session credential wiring', () => {
       { accessToken: account.token },
       async () => {
         controller.abort()
-        return { disconnect }
+        return fakeSession(disconnect)
       }
     )
 
@@ -474,14 +500,28 @@ describe('CopilotStore session credential wiring', () => {
   it('passes an invokable, rotating token provider to the SDK session', async t => {
     let clock = now
     t.mock.method(Date, 'now', () => clock)
-    const { createSession, generate, sessionCreationStopped, stop, renewals } =
-      await setup(t, {
+    const tokens: Array<Awaited<ReturnType<GitHubTokenProvider>>> = []
+    const captured = new Error('Token provider exercised')
+    // The provider only works while its client runs, so call it from inside
+    // session creation.
+    const { createSession, generate, stop, renewals } = await setup(
+      t,
+      {
         accessToken: account.token,
         refreshToken: 'old-refresh',
         expiresAt: now + 2 * 60 * 60 * 1000,
-      })
+      },
+      async config => {
+        const provider = config.gitHubTokenProvider
+        assert.ok(provider)
+        tokens.push(await provider({ host: 'github.com', reason: 'initial' }))
+        clock += 60 * 60 * 1000
+        tokens.push(await provider({ host: 'github.com', reason: 'refresh' }))
+        throw captured
+      }
+    )
 
-    await assert.rejects(generate(), sessionCreationStopped)
+    await assert.rejects(generate(), { message: captured.message })
     assert.equal(clientOptions.length, 1)
     assert.equal(clientOptions[0].gitHubToken, account.token)
     assert.equal(createSession.mock.callCount(), 1)
@@ -489,17 +529,13 @@ describe('CopilotStore session credential wiring', () => {
     const config = createSession.mock.calls[0].arguments[0]
     assert.ok(config)
     assert.equal(config.gitHubToken, undefined)
-    const provider = config.gitHubTokenProvider
-    assert.ok(provider)
 
-    const initial = await provider({ host: 'github.com', reason: 'initial' })
+    const [initial, refreshed] = tokens
     assert.ok(initial.kind === 'token')
     assert.equal(initial.accessToken, account.token)
     assert.equal(initial.expiresIn, 2 * 60 * 60 - 60)
     assert.equal('refreshToken' in initial, false)
 
-    clock += 60 * 60 * 1000
-    const refreshed = await provider({ host: 'github.com', reason: 'refresh' })
     assert.ok(refreshed.kind === 'token')
     assert.equal(refreshed.accessToken, 'new-access')
     assert.equal(refreshed.expiresIn, 8 * 60 * 60 - 60)
@@ -524,7 +560,9 @@ describe('CopilotStore session credential wiring', () => {
     const client = await store.createPlanningClient(account)
     await assert.rejects(
       client.createSession({ model: 'auto', availableTools: [] }),
-      error => error === sessionCreationStopped
+      error =>
+        error instanceof Error &&
+        error.message === sessionCreationStopped.message
     )
     assert.equal(clientOptions.length, 1)
     assert.equal(clientOptions[0].gitHubToken, account.token)
@@ -562,7 +600,7 @@ describe('CopilotStore session credential wiring', () => {
     })
     await assert.rejects(
       async () => provider({ host: 'github.com', reason: 'refresh' }),
-      AccountRequiresSignInError
+      { message: new AccountRequiresSignInError().message }
     )
     await client.stop()
   })
@@ -591,7 +629,9 @@ describe('CopilotStore session credential wiring', () => {
           availableTools: [],
           provider,
         }),
-        error => error === sessionCreationStopped
+        error =>
+          error instanceof Error &&
+          error.message === sessionCreationStopped.message
       )
       const config = createSession.mock.calls[0].arguments[0]
       assert.equal(config.gitHubTokenProvider, undefined)
@@ -807,12 +847,12 @@ describe('CopilotStore session credential wiring', () => {
             : resolveConflicts(store, new AbortController().signal, request)
 
         await assert.rejects(result, error => {
-          assert.equal(
+          const underlying =
             error instanceof CopilotConflictResolutionError
               ? error.underlyingError
-              : error,
-            sessionCreationStopped
-          )
+              : error
+          assert.ok(underlying instanceof Error)
+          assert.equal(underlying.message, sessionCreationStopped.message)
           return true
         })
         assert.equal(createSession.mock.callCount(), 1)

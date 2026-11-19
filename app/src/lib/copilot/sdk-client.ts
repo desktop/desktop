@@ -322,6 +322,8 @@ function createRpcProxy(
  */
 export class CopilotClient {
   private readonly connection: Promise<CopilotSdkConnection>
+  private stopping: Promise<Error[]> | undefined
+  private stopped = false
 
   public constructor(
     options: CopilotClientOptions = {},
@@ -348,18 +350,19 @@ export class CopilotClient {
   }
 
   public async stop(): Promise<Error[]> {
-    try {
-      return (await this.call(['stop'], [])) as Error[]
-    } finally {
-      await this.close()
+    // Like the SDK, stopping is idempotent.
+    if (this.stopped) {
+      return []
     }
+    this.stopping ??= this.callAndClose(['stop']).then(
+      errors => errors as Error[]
+    )
+    return this.stopping
   }
 
   public async forceStop(): Promise<void> {
-    try {
-      await this.call(['forceStop'], [])
-    } finally {
-      await this.close()
+    if (!this.stopped) {
+      await this.callAndClose(['forceStop'])
     }
   }
 
@@ -404,8 +407,13 @@ export class CopilotClient {
     return session
   }
 
-  private async close() {
-    const connection = await this.connection.catch(() => null)
-    connection?.close()
+  private async callAndClose(path: ReadonlyArray<string>) {
+    try {
+      return await this.call(path, [])
+    } finally {
+      this.stopped = true
+      const connection = await this.connection.catch(() => null)
+      connection?.close()
+    }
   }
 }

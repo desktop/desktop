@@ -145,7 +145,7 @@ describe('CopilotStore constrained assisted planner', () => {
     assert.strictEqual(config.workingDirectory, repositoryPath)
     assert.strictEqual(config.configDirectory, undefined)
     assert.strictEqual(config.skipCustomInstructions, false)
-    assert.strictEqual(typeof config.createSessionFsProvider, 'function')
+    assert.strictEqual('createSessionFsProvider' in config, false)
     assert.ok(scheduled.mock.calls.some(call => call.arguments[1] === 12345))
     const prompt = mock.send.mock.calls[0].arguments[0].prompt
     assert.strictEqual(

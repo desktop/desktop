@@ -120,7 +120,14 @@ export function deserializeCopilotSdkError(
   error: ICopilotSdkSerializedError
 ): Error {
   const result = new Error(error.message)
-  result.name = error.name
+  if (error.name !== result.name) {
+    // Keep it non-enumerable, like a subclass's prototype name.
+    Object.defineProperty(result, 'name', {
+      value: error.name,
+      writable: true,
+      configurable: true,
+    })
+  }
   if (error.stack !== undefined) {
     result.stack = error.stack
   }
