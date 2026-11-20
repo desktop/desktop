@@ -10,6 +10,7 @@ export type MenuIDs =
   | 'squash-and-merge-branch'
   | 'rebase-branch'
   | 'view-repository-on-github'
+  | 'view-upstream-repository-on-github'
   | 'compare-on-github'
   | 'branch-on-github'
   | 'open-in-shell'
