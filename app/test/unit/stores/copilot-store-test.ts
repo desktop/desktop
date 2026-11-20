@@ -1,8 +1,8 @@
+import type { MessageOptions } from '@github/copilot-sdk'
 import type {
   CopilotClient,
   CopilotSession,
-  MessageOptions,
-} from '@github/copilot-sdk'
+} from '../../../src/lib/copilot/sdk-client'
 import type {
   AccountQuotaSnapshot,
   Model,

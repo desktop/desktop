@@ -40,6 +40,11 @@ import { createAuthenticatedImageTokenResolver } from './authenticated-image-tok
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
+import * as ipcWebContents from './ipc-webcontents'
+import {
+  createCopilotSdkHostPort,
+  stopCopilotSdkHost,
+} from './copilot-sdk-host-process'
 import {
   getArchitecture,
   isAppRunningUnderARM64Translation,
@@ -123,6 +128,8 @@ if (__DARWIN__) {
 if (__WIN32__ && __DEV__) {
   app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
 }
+
+app.on('will-quit', () => stopCopilotSdkHost())
 
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
@@ -385,6 +392,20 @@ app.on('ready', () => {
   })
   ipcMain.on('resolved-image-token', (event, requestId, token) => {
     imageTokenResolver.acceptResponse(event.sender, requestId, token)
+  })
+
+  ipcMain.on('request-copilot-sdk-port', (event, requestId) => {
+    if (event.sender !== mainWindow?.webContents) {
+      return
+    }
+    try {
+      ipcWebContents.postMessage(event.sender, 'copilot-sdk-port', requestId, [
+        createCopilotSdkHostPort(),
+      ])
+    } catch (error) {
+      log.error('Could not start the Copilot SDK host', error)
+      ipcWebContents.postMessage(event.sender, 'copilot-sdk-port', requestId)
+    }
   })
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {

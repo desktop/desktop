@@ -1,4 +1,4 @@
-import type { SessionConfig } from '@github/copilot-sdk'
+import type { CopilotSessionConfig } from './copilot/sdk-client'
 import { IAssistedCommitAnalysis } from '../models/assisted-commit'
 import {
   assertAssistedCommitAnalysis,
@@ -11,10 +11,6 @@ import {
   ICopilotAssistedCommitPlanningOptions,
   parseCopilotAssistedCommitStructuredResponse,
 } from './copilot-assisted-commit'
-import {
-  createCopilotInMemorySessionFsProvider,
-  ICopilotInMemorySessionFsProvider,
-} from './copilot-in-memory-session-fs-provider'
 import {
   awaitCancellableCopilotOperation,
   ICopilotMessageSession,
@@ -41,7 +37,7 @@ export interface IAssistedCommitRequestHost {
   /** Observe the final correlated response before parsing, never intermediate SDK events. */
   readonly onResponse?: (content: string | undefined) => void
   readonly resolveModel: () => Pick<
-    SessionConfig,
+    CopilotSessionConfig,
     'model' | 'reasoningEffort' | 'provider'
   >
 }
@@ -168,8 +164,6 @@ export async function runAssistedCommitPlanningRequest(
   let session: ICopilotPlanningSession | null = null
   let failed = false
   let failure: unknown
-  let disposed = false
-  const fileSystems: ICopilotInMemorySessionFsProvider[] = []
   try {
     throwIfCancelled()
     const tags = generateCommitMessagePromptTags()
@@ -196,15 +190,6 @@ export async function runAssistedCommitPlanningRequest(
           ),
           clientName: 'github/desktop:assisted-commit',
           ...model,
-          createSessionFsProvider: () => {
-            const fs = createCopilotInMemorySessionFsProvider()
-            if (disposed) {
-              fs.dispose()
-            } else {
-              fileSystems.push(fs)
-            }
-            return fs
-          },
         }),
       {
         signal,
@@ -239,9 +224,6 @@ export async function runAssistedCommitPlanningRequest(
       }
     } catch (error) {
       cleanupErrors.push(error)
-    } finally {
-      disposed = true
-      fileSystems.forEach(fs => fs.dispose())
     }
     if (cleanupErrors.length > 0) {
       throw new CopilotAssistedCommitError(

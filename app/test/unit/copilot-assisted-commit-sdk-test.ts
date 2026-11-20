@@ -3,15 +3,20 @@ import { describe, it } from 'node:test'
 import { chmod, mkdir, readFile, readdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import Ajv from 'ajv'
+import * as copilotSdk from '@github/copilot-sdk'
 import {
-  CopilotClient,
   CopilotRequestContext,
   CopilotRequestHandler,
   CopilotWebSocketHandler,
-  RuntimeConnection,
   SessionFsProvider,
   SessionConfig,
 } from '@github/copilot-sdk'
+import {
+  CopilotClient,
+  CopilotSessionConfig,
+  RuntimeConnection,
+} from '../../src/lib/copilot/sdk-client'
+import { createInProcessCopilotSdkConnector } from '../helpers/copilot-sdk-host'
 import {
   assertPlanningError,
   createPlannerStore,
@@ -34,6 +39,41 @@ import { CopilotCommitMessageResponseSchema } from '../../src/lib/copilot-commit
 import { CopilotConflictResolutionResponseSchema } from '../../src/lib/copilot-conflict-resolution'
 import { CopilotStore } from '../../src/lib/stores/copilot-store'
 import { createTestAccountsStore } from '../helpers/app-store-test-harness'
+
+interface IHostedClientOptions {
+  /** A local model; class instances can't cross to the SDK host. */
+  readonly requestHandler?: CopilotRequestHandler
+  /** Observe the SDK host's client. */
+  readonly onClient?: (client: copilotSdk.CopilotClient) => void
+  /** Adjust the session configuration the SDK host passes to the SDK. */
+  readonly onSessionConfig?: (config: SessionConfig) => SessionConfig
+}
+
+/**
+ * Create a Desktop client whose SDK host runs in-process with the shipped
+ * SDK and runtime, as the utility process does in production.
+ */
+function createHostedClient(
+  options: copilotSdk.CopilotClientOptions,
+  host: IHostedClientOptions = {}
+): CopilotClient {
+  class HostedCopilotClient extends copilotSdk.CopilotClient {
+    public constructor(hostOptions?: copilotSdk.CopilotClientOptions) {
+      super({ ...hostOptions, requestHandler: host.requestHandler })
+      host.onClient?.(this)
+    }
+
+    public override createSession(config: SessionConfig) {
+      return super.createSession(host.onSessionConfig?.(config) ?? config)
+    }
+  }
+  return new CopilotClient(
+    options,
+    createInProcessCopilotSdkConnector(async () => ({
+      CopilotClient: HostedCopilotClient,
+    }))
+  )
+}
 
 /** A completely local fake model; no synthetic or customer data reaches a provider. */
 class SyntheticModel extends CopilotRequestHandler {
@@ -323,27 +363,29 @@ describe('production structured output with the shipped SDK/runtime and a local 
           const validate = ajv.compile(schema)
           assert.ok(validate(response), JSON.stringify(validate.errors))
         })
-        const client = new CopilotClient({
-          connection: RuntimeConnection.forStdio(),
-          workingDirectory: repositoryPath,
-          baseDirectory: home,
-          env: {
-            ...getAssistedCommitClientEnvironment({
-              HOME: home,
-              COPILOT_HOME: home,
-              PATH: process.env.PATH,
-            }),
-            COPILOT_DISABLE_KEYTAR: '1',
+        const client = createHostedClient(
+          {
+            connection: RuntimeConnection.forStdio(),
+            workingDirectory: repositoryPath,
+            baseDirectory: home,
+            env: {
+              ...getAssistedCommitClientEnvironment({
+                HOME: home,
+                COPILOT_HOME: home,
+                PATH: process.env.PATH,
+              }),
+              COPILOT_DISABLE_KEYTAR: '1',
+            },
+            useLoggedInUser: false,
+            logLevel: 'none',
+            onListModels: () => [],
+            sessionFs: getCopilotInMemorySessionFsConfig(
+              repositoryPath,
+              __WIN32__ ? 'windows' : 'posix'
+            ),
           },
-          useLoggedInUser: false,
-          logLevel: 'none',
-          onListModels: () => [],
-          requestHandler: model,
-          sessionFs: getCopilotInMemorySessionFsConfig(
-            repositoryPath,
-            __WIN32__ ? 'windows' : 'posix'
-          ),
-        })
+          { requestHandler: model }
+        )
         t.after(() => client.forceStop())
         const createSession = t.mock.method(client, 'createSession')
         const account = makeCopilotAccount()
@@ -488,27 +530,29 @@ describe('production structured output with the shipped SDK/runtime and a local 
           return undefined
         }
       )
-      const client = new CopilotClient({
-        connection: RuntimeConnection.forStdio(),
-        workingDirectory: repositoryPath,
-        baseDirectory: home,
-        env: {
-          ...getAssistedCommitClientEnvironment({
-            HOME: home,
-            COPILOT_HOME: home,
-            PATH: process.env.PATH,
-          }),
-          COPILOT_DISABLE_KEYTAR: '1',
+      const client = createHostedClient(
+        {
+          connection: RuntimeConnection.forStdio(),
+          workingDirectory: repositoryPath,
+          baseDirectory: home,
+          env: {
+            ...getAssistedCommitClientEnvironment({
+              HOME: home,
+              COPILOT_HOME: home,
+              PATH: process.env.PATH,
+            }),
+            COPILOT_DISABLE_KEYTAR: '1',
+          },
+          useLoggedInUser: false,
+          logLevel: 'none',
+          onListModels: () => [],
+          sessionFs: getCopilotInMemorySessionFsConfig(
+            repositoryPath,
+            __WIN32__ ? 'windows' : 'posix'
+          ),
         },
-        useLoggedInUser: false,
-        logLevel: 'none',
-        onListModels: () => [],
-        requestHandler: model,
-        sessionFs: getCopilotInMemorySessionFsConfig(
-          repositoryPath,
-          __WIN32__ ? 'windows' : 'posix'
-        ),
-      })
+        { requestHandler: model }
+      )
       t.after(() => client.forceStop())
       const origins: Array<string | undefined> = []
       let stops = 0
@@ -566,36 +610,44 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
       await mkdir(repositoryPath)
       await mkdir(home)
       for (let iteration = 0; iteration < 2; iteration++) {
-        const client = new CopilotClient({
-          connection: RuntimeConnection.forStdio(),
-          workingDirectory: repositoryPath,
-          baseDirectory: home,
-          env: {
-            ...getAssistedCommitClientEnvironment({
-              HOME: home,
-              COPILOT_HOME: home,
-              PATH: process.env.PATH,
-            }),
-            COPILOT_DISABLE_KEYTAR: '1',
+        let sdkClient: copilotSdk.CopilotClient | undefined
+        const client = createHostedClient(
+          {
+            connection: RuntimeConnection.forStdio(),
+            workingDirectory: repositoryPath,
+            baseDirectory: home,
+            env: {
+              ...getAssistedCommitClientEnvironment({
+                HOME: home,
+                COPILOT_HOME: home,
+                PATH: process.env.PATH,
+              }),
+              COPILOT_DISABLE_KEYTAR: '1',
+            },
+            useLoggedInUser: false,
+            logLevel: 'none',
+            onListModels: () => [],
+            sessionFs: getCopilotInMemorySessionFsConfig(
+              repositoryPath,
+              __WIN32__ ? 'windows' : 'posix'
+            ),
           },
-          useLoggedInUser: false,
-          logLevel: 'none',
-          onListModels: () => [],
-          requestHandler: new SyntheticModel({
-            result: wholeSelectionResponse(),
-          }),
-          sessionFs: getCopilotInMemorySessionFsConfig(
-            repositoryPath,
-            __WIN32__ ? 'windows' : 'posix'
-          ),
-        })
+          {
+            requestHandler: new SyntheticModel({
+              result: wholeSelectionResponse(),
+            }),
+            onClient: hosted => {
+              sdkClient = hosted
+            },
+          }
+        )
         t.after(() => client.forceStop())
         let pid: number | undefined
         let forced = false
         let pendingSettled = false
         const adapter = getCopilotPlanningClient(client, async config => {
           const session = await client.createSession(config)
-          pid = client['cliProcess']?.pid
+          pid = sdkClient?.['cliProcess']?.pid
           if (delay === 'disconnect') {
             const disconnect = session.disconnect.bind(session)
             session.disconnect = async () => {
@@ -646,7 +698,7 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
         assert.ok(pid !== undefined)
         const stoppedPid = pid
         assert.throws(() => process.kill(stoppedPid, 0), { code: 'ESRCH' })
-        assert.strictEqual(client['state'], 'disconnected')
+        assert.strictEqual(sdkClient?.['state'], 'disconnected')
         assert.strictEqual(pendingSettled, true)
         if (delay !== 'none') {
           assert.strictEqual(forced, true)
@@ -663,27 +715,29 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
     await mkdir(config)
     await mkdir(repositoryPath)
     const started = deferred<void>()
-    const client = new CopilotClient({
-      connection: RuntimeConnection.forStdio(),
-      workingDirectory: repositoryPath,
-      baseDirectory: config,
-      env: {
-        ...getAssistedCommitClientEnvironment({
-          HOME: root,
-          COPILOT_HOME: config,
-          PATH: process.env.PATH,
-        }),
-        COPILOT_DISABLE_KEYTAR: '1',
+    const client = createHostedClient(
+      {
+        connection: RuntimeConnection.forStdio(),
+        workingDirectory: repositoryPath,
+        baseDirectory: config,
+        env: {
+          ...getAssistedCommitClientEnvironment({
+            HOME: root,
+            COPILOT_HOME: config,
+            PATH: process.env.PATH,
+          }),
+          COPILOT_DISABLE_KEYTAR: '1',
+        },
+        useLoggedInUser: false,
+        logLevel: 'none',
+        onListModels: () => [],
+        sessionFs: getCopilotInMemorySessionFsConfig(
+          repositoryPath,
+          __WIN32__ ? 'windows' : 'posix'
+        ),
       },
-      useLoggedInUser: false,
-      logLevel: 'none',
-      onListModels: () => [],
-      sessionFs: getCopilotInMemorySessionFsConfig(
-        repositoryPath,
-        __WIN32__ ? 'windows' : 'posix'
-      ),
-      requestHandler: new PendingSyntheticModel(() => started.resolve()),
-    })
+      { requestHandler: new PendingSyntheticModel(() => started.resolve()) }
+    )
     t.after(() => client.forceStop())
     const scheduled = t.mock.method(globalThis, 'setTimeout')
     const cleared = t.mock.method(globalThis, 'clearTimeout')
@@ -842,54 +896,63 @@ describe('assisted planner actual SDK instruction and model-tool contract', () =
       ],
     }
     const model = new SyntheticModel({ result: response })
-    const client = new CopilotClient({
-      connection: RuntimeConnection.forStdio(),
-      workingDirectory: repositoryPath,
-      baseDirectory: configPath,
-      env: {
-        ...getAssistedCommitClientEnvironment({
-          HOME: home,
-          USERPROFILE: home,
-          COPILOT_HOME: configPath,
-          XDG_CONFIG_HOME: home,
-          PATH: process.env.PATH,
-        }),
-        COPILOT_DISABLE_KEYTAR: '1',
+    const fileSystems: SessionFsProvider[] = []
+    const client = createHostedClient(
+      {
+        connection: RuntimeConnection.forStdio(),
+        workingDirectory: repositoryPath,
+        baseDirectory: configPath,
+        env: {
+          ...getAssistedCommitClientEnvironment({
+            HOME: home,
+            USERPROFILE: home,
+            COPILOT_HOME: configPath,
+            XDG_CONFIG_HOME: home,
+            PATH: process.env.PATH,
+          }),
+          COPILOT_DISABLE_KEYTAR: '1',
+        },
+        useLoggedInUser: false,
+        logLevel: 'none',
+        onListModels: () => [],
+        sessionFs: getCopilotInMemorySessionFsConfig(
+          repositoryPath,
+          __WIN32__ ? 'windows' : 'posix'
+        ),
       },
-      useLoggedInUser: false,
-      logLevel: 'none',
-      onListModels: () => [],
-      sessionFs: getCopilotInMemorySessionFsConfig(
-        repositoryPath,
-        __WIN32__ ? 'windows' : 'posix'
-      ),
-      requestHandler: model,
-    })
+      {
+        requestHandler: model,
+        onSessionConfig: config => ({
+          ...config,
+          createSessionFsProvider: sdkSession => {
+            const fs = config.createSessionFsProvider?.(sdkSession)
+            assert.ok(fs, 'The SDK host must supply an in-memory filesystem')
+            assert.strictEqual(sdkSession.workspacePath, undefined)
+            fileSystems.push(fs)
+            return fs
+          },
+        }),
+      }
+    )
     t.after(async () => {
       assert.deepStrictEqual(await client.stop(), [])
     })
-    const fileSystems: SessionFsProvider[] = []
     const createSession = client.createSession.bind(client)
-    t.mock.method(client, 'createSession', async (supplied: SessionConfig) => {
-      assert.strictEqual(supplied.configDirectory, undefined)
-      assert.strictEqual(supplied.skipCustomInstructions, false)
-      assert.strictEqual(supplied.systemMessage?.mode, 'append')
-      const session = await createSession({
-        ...supplied,
-        createSessionFsProvider: sdkSession => {
-          const fs = supplied.createSessionFsProvider?.(sdkSession)
-          assert.ok(fs)
-          fileSystems.push(fs)
-          return fs
-        },
-      })
-      await session.rpc.tools.initializeAndValidate()
-      assert.deepStrictEqual(await session.rpc.tools.getCurrentMetadata(), {
-        tools: [],
-      })
-      assert.strictEqual(session.workspacePath, undefined)
-      return session
-    })
+    t.mock.method(
+      client,
+      'createSession',
+      async (supplied: CopilotSessionConfig) => {
+        assert.strictEqual(supplied.configDirectory, undefined)
+        assert.strictEqual(supplied.skipCustomInstructions, false)
+        assert.strictEqual(supplied.systemMessage?.mode, 'append')
+        const session = await createSession(supplied)
+        await session.rpc.tools.initializeAndValidate()
+        assert.deepStrictEqual(await session.rpc.tools.getCurrentMetadata(), {
+          tools: [],
+        })
+        return session
+      }
+    )
     const planningClient = getCopilotPlanningClient(client)
     const store = createPlannerStore(async () => planningClient)
     const request = syntheticBYOKRequest(10000)

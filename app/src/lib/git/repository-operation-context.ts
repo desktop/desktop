@@ -6,7 +6,7 @@ import { createHook } from 'async_hooks'
  * The Electron renderer cannot safely use Node's AsyncContextFrame-backed
  * AsyncLocalStorage: once optimized, getStore can receive Blink's
  * non-JavaScript task attribution data and fatally crash V8. See
- * app/src/lib/copilot/renderer-async-hooks.ts for details. Keep context in
+ * docs/technical/copilot-sdk-host.md for details. Keep context in
  * JavaScript and propagate it through tracked async resources.
  */
 export function createRepositoryOperationContext<T>() {

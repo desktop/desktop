@@ -220,6 +220,21 @@ overrides:
   - files: 'script/**/*'
     rules:
       '@typescript-eslint/no-non-null-assertion': off
+  - files: 'app/src/**/*'
+    excludedFiles:
+      - 'app/src/copilot-sdk-host/**/*'
+      - 'app/src/lib/copilot/sdk-host.ts'
+      - 'app/src/lib/copilot-evaluation.ts'
+    rules:
+      '@typescript-eslint/no-restricted-imports':
+        - error
+        - paths:
+            - name: '@github/copilot-sdk'
+              allowTypeImports: true
+              message:
+                "The Copilot SDK runs in a utility process. Import the proxies
+                from 'lib/copilot/sdk-client' instead. See
+                docs/technical/copilot-sdk-host.md."
   - files: 'app/src/ui/octicons/octicons.generated.ts'
     rules:
       '@typescript-eslint/naming-convention': off
