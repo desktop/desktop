@@ -1368,9 +1368,11 @@ export class SectionList extends React.Component<
       const sectionHeight = this.getSectionHeight(section)
       const offset = this.getSectionScrollOffset(section)
 
+      const gridHeight = Math.min(sectionHeight, height)
+
       const relativeScrollTop = Math.max(
         0,
-        Math.min(sectionHeight, this.state.scrollTop - offset)
+        Math.min(sectionHeight - gridHeight, this.state.scrollTop - offset)
       )
 
       return (
@@ -1387,7 +1389,7 @@ export class SectionList extends React.Component<
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}
-          height={Math.min(sectionHeight, height)}
+          height={gridHeight}
           columnCount={1}
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
