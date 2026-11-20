@@ -152,6 +152,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.CLion'],
   },
   {
+    name: 'Glim',
+    bundleIdentifiers: ['io.github.jony4.glimpse'],
+  },
+  {
     name: 'Typora',
     bundleIdentifiers: ['abnerworks.Typora'],
   },
