@@ -46,7 +46,7 @@ export interface IToolbarDropdownProps {
   readonly description?: string | JSX.Element
 
   /** The tooltip for the button. */
-  readonly tooltip?: string
+  readonly tooltip?: string | JSX.Element
 
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol

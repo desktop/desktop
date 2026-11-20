@@ -1,11 +1,20 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as React from 'react'
 
 import { WorktreeEntry } from '../../../src/models/worktree'
-import { WorktreeListItem } from '../../../src/ui/worktrees/worktree-list-item'
+import {
+  WorktreeListItem,
+  renderWorktreeTooltip,
+} from '../../../src/ui/worktrees/worktree-list-item'
 import { IMatches } from '../../../src/lib/fuzzy-find'
-import { render, screen } from '../../helpers/ui/render'
+import { enableAccessibleListToolTips } from '../../../src/lib/feature-flag'
+import { render, fireEvent, screen, waitFor } from '../../helpers/ui/render'
+import {
+  advanceTimersBy,
+  enableTestTimers,
+  resetTestTimers,
+} from '../../helpers/ui/timers'
 
 const noMatches: IMatches = { title: [], subtitle: [] }
 
@@ -66,5 +75,66 @@ describe('WorktreeListItem', () => {
 
     assert.equal(marker.closest('.name'), null)
     assert.notEqual(name.closest('.name'), null)
+  })
+
+  describe('tooltip', () => {
+    beforeEach(() => {
+      enableTestTimers(['setTimeout'])
+    })
+
+    afterEach(() => {
+      resetTestTimers()
+    })
+
+    // Accessible list tooltips (e.g. GITHUB_DESKTOP_PREVIEW_FEATURES=1) disable
+    // the name tooltip, and waitFor would then wait on the mocked timers forever.
+    it(
+      'shows the full name and path when hovering the name',
+      { skip: enableAccessibleListToolTips() },
+      async () => {
+        renderItem(worktree())
+
+        const name = screen.getByText('repo-feature').closest('.name')
+
+        if (name === null) {
+          throw new Error('Expected the name element to be rendered')
+        }
+
+        fireEvent.mouseEnter(name, { clientX: 20, clientY: 20 })
+        fireEvent.mouseMove(name, { clientX: 20, clientY: 20 })
+        advanceTimersBy(400)
+
+        await waitFor(() => {
+          assert.ok(screen.getByText('Full Name:'))
+          assert.ok(screen.getByText('/repo-feature'))
+        })
+      }
+    )
+  })
+
+  describe('renderWorktreeTooltip', () => {
+    it('leaves out the branch by default', () => {
+      render(renderWorktreeTooltip(worktree()))
+
+      assert.ok(screen.getByText('/repo-feature'))
+      assert.equal(screen.queryByText('Branch:'), null)
+    })
+
+    it('includes the short branch name when asked', () => {
+      render(renderWorktreeTooltip(worktree(), true))
+
+      assert.ok(screen.getByText('Branch:'))
+      assert.ok(screen.getByText('feature'))
+      assert.equal(screen.queryByText('refs/heads/feature'), null)
+    })
+
+    it('shows the full commit instead when HEAD is detached', () => {
+      const detached = worktree({ branch: null, isDetached: true })
+      render(renderWorktreeTooltip(detached, true))
+
+      assert.equal(screen.queryByText('Branch:'), null)
+      assert.ok(screen.getByText('Commit:'))
+      assert.ok(screen.getByText(detached.head))
+    })
   })
 })

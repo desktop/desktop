@@ -26,7 +26,7 @@ export interface IToolbarButtonProps {
   readonly description?: JSX.Element | string
 
   /** The tooltip for the button. */
-  readonly tooltip?: string
+  readonly tooltip?: JSX.Element | string
 
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol
