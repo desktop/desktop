@@ -72,7 +72,6 @@ import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { enableHooksEnvironment } from '../../lib/feature-flag'
 import {
   getAccountForCopilot,
   getAccountForCopilotAssistedCommits,
@@ -1486,19 +1485,17 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    if (enableHooksEnvironment()) {
-      items.push({
-        type: 'checkbox',
-        checked: this.props.skipCommitHooks,
-        enabled: !this.isBusy,
-        label: __DARWIN__ ? 'Bypass Commit Hooks' : 'Bypass Commit hooks',
-        action: () => {
-          this.updateCommitOptions({
-            skipCommitHooks: !this.props.skipCommitHooks,
-          })
-        },
-      })
-    }
+    items.push({
+      type: 'checkbox',
+      checked: this.props.skipCommitHooks,
+      enabled: !this.isBusy,
+      label: __DARWIN__ ? 'Bypass Commit Hooks' : 'Bypass Commit hooks',
+      action: () => {
+        this.updateCommitOptions({
+          skipCommitHooks: !this.props.skipCommitHooks,
+        })
+      },
+    })
 
     items.push({
       type: 'checkbox',

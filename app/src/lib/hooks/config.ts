@@ -1,14 +1,10 @@
-import { enableHooksByDefault, enableHooksEnvironment } from '../feature-flag'
+import { enableHooksByDefault } from '../feature-flag'
 import { getBoolean, setBoolean } from '../local-storage'
 
 export const defaultHooksEnvEnabledValue = enableHooksByDefault()
 
-/**
- * Whether the hooks environment is enabled, takes into account the
- * `enableHooksEnvironment` feature flag.
- */
+/** Whether the user has enabled the hooks environment. */
 export const getHooksEnvEnabled = () =>
-  enableHooksEnvironment() &&
   getBoolean('git-hooks-env-enabled', defaultHooksEnvEnabledValue)
 
 export const setHooksEnvEnabled = (enabled: boolean): void =>

@@ -11,7 +11,6 @@ import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
-import { enableWorktreeSupport } from './feature-flag'
 import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
 import { isRepositoryAffectedByAssistedCommit } from './git/repository-operation'
 
@@ -268,11 +267,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
-    }
-
-    if (!enableWorktreeSupport()) {
-      menuStateBuilder.disable('show-worktrees-list')
-      menuStateBuilder.disable('create-worktree')
     }
 
     menuStateBuilder.setEnabled(
