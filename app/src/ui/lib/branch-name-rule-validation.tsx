@@ -7,7 +7,11 @@ import {
 import { API, APIRepoRuleType, IAPIRepoRuleset } from '../../lib/api'
 import { Account } from '../../models/account'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
-import { parseRepoRules, useRepoRulesLogic } from '../../lib/helpers/repo-rules'
+import {
+  canBypassRuleset,
+  parseRepoRules,
+  useRepoRulesLogic,
+} from '../../lib/helpers/repo-rules'
 import { InputError } from './input-description/input-error'
 import { InputWarning } from './input-description/input-warning'
 import { Row } from './row'
@@ -89,7 +93,7 @@ export async function checkBranchNameRules(
   for (const id of toCheck) {
     const rs = cachedRepoRulesets.get(id)
 
-    if (rs?.current_user_can_bypass !== 'always') {
+    if (!canBypassRuleset(rs)) {
       cannotBypass = true
       break
     }
