@@ -72,6 +72,120 @@ async function rolledBackRefreshFixture(t: TestContext) {
 }
 
 describe('AppStore assisted commit recovery and refresh retry', () => {
+  for (const interference of ['branch', 'index'] as const) {
+    it(`counts ${interference} interference first discovered during automatic rollback before retry`, async t => {
+      const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+      await writeFile(join(source.path, 'one'), 'selected one\n')
+      await writeFile(join(source.path, 'two'), 'selected two\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const originalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
+      const originalRef = await rawGit(repository, ['symbolic-ref', 'HEAD'])
+      const realIndex = await indexPath(repository)
+      const originalIndex = await optionalBytes(realIndex)
+      assert.ok(originalIndex)
+      h.propose.mock.mockImplementation(async (_account, analysis) =>
+        splitResponse(analysis)
+      )
+      let interfered = false
+      const progress = h.assisted.context.progress.bind(h.assisted.context)
+      h.assisted.context.progress = async (run, event) => {
+        progress(run, event)
+        if (event.kind === 'committing' && event.index === 1) {
+          h.cancel(repository)
+        } else if (event.kind === 'rolling-back' && !interfered) {
+          interfered = true
+          if (interference === 'branch') {
+            await rawGit(repository, [
+              'switch',
+              '-c',
+              'external-during-rollback',
+            ])
+          } else {
+            await writeFile(
+              realIndex,
+              Buffer.concat([originalIndex, Buffer.from('external')])
+            )
+          }
+        }
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(outcome.kind, 'error')
+      const failure = h.state(repository).changesState.assistedCommit
+      assert.ok(failure.kind === 'error' && failure.retry === 'recovery')
+      const recovery = failure.recovery
+      assert.ok(recovery?.retryToken)
+      const originalCauses = assistedCommitErrorCauses(failure.error)
+      assert.ok(
+        originalCauses.some(
+          cause =>
+            cause instanceof AssistedCommitError && cause.code === 'cancelled'
+        )
+      )
+      assert.ok(
+        recovery.errors.some(
+          error =>
+            error instanceof AssistedCommitError &&
+            error.code ===
+              (interference === 'branch'
+                ? 'repository-changed'
+                : 'index-changed')
+        )
+      )
+      try {
+        const measures = await h.measures()
+        assert.strictEqual(
+          measures.copilotAssistedCommitRepositoryChangedCount,
+          1
+        )
+        assert.strictEqual(
+          measures.copilotAssistedCommitRecoveryRequiredCount,
+          1
+        )
+        assert.strictEqual(
+          measures.copilotAssistedCommitRecoveryAttemptCount,
+          1
+        )
+        assert.strictEqual(measures.copilotAssistedCommitRecoveryErrorCount, 1)
+        assert.strictEqual(failure.recovery, recovery)
+        assert.deepStrictEqual(
+          assistedCommitErrorCauses(failure.error),
+          originalCauses
+        )
+      } finally {
+        if (interference === 'branch') {
+          await rawGit(repository, ['symbolic-ref', 'HEAD', originalRef])
+        } else {
+          await writeFile(realIndex, originalIndex)
+        }
+        await h.dispatcher.retryCopilotAssistedCommitRecovery(
+          repository,
+          failure.runId
+        )
+      }
+      const measures = await h.measures()
+      assert.strictEqual(
+        measures.copilotAssistedCommitRepositoryChangedCount,
+        1
+      )
+      assert.strictEqual(measures.copilotAssistedCommitRecoveryRequiredCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitRecoveryAttemptCount, 2)
+      assert.strictEqual(measures.copilotAssistedCommitRecoverySuccessCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitRecoveryErrorCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+      assert.strictEqual(
+        await rawGit(repository, ['rev-parse', 'HEAD']),
+        originalHead
+      )
+      assert.deepStrictEqual(await optionalBytes(realIndex), originalIndex)
+    })
+  }
+
   for (const change of ['branch', 'commit'] as const) {
     it(`settles refresh-only recovery after completed rollback and an external ${change}`, async t => {
       const { h, repository, state, run } = await rolledBackRefreshFixture(t)
@@ -154,6 +268,10 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
     )
     assert.ok(run.resourceProtection !== undefined)
     assert.throws(() => h.assisted.state.assertAvailable(repository))
+    assert.strictEqual(
+      (await h.measures()).copilotAssistedCommitRepositoryChangedCount,
+      1
+    )
     await h.dispatcher.retryCopilotAssistedCommitRecovery(
       repository,
       state.runId
@@ -162,6 +280,10 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
     assert.ok(settled.kind === 'error' && settled.retry === null)
     assert.strictEqual(settled.selectionNeedsReview, true)
     assert.strictEqual(run.resourceProtection, undefined)
+    assert.strictEqual(
+      (await h.measures()).copilotAssistedCommitRepositoryChangedCount,
+      1
+    )
   })
 
   it('does not suppress an independent reconciliation failure behind domain cancellation', async t => {

@@ -174,19 +174,26 @@ describe('git/assisted-commit execution and hook context', () => {
           'if test "$n" = 2; then git add -- other; fi',
         ].join('\n')
       )
+      const recoveryEvents: string[] = []
       await assert.rejects(
         withAssistedCommitSnapshot(repository, input, async snapshot => {
           const checked = await validateAssistedCommitPlan(
             snapshot,
             splitPlan(snapshot)
           )
-          return executeAssistedCommitPlan(snapshot, checked)
+          return executeAssistedCommitPlan(snapshot, checked, {
+            onRecovery: event => {
+              recoveryEvents.push(event)
+              throw new Error('Synthetic recovery telemetry failure')
+            },
+          })
         }),
         error =>
           error instanceof AssistedCommitError &&
           error.code === 'commit-failed' &&
           error.recovery?.history === 'restored'
       )
+      assert.deepStrictEqual(recoveryEvents, ['started', 'succeeded'])
       assert.strictEqual(await tip(repository), original)
       assert.strictEqual(await count(repository), 1)
       assert.deepStrictEqual(

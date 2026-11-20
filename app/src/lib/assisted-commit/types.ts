@@ -10,6 +10,7 @@ import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-com
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { IRepositoryState } from '../app-state'
+import { AssistedCommitMetricRecorder, AssistedCommitMetrics } from './metrics'
 import { IBYOKProvider } from '../copilot/byok'
 import {
   IAssistedCommitCleanupToken,
@@ -63,6 +64,7 @@ export type AssistedCommitModelResolver = (
 export interface IAssistedCommitEvents {
   readonly changed: () => void
   readonly error: (error: Error) => void
+  readonly recordMetric?: AssistedCommitMetricRecorder
 }
 
 /** First-click intent remains weakly owned and cannot authorize changed input. */
@@ -96,6 +98,8 @@ export interface IAssistedCommitRun {
   readonly providerDefinition: string | null
   readonly providerRevision: number
   readonly controller: AbortController
+  readonly metrics: AssistedCommitMetrics
+  cancelledByUser?: boolean
   readonly selectionReaders: Set<Promise<void>>
   settlement: IAssistedCommitSettlement
   selectionReadersClosed: boolean

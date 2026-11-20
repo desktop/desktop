@@ -159,7 +159,8 @@ function cumulativeContent(
     if (hunk.start < cursor || hunk.end > lines.length) {
       throw new AssistedCommitError(
         'unsafe-plan',
-        'Frozen hunk ranges cannot be composed safely'
+        'Frozen hunk ranges cannot be composed safely',
+        { diagnostic: 'plan-rejected' }
       )
     }
     buffers.push(
@@ -187,7 +188,8 @@ async function materializeTree(
       if (file.selected === null) {
         throw new AssistedCommitError(
           'unsafe-plan',
-          'A text selection has no frozen file entry'
+          'A text selection has no frozen file entry',
+          { diagnostic: 'plan-rejected' }
         )
       }
       const sha = await hashBlob(data, cumulativeContent(file, selectedIds))
@@ -276,7 +278,7 @@ export async function validateAssistedCommitPlan(
           throw new AssistedCommitError(
             'unsafe-plan',
             'The proposed boundaries cannot be materialized safely',
-            { cause: error }
+            { cause: error, diagnostic: 'plan-rejected' }
           )
         }
         throw error
@@ -290,7 +292,8 @@ export async function validateAssistedCommitPlan(
       ) {
         throw new AssistedCommitError(
           'unsafe-plan',
-          'A proposed commit has no content delta'
+          'A proposed commit has no content delta',
+          { diagnostic: 'plan-rejected' }
         )
       }
       trees.push(tree)
@@ -299,7 +302,8 @@ export async function validateAssistedCommitPlan(
     if (previous !== snapshot.selectedTree) {
       throw new AssistedCommitError(
         'unsafe-plan',
-        'The final plan tree does not exactly match the frozen selection'
+        'The final plan tree does not exactly match the frozen selection',
+        { diagnostic: 'plan-rejected' }
       )
     }
     await verifyHead(data, snapshot.originalHead.sha)

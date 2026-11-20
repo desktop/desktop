@@ -38,6 +38,9 @@ export interface IAssistedCommitPlanningOptions
   readonly onPlanningProgress?: (
     progress: IAssistedCommitPlanningProgress
   ) => void | Promise<void>
+  /** Diagnostic notifications do not authorize a fallback or interrupt planning. */
+  readonly onFallback?: () => void
+  readonly onPlanRejected?: (error: unknown) => void
 }
 
 /**
@@ -72,6 +75,9 @@ export async function planAssistedCommits(
   }
 
   const response = await analyze('plan')
+  if (response.kind === 'uncertain-boundaries') {
+    notify(() => options.onFallback?.())
+  }
   const proposal =
     response.kind === 'uncertain-boundaries'
       ? createSingleAssistedCommitPlan(snapshot, {
@@ -100,6 +106,9 @@ export async function planAssistedCommits(
       validationOptions
     )
   } catch (error) {
+    if (!observerFailed) {
+      notify(() => options.onPlanRejected?.(error))
+    }
     if (
       observerFailed ||
       !(error instanceof AssistedCommitError) ||
@@ -110,6 +119,7 @@ export async function planAssistedCommits(
     }
   }
 
+  notify(() => options.onFallback?.())
   const whole = await analyze('single-commit')
   const message =
     whole.kind === 'uncertain-boundaries' ? whole : whole.commits[0]
@@ -119,4 +129,12 @@ export async function planAssistedCommits(
     description: message.description,
   })
   return validateAssistedCommitPlan(snapshot, single, validationOptions)
+}
+
+function notify(callback: () => void): void {
+  try {
+    callback()
+  } catch (error) {
+    log.error('Could not report assisted commit planning statistics', error)
+  }
 }

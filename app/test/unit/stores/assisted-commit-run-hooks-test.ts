@@ -82,8 +82,42 @@ function resolveHookPopups(
 }
 
 describe('AppStore assisted runs with real hook interception', () => {
+  it('counts actual hook-modified trees without accepting or counting temporary commits', async t => {
+    const source = await fixtures.seed(t, {
+      selected: 'before\n',
+      other: 'before\n',
+    })
+    await FileSystem.writeFile(join(source.path, 'selected'), 'selected\n')
+    await FileSystem.writeFile(join(source.path, 'other'), 'unselected\n')
+    const h = await harness.createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const other = h
+      .request(repository)
+      .files.find(file => file.path === 'other')
+    assert.ok(other)
+    await h.dispatcher.changeFileIncluded(repository, other, false)
+    await fixtures.writeHook(repository, 'pre-commit', 'git add -- other')
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'error')
+    const measures = await h.measures()
+    assert.strictEqual(
+      measures.copilotAssistedCommitCommitVerificationFailedCount,
+      1
+    )
+    assert.strictEqual(measures.copilotAssistedCommitPlanRejectedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 0)
+    assert.strictEqual(await fixtures.count(repository), 1)
+  })
+
   for (const action of ['ignore', 'decline', 'cancel'] as const) {
     it(`${action} settles the native hook failure and never skips later hooks or leaves run commits behind`, async t => {
+      let now = 0
+      t.mock.method(performance, 'now', () => now)
       const source = await fixtures.seed(t, { one: 'one\n', two: 'two\n' })
       await FileSystem.writeFile(join(source.path, 'one'), 'ONE\n')
       await FileSystem.writeFile(join(source.path, 'two'), 'TWO\n')
@@ -99,16 +133,18 @@ describe('AppStore assisted runs with real hook interception', () => {
         'pre-commit',
         'n=0; if test -f hook-count; then n=$(cat hook-count); fi\nn=$((n + 1)); printf "%s" "$n" > hook-count\necho "failure $n" >&2\nexit 1'
       )
-      h.propose.mock.mockImplementation(async (_account, analysis) =>
-        models.splitResponse(analysis)
-      )
-      const subscription = resolveHookPopups(h, index =>
-        action === 'ignore' || index === 0
+      h.propose.mock.mockImplementation(async (_account, analysis) => {
+        now += 70000
+        return models.splitResponse(analysis)
+      })
+      const subscription = resolveHookPopups(h, index => {
+        now += 200000
+        return action === 'ignore' || index === 0
           ? 'ignore'
           : action === 'decline'
           ? 'abort'
           : 'cancel'
-      )
+      })
       t.after(() => subscription.dispose())
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
@@ -126,6 +162,22 @@ describe('AppStore assisted runs with real hook interception', () => {
       )
       assert.strictEqual(h.state(repository).isCommitting, false)
       assert.strictEqual(h.state(repository).hookProgress, null)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(
+        measures.copilotAssistedCommitAcceptedCount,
+        action === 'ignore' ? 1 : 0
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitCancelledCount,
+        action === 'ignore' ? 0 : 1
+      )
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+      assert.strictEqual(
+        measures.copilotAssistedCommitOver60sCount,
+        action === 'ignore' ? 1 : 0
+      )
+      assert.strictEqual(measures.copilotAssistedCommitOver120sCount, 0)
       assert.strictEqual(
         outcome.kind,
         action === 'ignore'

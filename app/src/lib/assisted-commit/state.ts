@@ -82,6 +82,12 @@ export class AssistedCommitState {
     selectionNeedsReview: boolean,
     notify: boolean = true
   ): ErrorWithMetadata {
+    if (!run.finalized) {
+      run.metrics.diagnose(error)
+      if (retry === 'recovery') {
+        run.metrics.once('copilotAssistedCommitRecoveryRequiredCount')
+      }
+    }
     const existing = this.cache.get(run.repository).changesState.assistedCommit
     const preserved =
       existing.kind !== 'error'
@@ -248,6 +254,9 @@ export class AssistedCommitState {
     this.cache.updateChangesState(run.repository, () => ({
       assistedCommit: { ...state, cancelRequested: true },
     }))
+    if (run.authorizationError === undefined) {
+      run.cancelledByUser = true
+    }
     try {
       run.controller.abort()
     } finally {

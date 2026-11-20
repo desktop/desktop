@@ -91,10 +91,26 @@ describe('real assisted Changes sidebar wiring', () => {
       subscription.dispose()
       view.unmount()
     })
+    const dropdown = () =>
+      screen.getByRole('button', { name: 'Choose how to commit' })
+    fireEvent.click(dropdown())
+    fireEvent.click(screen.getByText('Commit with Copilot'))
+    fireEvent.keyDown(dropdown(), { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Enter' })
+    fireEvent.click(dropdown())
+    fireEvent.click(screen.getByText('Commit with Copilot'))
+    await waitFor(async () => {
+      const measures = await h.measures()
+      assert.strictEqual(measures.commitModeDropdownOpenedCount, 3)
+      assert.strictEqual(measures.commitModeSwitchedToCopilotCount, 1)
+      assert.strictEqual(measures.commitModeSwitchedToManualCount, 1)
+    })
     fireEvent.click(
       screen.getByRole('button', { name: /Commit.*with Copilot/ })
     )
     await analyzing.promise
+    fireEvent.click(dropdown())
+    assert.strictEqual((await h.measures()).commitModeDropdownOpenedCount, 3)
     await waitFor(() =>
       assert.ok(screen.getByRole('button', { name: 'Cancel' }))
     )

@@ -160,14 +160,20 @@ export function createAssistedCommitRecovery(
       const recover = async () => {
         if (state.retry === 'recovery') {
           if (capability !== undefined) {
-            run.recovery = await rollbackAssistedCommitTransaction(capability)
+            run.recovery = await rollbackAssistedCommitTransaction(capability, {
+              onRecovery: run.metrics.recovery,
+            })
             run.recoveryCapability = undefined
           }
           if (run.cleanupPending) {
             if (run.cleanupToken !== undefined) {
-              await retryAssistedCommitCleanup(run.cleanupToken)
+              await retryAssistedCommitCleanup(run.cleanupToken, {
+                onRecovery: run.metrics.recovery,
+              })
             } else if (run.snapshot !== undefined) {
-              await disposeAssistedCommitSnapshot(run.snapshot)
+              await disposeAssistedCommitSnapshot(run.snapshot, {
+                onRecovery: run.metrics.recovery,
+              })
             } else {
               throw new Error(
                 'The retained assisted cleanup capability is unavailable'
@@ -269,6 +275,7 @@ export function createAssistedCommitRecovery(
       run.settlement.complete()
       owner.updateErrorSettlement(run.repository)
       owner.releaseResources(run)
+      await run.metrics.flush()
     }
     await recovery.present(run)
   }
@@ -370,6 +377,7 @@ export function createAssistedCommitRecovery(
         try {
           run.recovery = await run.lease.run(() =>
             rollbackAssistedCommitTransaction(completed, {
+              onRecovery: run.metrics.recovery,
               onProgress: progress =>
                 withoutRepositoryGitAccess(() =>
                   context.progress(run, progress)

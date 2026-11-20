@@ -59,6 +59,48 @@ import {
 } from '../../../src/lib/git/repository-operation'
 
 describe('AppStore assisted commit runs', () => {
+  for (const failure of ['prompt-too-large', 'session-setup'] as const) {
+    it(`does not count model planning when ${failure} prevents request dispatch`, async t => {
+      const source = await seed(t, { one: 'before\n', two: 'before\n' })
+      const selected =
+        failure === 'prompt-too-large'
+          ? `${'x'.repeat(2200000)}\n`
+          : 'selected\n'
+      await writeFile(join(source.path, 'one'), selected)
+      await writeFile(join(source.path, 'two'), selected)
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.propose.mock.restore()
+      const setupError = new Error('Synthetic session setup failure')
+      if (failure === 'session-setup') {
+        h.planner.createSession.mock.mockImplementation(async () => {
+          throw setupError
+        })
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.strictEqual(outcome.kind, 'error')
+      if (outcome.kind === 'error') {
+        assert.ok(
+          assistedCommitErrorCauses(outcome.error).some(error =>
+            failure === 'prompt-too-large'
+              ? error instanceof CopilotAssistedCommitError &&
+                error.code === 'prompt-too-large'
+              : error === setupError
+          )
+        )
+      }
+      assert.strictEqual(h.planner.send.mock.callCount(), 0)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    })
+  }
+
   function awaitPopup(
     h: Awaited<ReturnType<typeof createAssistedCommitRunHarness>>,
     type: PopupType
@@ -103,6 +145,18 @@ describe('AppStore assisted commit runs', () => {
     assert.strictEqual(await count(repository), 2)
     assert.strictEqual(h.propose.mock.callCount(), 1)
     assert.strictEqual(h.commits.mock.callCount(), 1)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitPlanValidatedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitExecutionStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitMultiCommitRunCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitFallbackCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryAttemptCount, 0)
+    assert.strictEqual(measures.manualCommitWorkflowCount, 0)
     assert.strictEqual(h.state(repository).isCommitting, false)
     assert.strictEqual(
       h.state(repository).changesState.assistedCommit.kind,
@@ -161,6 +215,11 @@ describe('AppStore assisted commit runs', () => {
     assert.strictEqual(result.kind, 'local-ready')
     assert.strictEqual(await count(repository), 3)
     assert.strictEqual(h.commits.mock.callCount(), 2)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 2)
+    assert.strictEqual(measures.copilotAssistedCommitMultiCommitRunCount, 1)
+    assert.strictEqual(measures.manualCommitWorkflowCount, 0)
     if (result.kind === 'local-ready') {
       for (const sha of result.result.commits) {
         const message = await rawGit(repository, [
@@ -212,6 +271,15 @@ describe('AppStore assisted commit runs', () => {
     )
     assert.strictEqual(h.propose.mock.callCount(), 0)
     assert.strictEqual(h.planner.createClient.mock.callCount(), 0)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitEmptyCommitCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitStartedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitPlanValidatedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitExecutionStartedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 0)
+    assert.strictEqual(measures.manualCommitWorkflowCount, 0)
     assert.strictEqual(
       h.appStore['popupManager'].areTherePopupsOfType(
         PopupType.AssistedCommitDisclaimer
@@ -295,6 +363,11 @@ describe('AppStore assisted commit runs', () => {
     h.cancel(repository)
     stop.resolve()
     assert.strictEqual((await run).kind, 'cancelled')
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
     assert.strictEqual(await count(repository), 1)
     assert.strictEqual(h.commits.mock.callCount(), 0)
     assert.strictEqual(h.state(repository).isCommitting, false)
@@ -331,6 +404,13 @@ describe('AppStore assisted commit runs', () => {
     )
     assert.strictEqual(result.kind, 'cancelled')
     assert.strictEqual(await tip(repository), originalHead)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitCreatedCommitCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryAttemptCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRecoverySuccessCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryErrorCount, 0)
     assert.deepStrictEqual(
       await optionalBytes(await indexPath(repository)),
       originalIndex
@@ -403,6 +483,10 @@ describe('AppStore assisted commit runs', () => {
     )
     assert.strictEqual(result.kind, 'error')
     assert.strictEqual(await tip(repository), originalHead)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitSelectionChangedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
     assert.strictEqual(
       await readFile(join(repository.path, 'file'), 'utf8'),
       'CURRENT user edit\n'
@@ -411,10 +495,16 @@ describe('AppStore assisted commit runs', () => {
   })
 
   it('accepts assisted-specific consent, then performs the correct action without ordinary message generation', async t => {
+    let now = 0
+    t.mock.method(performance, 'now', () => now)
     const source = await seed(t, { 'file.txt': 'before\n' })
     await writeFile(join(source.path, 'file.txt'), 'after\n')
     const h = await createAssistedCommitRunHarness(t)
     const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      now += 70000
+      return wholeSelectionResponse(analysis)
+    })
     h.assisted.dialogs['lastConsent'] = null
     const popupReady = awaitPopup(h, PopupType.AssistedCommitDisclaimer)
     t.after(() => popupReady.subscription.dispose())
@@ -432,8 +522,14 @@ describe('AppStore assisted commit runs', () => {
     assert.strictEqual(await count(repository), 1)
     const popup = h.appStore['popupManager'].currentPopup
     assert.ok(popup?.type === PopupType.AssistedCommitDisclaimer)
+    now += 200000
     popup.onAccepted()
     const result = await operation
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitOver15sCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitOver30sCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitOver60sCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitOver120sCount, 0)
     assert.strictEqual(result.kind, 'local-ready')
     assert.strictEqual(h.propose.mock.callCount(), 1)
     assert.strictEqual(await count(repository), 2)
@@ -497,6 +593,21 @@ describe('AppStore assisted commit runs', () => {
           : action === 'cancel'
           ? 'cancelled'
           : 'error'
+      )
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 0)
+      assert.strictEqual(
+        measures.copilotAssistedCommitConsentDeclinedCount,
+        action === 'decline' ? 1 : 0
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitCancelledCount,
+        action === 'cancel' ? 1 : 0
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitErrorCount,
+        action.startsWith('stale-') ? 1 : 0
       )
       assert.strictEqual(h.propose.mock.callCount(), 0)
       assert.strictEqual(await count(repository), 1)
@@ -676,6 +787,13 @@ describe('AppStore assisted commit runs', () => {
     }
     assert.strictEqual(result.kind, 'local-ready')
     assert.strictEqual(h.planner.send.mock.callCount(), 2)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitPlanningStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitPlanValidatedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitPlanRejectedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitFallbackCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
     assert.strictEqual(await count(repository), 2)
     assert.strictEqual(
       await rawGit(repository, ['show', '-s', '--format=%s', 'HEAD']),
@@ -758,6 +876,12 @@ describe('AppStore assisted commit runs', () => {
       originalIndex
     )
     assert.strictEqual(h.commits.mock.callCount(), 0)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitStartedCount, 4)
+    assert.strictEqual(measures.copilotAssistedCommitPlanRejectedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 3)
+    assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
   })
 
   it('reconciles changed selected text by original content anchors, never stale line offsets', async t => {
@@ -1026,6 +1150,16 @@ describe('AppStore assisted commit runs', () => {
         h.request(repository)
       )
       assert.strictEqual(result.kind, 'error')
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+      assert.strictEqual(measures.copilotAssistedCommitCancelledCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitConsentDeclinedCount, 0)
+      assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
+      const run = h.assisted.state.runs.get(repository.id)
+      assert.ok(run?.authorizationError)
+      assert.strictEqual(run.controller.signal.aborted, true)
+      assert.notStrictEqual(run.cancelledByUser, true)
       if (result.kind === 'error') {
         if (change === 'token') {
           assert.ok(
@@ -1124,6 +1258,15 @@ describe('AppStore assisted commit runs', () => {
     )
     assert.strictEqual(h.propose.mock.callCount(), 1)
     assert.strictEqual(h.commits.mock.callCount(), 0)
+    const measures = await h.measures()
+    assert.strictEqual(measures.copilotAssistedCommitStartedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitErrorCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRepositoryChangedCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryRequiredCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryAttemptCount, 3)
+    assert.strictEqual(measures.copilotAssistedCommitRecoveryErrorCount, 2)
+    assert.strictEqual(measures.copilotAssistedCommitRecoverySuccessCount, 1)
+    assert.strictEqual(measures.copilotAssistedCommitAcceptedCount, 0)
   })
 
   it('preserves externally changed index bytes and reports retained recovery instead of overwriting them', async t => {

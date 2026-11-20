@@ -23,6 +23,32 @@ function highlightSecond() {
   fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowDown' })
 }
 
+it('notifies only actual closed-to-open mouse and keyboard transitions', () => {
+  let opened = 0
+  const props = {
+    options: getOptions(),
+    dropdownAriaLabel: 'Choose option',
+    onDropdownOpened: () => opened++,
+  }
+  const view = render(<DropdownSelectButton {...props} />)
+  const button = screen.getByRole('button', { name: 'Choose option' })
+  assert.strictEqual(opened, 0)
+  fireEvent.click(button)
+  assert.strictEqual(opened, 1)
+  view.rerender(<DropdownSelectButton {...props} options={getOptions()} />)
+  fireEvent.keyDown(button, { key: 'ArrowDown' })
+  assert.strictEqual(opened, 1)
+  fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+  fireEvent.keyDown(button, { key: 'ArrowUp' })
+  assert.strictEqual(opened, 2)
+  view.rerender(<DropdownSelectButton {...props} dropdownDisabled={true} />)
+  fireEvent.click(button)
+  fireEvent.keyDown(button, { key: 'Enter' })
+  assert.strictEqual(opened, 2)
+  view.rerender(<DropdownSelectButton {...props} />)
+  fireEvent.click(button)
+  assert.strictEqual(opened, 3)
+})
 it('preserves the highlighted merge operation when History preview finishes loading', async () => {
   const merges = new Array<boolean | undefined>()
   const dispatcher = createMockDispatcher({

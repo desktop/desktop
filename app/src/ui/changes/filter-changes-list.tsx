@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Path from 'path'
 
 import { Dispatcher } from '../dispatcher'
+import { recordAssistedCommitMetric } from '../../lib/assisted-commit/metrics'
 import { IMenuItem } from '../../lib/menu-item'
 import { revealInFileManager } from '../../lib/app-shell'
 import { encodePathAsUrl } from '../../lib/path'
@@ -989,6 +990,7 @@ export class FilterChangesList extends React.Component<
         commitMessage={this.props.commitMessage}
         commitMode={this.props.commitMode}
         onCommitModeChanged={this.onCommitModeChanged}
+        onCommitModeDropdownOpened={this.onCommitModeDropdownOpened}
         pushAfterCommit={this.props.pushAfterCommit}
         canPushAfterCommit={this.props.conflictState === null}
         onPushAfterCommitChanged={this.onPushAfterCommitChanged}
@@ -1093,8 +1095,21 @@ export class FilterChangesList extends React.Component<
   private onPersistCommitMessage = (message: ICommitMessage) =>
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
 
-  private onCommitModeChanged = (commitMode: CommitMode) =>
+  private onCommitModeChanged = (commitMode: CommitMode) => {
     this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
+    recordAssistedCommitMetric(
+      this.props.dispatcher.incrementMetric,
+      commitMode === 'copilot'
+        ? 'commitModeSwitchedToCopilotCount'
+        : 'commitModeSwitchedToManualCount'
+    )
+  }
+
+  private onCommitModeDropdownOpened = () =>
+    recordAssistedCommitMetric(
+      this.props.dispatcher.incrementMetric,
+      'commitModeDropdownOpenedCount'
+    )
 
   private onPushAfterCommitChanged = (enabled: boolean) =>
     this.props.dispatcher.setPushAfterCommit(this.props.repository, enabled)

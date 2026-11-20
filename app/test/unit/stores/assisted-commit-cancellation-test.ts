@@ -1,5 +1,5 @@
 import { it, describe } from 'node:test'
-import { seed, count } from '../../helpers/assisted-commit'
+import { seed, count, rawGit } from '../../helpers/assisted-commit'
 import { writeFile, chmod } from 'fs/promises'
 import { join } from 'path'
 import {
@@ -18,6 +18,53 @@ import { writeFileSync } from 'fs'
 import { getWorkingDirectoryDiff } from '../../../src/lib/git/diff'
 
 describe('AppStore assisted commit cancellation', () => {
+  for (const filesChanged of [false, true]) {
+    it(`diagnoses pre-capture branch drift independently of file drift (files changed=${filesChanged})`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      h.assisted.dialogs['lastConsent'] = null
+      const shown = deferred<void>()
+      const subscription = h.appStore.onDidUpdate(() => {
+        if (
+          h.appStore['popupManager'].currentPopup?.type ===
+          PopupType.AssistedCommitDisclaimer
+        ) {
+          shown.resolve()
+        }
+      })
+      t.after(() => subscription.dispose())
+      const operation = h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      await shown.promise
+      await rawGit(repository, ['switch', '-c', 'external-branch'])
+      if (filesChanged) {
+        await writeFile(join(repository.path, 'file'), 'externally edited\n')
+      }
+      await h.appStore._loadStatus(repository)
+      const popup = h.appStore['popupManager'].currentPopup
+      assert.ok(popup?.type === PopupType.AssistedCommitDisclaimer)
+      popup.onAccepted()
+      assert.strictEqual((await operation).kind, 'error')
+      const state = h.state(repository).changesState.assistedCommit
+      assert.ok(state.kind === 'error' && state.retry === 'refresh')
+      const measures = await h.measures()
+      assert.strictEqual(
+        measures.copilotAssistedCommitRepositoryChangedCount,
+        1
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitSelectionChangedCount,
+        filesChanged ? 1 : 0
+      )
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+      assert.strictEqual(await count(repository), 1)
+    })
+  }
+
   it(
     'requires reselection after a newly introduced executable mode change during cancellation',
     { skip: __WIN32__ },
@@ -111,6 +158,17 @@ describe('AppStore assisted commit cancellation', () => {
       const state = h.state(repository).changesState.assistedCommit
       assert.ok(state.kind === 'error' && state.retry === 'refresh')
       assert.strictEqual(h.propose.mock.callCount(), 0)
+      const measures = await h.measures()
+      assert.strictEqual(measures.copilotAssistedCommitErrorCount, 0)
+      assert.strictEqual(
+        measures.copilotAssistedCommitConsentDeclinedCount,
+        exit === 'decline' ? 1 : 0
+      )
+      assert.strictEqual(
+        measures.copilotAssistedCommitCancelledCount,
+        exit === 'cancel' ? 1 : 0
+      )
+      assert.strictEqual(measures.copilotAssistedCommitSelectionChangedCount, 1)
     })
   }
 

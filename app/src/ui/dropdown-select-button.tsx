@@ -65,6 +65,9 @@ interface IDropdownSelectButtonProps {
     selectedOption: IDropdownSelectButtonOption
   ) => void
 
+  /** Called after a closed dropdown actually opens, by mouse or keyboard. */
+  readonly onDropdownOpened?: () => void
+
   /** Callback for when button is selected option button is clicked */
   readonly onSubmit?: (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -138,11 +141,22 @@ export class DropdownSelectButton extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: IDropdownSelectButtonProps) {
+  public componentDidUpdate(
+    prevProps: IDropdownSelectButtonProps,
+    prevState: IDropdownSelectButtonState
+  ) {
     if (this.props.dropdownDisabled && this.state.showButtonOptions) {
       this.setState({ showButtonOptions: false })
       this.dropdownButtonRef?.focus()
       return
+    }
+
+    if (
+      !prevState.showButtonOptions &&
+      this.state.showButtonOptions &&
+      this.props.options.length > 0
+    ) {
+      this.props.onDropdownOpened?.()
     }
 
     const selectedOptionID = this.state.selectedOption?.id

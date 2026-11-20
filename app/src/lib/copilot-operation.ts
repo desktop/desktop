@@ -228,6 +228,7 @@ export async function sendCopilotMessageRequest(
  * origin. Stop-hook corrections supersede earlier messages; tool requests
  * invalidate an earlier candidate. Idle alone is not proof of request ownership.
  * Every listener is released on completion, failure or cancellation.
+ * The optional request-start observer cannot reject a submitted turn.
  */
 export async function sendCopilotPlanningRequest(
   session: ICopilotPlanningSession,
@@ -238,7 +239,8 @@ export async function sendCopilotPlanningRequest(
     data: SessionEventPayload<'session.error'>['data']
   ) => Error = data =>
     getCopilotPaymentRequiredErrorFromSessionError(data) ??
-    new Error(data.message, { cause: data })
+    new Error(data.message, { cause: data }),
+  onRequestStarted?: () => void
 ): Promise<AssistantMessageEvent | undefined> {
   if (signal.aborted) {
     throw cancellationError()
@@ -333,7 +335,13 @@ export async function sendCopilotPlanningRequest(
       return
     }
     try {
-      void session.send(options).then(
+      const pending = session.send(options)
+      try {
+        onRequestStarted?.()
+      } catch (error) {
+        log.error('Could not report Copilot planning request start', error)
+      }
+      void pending.then(
         id => {
           if (settled) {
             return

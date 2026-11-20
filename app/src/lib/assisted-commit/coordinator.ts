@@ -25,6 +25,7 @@ import { CopilotStore } from '../stores/copilot-store'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { AssistedCommitContext } from './context'
 import { AssistedCommitDialogs } from './dialogs'
+import { createAssistedCommitMetrics } from './metrics'
 import { executeAssistedCommitRun } from './execution'
 import { AssistedCommitReaders } from './readers'
 import {
@@ -148,6 +149,7 @@ export class AssistedCommitCoordinator {
     result: IAssistedCommitResult
   ): void {
     finalizeAssistedCommitTransaction(result)
+    run.metrics.accepted(result.commits.length)
     this.state.accept(run, { kind: 'idle' })
     this.state.events.changed()
   }
@@ -193,6 +195,10 @@ export class AssistedCommitCoordinator {
       account,
       modelSelection,
       controller: new AbortController(),
+      metrics: createAssistedCommitMetrics(
+        request.files.length > 0,
+        this.state.events.recordMetric
+      ),
       selectionReaders: new Set<Promise<void>>(),
       settlement: createAssistedCommitSettlement(),
       selectionReadersClosed: false,
@@ -210,6 +216,7 @@ export class AssistedCommitCoordinator {
     let outcome: AssistedCommitRunOutcome | undefined
     let verifiedCancellation = false
 
+    run.metrics.once('copilotAssistedCommitStartedCount')
     try {
       const result = await executeAssistedCommitRun(run, request, prepared, {
         state: this.state,
@@ -270,11 +277,25 @@ export class AssistedCommitCoordinator {
       this.acceptLocal(run, result)
       outcome = { kind: 'local-ready', result }
     } catch (error) {
+      run.metrics.diagnose(error)
       const failure = await this.recovery.handleFailure(run, error)
       outcome = failure.outcome
       verifiedCancellation = failure.verifiedCancellation
     } finally {
-      outcome = await this.recovery.finish(run, outcome, verifiedCancellation)
+      try {
+        outcome = await this.recovery.finish(run, outcome, verifiedCancellation)
+      } finally {
+        if (!run.finalized) {
+          run.metrics.once(
+            run.declined
+              ? 'copilotAssistedCommitConsentDeclinedCount'
+              : run.cancelledByUser
+              ? 'copilotAssistedCommitCancelledCount'
+              : 'copilotAssistedCommitErrorCount'
+          )
+        }
+        await run.metrics.flush()
+      }
     }
     if (outcome === undefined) {
       throw new Error('Assisted commit run settled without an outcome')
