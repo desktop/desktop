@@ -120,20 +120,6 @@
       }
     }
 
-    @media (max-width: 600px) {
-      .account-info {
-        flex-direction: column;
-
-        .user-info-container {
-          margin-bottom: var(--spacing);
-        }
-
-        .account-actions {
-          align-self: normal;
-        }
-      }
-    }
-
     .call-to-action {
       display: block;
 

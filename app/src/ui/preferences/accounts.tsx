@@ -13,6 +13,9 @@ import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
 import { groupAccountsByHost } from '../../lib/group-accounts-by-host'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IAccountsProps {
   readonly accounts: ReadonlyArray<Account>
@@ -118,13 +121,14 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         </div>
         <div className="account-actions">
           <Button
-            onClick={this.manageRepositories(account)}
-            ariaLabel={`Manage repositories for @${account.login}`}
+            onClick={this.showAccountMenu(account)}
+            className={className}
+            ariaLabel={`Actions for @${account.login}`}
+            ariaHaspopup="menu"
+            tooltip={`Actions for @${account.login}`}
+            applyTooltipAriaDescribedBy={false}
           >
-            {__DARWIN__ ? 'Manage Repositories' : 'Manage repositories'}
-          </Button>
-          <Button onClick={this.logout(account)} className={className}>
-            {__DARWIN__ ? 'Sign Out' : 'Sign out'}
+            <Octicon symbol={octicons.kebabHorizontal} />
           </Button>
         </div>
       </Row>
@@ -174,15 +178,20 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     }
   }
 
-  private manageRepositories = (account: Account) => {
+  private showAccountMenu = (account: Account) => {
     return () => {
-      this.props.onManageRepositories(account)
-    }
-  }
-
-  private logout = (account: Account) => {
-    return () => {
-      this.props.onLogout(account)
+      const items: ReadonlyArray<IMenuItem> = [
+        {
+          label: __DARWIN__ ? 'Manage Repositories…' : 'Manage repositories…',
+          action: () => this.props.onManageRepositories(account),
+        },
+        { type: 'separator' },
+        {
+          label: __DARWIN__ ? 'Sign Out' : 'Sign out',
+          action: () => this.props.onLogout(account),
+        },
+      ]
+      showContextualMenu(items)
     }
   }
 }

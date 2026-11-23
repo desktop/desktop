@@ -1,12 +1,20 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import * as React from 'react'
+import { ipcRenderer } from 'electron'
+import { ISerializableMenuItem } from '../../../src/lib/menu-item'
 import { Account } from '../../../src/models/account'
 import { Accounts } from '../../../src/ui/preferences/accounts'
-import { fireEvent, render, screen, within } from '../../helpers/ui/render'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '../../helpers/ui/render'
 
 describe('Accounts preferences', () => {
-  it('shows all accounts on each endpoint and supports adding and signing out individually', () => {
+  it('shows all accounts on each endpoint and supports adding and signing out individually', async t => {
     const accounts = [
       new Account(
         'personal',
@@ -63,22 +71,46 @@ describe('Accounts preferences', () => {
     assert.strictEqual(dotComSignIns, 1)
     assert.strictEqual(enterpriseSignIns, 1)
 
-    const signOutButtons = screen.getAllByRole('button', { name: /sign out/i })
-    assert.strictEqual(signOutButtons.length, accounts.length)
-    fireEvent.click(signOutButtons[1])
-    assert.deepStrictEqual(signedOut, [accounts[1]])
+    const menus = new Array<ReadonlyArray<ISerializableMenuItem>>()
+    let choice = 0
+    t.mock.method(
+      ipcRenderer,
+      'invoke',
+      async (channel: string, items: ReadonlyArray<ISerializableMenuItem>) => {
+        assert.strictEqual(channel, 'show-contextual-menu')
+        menus.push(items)
+        return [choice]
+      }
+    )
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Manage repositories for @enterprise-two',
-      })
-    )
-    assert.deepStrictEqual(managed, [accounts[3]])
+    const actionButtons = screen.getAllByRole('button', {
+      name: /^actions for @/i,
+    })
+    assert.strictEqual(actionButtons.length, accounts.length)
     assert.strictEqual(
-      screen.getAllByRole('button', { name: /^manage repositories for/i })
-        .length,
-      accounts.length
+      screen.queryByRole('button', { name: /sign out|manage repositories/i }),
+      null
     )
+
+    choice = 2
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for @work' }))
+    await waitFor(() => assert.deepStrictEqual(signedOut, [accounts[1]]))
+
+    choice = 0
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Actions for @enterprise-two' })
+    )
+    await waitFor(() => assert.deepStrictEqual(managed, [accounts[3]]))
+    assert.deepStrictEqual(
+      menus.map(items =>
+        items.map(item => (item.label ?? item.type)?.toLowerCase())
+      ),
+      [
+        ['manage repositories…', 'separator', 'sign out'],
+        ['manage repositories…', 'separator', 'sign out'],
+      ]
+    )
+    assert.deepStrictEqual(signedOut, [accounts[1]])
   })
 
   it('groups enterprise accounts by hostname in their own section', () => {
