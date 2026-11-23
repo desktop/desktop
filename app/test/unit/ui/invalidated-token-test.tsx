@@ -105,6 +105,7 @@ describe('Session recovery dialog', () => {
         onDotComSignIn={() => signIns++}
         onEnterpriseSignIn={() => assert.fail('Unexpected Enterprise sign-in')}
         onLogout={() => assert.fail('Account should already be signed out')}
+        onManageRepositories={() => assert.fail('Unexpected manage')}
       />
     )
     assert.equal(screen.queryByText('Octocat'), null)

@@ -83,6 +83,7 @@ import { OpenWithExternalEditor } from './open-with-external-editor/open-with-ex
 import { RepositorySettings } from './repository-settings'
 import { RepositoryAccountDialog } from './repository-account/repository-account-dialog'
 import { ConfirmAccountSignOut } from './repository-account/confirm-account-sign-out'
+import { ManageAccountRepositoriesDialog } from './repository-account/manage-account-repositories-dialog'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository } from './add-repository'
@@ -297,6 +298,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private getOnPopupDismissedFn = memoizeOne((popupId: number) => {
     return () => this.onPopupDismissed(popupId)
   })
+
+  private getLocalRepositories = memoizeOne(
+    (repositories: ReadonlyArray<Repository | CloningRepository>) =>
+      repositories.filter((r): r is Repository => r instanceof Repository)
+  )
 
   public constructor(props: IAppProps) {
     super(props)
@@ -1846,6 +1852,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             account={popup.account}
             repositoryCount={popup.repositoryCount}
             onComplete={popup.onComplete}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.ManageAccountRepositories:
+        return (
+          <ManageAccountRepositoriesDialog
+            key="manage-account-repositories"
+            account={popup.account}
+            accounts={this.state.accounts}
+            repositories={this.getLocalRepositories(this.state.repositories)}
+            dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
           />
         )

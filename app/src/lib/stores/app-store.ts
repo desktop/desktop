@@ -309,6 +309,11 @@ import {
   getAssignmentOutcome,
   isMultiAccountEndpoint,
 } from '../stats/multi-account-stats'
+import {
+  getAccountRepositoryChanges,
+  getRepositoriesForAccountHost,
+  isPreviouslyUnknownAccount,
+} from '../account-repositories'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState } from '../window-state'
 import { TypedBaseStore } from './base-store'
@@ -9558,7 +9563,85 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return updated
   }
 
-  /** Show account choices in order, since only one account dialog can be open. */
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _showManageAccountRepositories(account: Account) {
+    await this._showPopup({
+      type: PopupType.ManageAccountRepositories,
+      account,
+    })
+  }
+
+  /**
+   * Begin a sign-in started from Account settings.
+   *
+   * When it adds a previously unknown account whose host has tracked
+   * repositories, offer to assign repositories to it. Signing in again to an
+   * existing account only refreshes its credentials and offers nothing.
+   *
+   * This shouldn't be called directly. See 'Dispatcher'.
+   */
+  public async _showAccountSettingsSignIn(
+    kind: 'dotcom' | 'enterprise'
+  ): Promise<void> {
+    const previous = await this.accountsStore.getAll()
+    const onResult = (result: SignInResult) => {
+      if (
+        result.kind !== 'success' ||
+        !isPreviouslyUnknownAccount(previous, result.account)
+      ) {
+        return
+      }
+      this.offerToManageNewAccountRepositories(result.account).catch(e =>
+        log.error('Unable to offer repositories for a new account', e)
+      )
+    }
+    if (kind === 'dotcom') {
+      this._beginDotComSignIn(onResult)
+    } else {
+      this._beginEnterpriseSignIn(onResult)
+    }
+    await this._showPopup({ type: PopupType.SignIn })
+  }
+
+  private async offerToManageNewAccountRepositories(account: Account) {
+    const repositories = await this.repositoriesStore.getAll()
+    if (getRepositoriesForAccountHost(repositories, account).length > 0) {
+      this._closePopup(PopupType.SignIn)
+      await this._showManageAccountRepositories(account)
+    }
+  }
+
+  /**
+   * Assign the selected repositories to the account and clear the
+   * assignment of shown repositories that were assigned to it but are no
+   * longer selected. Other repositories keep their assignment.
+   *
+   * This shouldn't be called directly. See 'Dispatcher'.
+   */
+  public async _updateAccountRepositories(
+    account: Account,
+    shown: ReadonlySet<number>,
+    selected: ReadonlySet<number>
+  ): Promise<void> {
+    const accounts = await this.accountsStore.getAll()
+    if (!accounts.some(a => isSameAccount(a, account))) {
+      throw new Error(
+        `@${account.login} is no longer signed in. Sign in again to assign repositories to it.`
+      )
+    }
+    const current = (await this.repositoriesStore.getAll()).filter(r =>
+      shown.has(r.id)
+    )
+    const changes = getAccountRepositoryChanges(current, account, selected)
+    if (changes.length === 0) {
+      return
+    }
+    await this.repositoriesStore.updateRepositoryAccounts(changes)
+    this.setRepositories(await this.repositoriesStore.getAll())
+    this.updateRepositorySelectionAfterRepositoriesChanged()
+    this.emitUpdate()
+  }
+
   public async _chooseRepositoryAccount(
     repository: RepositoryWithGitHubRepository,
     accounts?: ReadonlyArray<Account>

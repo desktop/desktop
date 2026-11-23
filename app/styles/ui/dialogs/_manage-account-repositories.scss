@@ -1,0 +1,56 @@
+#manage-account-repositories {
+  width: 500px;
+
+  .account-repositories-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    margin-bottom: var(--spacing);
+
+    .account-repositories-filter {
+      flex-grow: 1;
+    }
+  }
+
+  .account-repositories-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .account-repository {
+    padding: var(--spacing-half) var(--spacing);
+
+    &:not(:last-child) {
+      border-bottom: var(--base-border);
+    }
+
+    .checkbox-component {
+      margin: 0;
+    }
+
+    .account-repository-details {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing);
+      // Line up with the checkbox label.
+      padding-left: 20px;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .account-repository-full-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .account-repository-association {
+      flex-shrink: 0;
+    }
+  }
+}

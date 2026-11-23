@@ -20,6 +20,7 @@ interface IAccountsProps {
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
   readonly onLogout: (account: Account) => void
+  readonly onManageRepositories: (account: Account) => void
 }
 
 enum SignInType {
@@ -115,9 +116,17 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             <div className="login">@{account.login}</div>
           </div>
         </div>
-        <Button onClick={this.logout(account)} className={className}>
-          {__DARWIN__ ? 'Sign Out' : 'Sign out'}
-        </Button>
+        <div className="account-actions">
+          <Button
+            onClick={this.manageRepositories(account)}
+            ariaLabel={`Manage repositories for @${account.login}`}
+          >
+            {__DARWIN__ ? 'Manage Repositories' : 'Manage repositories'}
+          </Button>
+          <Button onClick={this.logout(account)} className={className}>
+            {__DARWIN__ ? 'Sign Out' : 'Sign out'}
+          </Button>
+        </div>
       </Row>
     )
   }
@@ -162,6 +171,12 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         )
       default:
         return assertNever(type, `Unknown sign in type: ${type}`)
+    }
+  }
+
+  private manageRepositories = (account: Account) => {
+    return () => {
+      this.props.onManageRepositories(account)
     }
   }
 

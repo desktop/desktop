@@ -40,12 +40,14 @@ describe('Accounts preferences', () => {
     let dotComSignIns = 0
     let enterpriseSignIns = 0
     const signedOut: Account[] = []
+    const managed: Account[] = []
     render(
       <Accounts
         accounts={accounts}
         onDotComSignIn={() => dotComSignIns++}
         onEnterpriseSignIn={() => enterpriseSignIns++}
         onLogout={account => signedOut.push(account)}
+        onManageRepositories={account => managed.push(account)}
       />
     )
 
@@ -65,6 +67,18 @@ describe('Accounts preferences', () => {
     assert.strictEqual(signOutButtons.length, accounts.length)
     fireEvent.click(signOutButtons[1])
     assert.deepStrictEqual(signedOut, [accounts[1]])
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Manage repositories for @enterprise-two',
+      })
+    )
+    assert.deepStrictEqual(managed, [accounts[3]])
+    assert.strictEqual(
+      screen.getAllByRole('button', { name: /^manage repositories for/i })
+        .length,
+      accounts.length
+    )
   })
 
   it('groups enterprise accounts by hostname in their own section', () => {
@@ -91,6 +105,7 @@ describe('Accounts preferences', () => {
         onDotComSignIn={() => {}}
         onEnterpriseSignIn={() => {}}
         onLogout={() => {}}
+        onManageRepositories={() => {}}
       />
     )
 
@@ -153,6 +168,7 @@ describe('Accounts preferences', () => {
         onDotComSignIn={() => {}}
         onEnterpriseSignIn={() => {}}
         onLogout={() => {}}
+        onManageRepositories={() => {}}
       />
     )
 
@@ -171,6 +187,7 @@ describe('Accounts preferences', () => {
         onDotComSignIn={() => {}}
         onEnterpriseSignIn={() => {}}
         onLogout={() => {}}
+        onManageRepositories={() => {}}
       />
     )
     assert.ok(screen.getByRole('button', { name: /sign into github.com/i }))

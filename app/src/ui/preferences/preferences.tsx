@@ -475,12 +475,16 @@ export class Preferences extends React.Component<
 
   private onDotComSignIn = () => {
     this.props.onDismissed()
-    this.props.dispatcher.showDotComSignInDialog()
+    this.props.dispatcher.showAccountSettingsSignIn('dotcom')
   }
 
   private onEnterpriseSignIn = () => {
     this.props.onDismissed()
-    this.props.dispatcher.showEnterpriseSignInDialog()
+    this.props.dispatcher.showAccountSettingsSignIn('enterprise')
+  }
+
+  private onManageRepositories = (account: Account) => {
+    this.props.dispatcher.showManageAccountRepositories(account)
   }
 
   private onCopilotSignIn = () => {
@@ -542,6 +546,7 @@ export class Preferences extends React.Component<
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
             onLogout={this.onLogout}
+            onManageRepositories={this.onManageRepositories}
           />
         )
         break

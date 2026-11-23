@@ -103,6 +103,12 @@
           margin-bottom: -2px;
         }
       }
+
+      .account-actions {
+        display: flex;
+        align-self: center;
+        gap: var(--spacing-half);
+      }
     }
 
     .enterprise-host {
@@ -122,7 +128,7 @@
           margin-bottom: var(--spacing);
         }
 
-        .button-component {
+        .account-actions {
           align-self: normal;
         }
       }

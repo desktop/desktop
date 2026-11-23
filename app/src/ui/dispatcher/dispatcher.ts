@@ -1360,6 +1360,31 @@ export class Dispatcher {
     return this.appStore._updateRepositoryAccount(repository, login)
   }
 
+  /** Show the dialog for assigning repositories to the account. */
+  public showManageAccountRepositories(account: Account) {
+    return this.appStore._showManageAccountRepositories(account)
+  }
+
+  /**
+   * Begin a sign-in from Account settings, offering to assign repositories
+   * when it adds a previously unknown account.
+   */
+  public showAccountSettingsSignIn(kind: 'dotcom' | 'enterprise') {
+    return this.appStore._showAccountSettingsSignIn(kind)
+  }
+
+  /**
+   * Assign the selected repositories to the account, clearing the assignment
+   * of shown repositories that were assigned to it but aren't selected.
+   */
+  public updateAccountRepositories(
+    account: Account,
+    shown: ReadonlySet<number>,
+    selected: ReadonlySet<number>
+  ) {
+    return this.appStore._updateAccountRepositories(account, shown, selected)
+  }
+
   /** Resolve an account, prompting only for a user-initiated operation. */
   public ensureRepositoryAccount(repository: Repository) {
     return this.appStore._ensureRepositoryAccount(repository)
