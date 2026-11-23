@@ -1,7 +1,10 @@
 import { DiffSelectionType, DiffType } from '../../models/diff'
 import { Repository } from '../../models/repository'
-import { WorkingDirectoryStatus } from '../../models/status'
-import { ChangesSelectionKind } from '../app-state'
+import {
+  WorkingDirectoryFileChange,
+  WorkingDirectoryStatus,
+} from '../../models/status'
+import { ChangesSelectionKind, IChangesState } from '../app-state'
 import { getAssistedCommitInputVersions } from '../assisted-commit-request'
 import { arrayEquals } from '../equality'
 import { getWorkingDirectoryDiff } from '../git'
@@ -22,6 +25,40 @@ export type SelectionDisplayResult =
       readonly error: AssistedCommitError
       readonly run: IAssistedCommitRun | undefined
     }
+
+function reconcileSelectionAfterAwait(
+  latest: IChangesState,
+  selectedFileIDsBeforeLoad: ReadonlyArray<string>,
+  selectedFileID: string,
+  currentlySelectedFile: WorkingDirectoryFileChange,
+  selections: AssistedCommitSelection
+):
+  | { readonly kind: 'same' }
+  | { readonly kind: 'adopted'; readonly file: WorkingDirectoryFileChange }
+  | { readonly kind: 'unchanged' } {
+  if (
+    latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+    !arrayEquals(latest.selection.selectedFileIDs, selectedFileIDsBeforeLoad)
+  ) {
+    return { kind: 'unchanged' }
+  }
+  const latestFile = latest.workingDirectory.findFileWithID(selectedFileID)
+  if (latestFile === null) {
+    return { kind: 'unchanged' }
+  }
+  if (latestFile.selection === currentlySelectedFile.selection) {
+    return { kind: 'same' }
+  }
+  if (
+    latestFile.status === currentlySelectedFile.status &&
+    latestFile.selection.getSelectionType() !== DiffSelectionType.Partial &&
+    !selections.hasRestored(latestFile.selection) &&
+    selections.getBasis(latestFile.selection) === undefined
+  ) {
+    return { kind: 'adopted', file: latestFile }
+  }
+  return { kind: 'unchanged' }
+}
 
 /** Refresh display bounds without manufacturing or broadening selected-change authority. */
 export async function updateWorkingDirectorySelectionDiff(
@@ -96,17 +133,17 @@ export async function updateWorkingDirectorySelectionDiff(
     return { kind: 'unchanged' }
   }
 
-  const currentlySelectedFile =
+  let currentlySelectedFile =
     changesState.workingDirectory.findFileWithID(selectedFileID)
   if (currentlySelectedFile === null) {
     return { kind: 'unchanged' }
   }
 
-  const basis = selections.getRestored(currentlySelectedFile.selection)
+  let basis = selections.getRestored(currentlySelectedFile.selection)
   const active = state.selectionOwner(repository)
   const engineOwnsSelection =
     active?.snapshotAuthorized === true && !active.finished
-  const retainedBasis =
+  let retainedBasis =
     selections.getBasis(currentlySelectedFile.selection) ??
     (currentlySelectedFile.selection.getSelectionType() ===
       DiffSelectionType.Partial && !engineOwnsSelection
@@ -127,19 +164,20 @@ export async function updateWorkingDirectorySelectionDiff(
       false,
       { noTextconv: true }
     )
-    const latest = cache.get(repository).changesState
-    if (
-      latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-      !arrayEquals(
-        latest.selection.selectedFileIDs,
-        selectedFileIDsBeforeLoad
-      ) ||
-      latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
-        currentlySelectedFile.selection
-    ) {
+    const reconciled = reconcileSelectionAfterAwait(
+      cache.get(repository).changesState,
+      selectedFileIDsBeforeLoad,
+      selectedFileID,
+      currentlySelectedFile,
+      selections
+    )
+    if (reconciled.kind === 'unchanged') {
       return { kind: 'unchanged' }
     }
-    if (
+    if (reconciled.kind === 'adopted') {
+      currentlySelectedFile = reconciled.file
+      retainedBasis = undefined
+    } else if (
       retainedBasis.text === null ||
       (canonical.kind !== DiffType.Text &&
         canonical.kind !== DiffType.LargeText) ||
@@ -165,7 +203,21 @@ export async function updateWorkingDirectorySelectionDiff(
         false,
         { noTextconv: true }
       )
-      if (
+      const reconciled = reconcileSelectionAfterAwait(
+        cache.get(repository).changesState,
+        selectedFileIDsBeforeLoad,
+        selectedFileID,
+        currentlySelectedFile,
+        selections
+      )
+      if (reconciled.kind === 'unchanged') {
+        return { kind: 'unchanged' }
+      }
+      if (reconciled.kind === 'adopted') {
+        currentlySelectedFile = reconciled.file
+        basis = undefined
+        retainedBasis = undefined
+      } else if (
         (canonical.kind !== DiffType.Text &&
           canonical.kind !== DiffType.LargeText) ||
         (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
@@ -182,35 +234,39 @@ export async function updateWorkingDirectorySelectionDiff(
         }
       }
     }
-    const head = await readAssistedCommitHead(repository)
-    const versions = await getAssistedCommitInputVersions(repository, [
-      currentlySelectedFile,
-    ])
-    if (
-      head.ref !== basis.head.ref ||
-      head.sha !== basis.head.sha ||
-      versions[0] !== basis.version
-    ) {
-      return {
-        kind: 'invalid',
-        run: active,
-        error: new AssistedCommitError(
-          'selection-changed',
-          'Selected files changed while their diff was being verified. Review and reselect current changes.'
-        ),
+    if (basis !== undefined) {
+      const head = await readAssistedCommitHead(repository)
+      const versions = await getAssistedCommitInputVersions(repository, [
+        currentlySelectedFile,
+      ])
+      const reconciled = reconcileSelectionAfterAwait(
+        cache.get(repository).changesState,
+        selectedFileIDsBeforeLoad,
+        selectedFileID,
+        currentlySelectedFile,
+        selections
+      )
+      if (reconciled.kind === 'unchanged') {
+        return { kind: 'unchanged' }
       }
-    }
-    const latest = cache.get(repository).changesState
-    if (
-      latest.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
-      !arrayEquals(
-        latest.selection.selectedFileIDs,
-        selectedFileIDsBeforeLoad
-      ) ||
-      latest.workingDirectory.findFileWithID(selectedFileID)?.selection !==
-        currentlySelectedFile.selection
-    ) {
-      return { kind: 'unchanged' }
+      if (reconciled.kind === 'adopted') {
+        currentlySelectedFile = reconciled.file
+        basis = undefined
+        retainedBasis = undefined
+      } else if (
+        head.ref !== basis.head.ref ||
+        head.sha !== basis.head.sha ||
+        versions[0] !== basis.version
+      ) {
+        return {
+          kind: 'invalid',
+          run: active,
+          error: new AssistedCommitError(
+            'selection-changed',
+            'Selected files changed while their diff was being verified. Review and reselect current changes.'
+          ),
+        }
+      }
     }
   }
 

@@ -94,12 +94,14 @@ export class AssistedCommitSelection {
   /** Revalidate restored diff, HEAD and file-version certificates before reuse. */
   public async verifyRestored(
     repository: Repository,
-    selectedFiles: ReadonlyArray<WorkingDirectoryFileChange> = this.cache.get(
-      repository
-    ).changesState.workingDirectory.files
+    selectedFiles?: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
+    const explicitSelection = selectedFiles !== undefined
+    const candidateFiles =
+      selectedFiles ??
+      this.cache.get(repository).changesState.workingDirectory.files
     const certified = new Map<string, ITextDiff | ILargeTextDiff>()
-    const files = selectedFiles.filter(
+    const files = candidateFiles.filter(
       file =>
         file.selection.getSelectionType() !== DiffSelectionType.None &&
         this.restored.has(file.selection)
@@ -107,14 +109,35 @@ export class AssistedCommitSelection {
     if (files.length === 0) {
       return certified
     }
+    const isSuperseded = (file: WorkingDirectoryFileChange) =>
+      !explicitSelection &&
+      !this.restored.has(file.selection) &&
+      this.cache
+        .get(repository)
+        .changesState.workingDirectory.findFileWithID(file.id)?.selection !==
+        file.selection
+    const activeFiles: WorkingDirectoryFileChange[] = []
     for (const file of files) {
+      if (isSuperseded(file)) {
+        continue
+      }
       const authority = this.restored.get(file.selection)
-      if (authority?.text === null) {
+      if (authority === undefined) {
+        throw new AssistedCommitError(
+          'selection-changed',
+          'Restored selected changes no longer match their verified diff. Review and reselect current changes.'
+        )
+      }
+      if (authority.text === null) {
+        activeFiles.push(file)
         continue
       }
       const diff = await this.getRecoveryDiff(repository, file)
+      if (isSuperseded(file)) {
+        continue
+      }
       if (
-        authority === undefined ||
+        !this.restored.has(file.selection) ||
         diff === null ||
         (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
         diff.text !== authority.text
@@ -127,11 +150,22 @@ export class AssistedCommitSelection {
       if (file.selection.getSelectionType() === DiffSelectionType.Partial) {
         certified.set(file.id, diff)
       }
+      activeFiles.push(file)
+    }
+    if (activeFiles.length === 0) {
+      return certified
     }
     const head = await readAssistedCommitHead(repository)
-    const versions = await getAssistedCommitInputVersions(repository, files)
+    const versions = await getAssistedCommitInputVersions(
+      repository,
+      activeFiles
+    )
     if (
-      files.some((file, index) => {
+      activeFiles.some((file, index) => {
+        if (isSuperseded(file)) {
+          certified.delete(file.id)
+          return false
+        }
         const authority = this.restored.get(file.selection)
         return (
           authority === undefined ||
@@ -591,6 +625,10 @@ export class AssistedCommitSelection {
         : current === null
         ? undefined
         : this.bases.get(current.selection)?.text
+    if (current !== null && current.selection !== diffSelection) {
+      this.restored.delete(current.selection)
+      this.bases.delete(current.selection)
+    }
     const type = diffSelection.getSelectionType()
     if (type !== DiffSelectionType.None) {
       this.bases.set(diffSelection, {

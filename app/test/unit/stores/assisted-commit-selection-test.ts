@@ -15,6 +15,7 @@ import {
   createAssistedCommitRunHarness,
 } from '../../helpers/assisted-commit-run'
 import { PopupType } from '../../../src/models/popup'
+import { ChangesSelectionKind } from '../../../src/lib/app-state'
 import assert from 'node:assert'
 import {
   DiffSelectionType,
@@ -955,5 +956,166 @@ describe('AppStore assisted commit selection authority', () => {
       updatedSecond?.selection.getSelectionType(),
       DiffSelectionType.None
     )
+  })
+
+  it('installs the loaded diff without invalidating other selections when a restored file is unchecked during diff basis verification', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    await writeFile(join(source.path, 'second'), 'updated 2\n')
+
+    const updateDiff = h.appStore['updateChangesWorkingDirectoryDiff'].bind(
+      h.appStore
+    )
+    let diffPromise: Promise<void> | undefined
+    h.appStore['updateChangesWorkingDirectoryDiff'] = repo => {
+      diffPromise = updateDiff(repo)
+      return diffPromise
+    }
+
+    const getRestored = h.assisted.selections.getRestored.bind(
+      h.assisted.selections
+    )
+    let uncheckedDuringVerify: Promise<void> | undefined
+    h.assisted.selections.getRestored = selection => {
+      const result = getRestored(selection)
+      const secondFile = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'second'
+        )
+      if (
+        result !== undefined &&
+        uncheckedDuringVerify === undefined &&
+        secondFile?.selection === selection
+      ) {
+        uncheckedDuringVerify = h.dispatcher.changeFileIncluded(
+          repository,
+          secondFile,
+          false
+        )
+      }
+      return result
+    }
+
+    const second = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(second)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [second])
+    await uncheckedDuringVerify
+    await diffPromise
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const secondAfter = files.find(file => file.path === 'second')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      secondAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    const selection = h.state(repository).changesState.selection
+    assert.strictEqual(selection.kind, ChangesSelectionKind.WorkingDirectory)
+    assert.notStrictEqual(selection.diff, null)
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('does not invalidate remaining selections when a restored file is unchecked while background status verification is in flight', async t => {
+    const source = await seed(t, {
+      first: 'before 1\n',
+      second: 'line 1\nline 2\n',
+    })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'changed 1\nchanged 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const secondInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [secondInitial])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const secondSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      secondSelected,
+      secondSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    await writeFile(join(source.path, 'second'), 'updated 1\nupdated 2\n')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getRecoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let paused = false
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
+      if (!paused && file.path === 'second') {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return getRecoveryDiff(repo, file)
+    }
+
+    const statusPromise = h.appStore['_loadStatus'](repository)
+    await entered.promise
+    try {
+      const second = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'second'
+        )
+      assert.ok(second)
+      await h.dispatcher.changeFileIncluded(repository, second, false)
+    } finally {
+      finish.resolve()
+      await statusPromise
+    }
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const secondAfter = files.find(file => file.path === 'second')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      secondAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    assert.deepStrictEqual(errors, [])
   })
 })

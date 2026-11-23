@@ -4207,6 +4207,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     const files = Array.isArray(file) ? file : [file]
+    this.assistedCommits.selections.retire(repository, files)
     const modifiedIds = new Set<string>(files.map(f => f.id))
 
     this.repositoryStateCache.updateChangesState(repository, state => {
@@ -4267,6 +4268,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeAll: boolean
   ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
+    this.assistedCommits.selections.retire(
+      repository,
+      this.repositoryStateCache.get(repository).changesState.workingDirectory
+        .files
+    )
     this.repositoryStateCache.updateChangesState(repository, state => {
       const workingDirectory =
         state.workingDirectory.withIncludeAllFiles(includeAll)
