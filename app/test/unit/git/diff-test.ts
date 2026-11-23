@@ -854,5 +854,78 @@ describe('git/diff', () => {
       assert(!diff.text.includes('bar'))
       assert(diff.text.includes('feature'))
     })
+
+    it('ignores diff.external when computing merge-base diff', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      await makeCommit(repository, {
+        entries: [{ path: 'foo.md', contents: 'base\n' }],
+      })
+
+      await exec(['branch', 'feature-branch'], repository.path)
+
+      await makeCommit(repository, {
+        entries: [{ path: 'foo.md', contents: 'base\nmaster\n' }],
+      })
+
+      await switchTo(repository, 'feature-branch')
+
+      await makeCommit(repository, {
+        entries: [{ path: 'foo.md', contents: 'base\nfeature\n' }],
+      })
+
+      await exec(
+        ['config', '--local', 'diff.external', 'echo EXTERNAL_DIFF_INVOKED'],
+        repository.path
+      )
+
+      const diff = await getBranchMergeBaseDiff(
+        repository,
+        new FileChange('foo.md', { kind: AppFileStatusKind.Modified }),
+        'master',
+        'feature-branch',
+        false,
+        'irrelevantToTest'
+      )
+
+      assert.strictEqual(diff.kind, DiffType.Text)
+      assert(diff.text.includes('+feature'))
+      assert(!diff.text.includes('EXTERNAL_DIFF_INVOKED'))
+    })
+  })
+
+  describe('getCommitRangeDiff', () => {
+    it('ignores diff.external when computing commit range diff', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      await makeCommit(repository, {
+        entries: [{ path: 'foo.md', contents: 'first\n' }],
+      })
+      const firstSha = (
+        await exec(['rev-parse', 'HEAD'], repository.path)
+      ).stdout.trim()
+
+      await makeCommit(repository, {
+        entries: [{ path: 'foo.md', contents: 'first\nsecond\n' }],
+      })
+      const secondSha = (
+        await exec(['rev-parse', 'HEAD'], repository.path)
+      ).stdout.trim()
+
+      await exec(
+        ['config', '--local', 'diff.external', 'echo EXTERNAL_DIFF_INVOKED'],
+        repository.path
+      )
+
+      const diff = await getCommitRangeDiff(
+        repository,
+        new FileChange('foo.md', { kind: AppFileStatusKind.Modified }),
+        [firstSha, secondSha]
+      )
+
+      assert.strictEqual(diff.kind, DiffType.Text)
+      assert(diff.text.includes('+second'))
+      assert(!diff.text.includes('EXTERNAL_DIFF_INVOKED'))
+    })
   })
 })
