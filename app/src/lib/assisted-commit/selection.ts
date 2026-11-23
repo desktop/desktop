@@ -71,6 +71,7 @@ interface ISelectionBasis {
 /** Owns selection certificates and original diff lineage across native refreshes. */
 export class AssistedCommitSelection {
   private readonly restored = new WeakMap<DiffSelection, IRestoredSelection>()
+  private readonly knownRestored = new WeakSet<DiffSelection>()
   private readonly retiredRestored = new WeakSet<IRestoredSelection>()
   private readonly bases = new WeakMap<DiffSelection, ISelectionBasis>()
 
@@ -206,6 +207,18 @@ export class AssistedCommitSelection {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
+    if (
+      files.some(
+        file =>
+          this.knownRestored.has(file.selection) &&
+          this.getActiveRestored(file.selection) === undefined
+      )
+    ) {
+      throw new AssistedCommitError(
+        'selection-changed',
+        'Restored selected changes changed before manual commit admission. Review and reselect current changes.'
+      )
+    }
     const restored = files.filter(
       file => this.getActiveRestored(file.selection) !== undefined
     )
@@ -365,6 +378,7 @@ export class AssistedCommitSelection {
         head: latestHead,
         version: latestVersions[basis.index],
       })
+      this.knownRestored.add(selection)
     }
     run.selectionFence = { head: latestHead, versions: latestVersions }
   }
@@ -585,6 +599,7 @@ export class AssistedCommitSelection {
         head: latestHead,
         version: latestVersions[basis.index],
       })
+      this.knownRestored.add(selection)
     }
     run.selectionFence = { head: latestHead, versions: latestVersions }
     const verified = new Map(files.map(file => [file.id, file]))
@@ -623,6 +638,7 @@ export class AssistedCommitSelection {
   ): void {
     if (restored !== undefined && !this.retiredRestored.has(restored)) {
       this.restored.set(selection, restored)
+      this.knownRestored.add(selection)
     }
     if (basis !== undefined) {
       this.bases.set(selection, basis)

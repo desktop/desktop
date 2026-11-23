@@ -798,6 +798,70 @@ describe('AppStore assisted commit selection authority', () => {
     )
   })
 
+  it('rejects captured Manual masks unchecked while resource admission awaits', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 1)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    h.dispatcher.setCommitMode(repository, 'manual')
+    const index = await optionalBytes(await indexPath(repository))
+    const admitted = deferred<void>()
+    const finish = deferred<void>()
+    const resources = h.appStore['withAssistedCommitMutationResources'].bind(
+      h.appStore
+    )
+    h.appStore['withAssistedCommitMutationResources'] = (repo, operation) =>
+      resources(repo, async () => {
+        admitted.resolve()
+        await finish.promise
+        return operation()
+      })
+    const refresh = h.appStore._refreshRepository.bind(h.appStore)
+    const refreshes: Promise<void>[] = []
+    h.appStore._refreshRepository = (...args) => {
+      const refreshing = refresh(...args)
+      refreshes.push(refreshing)
+      return refreshing
+    }
+    const committing = h.appStore._commitIncludedChanges(repository, {
+      summary: 'Must not commit unchecked file',
+      description: '',
+      trailers: [],
+    })
+    await admitted.promise
+    const selected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'file')
+    assert.ok(selected)
+    await h.dispatcher.changeFileIncluded(repository, selected, false)
+    finish.resolve()
+    let committed: boolean
+    try {
+      committed = await committing
+    } finally {
+      await Promise.all(refreshes)
+    }
+    assert.strictEqual(committed, false)
+    assert.strictEqual(await count(repository), 1)
+    assert.deepStrictEqual(
+      await optionalBytes(await indexPath(repository)),
+      index
+    )
+    assert.strictEqual(h.commits.mock.callCount(), 0)
+    const fileAfter = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'file')
+    assert.strictEqual(
+      fileAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+  })
+
   it('never remaps certified Manual partial masks onto a fresh diff after admission', async t => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
     h.propose.mock.mockImplementation(async (_account, analysis) => {
