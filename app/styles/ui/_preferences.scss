@@ -72,60 +72,80 @@
   }
 
   .accounts-tab {
-    .accounts-section:not(:last-child) {
+    .accounts-header {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing);
       margin-bottom: var(--spacing);
+
+      .accounts-header-text {
+        flex-grow: 1;
+        min-width: 0;
+      }
+
+      h2 {
+        margin: 0;
+      }
+
+      .accounts-description {
+        margin: var(--spacing-half) 0 0;
+        color: var(--text-secondary-color);
+      }
+
+      .add-account-button {
+        flex-shrink: 0;
+      }
+    }
+
+    .accounts-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+    }
+
+    .accounts-empty {
+      padding: var(--spacing-double) var(--spacing);
+      text-align: center;
+      color: var(--text-secondary-color);
     }
 
     .account-info {
-      .user-info-container {
-        display: flex;
-        flex-grow: 1;
-        gap: var(--spacing);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+      margin: 0;
+      padding: var(--spacing);
+
+      &:not(:last-child) {
+        border-bottom: var(--base-border);
       }
 
       .avatar {
         // 32px for the image + 2 on each side for the base border.
         width: 34px;
         height: 34px;
-
-        align-self: center;
+        flex-shrink: 0;
       }
 
       .user-info {
         flex-grow: 1;
-        align-self: flex-start;
+        min-width: 0;
 
         .name {
           font-weight: var(--font-weight-semibold);
-          // Tighten it up a little so that the real name and
-          // username lines up with the avatar.
-          margin-top: -2px;
-          margin-bottom: -2px;
         }
-      }
 
-      .account-actions {
-        display: flex;
-        align-self: center;
-        gap: var(--spacing-half);
-      }
-    }
+        .login {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
-    .enterprise-host {
-      margin-bottom: var(--spacing);
-
-      h3 {
-        color: var(--text-secondary-color);
-        margin-bottom: var(--spacing-half);
-      }
-    }
-
-    .call-to-action {
-      display: block;
-
-      .button-component {
-        margin-top: var(--spacing);
-        margin-left: 0;
+        .host {
+          color: var(--text-secondary-color);
+        }
       }
     }
   }
