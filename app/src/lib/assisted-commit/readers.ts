@@ -105,13 +105,23 @@ export class AssistedCommitReaders {
       return this.read(repository, run, operation)
     }
     const state = this.state.cache.get(repository)
-    if (
-      run === undefined &&
-      !state.changesState.workingDirectory.files.some(file =>
-        this.selections.hasRestored(file.selection)
-      )
-    ) {
-      return operation()
+    if (run === undefined) {
+      if (
+        !state.changesState.workingDirectory.files.some(file =>
+          this.selections.hasRestored(file.selection)
+        )
+      ) {
+        return operation()
+      }
+      try {
+        return await withRepositoryGitOperation(repository.path, 'read', () =>
+          withRepositoryGitErrorPropagation(operation)
+        )
+      } catch (error) {
+        this.invalidate(repository, undefined, error)
+        this.state.events.changed()
+        throw error
+      }
     }
     const readers = this.state.selectionReaders.get(repository.id) ?? {
       pending: new Set<Promise<void>>(),
@@ -123,7 +133,7 @@ export class AssistedCommitReaders {
     })
     const protection = protectAssistedCommitResources(repository.path)
     readers.pending.add(done)
-    run?.selectionReaders.add(done)
+    run.selectionReaders.add(done)
     this.state.selectionReaders.set(repository.id, readers)
     this.state.cache.update(repository, () => ({ isCommitting: true }))
     this.state.updateErrorSettlement(repository)
@@ -140,7 +150,7 @@ export class AssistedCommitReaders {
       throw error
     } finally {
       readers.pending.delete(done)
-      run?.selectionReaders.delete(done)
+      run.selectionReaders.delete(done)
       complete()
       protection.release()
       if (readers.pending.size === 0) {

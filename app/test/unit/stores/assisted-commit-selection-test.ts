@@ -893,4 +893,67 @@ describe('AppStore assisted commit selection authority', () => {
     )
     assert.strictEqual(await count(repository), 1)
   })
+
+  it('keeps repository mutations available while an ownerless restored-selection reader is in flight', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiff = h.appStore['updateChangesWorkingDirectoryDiff'].bind(
+      h.appStore
+    )
+    let diffPromise: Promise<void> | undefined
+    h.appStore['updateChangesWorkingDirectoryDiff'] = repo => {
+      diffPromise = updateDiff(repo)
+      return diffPromise
+    }
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async repo => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return updateDiffCore(repo)
+    }
+    const second = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(second)
+    const selecting = h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      second,
+    ])
+    await entered.promise
+    try {
+      assert.strictEqual(h.state(repository).isCommitting, false)
+      assert.doesNotThrow(() => h.assisted.state.assertAvailable(repository))
+      await h.dispatcher.changeFileIncluded(repository, second, false)
+    } finally {
+      finish.resolve()
+      await selecting
+      await diffPromise
+    }
+    const updatedSecond = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.strictEqual(
+      updatedSecond?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+  })
 })

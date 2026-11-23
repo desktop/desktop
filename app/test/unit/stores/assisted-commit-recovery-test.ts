@@ -695,4 +695,82 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
       assistedCommitErrorCauses(outcome.error).includes(deferredFailure)
     )
   })
+
+  it('does not re-lock a settled presentation-only error or reject file inclusion while an ownerless diff reader is in flight', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async () => {
+      throw new Error('Synthetic settled planner error')
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    const settled = h.state(repository).changesState.assistedCommit
+    assert.ok(
+      settled.kind === 'error' &&
+        settled.retry === null &&
+        settled.settling === false
+    )
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiff = h.appStore['updateChangesWorkingDirectoryDiff'].bind(
+      h.appStore
+    )
+    let diffPromise: Promise<void> | undefined
+    h.appStore['updateChangesWorkingDirectoryDiff'] = repo => {
+      diffPromise = updateDiff(repo)
+      return diffPromise
+    }
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async repo => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return updateDiffCore(repo)
+    }
+    const second = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(second)
+    const selecting = h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      second,
+    ])
+    await entered.promise
+    try {
+      const duringRead = h.state(repository).changesState.assistedCommit
+      assert.ok(
+        duringRead.kind === 'error' &&
+          duringRead.retry === null &&
+          duringRead.settling === false
+      )
+      assert.strictEqual(h.state(repository).isCommitting, false)
+      assert.doesNotThrow(() => h.assisted.state.assertAvailable(repository))
+      await h.dispatcher.changeFileIncluded(repository, second, false)
+      h.dispatcher.dismissCopilotAssistedCommitError(repository, settled.runId)
+      assert.strictEqual(
+        h.state(repository).changesState.assistedCommit.kind,
+        'idle'
+      )
+    } finally {
+      finish.resolve()
+      await selecting
+      await diffPromise
+    }
+    const updatedSecond = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.strictEqual(
+      updatedSecond?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+  })
 })

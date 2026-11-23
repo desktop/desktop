@@ -139,7 +139,7 @@ export function createAssistedCommitRecovery(
     if (
       run?.id !== runId ||
       !run.finished ||
-      (run.lease === undefined && owner.selectionReaders.has(repository.id)) ||
+      (run.lease === undefined && run.selectionReaders.size > 0) ||
       state.kind !== 'error' ||
       state.retry === null ||
       (state.retry === 'recovery' && run.lease === undefined)
@@ -302,7 +302,7 @@ export function createAssistedCommitRecovery(
       state.kind !== 'error' ||
       state.runId !== runId ||
       run?.finished === false ||
-      owner.selectionReaders.has(repository.id) ||
+      (run?.selectionReaders.size ?? 0) > 0 ||
       state.retry !== null
     ) {
       return

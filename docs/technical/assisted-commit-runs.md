@@ -194,8 +194,8 @@ Only explicit user selection updates establish a new basis; refresh never
 manufactures a basis for an unverifiable partial mask.
 An authorized snapshot temporarily owns retired UI masks while reconciliation
 installs current selection authority; that handoff is not an unverifiable new
-selection. Settled presentation-only errors are not read owners, even when an
-ownerless reader temporarily marks their presentation as settling.
+selection. Settled presentation-only errors and ownerless selection readers do
+not lock the repository or mark settled error presentation as settling.
 
 After admission and consent, the transaction engine freezes and verifies exact
 selected bytes, identities, line selections, HEAD, and original index. Only
