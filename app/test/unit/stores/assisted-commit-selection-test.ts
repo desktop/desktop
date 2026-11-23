@@ -15,6 +15,7 @@ import {
   createAssistedCommitRunHarness,
 } from '../../helpers/assisted-commit-run'
 import { PopupType } from '../../../src/models/popup'
+import { ChangesSelectionKind } from '../../../src/lib/app-state'
 import assert from 'node:assert'
 import {
   DiffSelectionType,
@@ -797,6 +798,70 @@ describe('AppStore assisted commit selection authority', () => {
     )
   })
 
+  it('rejects captured Manual masks unchecked while resource admission awaits', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 1)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    h.dispatcher.setCommitMode(repository, 'manual')
+    const index = await optionalBytes(await indexPath(repository))
+    const admitted = deferred<void>()
+    const finish = deferred<void>()
+    const resources = h.appStore['withAssistedCommitMutationResources'].bind(
+      h.appStore
+    )
+    h.appStore['withAssistedCommitMutationResources'] = (repo, operation) =>
+      resources(repo, async () => {
+        admitted.resolve()
+        await finish.promise
+        return operation()
+      })
+    const refresh = h.appStore._refreshRepository.bind(h.appStore)
+    const refreshes: Promise<void>[] = []
+    h.appStore._refreshRepository = (...args) => {
+      const refreshing = refresh(...args)
+      refreshes.push(refreshing)
+      return refreshing
+    }
+    const committing = h.appStore._commitIncludedChanges(repository, {
+      summary: 'Must not commit unchecked file',
+      description: '',
+      trailers: [],
+    })
+    await admitted.promise
+    const selected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'file')
+    assert.ok(selected)
+    await h.dispatcher.changeFileIncluded(repository, selected, false)
+    finish.resolve()
+    let committed: boolean
+    try {
+      committed = await committing
+    } finally {
+      await Promise.all(refreshes)
+    }
+    assert.strictEqual(committed, false)
+    assert.strictEqual(await count(repository), 1)
+    assert.deepStrictEqual(
+      await optionalBytes(await indexPath(repository)),
+      index
+    )
+    assert.strictEqual(h.commits.mock.callCount(), 0)
+    const fileAfter = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'file')
+    assert.strictEqual(
+      fileAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+  })
+
   it('never remaps certified Manual partial masks onto a fresh diff after admission', async t => {
     const { h, repository, current } = await partialSelectionFixture(t, 1)
     h.propose.mock.mockImplementation(async (_account, analysis) => {
@@ -892,5 +957,840 @@ describe('AppStore assisted commit selection authority', () => {
       state.kind === 'idle' || (state.kind === 'error' && state.retry === null)
     )
     assert.strictEqual(await count(repository), 1)
+  })
+
+  it('keeps repository mutations available while an ownerless restored-selection reader is in flight', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiff = h.appStore['updateChangesWorkingDirectoryDiff'].bind(
+      h.appStore
+    )
+    let diffPromise: Promise<void> | undefined
+    h.appStore['updateChangesWorkingDirectoryDiff'] = repo => {
+      diffPromise = updateDiff(repo)
+      return diffPromise
+    }
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return updateDiffCore(...args)
+    }
+    const second = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(second)
+    const selecting = h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      second,
+    ])
+    await entered.promise
+    try {
+      assert.strictEqual(h.state(repository).isCommitting, false)
+      assert.doesNotThrow(() => h.assisted.state.assertAvailable(repository))
+      await h.dispatcher.changeFileIncluded(repository, second, false)
+    } finally {
+      finish.resolve()
+      await selecting
+      await diffPromise
+    }
+    const updatedSecond = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.strictEqual(
+      updatedSecond?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+  })
+
+  it('installs the loaded diff without invalidating other selections when a restored file is unchecked during diff basis verification', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    await writeFile(join(source.path, 'second'), 'updated 2\n')
+
+    const updateDiff = h.appStore['updateChangesWorkingDirectoryDiff'].bind(
+      h.appStore
+    )
+    let diffPromise: Promise<void> | undefined
+    h.appStore['updateChangesWorkingDirectoryDiff'] = repo => {
+      diffPromise = updateDiff(repo)
+      return diffPromise
+    }
+
+    const getRestored = h.assisted.selections.getRestored.bind(
+      h.assisted.selections
+    )
+    let uncheckedDuringVerify: Promise<void> | undefined
+    h.assisted.selections.getRestored = selection => {
+      const result = getRestored(selection)
+      const secondFile = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'second'
+        )
+      if (
+        result !== undefined &&
+        uncheckedDuringVerify === undefined &&
+        secondFile?.selection === selection
+      ) {
+        uncheckedDuringVerify = h.dispatcher.changeFileIncluded(
+          repository,
+          secondFile,
+          false
+        )
+      }
+      return result
+    }
+
+    const second = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(second)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [second])
+    await uncheckedDuringVerify
+    await diffPromise
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const secondAfter = files.find(file => file.path === 'second')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      secondAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    const selection = h.state(repository).changesState.selection
+    assert.strictEqual(selection.kind, ChangesSelectionKind.WorkingDirectory)
+    assert.notStrictEqual(selection.diff, null)
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('does not invalidate remaining selections when a restored file is unchecked while background status verification is in flight', async t => {
+    const source = await seed(t, {
+      first: 'before 1\n',
+      second: 'line 1\nline 2\n',
+    })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'changed 1\nchanged 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const secondInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [secondInitial])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const secondSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      secondSelected,
+      secondSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+    await writeFile(join(source.path, 'second'), 'updated 1\nupdated 2\n')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getRecoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let paused = false
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
+      if (!paused && file.path === 'second') {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return getRecoveryDiff(repo, file)
+    }
+
+    const statusPromise = h.appStore['_loadStatus'](repository)
+    await entered.promise
+    try {
+      const second = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'second'
+        )
+      assert.ok(second)
+      await h.dispatcher.changeFileIncluded(repository, second, false)
+    } finally {
+      finish.resolve()
+      await statusPromise
+    }
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const secondAfter = files.find(file => file.path === 'second')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      secondAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('retires ancestor restored selections when a derived display selection is unchecked during verification', async t => {
+    const source = await seed(t, {
+      first: 'before 1\n',
+      second: 'line 1\nline 2\n',
+    })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'changed 1\nchanged 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const secondInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [secondInitial])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const secondSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(secondSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      secondSelected,
+      secondSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+
+    const originalSecond = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(file => file.path === 'second')
+    assert.ok(originalSecond)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getRecoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let paused = false
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
+      if (!paused && file.path === 'second') {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return getRecoveryDiff(repo, file)
+    }
+
+    // Start verification capturing S0 before display diff derives S1.
+    const statusPromise = h.appStore['_loadStatus'](repository)
+    await entered.promise
+    try {
+      await h.dispatcher.selectWorkingDirectoryFiles(repository, [
+        originalSecond,
+      ])
+      await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+      const derivedSecond = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'second'
+        )
+      assert.ok(derivedSecond)
+      assert.notStrictEqual(derivedSecond.selection, originalSecond.selection)
+      assert.strictEqual(
+        h.assisted.selections.hasRestored(derivedSecond.selection),
+        true
+      )
+      await writeFile(join(source.path, 'second'), 'updated 1\nupdated 2\n')
+      await h.dispatcher.changeFileIncluded(repository, derivedSecond, false)
+      assert.strictEqual(
+        h.assisted.selections.hasRestored(originalSecond.selection),
+        false
+      )
+      assert.strictEqual(
+        h.assisted.selections.hasRestored(derivedSecond.selection),
+        false
+      )
+    } finally {
+      finish.resolve()
+      await statusPromise
+    }
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const secondAfter = files.find(file => file.path === 'second')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      secondAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('ignores getRecoveryDiff rejections for files superseded during ownerless verification', async t => {
+    const source = await seed(t, { first: 'before 1\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'untracked'), 'line 1\nline 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const untrackedInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      untrackedInitial,
+    ])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const untrackedSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      untrackedSelected,
+      untrackedSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getRecoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let paused = false
+    let rejected = false
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
+      if (!paused && file.path === 'untracked') {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        rejected = true
+        throw new Error('Simulated diff failure on superseded file')
+      }
+      return getRecoveryDiff(repo, file)
+    }
+
+    const statusPromise = h.appStore['_loadStatus'](repository)
+    await entered.promise
+    try {
+      const untracked = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'untracked'
+        )
+      assert.ok(untracked)
+      await h.dispatcher.changeFileIncluded(repository, untracked, false)
+    } finally {
+      finish.resolve()
+      await statusPromise
+    }
+
+    assert.strictEqual(rejected, true)
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('locks repository state and mutations while Manual commit pre-verifies restored selections', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 1)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    h.dispatcher.setCommitMode(repository, 'manual')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const verifyRestored = h.assisted.selections.verifyRestored.bind(
+      h.assisted.selections
+    )
+    let paused = false
+    h.assisted.selections.verifyRestored = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return verifyRestored(...args)
+    }
+
+    const refresh = h.appStore['_refreshRepositoryAfterCommit'].bind(h.appStore)
+    let refreshed: Promise<void> | undefined
+    h.appStore['_refreshRepositoryAfterCommit'] = (...args) => {
+      refreshed = refresh(...args)
+      return refreshed
+    }
+
+    const committing = h.appStore._commitIncludedChanges(repository, {
+      summary: 'Locked manual pre-verification',
+      description: '',
+      trailers: [],
+    })
+    await entered.promise
+    try {
+      const selected = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(file => file.path === 'file')
+      assert.ok(selected)
+      assert.strictEqual(h.state(repository).isCommitting, true)
+      assert.throws(
+        () => h.assisted.state.assertAvailable(repository),
+        /still being verified/
+      )
+      await assert.rejects(
+        h.dispatcher.changeFileIncluded(repository, selected, false),
+        /still being verified/
+      )
+      assert.strictEqual(
+        (
+          await h.dispatcher.createCopilotAssistedCommits(
+            repository,
+            h.request(repository)
+          )
+        ).kind,
+        'busy'
+      )
+    } finally {
+      finish.resolve()
+    }
+    assert.strictEqual(await committing, true)
+    await refreshed
+    assert.strictEqual(h.state(repository).isCommitting, false)
+    assert.strictEqual(await count(repository), 2)
+  })
+
+  it('does not let a failing ownerless reader invalidate state after a new assisted commit run starts', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        throw new Error('Stale ownerless diff failure')
+      }
+      return updateDiffCore(...args)
+    }
+
+    const diffPromise = h.appStore['updateChangesWorkingDirectoryDiff'](
+      repository
+    ).catch(error => error)
+    await entered.promise
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) =>
+      wholeSelectionResponse(analysis)
+    )
+    const preparing = deferred<void>()
+    const updateSubscription = h.appStore.onDidUpdate(() => {
+      if (
+        h.state(repository).changesState.assistedCommit.kind === 'preparing'
+      ) {
+        preparing.resolve()
+      }
+    })
+    t.after(() => updateSubscription.dispose())
+
+    const runPromise = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await preparing.promise
+    finish.resolve()
+
+    const diffError = await diffPromise
+    assert.ok(diffError instanceof Error)
+    assert.strictEqual((await runPromise).kind, 'local-ready')
+    assert.deepStrictEqual(errors, [])
+    assert.strictEqual(await count(repository), 2)
+  })
+
+  it('does not let a resuming ownerless diff read adopt a newly started run and fail it', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 0, true)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        h.appStore['hideWhitespaceInChangesDiff'] = true
+        try {
+          return await updateDiffCore(...args)
+        } finally {
+          h.appStore['hideWhitespaceInChangesDiff'] = false
+        }
+      }
+      return updateDiffCore(...args)
+    }
+
+    const diffPromise =
+      h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    await entered.promise
+
+    const preparing = deferred<void>()
+    const updateSubscription = h.appStore.onDidUpdate(() => {
+      if (
+        h.state(repository).changesState.assistedCommit.kind === 'preparing'
+      ) {
+        preparing.resolve()
+      }
+    })
+    t.after(() => updateSubscription.dispose())
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) =>
+      wholeSelectionResponse(analysis)
+    )
+
+    const runPromise = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await preparing.promise
+
+    finish.resolve()
+    await diffPromise
+
+    const activeRun = h.assisted.state.runs.get(repository.id)
+    assert.ok(activeRun)
+    assert.strictEqual(activeRun.selectionReadError, undefined)
+
+    assert.strictEqual((await runPromise).kind, 'local-ready')
+    assert.deepStrictEqual(errors, [])
+    assert.strictEqual(await count(repository), 2)
+  })
+
+  it('ignores canonical display diff rejections for a restored file unchecked during verification', async t => {
+    const source = await seed(t, { first: 'before 1\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'untracked'), 'line 1\nline 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const untrackedInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      untrackedInitial,
+    ])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const untrackedSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      untrackedSelected,
+      untrackedSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getDisplayDiff = h.assisted.readers['getDisplayDiff'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    let rejected = false
+    h.assisted.readers['getDisplayDiff'] = async (
+      repo,
+      file,
+      hideWhitespace,
+      options
+    ) => {
+      if (
+        !paused &&
+        file.path === 'untracked' &&
+        options?.noTextconv === true
+      ) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        rejected = true
+        throw new Error('Simulated canonical display diff failure')
+      }
+      return getDisplayDiff(repo, file, hideWhitespace, options)
+    }
+
+    const diffPromise =
+      h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    await entered.promise
+    try {
+      const untracked = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'untracked'
+        )
+      assert.ok(untracked)
+      await h.dispatcher.changeFileIncluded(repository, untracked, false)
+    } finally {
+      finish.resolve()
+      await diffPromise
+    }
+
+    assert.strictEqual(rejected, true)
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    const untrackedAfter = files.find(file => file.path === 'untracked')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.strictEqual(
+      untrackedAfter?.selection.getSelectionType(),
+      DiffSelectionType.None
+    )
+    assert.deepStrictEqual(errors, [])
+  })
+
+  it('still invalidates restored selections when a canonical display diff rejects without retiring the file', async t => {
+    const source = await seed(t, { first: 'before 1\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'untracked'), 'line 1\nline 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const untrackedInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      untrackedInitial,
+    ])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const untrackedSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      untrackedSelected,
+      untrackedSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const failure = new Error('Simulated active canonical display diff failure')
+    const pendingDiffs: Array<Promise<void>> = []
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    h.assisted.readers['updateDiffCore'] = (...args) => {
+      const promise = updateDiffCore(...args)
+      pendingDiffs.push(promise)
+      return promise
+    }
+    const getDisplayDiff = h.assisted.readers['getDisplayDiff'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['getDisplayDiff'] = async (
+      repo,
+      file,
+      hideWhitespace,
+      options
+    ) => {
+      if (
+        !paused &&
+        file.path === 'untracked' &&
+        options?.noTextconv === true
+      ) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        throw failure
+      }
+      return getDisplayDiff(repo, file, hideWhitespace, options)
+    }
+
+    const diffPromise =
+      h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    await entered.promise
+    try {
+      const first = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(file => file.path === 'first')
+      assert.ok(first)
+      // Switching row focus without unchecking keeps the restored selection active.
+      await h.dispatcher.selectWorkingDirectoryFiles(repository, [first])
+    } finally {
+      finish.resolve()
+    }
+
+    await assert.rejects(diffPromise, error => error === failure)
+    await Promise.allSettled(pendingDiffs)
+    assert.ok(
+      h
+        .state(repository)
+        .changesState.workingDirectory.files.every(
+          file => file.selection.getSelectionType() === DiffSelectionType.None
+        )
+    )
   })
 })

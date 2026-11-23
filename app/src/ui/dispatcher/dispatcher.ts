@@ -251,13 +251,19 @@ export class Dispatcher {
   }
 
   /** Set and persist the preferred commit mode for this repository. */
-  public setCommitMode(repository: Repository, commitMode: CommitMode): void {
-    this.appStore._setCommitMode(repository, commitMode)
+  public setCommitMode(
+    repository: Repository,
+    commitMode: CommitMode
+  ): Promise<void> {
+    return this.appStore._setCommitMode(repository, commitMode)
   }
 
   /** Persist this repository's assisted-push opt-in, independently of manual options. */
-  public setPushAfterCommit(repository: Repository, enabled: boolean): void {
-    this.appStore._setPushAfterCommit(repository, enabled)
+  public setPushAfterCommit(
+    repository: Repository,
+    enabled: boolean
+  ): Promise<void> {
+    return this.appStore._setPushAfterCommit(repository, enabled)
   }
 
   /** Freeze first-click intent and certify Desktop selections before warning dialogs. */
@@ -306,8 +312,8 @@ export class Dispatcher {
   public updateCommitOptions(
     repository: Repository,
     options: Partial<CommitOptions>
-  ) {
-    this.appStore._updateCommitOptions(repository, options)
+  ): Promise<void> {
+    return this.appStore._updateCommitOptions(repository, options)
   }
 
   /** Load the next batch of history for the repository. */

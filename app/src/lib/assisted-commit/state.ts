@@ -52,7 +52,9 @@ export class AssistedCommitState {
     const run = this.runs.get(repository.id)
     const state = this.cache.get(repository).changesState.assistedCommit
     return run?.repository.path === repository.path &&
-      (!run.finished || (state.kind === 'error' && state.retry !== null))
+      (!run.finished ||
+        run.selectionReaders.size > 0 ||
+        (state.kind === 'error' && state.retry !== null))
       ? run
       : undefined
   }
@@ -139,8 +141,7 @@ export class AssistedCommitState {
           ...state,
           settling:
             !run.finished ||
-            (run.lease === undefined &&
-              this.selectionReaders.has(repository.id)),
+            (run.lease === undefined && run.selectionReaders.size > 0),
         },
       }))
     }
@@ -153,7 +154,7 @@ export class AssistedCommitState {
       !isAssistedCommitRepositoryLocked(
         this.cache.get(run.repository).changesState.assistedCommit
       ) &&
-      !this.selectionReaders.has(run.repository.id)
+      run.selectionReaders.size === 0
     ) {
       run.resourceProtection?.release()
       run.resourceProtection = undefined
@@ -182,7 +183,7 @@ export class AssistedCommitState {
       const state = this.cache.get(run.repository).changesState.assistedCommit
       if (
         !run.finished ||
-        this.selectionReaders.has(repository.id) ||
+        run.selectionReaders.size > 0 ||
         isAssistedCommitRepositoryLocked(state)
       ) {
         throw new ErrorWithMetadata(
@@ -215,7 +216,7 @@ export class AssistedCommitState {
           .assistedCommit
         if (
           run.finished &&
-          !this.selectionReaders.has(run.repository.id) &&
+          run.selectionReaders.size === 0 &&
           !isAssistedCommitRepositoryLocked(runState)
         ) {
           continue

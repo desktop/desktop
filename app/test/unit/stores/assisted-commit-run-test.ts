@@ -335,15 +335,18 @@ describe('AppStore assisted commit runs', () => {
       ).kind,
       'busy'
     )
-    assert.throws(
-      () => h.dispatcher.setCommitMode(repository, 'manual'),
+    await assert.rejects(
+      h.dispatcher.setCommitMode(repository, 'manual'),
       /assisted commit run/
     )
-    assert.throws(
-      () =>
-        h.dispatcher.updateCommitOptions(repository, {
-          allowEmptyCommit: true,
-        }),
+    await assert.rejects(
+      h.dispatcher.setPushAfterCommit(repository, true),
+      /assisted commit run/
+    )
+    await assert.rejects(
+      h.dispatcher.updateCommitOptions(repository, {
+        allowEmptyCommit: true,
+      }),
       /assisted commit run/
     )
     await assert.rejects(
@@ -1223,8 +1226,8 @@ describe('AppStore assisted commit runs', () => {
     assert.strictEqual(failure.recovery.history, 'interfered')
     assert.strictEqual(h.state(repository).isCommitting, true)
     assert.strictEqual(await tip(repository), externalTip)
-    assert.throws(
-      () => h.dispatcher.setCommitMode(repository, 'manual'),
+    await assert.rejects(
+      h.dispatcher.setCommitMode(repository, 'manual'),
       /assisted commit run/
     )
     await h.dispatcher.retryCopilotAssistedCommitRecovery(
