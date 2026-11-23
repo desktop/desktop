@@ -115,13 +115,19 @@ export class AssistedCommitReaders {
       return operation()
     }
     if (run === undefined && options?.lockRepository !== true) {
+      const ownerBefore = this.state.runs.get(repository.id)
       try {
         return await withRepositoryGitOperation(repository.path, 'read', () =>
           withRepositoryGitErrorPropagation(operation)
         )
       } catch (error) {
-        this.invalidate(repository, undefined, error)
-        this.state.events.changed()
+        if (
+          this.state.selectionOwner(repository) === undefined &&
+          this.state.runs.get(repository.id) === ownerBefore
+        ) {
+          this.invalidate(repository, undefined, error)
+          this.state.events.changed()
+        }
         throw error
       }
     }
@@ -174,6 +180,12 @@ export class AssistedCommitReaders {
     run: IAssistedCommitRun | undefined,
     error: unknown
   ): void {
+    if (
+      run === undefined &&
+      this.state.selectionOwner(repository) !== undefined
+    ) {
+      return
+    }
     this.state.cache.updateChangesState(repository, state => ({
       workingDirectory: state.workingDirectory.withIncludeAllFiles(false),
       selection:

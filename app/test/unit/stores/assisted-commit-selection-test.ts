@@ -1442,4 +1442,75 @@ describe('AppStore assisted commit selection authority', () => {
     assert.strictEqual(h.state(repository).isCommitting, false)
     assert.strictEqual(await count(repository), 2)
   })
+
+  it('does not let a failing ownerless reader invalidate state after a new assisted commit run starts', async t => {
+    const source = await seed(t, { first: 'before 1\n', second: 'before 2\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'second'), 'selected 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async repo => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        throw new Error('Stale ownerless diff failure')
+      }
+      return updateDiffCore(repo)
+    }
+
+    const diffPromise = h.appStore['updateChangesWorkingDirectoryDiff'](
+      repository
+    ).catch(error => error)
+    await entered.promise
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) =>
+      wholeSelectionResponse(analysis)
+    )
+    const preparing = deferred<void>()
+    const updateSubscription = h.appStore.onDidUpdate(() => {
+      if (
+        h.state(repository).changesState.assistedCommit.kind === 'preparing'
+      ) {
+        preparing.resolve()
+      }
+    })
+    t.after(() => updateSubscription.dispose())
+
+    const runPromise = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await preparing.promise
+    finish.resolve()
+
+    const diffError = await diffPromise
+    assert.ok(diffError instanceof Error)
+    assert.strictEqual((await runPromise).kind, 'local-ready')
+    assert.deepStrictEqual(errors, [])
+    assert.strictEqual(await count(repository), 2)
+  })
 })
