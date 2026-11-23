@@ -169,7 +169,7 @@ async function createAuthentication(
 }
 
 describe('OAuth API integration', () => {
-  it('requests Copilot license information with both GraphQL features', async t => {
+  it('requests Copilot license information with the copilot_iap_max_sku GraphQL feature', async t => {
     const fetchMock = t.mock.method(
       globalThis,
       'fetch',
@@ -197,7 +197,7 @@ describe('OAuth API integration', () => {
         ?.split(',')
         .map(feature => feature.trim())
         .sort(),
-      ['copilot_access_license_type', 'copilot_iap_max_sku']
+      ['copilot_iap_max_sku']
     )
   })
 
