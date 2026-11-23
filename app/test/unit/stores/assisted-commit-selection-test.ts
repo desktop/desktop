@@ -1370,4 +1370,76 @@ describe('AppStore assisted commit selection authority', () => {
     )
     assert.deepStrictEqual(errors, [])
   })
+
+  it('locks repository state and mutations while Manual commit pre-verifies restored selections', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 1)
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    h.dispatcher.setCommitMode(repository, 'manual')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const verifyRestored = h.assisted.selections.verifyRestored.bind(
+      h.assisted.selections
+    )
+    let paused = false
+    h.assisted.selections.verifyRestored = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+      }
+      return verifyRestored(...args)
+    }
+
+    const refresh = h.appStore['_refreshRepositoryAfterCommit'].bind(h.appStore)
+    let refreshed: Promise<void> | undefined
+    h.appStore['_refreshRepositoryAfterCommit'] = (...args) => {
+      refreshed = refresh(...args)
+      return refreshed
+    }
+
+    const committing = h.appStore._commitIncludedChanges(repository, {
+      summary: 'Locked manual pre-verification',
+      description: '',
+      trailers: [],
+    })
+    await entered.promise
+    try {
+      const selected = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(file => file.path === 'file')
+      assert.ok(selected)
+      assert.strictEqual(h.state(repository).isCommitting, true)
+      assert.throws(
+        () => h.assisted.state.assertAvailable(repository),
+        /still being verified/
+      )
+      await assert.rejects(
+        h.dispatcher.changeFileIncluded(repository, selected, false),
+        /still being verified/
+      )
+      assert.strictEqual(
+        (
+          await h.dispatcher.createCopilotAssistedCommits(
+            repository,
+            h.request(repository)
+          )
+        ).kind,
+        'busy'
+      )
+    } finally {
+      finish.resolve()
+    }
+    assert.strictEqual(await committing, true)
+    await refreshed
+    assert.strictEqual(h.state(repository).isCommitting, false)
+    assert.strictEqual(await count(repository), 2)
+  })
 })

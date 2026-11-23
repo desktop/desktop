@@ -3926,8 +3926,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     context: ICommitContext
   ): Promise<boolean> {
     this.assistedCommits.state.assertAvailable(repository)
-    await this.assistedCommits.readers.read(repository, undefined, () =>
-      this.assistedCommits.selections.verifyRestored(repository)
+    if (
+      this.repositoryStateCache.get(repository).isCommitting ||
+      this.isWorktreeMoving(repository)
+    ) {
+      return false
+    }
+    await this.assistedCommits.readers.read(
+      repository,
+      undefined,
+      () => this.assistedCommits.selections.verifyRestored(repository),
+      { lockRepository: true }
     )
     const state = this.repositoryStateCache.get(repository)
     const files = state.changesState.workingDirectory.files
