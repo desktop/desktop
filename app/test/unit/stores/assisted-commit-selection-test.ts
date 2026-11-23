@@ -988,13 +988,13 @@ describe('AppStore assisted commit selection authority', () => {
       h.assisted.readers
     )
     let paused = false
-    h.assisted.readers['updateDiffCore'] = async repo => {
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
       if (!paused) {
         paused = true
         entered.resolve()
         await finish.promise
       }
-      return updateDiffCore(repo)
+      return updateDiffCore(...args)
     }
     const second = h
       .state(repository)
@@ -1472,14 +1472,14 @@ describe('AppStore assisted commit selection authority', () => {
       h.assisted.readers
     )
     let paused = false
-    h.assisted.readers['updateDiffCore'] = async repo => {
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
       if (!paused) {
         paused = true
         entered.resolve()
         await finish.promise
         throw new Error('Stale ownerless diff failure')
       }
-      return updateDiffCore(repo)
+      return updateDiffCore(...args)
     }
 
     const diffPromise = h.appStore['updateChangesWorkingDirectoryDiff'](
@@ -1509,6 +1509,83 @@ describe('AppStore assisted commit selection authority', () => {
 
     const diffError = await diffPromise
     assert.ok(diffError instanceof Error)
+    assert.strictEqual((await runPromise).kind, 'local-ready')
+    assert.deepStrictEqual(errors, [])
+    assert.strictEqual(await count(repository), 2)
+  })
+
+  it('does not let a resuming ownerless diff read adopt a newly started run and fail it', async t => {
+    const { h, repository } = await partialSelectionFixture(t, 0, true)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    assert.strictEqual(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'cancelled'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const updateDiffCore = h.assisted.readers['updateDiffCore'].bind(
+      h.assisted.readers
+    )
+    let paused = false
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
+      if (!paused) {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        h.appStore['hideWhitespaceInChangesDiff'] = true
+        try {
+          return await updateDiffCore(...args)
+        } finally {
+          h.appStore['hideWhitespaceInChangesDiff'] = false
+        }
+      }
+      return updateDiffCore(...args)
+    }
+
+    const diffPromise =
+      h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    await entered.promise
+
+    const preparing = deferred<void>()
+    const updateSubscription = h.appStore.onDidUpdate(() => {
+      if (
+        h.state(repository).changesState.assistedCommit.kind === 'preparing'
+      ) {
+        preparing.resolve()
+      }
+    })
+    t.after(() => updateSubscription.dispose())
+
+    h.propose.mock.mockImplementationOnce(async (_account, analysis) =>
+      wholeSelectionResponse(analysis)
+    )
+
+    const runPromise = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await preparing.promise
+
+    finish.resolve()
+    await diffPromise
+
+    const activeRun = h.assisted.state.runs.get(repository.id)
+    assert.ok(activeRun)
+    assert.strictEqual(activeRun.selectionReadError, undefined)
+
     assert.strictEqual((await runPromise).kind, 'local-ready')
     assert.deepStrictEqual(errors, [])
     assert.strictEqual(await count(repository), 2)

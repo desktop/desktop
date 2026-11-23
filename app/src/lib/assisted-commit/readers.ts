@@ -481,19 +481,26 @@ export class AssistedCommitReaders {
       this.deferRefresh(repository)
       return
     }
+    const ownerBefore = this.state.runs.get(repository.id)
     return this.read(repository, run, () =>
       withRepositoryGitOperation(repository.path, 'read', () =>
-        this.updateDiffCore(repository)
+        this.updateDiffCore(repository, run, ownerBefore)
       )
     )
   }
 
-  private async updateDiffCore(repository: Repository): Promise<void> {
+  private async updateDiffCore(
+    repository: Repository,
+    admittedRun: IAssistedCommitRun | undefined,
+    ownerBefore: IAssistedCommitRun | undefined
+  ): Promise<void> {
     const result = await updateWorkingDirectorySelectionDiff(
       repository,
       this.state,
       this.selections,
-      this.configuration().hideWhitespace
+      this.configuration().hideWhitespace,
+      admittedRun,
+      ownerBefore
     )
     if (result.kind === 'invalid') {
       this.invalidate(repository, result.run, result.error)

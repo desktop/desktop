@@ -65,8 +65,25 @@ export async function updateWorkingDirectorySelectionDiff(
   repository: Repository,
   state: AssistedCommitState,
   selections: AssistedCommitSelection,
-  hideWhitespace: boolean
+  hideWhitespace: boolean,
+  admittedRun: IAssistedCommitRun | undefined,
+  ownerBefore: IAssistedCommitRun | undefined
 ): Promise<SelectionDisplayResult> {
+  const hasOwnershipChanged = (): boolean => {
+    if (state.selectionOwner(repository) !== admittedRun) {
+      return true
+    }
+    if (admittedRun === undefined) {
+      const currentRun = state.runs.get(repository.id)
+      return currentRun !== undefined && currentRun !== ownerBefore
+    }
+    return false
+  }
+
+  if (hasOwnershipChanged()) {
+    return { kind: 'unchanged' }
+  }
+
   const cache = state.cache
   const stateBeforeLoad = cache.get(repository)
   const changesStateBeforeLoad = stateBeforeLoad.changesState
@@ -111,6 +128,10 @@ export async function updateWorkingDirectorySelectionDiff(
     hideWhitespace
   )
 
+  if (hasOwnershipChanged()) {
+    return { kind: 'unchanged' }
+  }
+
   const stateAfterLoad = cache.get(repository)
   const changesState = stateAfterLoad.changesState
 
@@ -140,7 +161,7 @@ export async function updateWorkingDirectorySelectionDiff(
   }
 
   let basis = selections.getRestored(currentlySelectedFile.selection)
-  const active = state.selectionOwner(repository)
+  const active = admittedRun
   const engineOwnsSelection =
     active?.snapshotAuthorized === true && !active.finished
   let retainedBasis =
@@ -164,6 +185,9 @@ export async function updateWorkingDirectorySelectionDiff(
       false,
       { noTextconv: true }
     )
+    if (hasOwnershipChanged()) {
+      return { kind: 'unchanged' }
+    }
     const reconciled = reconcileSelectionAfterAwait(
       cache.get(repository).changesState,
       selectedFileIDsBeforeLoad,
@@ -203,6 +227,9 @@ export async function updateWorkingDirectorySelectionDiff(
         false,
         { noTextconv: true }
       )
+      if (hasOwnershipChanged()) {
+        return { kind: 'unchanged' }
+      }
       const reconciled = reconcileSelectionAfterAwait(
         cache.get(repository).changesState,
         selectedFileIDsBeforeLoad,
@@ -239,6 +266,9 @@ export async function updateWorkingDirectorySelectionDiff(
       const versions = await getAssistedCommitInputVersions(repository, [
         currentlySelectedFile,
       ])
+      if (hasOwnershipChanged()) {
+        return { kind: 'unchanged' }
+      }
       const reconciled = reconcileSelectionAfterAwait(
         cache.get(repository).changesState,
         selectedFileIDsBeforeLoad,
@@ -285,6 +315,10 @@ export async function updateWorkingDirectorySelectionDiff(
         }
       })
     })
+  }
+
+  if (hasOwnershipChanged()) {
+    return { kind: 'unchanged' }
   }
 
   const newSelection =

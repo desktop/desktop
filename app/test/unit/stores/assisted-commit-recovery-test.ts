@@ -729,13 +729,13 @@ describe('AppStore assisted commit recovery and refresh retry', () => {
       h.assisted.readers
     )
     let paused = false
-    h.assisted.readers['updateDiffCore'] = async repo => {
+    h.assisted.readers['updateDiffCore'] = async (...args) => {
       if (!paused) {
         paused = true
         entered.resolve()
         await finish.promise
       }
-      return updateDiffCore(repo)
+      return updateDiffCore(...args)
     }
     const second = h
       .state(repository)
