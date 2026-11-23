@@ -4198,7 +4198,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileIncluded(
+  public async _changeFileIncluded(
     repository: Repository,
     file:
       | WorkingDirectoryFileChange
@@ -4221,11 +4221,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileLineSelection(
+  public async _changeFileLineSelection(
     repository: Repository,
     file: WorkingDirectoryFileChange,
     diffSelection: DiffSelection
@@ -4237,7 +4236,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       diffSelection
     )
     this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
-    return Promise.resolve()
   }
 
   /**
@@ -4263,7 +4261,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeIncludeAllFiles(
+  public async _changeIncludeAllFiles(
     repository: Repository,
     includeAll: boolean
   ): Promise<void> {
@@ -4280,8 +4278,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -10611,13 +10607,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Set whether the user has chosen to hide or show the
    * co-authors field in the commit message component
    */
-  public _setShowCoAuthoredBy(
+  public async _setShowCoAuthoredBy(
     repository: Repository,
     showCoAuthoredBy: boolean
-  ) {
+  ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     this.gitStoreCache.get(repository).setShowCoAuthoredBy(showCoAuthoredBy)
-    return Promise.resolve()
   }
 
   /**
@@ -10626,13 +10621,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @param repository Co-author settings are per-repository
    * @param coAuthors  Zero or more authors
    */
-  public _setCoAuthors(
+  public async _setCoAuthors(
     repository: Repository,
     coAuthors: ReadonlyArray<Author>
-  ) {
+  ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     this.gitStoreCache.get(repository).setCoAuthors(coAuthors)
-    return Promise.resolve()
   }
 
   /**

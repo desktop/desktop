@@ -16,7 +16,10 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { CommitMode } from '../../models/commit-mode'
 import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
-import { AssistedCommitRunState } from '../../models/assisted-commit-run'
+import {
+  AssistedCommitRunState,
+  isAssistedCommitRepositoryLocked,
+} from '../../models/assisted-commit-run'
 import {
   isRepositoryWithGitHubRepository,
   Repository,
@@ -422,7 +425,19 @@ export class FilterChangesList extends React.Component<
     }
   }
 
+  private get isSelectionDisabled(): boolean {
+    return (
+      this.props.isCommitting ||
+      this.props.repositoryMutationBlocked === true ||
+      (this.props.assistedCommitState !== undefined &&
+        isAssistedCommitRepositoryLocked(this.props.assistedCommitState))
+    )
+  }
+
   private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    if (this.isSelectionDisabled || this.props.rebaseConflictState !== null) {
+      return
+    }
     const include = event.currentTarget.checked
     const filteredItemPaths = Array.from(
       this.state.filteredItems,
@@ -435,12 +450,7 @@ export class FilterChangesList extends React.Component<
     changeListItem: IChangesListItem,
     matches: IMatches
   ): JSX.Element | null => {
-    const {
-      rebaseConflictState,
-      isCommitting,
-      onIncludeChanged,
-      availableWidth,
-    } = this.props
+    const { rebaseConflictState, onIncludeChanged, availableWidth } = this.props
 
     const file = changeListItem.change
     const selection = file.selection.getSelectionType()
@@ -471,7 +481,9 @@ export class FilterChangesList extends React.Component<
       : includeAll
 
     const disableSelection =
-      isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
+      this.isSelectionDisabled ||
+      rebaseConflictState !== null ||
+      isUncommittableSubmodule
 
     const checkboxTooltip = isUncommittableSubmodule
       ? 'This submodule change cannot be added to a commit in this repository because it contains changes that have not been committed.'
@@ -556,7 +568,7 @@ export class FilterChangesList extends React.Component<
     event.preventDefault()
 
     // need to preserve the working directory state while dealing with conflicts
-    if (this.props.rebaseConflictState !== null || this.props.isCommitting) {
+    if (this.props.rebaseConflictState !== null || this.isSelectionDisabled) {
       return
     }
 
@@ -862,7 +874,7 @@ export class FilterChangesList extends React.Component<
   ) => {
     const file = item.change
 
-    if (this.props.isCommitting) {
+    if (this.isSelectionDisabled) {
       return
     }
 
@@ -1245,7 +1257,7 @@ export class FilterChangesList extends React.Component<
     // The commit is already in-flight but this check prevents the
     // user from changing selection.
     if (
-      this.props.isCommitting &&
+      this.isSelectionDisabled &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       event.preventDefault()
@@ -1351,7 +1363,7 @@ export class FilterChangesList extends React.Component<
   }
 
   private renderCheckBoxRow = () => {
-    const { workingDirectory, rebaseConflictState, isCommitting } = this.props
+    const { workingDirectory, rebaseConflictState } = this.props
     const { files } = workingDirectory
 
     const visibleFiles = this.state.filteredItems.size
@@ -1363,7 +1375,9 @@ export class FilterChangesList extends React.Component<
     )
 
     const disableAllCheckbox =
-      files.length === 0 || isCommitting || rebaseConflictState !== null
+      files.length === 0 ||
+      this.isSelectionDisabled ||
+      rebaseConflictState !== null
 
     const checkAllLabel = `${
       visibleFiles !== files.length ? `${formatNumber(visibleFiles)} of ` : ''

@@ -34,7 +34,10 @@ import { Emoji } from '../../lib/emoji'
 import { FilterChangesList } from './filter-changes-list'
 import { HookProgress } from '../../lib/git'
 import { ICopilotAssistedCommitRequest } from '../../models/copilot-assisted-commit'
-import { isAssistedCommitRunBusy } from '../../models/assisted-commit-run'
+import {
+  isAssistedCommitRepositoryLocked,
+  isAssistedCommitRunBusy,
+} from '../../models/assisted-commit-run'
 import { isRepositoryAffectedByAssistedCommit } from '../../lib/git/repository-operation'
 
 /**
@@ -247,12 +250,23 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private get isSelectionDisabled(): boolean {
+    return (
+      this.props.isCommitting ||
+      isRepositoryAffectedByAssistedCommit(this.props.repository.path) ||
+      isAssistedCommitRepositoryLocked(this.props.changes.assistedCommit)
+    )
+  }
+
   private onIncludeChanged = (
     file:
       | WorkingDirectoryFileChange
       | ReadonlyArray<WorkingDirectoryFileChange>,
     include: boolean
   ) => {
+    if (this.isSelectionDisabled) {
+      return
+    }
     this.props.dispatcher.changeFileIncluded(
       this.props.repository,
       file,
@@ -331,6 +345,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * checkbox.
    */
   private onToggleInclude(row: number) {
+    if (this.isSelectionDisabled) {
+      return
+    }
+
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files[row]
 

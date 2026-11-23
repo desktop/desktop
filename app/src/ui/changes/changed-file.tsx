@@ -28,6 +28,9 @@ interface IChangedFileProps {
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
+    if (this.props.disableSelection) {
+      return
+    }
     const include = event.currentTarget.checked
     this.props.onIncludeChanged(this.props.file, include)
   }
