@@ -194,8 +194,10 @@ Only explicit user selection updates establish a new basis; refresh never
 manufactures a basis for an unverifiable partial mask.
 An authorized snapshot temporarily owns retired UI masks while reconciliation
 installs current selection authority; that handoff is not an unverifiable new
-selection. Settled presentation-only errors and ownerless selection readers do
-not lock the repository or mark settled error presentation as settling.
+selection. Settled presentation-only errors and ownerless refresh/diff selection
+readers do not lock the repository or mark settled error presentation as
+settling; manual-commit pre-verification explicitly locks the repository while
+verifying retained restored selections before commit admission.
 
 After admission and consent, the transaction engine freezes and verifies exact
 selected bytes, identities, line selections, HEAD, and original index. Only
@@ -333,6 +335,15 @@ their complete verification/publication lifetime, even after the Git lease
 releases. Settlement drains those readers before reusable admission. These reads
 use command-local optional-lock-free strict error propagation; failures remain
 inline and retryable rather than becoming quiet cancellation.
+Ownerless refresh and diff selection readers (running without an active run
+while restored selections remain) do not acquire the repository lock or set
+`isCommitting`, keeping file checkboxes and edits interactive. Retiring a
+restored selection revokes the shared certificate across all derived display
+selections, and a recovery-diff failure for a file already superseded by a newer
+user selection is ignored rather than invalidating unaffected files. If a newer
+assisted commit run takes ownership while an ownerless reader is in flight, a
+failed ownerless read skips invalidation and error emission rather than
+disturbing the active run.
 Status requests waiting behind sealed settlement carry only their exclusion
 policy into the resumed read, not the old run's ownership or recovery fences.
 Newly observed rows remain unchecked; ordinary later refreshes keep existing
@@ -403,16 +414,21 @@ cancellation and decline verify those individual bases without dropping
 unchanged nondisplayed masks. Display certification uses actual whitespace
 options, excluding unsupported views into a settled review state.
 Reader failure invalidates uncertified restored selections even after the
-original run is gone. Certified rows merge into the latest status rather than
-overwriting unrelated newly discovered rows.
-Manual commits consuming restored selections defer their selection readers
-through the actual native commit and hooks. Success retires the consumed
-authority before releasing those readers; failure retains it for verification.
+original run is gone, unless a newer assisted commit run has since taken
+ownership of the repository. Certified rows merge into the latest status rather
+than overwriting unrelated newly discovered rows.
+Manual commits consuming restored selections lock the repository (`isCommitting`
+and protected resources) during restored-selection pre-verification and defer
+their selection readers through the actual native commit and hooks. Success
+retires the consumed authority before releasing those readers; failure retains
+it for verification.
 An in-flight post-commit hook therefore cannot make the commit's own HEAD change
 look like unauthorized selection drift.
 After resource discovery, the admitted reader-gated Manual scope rechecks the
 captured masks against current selection/status and certifies their original
-HEAD/diff/file versions before any native staging. A refresh that invalidated
+HEAD/diff/file versions before any native staging. Captured selections whose
+restored authority was retired before admission are rejected even if the
+underlying certificate map was already cleared; a refresh that invalidated
 those masks during admission cannot authorize them again merely by finishing.
 Certified restored partial diffs also follow the native Manual staging path.
 After message/unstaging awaits, patch formatting uses that verified diff rather
