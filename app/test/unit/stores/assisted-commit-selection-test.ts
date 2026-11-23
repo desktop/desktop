@@ -1286,4 +1286,88 @@ describe('AppStore assisted commit selection authority', () => {
     )
     assert.deepStrictEqual(errors, [])
   })
+
+  it('ignores getRecoveryDiff rejections for files superseded during ownerless verification', async t => {
+    const source = await seed(t, { first: 'before 1\n' })
+    await writeFile(join(source.path, 'first'), 'selected 1\n')
+    await writeFile(join(source.path, 'untracked'), 'line 1\nline 2\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const errors: Error[] = []
+    const subscription = h.appStore.onDidError(error => errors.push(error))
+    t.after(() => subscription.dispose())
+    const repository = await h.register(source)
+    const untrackedInitial = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedInitial)
+    await h.dispatcher.selectWorkingDirectoryFiles(repository, [
+      untrackedInitial,
+    ])
+    await h.appStore['updateChangesWorkingDirectoryDiff'](repository)
+    const untrackedSelected = h
+      .state(repository)
+      .changesState.workingDirectory.files.find(
+        file => file.path === 'untracked'
+      )
+    assert.ok(untrackedSelected)
+    await h.dispatcher.changeFileLineSelection(
+      repository,
+      untrackedSelected,
+      untrackedSelected.selection.withSelectNone().withLineSelection(1, true)
+    )
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      h.cancel(repository)
+      return wholeSelectionResponse(analysis)
+    })
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(outcome.kind, 'cancelled')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const getRecoveryDiff = h.assisted.selections['getRecoveryDiff'].bind(
+      h.assisted.selections
+    )
+    let paused = false
+    let rejected = false
+    h.assisted.selections['getRecoveryDiff'] = async (repo, file) => {
+      if (!paused && file.path === 'untracked') {
+        paused = true
+        entered.resolve()
+        await finish.promise
+        rejected = true
+        throw new Error('Simulated diff failure on superseded file')
+      }
+      return getRecoveryDiff(repo, file)
+    }
+
+    const statusPromise = h.appStore['_loadStatus'](repository)
+    await entered.promise
+    try {
+      const untracked = h
+        .state(repository)
+        .changesState.workingDirectory.files.find(
+          file => file.path === 'untracked'
+        )
+      assert.ok(untracked)
+      await h.dispatcher.changeFileIncluded(repository, untracked, false)
+    } finally {
+      finish.resolve()
+      await statusPromise
+    }
+
+    assert.strictEqual(rejected, true)
+
+    const files = h.state(repository).changesState.workingDirectory.files
+    const firstAfter = files.find(file => file.path === 'first')
+    assert.strictEqual(
+      firstAfter?.selection.getSelectionType(),
+      DiffSelectionType.All
+    )
+    assert.deepStrictEqual(errors, [])
+  })
 })

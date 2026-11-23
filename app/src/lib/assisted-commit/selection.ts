@@ -151,7 +151,15 @@ export class AssistedCommitSelection {
         activeFiles.push(file)
         continue
       }
-      const diff = await this.getRecoveryDiff(repository, file)
+      let diff: IDiff | null
+      try {
+        diff = await this.getRecoveryDiff(repository, file)
+      } catch (error) {
+        if (isSuperseded(file)) {
+          continue
+        }
+        throw error
+      }
       if (isSuperseded(file)) {
         continue
       }
