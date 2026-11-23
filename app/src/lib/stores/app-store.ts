@@ -4789,7 +4789,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
-  public _setCommitMode(repository: Repository, commitMode: CommitMode): void {
+  public async _setCommitMode(
+    repository: Repository,
+    commitMode: CommitMode
+  ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     storeCommitMode(repository, commitMode)
     this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -4799,7 +4802,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */
-  public _setPushAfterCommit(repository: Repository, enabled: boolean): void {
+  public async _setPushAfterCommit(
+    repository: Repository,
+    enabled: boolean
+  ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     storePushAfterCommit(repository, enabled)
     this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -4808,10 +4814,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _updateCommitOptions(
+  public async _updateCommitOptions(
     repository: Repository,
     commitOptions: Partial<CommitOptions>
-  ): void {
+  ): Promise<void> {
     this.assistedCommits.state.assertAvailable(repository)
     this.repositoryStateCache.update(repository, state => ({
       skipCommitHooks: state.skipCommitHooks,

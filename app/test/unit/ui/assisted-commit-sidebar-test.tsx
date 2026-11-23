@@ -289,6 +289,13 @@ describe('real assisted Changes sidebar wiring', () => {
         promises.push(h.dispatcher.changeIncludeAllFiles(repository, false))
         promises.push(h.dispatcher.setShowCoAuthoredBy(repository, true))
         promises.push(h.dispatcher.setCoAuthors(repository, []))
+        promises.push(h.dispatcher.setCommitMode(repository, 'manual'))
+        promises.push(h.dispatcher.setPushAfterCommit(repository, true))
+        promises.push(
+          h.dispatcher.updateCommitOptions(repository, {
+            allowEmptyCommit: true,
+          })
+        )
       })
       for (const promise of promises) {
         await assert.rejects(

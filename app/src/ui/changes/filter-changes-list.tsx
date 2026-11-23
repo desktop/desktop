@@ -1108,6 +1108,9 @@ export class FilterChangesList extends React.Component<
     this.props.dispatcher.setCommitMessage(this.props.repository, message)
 
   private onCommitModeChanged = (commitMode: CommitMode) => {
+    if (this.isSelectionDisabled) {
+      return
+    }
     this.props.dispatcher.setCommitMode(this.props.repository, commitMode)
     recordAssistedCommitMetric(
       this.props.dispatcher.incrementMetric,
@@ -1123,8 +1126,12 @@ export class FilterChangesList extends React.Component<
       'commitModeDropdownOpenedCount'
     )
 
-  private onPushAfterCommitChanged = (enabled: boolean) =>
+  private onPushAfterCommitChanged = (enabled: boolean) => {
+    if (this.isSelectionDisabled) {
+      return
+    }
     this.props.dispatcher.setPushAfterCommit(this.props.repository, enabled)
+  }
 
   private onGenerateCommitMessage = (
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,

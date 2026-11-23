@@ -17,6 +17,7 @@ import {
   AssistedCommitRunState,
   isAssistedCommitRepositoryLocked,
 } from '../../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from '../../lib/git/repository-operation'
 import {
   assistedCommitRequestsEqual,
   freezeAssistedCommitRequest,
@@ -754,7 +755,8 @@ export class CommitMessage extends React.Component<
       this.props.isGeneratingCommitMessage === true ||
       this.props.isCreatingCopilotAssistedCommits === true ||
       (this.props.assistedCommitState !== undefined &&
-        isAssistedCommitRepositoryLocked(this.props.assistedCommitState))
+        isAssistedCommitRepositoryLocked(this.props.assistedCommitState)) ||
+      isRepositoryAffectedByAssistedCommit(this.props.repository.path)
     )
   }
 
