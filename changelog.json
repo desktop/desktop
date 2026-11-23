@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.7.1-test1": ["Electron bump"],
     "3.7.0": [
       "[New] Work with personal and work accounts side by side without signing out, with support for multiple accounts on GitHub.com and on the same GitHub Enterprise server - #3707",
       "[New] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
