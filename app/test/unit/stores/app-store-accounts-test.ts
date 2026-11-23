@@ -602,6 +602,7 @@ describe('AppStore repository accounts', () => {
       const onBob = await addRepository('/bulk-bob', 'bob')
       const onAlice = await addRepository('/bulk-alice', 'alice')
       const untouched = await addRepository('/bulk-untouched', 'bob')
+      const openGitStore = appStore['gitStoreCache'].get(onBob)
 
       await appStore._updateAccountRepositories(
         alice,
@@ -616,6 +617,7 @@ describe('AppStore repository accounts', () => {
       assert.equal(logins.get(onBob.id), 'alice')
       assert.equal(logins.get(onAlice.id), null)
       assert.equal(logins.get(untouched.id), 'bob')
+      assert.equal(openGitStore.repository.login, 'alice')
     })
 
     it('refuses to assign repositories to a signed-out account', async () => {
