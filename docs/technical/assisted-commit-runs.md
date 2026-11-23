@@ -339,11 +339,11 @@ Ownerless refresh and diff selection readers (running without an active run
 while restored selections remain) do not acquire the repository lock or set
 `isCommitting`, keeping file checkboxes and edits interactive. Retiring a
 restored selection revokes the shared certificate across all derived display
-selections, and a recovery-diff failure for a file already superseded by a newer
-user selection is ignored rather than invalidating unaffected files. If a newer
-assisted commit run takes ownership while an ownerless reader is in flight, a
-failed ownerless read skips invalidation and error emission rather than
-disturbing the active run.
+selections, and a recovery- or display-diff verification failure for a file
+already superseded by a newer user selection is ignored rather than invalidating
+unaffected files. If a newer assisted commit run takes ownership while an
+ownerless reader is in flight, a stale or failed ownerless read skips
+invalidation and error emission rather than disturbing the active run.
 Status requests waiting behind sealed settlement carry only their exclusion
 policy into the resumed read, not the old run's ownership or recovery fences.
 Newly observed rows remain unchecked; ordinary later refreshes keep existing

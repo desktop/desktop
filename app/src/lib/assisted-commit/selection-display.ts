@@ -60,6 +60,38 @@ function reconcileSelectionAfterAwait(
   return { kind: 'unchanged' }
 }
 
+function isRestoredSelectionSuperseded(
+  latest: IChangesState,
+  fileID: string,
+  fileBeforeAwait: WorkingDirectoryFileChange,
+  selections: AssistedCommitSelection
+): boolean {
+  if (selections.hasRestored(fileBeforeAwait.selection)) {
+    return false
+  }
+  const latestFile = latest.workingDirectory.findFileWithID(fileID)
+  return (
+    latestFile === null || latestFile.selection !== fileBeforeAwait.selection
+  )
+}
+
+function isRetainedBasisSuperseded(
+  latest: IChangesState,
+  fileID: string,
+  fileBeforeAwait: WorkingDirectoryFileChange,
+  selections: AssistedCommitSelection
+): boolean {
+  const latestFile = latest.workingDirectory.findFileWithID(fileID)
+  if (latestFile === null) {
+    return true
+  }
+  return (
+    latestFile.selection !== fileBeforeAwait.selection &&
+    latestFile.selection.getSelectionType() !== DiffSelectionType.Partial &&
+    selections.getBasis(latestFile.selection) === undefined
+  )
+}
+
 /** Refresh display bounds without manufacturing or broadening selected-change authority. */
 export async function updateWorkingDirectorySelectionDiff(
   repository: Repository,
@@ -67,7 +99,8 @@ export async function updateWorkingDirectorySelectionDiff(
   selections: AssistedCommitSelection,
   hideWhitespace: boolean,
   admittedRun: IAssistedCommitRun | undefined,
-  ownerBefore: IAssistedCommitRun | undefined
+  ownerBefore: IAssistedCommitRun | undefined,
+  getDiff: typeof getWorkingDirectoryDiff = getWorkingDirectoryDiff
 ): Promise<SelectionDisplayResult> {
   const hasOwnershipChanged = (): boolean => {
     if (state.selectionOwner(repository) !== admittedRun) {
@@ -78,6 +111,22 @@ export async function updateWorkingDirectorySelectionDiff(
       return currentRun !== undefined && currentRun !== ownerBefore
     }
     return false
+  }
+
+  const runSupersededGuard = async <T>(
+    isSuperseded: () => boolean,
+    read: () => Promise<T>
+  ): Promise<
+    { readonly ok: true; readonly value: T } | { readonly ok: false }
+  > => {
+    try {
+      return { ok: true, value: await read() }
+    } catch (error) {
+      if (admittedRun === undefined && isSuperseded()) {
+        return { ok: false }
+      }
+      throw error
+    }
   }
 
   if (hasOwnershipChanged()) {
@@ -122,11 +171,24 @@ export async function updateWorkingDirectorySelectionDiff(
     return { kind: 'unchanged' }
   }
 
-  const diff = await getWorkingDirectoryDiff(
-    repository,
-    selectedFileBeforeLoad,
-    hideWhitespace
+  const hadRestoredBeforeLoad = selections.hasRestored(
+    selectedFileBeforeLoad.selection
   )
+  const diffResult = await runSupersededGuard(
+    () =>
+      hadRestoredBeforeLoad &&
+      isRestoredSelectionSuperseded(
+        cache.get(repository).changesState,
+        selectedFileIdBeforeLoad,
+        selectedFileBeforeLoad,
+        selections
+      ),
+    () => getDiff(repository, selectedFileBeforeLoad, hideWhitespace)
+  )
+  if (!diffResult.ok) {
+    return { kind: 'unchanged' }
+  }
+  const diff = diffResult.value
 
   if (hasOwnershipChanged()) {
     return { kind: 'unchanged' }
@@ -179,12 +241,21 @@ export async function updateWorkingDirectorySelectionDiff(
     changesState.commitMode === 'copilot' &&
     changesState.assistedCommitAvailable
   ) {
-    const canonical = await getWorkingDirectoryDiff(
-      repository,
-      currentlySelectedFile,
-      false,
-      { noTextconv: true }
+    const fileBeforeAwait = currentlySelectedFile
+    const canonicalResult = await runSupersededGuard(
+      () =>
+        isRetainedBasisSuperseded(
+          cache.get(repository).changesState,
+          selectedFileID,
+          fileBeforeAwait,
+          selections
+        ),
+      () => getDiff(repository, fileBeforeAwait, false, { noTextconv: true })
     )
+    if (!canonicalResult.ok) {
+      return { kind: 'unchanged' }
+    }
+    const canonical = canonicalResult.value
     if (hasOwnershipChanged()) {
       return { kind: 'unchanged' }
     }
@@ -221,12 +292,21 @@ export async function updateWorkingDirectorySelectionDiff(
   }
   if (basis !== undefined) {
     if (basis.text !== null) {
-      const canonical = await getWorkingDirectoryDiff(
-        repository,
-        currentlySelectedFile,
-        false,
-        { noTextconv: true }
+      const fileBeforeAwait = currentlySelectedFile
+      const canonicalResult = await runSupersededGuard(
+        () =>
+          isRestoredSelectionSuperseded(
+            cache.get(repository).changesState,
+            selectedFileID,
+            fileBeforeAwait,
+            selections
+          ),
+        () => getDiff(repository, fileBeforeAwait, false, { noTextconv: true })
       )
+      if (!canonicalResult.ok) {
+        return { kind: 'unchanged' }
+      }
+      const canonical = canonicalResult.value
       if (hasOwnershipChanged()) {
         return { kind: 'unchanged' }
       }
@@ -262,10 +342,26 @@ export async function updateWorkingDirectorySelectionDiff(
       }
     }
     if (basis !== undefined) {
-      const head = await readAssistedCommitHead(repository)
-      const versions = await getAssistedCommitInputVersions(repository, [
-        currentlySelectedFile,
-      ])
+      const fileBeforeAwait = currentlySelectedFile
+      const versionResult = await runSupersededGuard(
+        () =>
+          isRestoredSelectionSuperseded(
+            cache.get(repository).changesState,
+            selectedFileID,
+            fileBeforeAwait,
+            selections
+          ),
+        async () => ({
+          head: await readAssistedCommitHead(repository),
+          versions: await getAssistedCommitInputVersions(repository, [
+            fileBeforeAwait,
+          ]),
+        })
+      )
+      if (!versionResult.ok) {
+        return { kind: 'unchanged' }
+      }
+      const { head, versions } = versionResult.value
       if (hasOwnershipChanged()) {
         return { kind: 'unchanged' }
       }

@@ -5,7 +5,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { ChangesSelectionKind } from '../app-state'
 import { assistedCommitErrorCauses } from '../assisted-commit-run'
 import { ErrorWithMetadata } from '../error-with-metadata'
-import { IStatusResult } from '../git'
+import { getWorkingDirectoryDiff, IStatusResult } from '../git'
 import { AssistedCommitError } from '../git/assisted-commit'
 import {
   getAssistedCommitProtectedPaths,
@@ -489,6 +489,10 @@ export class AssistedCommitReaders {
     )
   }
 
+  private getDisplayDiff(...args: Parameters<typeof getWorkingDirectoryDiff>) {
+    return getWorkingDirectoryDiff(...args)
+  }
+
   private async updateDiffCore(
     repository: Repository,
     admittedRun: IAssistedCommitRun | undefined,
@@ -500,7 +504,8 @@ export class AssistedCommitReaders {
       this.selections,
       this.configuration().hideWhitespace,
       admittedRun,
-      ownerBefore
+      ownerBefore,
+      (...args) => this.getDisplayDiff(...args)
     )
     if (result.kind === 'invalid') {
       this.invalidate(repository, result.run, result.error)
