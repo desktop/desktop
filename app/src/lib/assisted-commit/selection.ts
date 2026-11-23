@@ -71,6 +71,7 @@ interface ISelectionBasis {
 /** Owns selection certificates and original diff lineage across native refreshes. */
 export class AssistedCommitSelection {
   private readonly restored = new WeakMap<DiffSelection, IRestoredSelection>()
+  private readonly retiredRestored = new WeakSet<IRestoredSelection>()
   private readonly bases = new WeakMap<DiffSelection, ISelectionBasis>()
 
   public constructor(
@@ -78,16 +79,33 @@ export class AssistedCommitSelection {
     private readonly hideWhitespace: () => boolean
   ) {}
 
+  private getActiveRestored(
+    selection: DiffSelection
+  ): IRestoredSelection | undefined {
+    const authority = this.restored.get(selection)
+    return authority !== undefined && !this.retiredRestored.has(authority)
+      ? authority
+      : undefined
+  }
+
+  private retireRestoredSelection(selection: DiffSelection): void {
+    const authority = this.restored.get(selection)
+    if (authority !== undefined) {
+      this.retiredRestored.add(authority)
+      this.restored.delete(selection)
+    }
+  }
+
   /** Whether a selection carries verified restored authority. */
   public hasRestored(selection: DiffSelection): boolean {
-    return this.restored.has(selection)
+    return this.getActiveRestored(selection) !== undefined
   }
 
   /** Retire restored certificates when cleanup must reconcile current content. */
   public clearRestored(repository: Repository): void {
     for (const file of this.cache.get(repository).changesState.workingDirectory
       .files) {
-      this.restored.delete(file.selection)
+      this.retireRestoredSelection(file.selection)
     }
   }
 
@@ -104,14 +122,14 @@ export class AssistedCommitSelection {
     const files = candidateFiles.filter(
       file =>
         file.selection.getSelectionType() !== DiffSelectionType.None &&
-        this.restored.has(file.selection)
+        this.getActiveRestored(file.selection) !== undefined
     )
     if (files.length === 0) {
       return certified
     }
     const isSuperseded = (file: WorkingDirectoryFileChange) =>
       !explicitSelection &&
-      !this.restored.has(file.selection) &&
+      this.getActiveRestored(file.selection) === undefined &&
       this.cache
         .get(repository)
         .changesState.workingDirectory.findFileWithID(file.id)?.selection !==
@@ -121,7 +139,7 @@ export class AssistedCommitSelection {
       if (isSuperseded(file)) {
         continue
       }
-      const authority = this.restored.get(file.selection)
+      const authority = this.getActiveRestored(file.selection)
       if (authority === undefined) {
         throw new AssistedCommitError(
           'selection-changed',
@@ -137,7 +155,7 @@ export class AssistedCommitSelection {
         continue
       }
       if (
-        !this.restored.has(file.selection) ||
+        this.getActiveRestored(file.selection) === undefined ||
         diff === null ||
         (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) ||
         diff.text !== authority.text
@@ -166,7 +184,7 @@ export class AssistedCommitSelection {
           certified.delete(file.id)
           return false
         }
-        const authority = this.restored.get(file.selection)
+        const authority = this.getActiveRestored(file.selection)
         return (
           authority === undefined ||
           authority.head.ref !== head.ref ||
@@ -188,7 +206,9 @@ export class AssistedCommitSelection {
     repository: Repository,
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<ReadonlyMap<string, ITextDiff | ILargeTextDiff>> {
-    const restored = files.filter(file => this.restored.has(file.selection))
+    const restored = files.filter(
+      file => this.getActiveRestored(file.selection) !== undefined
+    )
     if (restored.length === 0) {
       return new Map()
     }
@@ -403,10 +423,14 @@ export class AssistedCommitSelection {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): void {
     const ids = new Set(files.map(file => file.id))
+    for (const file of files) {
+      this.retireRestoredSelection(file.selection)
+      this.bases.delete(file.selection)
+    }
     for (const file of this.cache.get(repository).changesState.workingDirectory
       .files) {
       if (ids.has(file.id)) {
-        this.restored.delete(file.selection)
+        this.retireRestoredSelection(file.selection)
         this.bases.delete(file.selection)
       }
     }
@@ -583,7 +607,7 @@ export class AssistedCommitSelection {
   }
   /** Restored authority for display verification, not mutable ownership. */
   public getRestored(selection: DiffSelection): IRestoredSelection | undefined {
-    return this.restored.get(selection)
+    return this.getActiveRestored(selection)
   }
 
   /** Original lineage retained for a user-selected diff mask. */
@@ -597,7 +621,7 @@ export class AssistedCommitSelection {
     restored: IRestoredSelection | undefined,
     basis: ISelectionBasis | undefined
   ): void {
-    if (restored !== undefined) {
+    if (restored !== undefined && !this.retiredRestored.has(restored)) {
       this.restored.set(selection, restored)
     }
     if (basis !== undefined) {
@@ -626,7 +650,7 @@ export class AssistedCommitSelection {
         ? undefined
         : this.bases.get(current.selection)?.text
     if (current !== null && current.selection !== diffSelection) {
-      this.restored.delete(current.selection)
+      this.retireRestoredSelection(current.selection)
       this.bases.delete(current.selection)
     }
     const type = diffSelection.getSelectionType()
