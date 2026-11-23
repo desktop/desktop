@@ -72,7 +72,7 @@ describe('Session recovery dialog', () => {
     })
   }
 
-  it('dismisses sign-in while leaving the account signed out', async () => {
+  it('dismisses sign-in while leaving the account signed out', async t => {
     let dismissed = 0
     let signIns = 0
     const account = new Account(
@@ -109,9 +109,10 @@ describe('Session recovery dialog', () => {
       />
     )
     assert.equal(screen.queryByText('Octocat'), null)
-    fireEvent.click(
-      screen.getByRole('button', { name: /sign into GitHub.com/i })
-    )
-    assert.equal(signIns, 1)
+    const { ipcRenderer } = await import('electron')
+    // Pick the first item ("GitHub.com") in the Add account menu.
+    t.mock.method(ipcRenderer, 'invoke', async () => [0])
+    fireEvent.click(screen.getByRole('button', { name: /add account/i }))
+    await waitFor(() => assert.equal(signIns, 1))
   })
 })
