@@ -94,22 +94,6 @@
 
       .add-account-button {
         flex-shrink: 0;
-        border-color: transparent;
-        background-color: transparent;
-        color: var(--text-color);
-
-        &:not([aria-disabled='true']):hover {
-          border-color: transparent;
-          background-color: var(--box-selected-background-color);
-        }
-
-        .octicon:first-child {
-          margin-right: var(--spacing-half);
-        }
-
-        .octicon:last-child {
-          margin-left: var(--spacing-half);
-        }
       }
     }
 
@@ -143,6 +127,18 @@
         width: 34px;
         height: 34px;
         flex-shrink: 0;
+      }
+
+      .account-actions-button {
+        flex-shrink: 0;
+        border-color: transparent;
+        background-color: transparent;
+        color: var(--text-color);
+
+        &:not([aria-disabled='true']):hover {
+          border-color: transparent;
+          background-color: var(--box-selected-background-color);
+        }
       }
 
       .user-info {

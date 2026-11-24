@@ -108,6 +108,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           </div>
         </div>
         <Button
+          className="account-actions-button"
           onClick={this.showAccountMenu(account)}
           ariaLabel={`Actions for @${account.login}`}
           ariaHaspopup="menu"
