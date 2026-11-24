@@ -110,6 +110,23 @@ export class AssistedCommitCoordinator {
   ): Promise<ICopilotAssistedCommitRequest> {
     repository = this.repository.getCurrent(repository)
     this.state.assertAvailable(repository)
+    if (isRepositoryGitMutationInProgress(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Finish the current Git operation before starting assisted commits'
+      )
+    }
+    if (isRepositoryAffectedByAssistedCommit(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Another assisted run uses these working files or shared Git metadata'
+      )
+    }
+    const initialState = this.state.cache.get(repository)
+    const { account, modelSelection } = this.context.getIntent(repository)
+    const frozen = freezeAssistedCommitRequest(request)
+    const providerDefinition = this.context.providerDefinition(modelSelection)
+    const providerRevision = this.context.providerRevision(modelSelection)
     if (await hasOverlappingRepositoryGitMutation(repository.path)) {
       throw new AssistedCommitError(
         'busy',
@@ -122,11 +139,7 @@ export class AssistedCommitCoordinator {
         'Another assisted run uses these working files or shared Git metadata'
       )
     }
-    const initialState = this.state.cache.get(repository)
-    const { account, modelSelection } = this.context.getIntent(repository)
-    const frozen = freezeAssistedCommitRequest(request)
-    const providerDefinition = this.context.providerDefinition(modelSelection)
-    const providerRevision = this.context.providerRevision(modelSelection)
+    this.state.assertAvailable(repository)
     const versions = await this.readers.read(repository, undefined, () =>
       this.selections.verifyRequested(repository, frozen.files)
     )
@@ -185,6 +198,22 @@ export class AssistedCommitCoordinator {
     if (this.startingRuns.has(repository.id) || isBusy(repository)) {
       return { kind: 'busy' }
     }
+    const currentState = this.state.cache.get(repository)
+    const prepared =
+      request.intent === undefined
+        ? undefined
+        : this.state.intents.get(request.intent)
+    const initialState = prepared?.initialState ?? currentState
+    const { account, modelSelection } =
+      prepared ?? this.context.getIntent(repository)
+    const frozenRequest = freezeAssistedCommitRequest(request)
+    const providerRevision =
+      prepared?.providerRevision ??
+      this.context.providerRevision(modelSelection)
+    const providerDefinition =
+      prepared !== undefined
+        ? prepared.providerDefinition
+        : this.context.providerDefinition(modelSelection)
     if (
       hasUnresolvedRepositoryGitMutations() ||
       hasActiveAssistedCommitProtection()
@@ -205,18 +234,10 @@ export class AssistedCommitCoordinator {
         return { kind: 'busy' }
       }
     }
-    const currentState = this.state.cache.get(repository)
-    const prepared =
-      request.intent === undefined
-        ? undefined
-        : this.state.intents.get(request.intent)
-    const initialState = prepared?.initialState ?? currentState
-    const { account, modelSelection } =
-      prepared ?? this.context.getIntent(repository)
     const run: IAssistedCommitRun = {
       id: randomUUID(),
       repository,
-      request: freezeAssistedCommitRequest(request),
+      request: frozenRequest,
       initialState,
       pushAfterCommit: initialState.changesState.pushAfterCommit,
       account,
@@ -229,13 +250,8 @@ export class AssistedCommitCoordinator {
       selectionReaders: new Set<Promise<void>>(),
       settlement: createAssistedCommitSettlement(),
       selectionReadersClosed: false,
-      providerRevision:
-        prepared?.providerRevision ??
-        this.context.providerRevision(modelSelection),
-      providerDefinition:
-        prepared !== undefined
-          ? prepared.providerDefinition
-          : this.context.providerDefinition(modelSelection),
+      providerRevision,
+      providerDefinition,
       finalized: false,
       finished: false,
       inputVersions: prepared?.versions,

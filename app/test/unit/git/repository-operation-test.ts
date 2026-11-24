@@ -1480,4 +1480,56 @@ describe('AppStore assisted repository operation admission', () => {
       await activeRun
     }
   })
+
+  it('captures first-click model intent before awaiting lazy discovery for an unrelated mutation', async t => {
+    const targetSource = await seed(t, { file: 'before\n' })
+    const unrelatedSource = await seed(t, { other: 'other\n' })
+    await writeFile(join(targetSource.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const target = await h.register(targetSource)
+    await h.register(unrelatedSource)
+    const account = h.appStore['accounts'][0]
+    h.appStore._setSelectedCopilotModel(
+      account,
+      'assisted-commit',
+      'copilot:first-click-model'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const unrelatedMutation = withRepositoryGitResourceMutation(
+      [unrelatedSource.path],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: unrelatedSource.path }
+    )
+    await entered.promise
+    try {
+      const preparing = h.dispatcher.prepareCopilotAssistedCommitRequest(
+        target,
+        h.request(target)
+      )
+      // Immediately switch model while prepare awaits lazy discovery on unrelatedSource.
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'assisted-commit',
+        'copilot:later-model'
+      )
+      const prepared = await preparing
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        target,
+        prepared
+      )
+      assert.strictEqual(outcome.kind, 'local-ready')
+      assert.deepStrictEqual(h.propose.mock.calls[0].arguments[3]?.request, {
+        kind: 'copilot',
+        modelId: 'first-click-model',
+      })
+    } finally {
+      finish.resolve()
+      await unrelatedMutation
+    }
+  })
 })
