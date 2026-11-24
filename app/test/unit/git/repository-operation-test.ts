@@ -19,6 +19,8 @@ import {
   getAssistedCommitProtectedPaths,
   getRepositoryGitOperationPath,
   getRepositoryGitReadEnvironment,
+  hasOverlappingRepositoryGitMutation,
+  hasUnresolvedRepositoryGitMutations,
   isReadOnlyGitCommand,
   isRepositoryAffectedByAssistedCommit,
   isRepositoryGitPaused,
@@ -28,6 +30,7 @@ import {
   withRepositoryGitDestruction,
   withRepositoryGitOperation,
   withRepositoryGitReads,
+  withRepositoryGitResourceMutation,
   hasRepositoryGitOperationAccess,
   withRepositoryGitSpawnFence,
 } from '../../../src/lib/git/repository-operation'
@@ -475,6 +478,71 @@ describe('assisted repository Git coordination', () => {
     const firstLease = await acquiringFirst
     firstLease.release()
     assert.strictEqual(firstLeaseAcquired, true)
+  })
+
+  it('fails closed on non-NotAGitRepository metadata discovery errors and keeps the unresolved mutation tracked', async t => {
+    const broken = await seed(t, { 'file.txt': 'broken\n' })
+    const other = await seed(t, { 'other.txt': 'other\n' })
+    await writeFile(join(broken.path, '.git', 'config'), '[core\n')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const activeMutation = withRepositoryGitResourceMutation(
+      [broken.path],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: broken.path }
+    )
+    await entered.promise
+    try {
+      await assert.rejects(hasOverlappingRepositoryGitMutation(other.path))
+      assert.strictEqual(hasUnresolvedRepositoryGitMutations(), true)
+      await assert.rejects(
+        acquireAssistedCommitGitLease(other.path, [other.path])
+      )
+      assert.strictEqual(hasUnresolvedRepositoryGitMutations(), true)
+    } finally {
+      finish.resolve()
+      await activeMutation
+    }
+    assert.strictEqual(hasUnresolvedRepositoryGitMutations(), false)
+  })
+
+  it('does not fall back to a sibling .git repository for non-clone paths', async t => {
+    const target = await seed(t, { 'file.txt': 'target\n' })
+    const parent = await createTempDirectory(t)
+    const plainDir = join(parent, 'workspace')
+    await mkdir(plainDir)
+    await rawGit(target, [
+      'worktree',
+      'add',
+      '-b',
+      'sibling',
+      `${plainDir}.git`,
+    ])
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const activeMutation = withRepositoryGitResourceMutation(
+      [plainDir],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: plainDir }
+    )
+    await entered.promise
+    try {
+      assert.strictEqual(
+        await hasOverlappingRepositoryGitMutation(target.path),
+        false
+      )
+    } finally {
+      finish.resolve()
+      await activeMutation
+    }
   })
 
   it('does not grant observers ownership, and scopes read-only refresh without global environment changes', async t => {

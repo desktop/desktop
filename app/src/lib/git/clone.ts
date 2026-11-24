@@ -99,13 +99,20 @@ async function withLocalCloneSourceRead(
 ): Promise<void> {
   if (!hasActiveAssistedCommitProtection()) {
     let needsFullDiscovery = false
-    await withRepositoryGitOperation(path, 'read', async () => {
-      if (hasActiveAssistedCommitProtection()) {
-        needsFullDiscovery = true
-        return
-      }
-      await operation()
-    })
+    await withRepositoryGitOperation(
+      path,
+      'read',
+      async () => {
+        if (hasActiveAssistedCommitProtection()) {
+          needsFullDiscovery = true
+          return
+        }
+        await operation()
+      },
+      false,
+      undefined,
+      tryGitSuffix
+    )
     if (!needsFullDiscovery) {
       return
     }

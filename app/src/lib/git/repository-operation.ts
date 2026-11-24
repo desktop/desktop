@@ -1,12 +1,14 @@
 import { realpath } from 'fs/promises'
 import { basename, dirname, resolve, sep } from 'path'
-import { git } from './core'
+import { GitError as DugiteError } from 'dugite'
+import { git, isGitError } from './core'
 import { isErrnoException } from '../errno-exception'
 import { AssistedCommitError } from './assisted-commit/error'
 import { createRepositoryOperationContext } from './repository-operation-context'
 
 interface IRepositoryOperation {
   readonly kind: 'read' | 'mutation'
+  readonly allowGitSuffix?: boolean
   readonly done: Promise<void>
   readonly complete: () => void
 }
@@ -94,13 +96,16 @@ export function hasUnresolvedRepositoryGitMutations(): boolean {
 }
 
 function pendingOperation(
-  kind: 'read' | 'mutation' = 'read'
+  kind: 'read' | 'mutation' = 'read',
+  allowGitSuffix: boolean = false
 ): IRepositoryOperation {
   let complete: () => void = () => {}
   const done = new Promise<void>(resolve => {
     complete = resolve
   })
-  return { kind, done, complete }
+  return allowGitSuffix
+    ? { kind, allowGitSuffix, done, complete }
+    : { kind, done, complete }
 }
 
 function pathKey(path: string): string {
@@ -377,17 +382,24 @@ export function isRepositoryGitMutationInProgress(
 }
 
 async function resolveActiveRepositoryResourcePaths(
-  path: string
+  path: string,
+  allowGitSuffix: boolean = false
 ): Promise<ReadonlyArray<string>> {
-  const candidates = path.endsWith('.git') ? [path] : [path, `${path}.git`]
+  const candidates =
+    allowGitSuffix && !path.endsWith('.git') ? [path, `${path}.git`] : [path]
   for (const candidate of candidates) {
     const existing = lookup(candidate)
     if (existing?.lease !== undefined) {
       return [...existing.protectedPaths, ...existing.aliases]
     }
-    const canonicalCandidate = await realpath(candidate).catch(() => undefined)
-    if (canonicalCandidate === undefined) {
-      continue
+    let canonicalCandidate: string
+    try {
+      canonicalCandidate = await realpath(candidate)
+    } catch (error) {
+      if (isErrnoException(error) && error.code === 'ENOENT') {
+        continue
+      }
+      throw error
     }
     const canonicalExisting = lookup(canonicalCandidate)
     if (canonicalExisting?.lease !== undefined) {
@@ -402,8 +414,14 @@ async function resolveActiveRepositoryResourcePaths(
           )
         ),
       ]
-    } catch {
-      // Not a Git repository at this path (e.g. non-repo directory).
+    } catch (error) {
+      if (
+        isGitError(error) &&
+        error.result.gitError === DugiteError.NotAGitRepository
+      ) {
+        continue
+      }
+      throw error
     }
   }
   return []
@@ -713,7 +731,8 @@ export async function withRepositoryGitOperation<T>(
   kind: 'read' | 'mutation',
   operation: () => Promise<T>,
   trackNested: boolean = false,
-  beforeAdmission?: () => void
+  beforeAdmission?: () => void,
+  allowGitSuffix: boolean = false
 ): Promise<T> {
   verifyRepositoryGitSpawnFence()
   beforeAdmission?.()
@@ -751,7 +770,7 @@ export async function withRepositoryGitOperation<T>(
       repository.waiters--
     }
   }
-  const pending = pendingOperation(kind)
+  const pending = pendingOperation(kind, allowGitSuffix)
   repository.operations.add(pending)
   try {
     return await contexts.run(
@@ -916,7 +935,13 @@ async function findOverlappingActiveRepositories(
   }
   const overlapping: IRepositoryOperations[] = []
   for (const other of candidates) {
-    const discovered = await resolveActiveRepositoryResourcePaths(other.path)
+    const allowGitSuffix = [...other.operations].some(
+      operation => operation.allowGitSuffix === true
+    )
+    const discovered = await resolveActiveRepositoryResourcePaths(
+      other.path,
+      allowGitSuffix
+    )
     const otherPaths = [...other.aliases, ...discovered].map(pathKey)
     if (
       otherPaths.some(otherPath =>
