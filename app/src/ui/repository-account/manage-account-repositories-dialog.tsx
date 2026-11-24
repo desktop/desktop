@@ -23,6 +23,8 @@ import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { TextBox } from '../lib/text-box'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IManageAccountRepositoriesDialogProps {
   readonly account: Account
@@ -72,9 +74,24 @@ function matchesFilter(
   ].some(value => value.toLowerCase().includes(filter))
 }
 
+/** How a repository is currently assigned relative to the managed account. */
+type RepositoryAssignment = 'unassigned' | 'this-account' | 'other-account'
+
+function getRepositoryAssignment(
+  repository: Repository,
+  account: Account
+): RepositoryAssignment {
+  const identity = getRepositoryAccountIdentity(repository)
+  if (identity === null) {
+    return 'unassigned'
+  }
+  return isSameAccount(account, identity) ? 'this-account' : 'other-account'
+}
+
 interface IAccountRepositoryRowProps {
   readonly repository: RepositoryWithGitHubRepository
   readonly association: string
+  readonly assignment: RepositoryAssignment
   readonly selected: boolean
   readonly onChange: (
     repository: RepositoryWithGitHubRepository,
@@ -88,7 +105,7 @@ class AccountRepositoryRow extends React.Component<IAccountRepositoryRowProps> {
   }
 
   public render() {
-    const { repository, association, selected } = this.props
+    const { repository, association, assignment, selected } = this.props
     const descriptionId = `manage-account-repository-${repository.id}`
     return (
       <li className="account-repository">
@@ -102,7 +119,12 @@ class AccountRepositoryRow extends React.Component<IAccountRepositoryRowProps> {
           <span className="account-repository-full-name">
             {repository.gitHubRepository.fullName}
           </span>
-          <span className="account-repository-association">{association}</span>
+          <span className={`account-repository-association ${assignment}`}>
+            {assignment !== 'unassigned' && (
+              <Octicon symbol={octicons.person} />
+            )}
+            {association}
+          </span>
         </div>
       </li>
     )
@@ -233,6 +255,7 @@ export class ManageAccountRepositoriesDialog extends React.Component<
         this.props.account,
         this.props.accounts
       )}
+      assignment={getRepositoryAssignment(repository, this.props.account)}
       selected={this.state.selected.has(repository.id)}
       onChange={this.onRepositoryChanged}
     />
@@ -250,40 +273,56 @@ export class ManageAccountRepositoriesDialog extends React.Component<
   private renderRepositories() {
     const { account } = this.props
     const repositories = this.filteredRepositories
+    const total = this.hostRepositories.length
+    const selectedCount = this.hostRepositories.filter(r =>
+      this.state.selected.has(r.id)
+    ).length
     return (
       <>
         <p>
           Choose the repositories on {account.friendlyEndpoint} that should use
           @{account.login} for GitHub API requests and HTTPS authentication.
-          Unselecting a repository assigned to @{account.login} leaves it
-          unassigned; other unselected repositories keep their current account.
           This does not change your Git remotes, author name, or email.
         </p>
-        <div className="account-repositories-toolbar">
-          <TextBox
-            className="account-repositories-filter"
-            type="search"
-            placeholder="Filter repositories"
-            ariaLabel="Filter repositories"
-            value={this.state.filterText}
-            onValueChanged={this.onFilterTextChanged}
-            displayClearButton={true}
-          />
-          <Button onClick={this.onSelectAll}>Select all</Button>
-          <Button onClick={this.onSelectNone}>Select none</Button>
+        <TextBox
+          className="account-repositories-filter"
+          type="search"
+          placeholder="Filter repositories"
+          ariaLabel="Filter repositories"
+          prefixedIcon={octicons.search}
+          value={this.state.filterText}
+          onValueChanged={this.onFilterTextChanged}
+          displayClearButton={true}
+        />
+        <div className="account-repositories-box">
+          <div className="account-repositories-header">
+            <span className="account-repositories-count">
+              {selectedCount} of {total} selected
+            </span>
+            <Button size="small" onClick={this.onSelectAll}>
+              Select all
+            </Button>
+            <Button size="small" onClick={this.onSelectNone}>
+              Select none
+            </Button>
+          </div>
+          {repositories.length === 0 ? (
+            <p className="account-repositories-no-matches">
+              No repositories match your filter.
+            </p>
+          ) : (
+            <ul
+              className="account-repositories-list"
+              aria-label={`Repositories on ${account.friendlyEndpoint}`}
+            >
+              {repositories.map(this.renderRepository)}
+            </ul>
+          )}
         </div>
-        {repositories.length === 0 ? (
-          <p className="account-repositories-no-matches">
-            No repositories match your filter.
-          </p>
-        ) : (
-          <ul
-            className="account-repositories-list"
-            aria-label={`Repositories on ${account.friendlyEndpoint}`}
-          >
-            {repositories.map(this.renderRepository)}
-          </ul>
-        )}
+        <p className="account-repositories-note">
+          Unselecting a repository assigned to @{account.login} leaves it
+          unassigned; other unselected repositories keep their current account.
+        </p>
       </>
     )
   }
