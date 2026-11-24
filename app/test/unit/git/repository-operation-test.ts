@@ -1417,4 +1417,67 @@ describe('AppStore assisted repository operation admission', () => {
       await activeRun
     }
   })
+
+  it('synchronously marks external peer worktrees affected and rejects unwrapped peer mutations without prior status caching', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected b\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    // Neither b nor c ran metadata discovery during idle registration.
+    assert.strictEqual(isRepositoryAffectedByAssistedCommit(c.path), false)
+
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const activeRun = h.dispatcher.createCopilotAssistedCommits(b, h.request(b))
+    await analyzing.promise
+    try {
+      // Synchronous UI guard immediately recognizes peer linked worktree c.
+      assert.strictEqual(isRepositoryAffectedByAssistedCommit(c.path), true)
+
+      // Unwrapped mutations (e.g., GitStore.performFailableOperation / raw withRepositoryGitOperation)
+      // on peer worktree c are also rejected while b's assisted run protects shared metadata.
+      let entered = false
+      await assert.rejects(
+        withRepositoryGitOperation(c.path, 'mutation', async () => {
+          entered = true
+        }),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      assert.strictEqual(entered, false)
+
+      // Even an uncached repository sharing an alternate object store is rejected by
+      // unwrapped withRepositoryGitOperation mutations.
+      const sharedClonePath = join(await createTempDirectory(t), 'shared-clone')
+      await rawGit(main, [
+        'clone',
+        '--shared',
+        '--',
+        main.path,
+        sharedClonePath,
+      ])
+      let sharedEntered = false
+      await assert.rejects(
+        withRepositoryGitOperation(sharedClonePath, 'mutation', async () => {
+          sharedEntered = true
+        }),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      assert.strictEqual(sharedEntered, false)
+    } finally {
+      h.cancel(b)
+      finish.resolve()
+      await activeRun
+    }
+  })
 })

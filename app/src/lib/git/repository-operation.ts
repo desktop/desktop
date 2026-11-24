@@ -1,5 +1,5 @@
 import { realpath } from 'fs/promises'
-import { basename, dirname, resolve, sep } from 'path'
+import { basename, dirname, normalize, resolve, sep } from 'path'
 import { GitError as DugiteError } from 'dugite'
 import { git, isGitError } from './core'
 import { isErrnoException } from '../errno-exception'
@@ -60,6 +60,7 @@ const destructiveOperations = new Map<string, object>()
 const destructiveContexts =
   createRepositoryOperationContext<ReadonlyMap<string, object>>()
 const repositoryResourcePaths = new Map<string, ReadonlyArray<string>>()
+const canonicalPathAliases = new Map<string, string>()
 const resourceProtections = new Set<ReadonlySet<string>>()
 const resourceProtectionOwners = new WeakMap<
   ReadonlySet<string>,
@@ -148,6 +149,9 @@ async function repositoryOperations(
   for (const alias of [key, pathKey(path)]) {
     repository.aliases.add(alias)
     repositories.set(alias, repository)
+    if (alias !== key) {
+      canonicalPathAliases.set(alias, key)
+    }
   }
   return repository
 }
@@ -274,10 +278,14 @@ export function isRepositoryAffectedByAssistedCommit(
   if (!hasAssistedCommitResourceLock()) {
     return false
   }
-  const paths = [
-    ...(repositoryResourcePaths.get(pathKey(path)) ?? [path]),
-    ...(extraPaths ?? []),
-  ]
+  const key = pathKey(path)
+  const canonicalKey = canonicalPathAliases.get(key)
+  const known =
+    repositoryResourcePaths.get(key) ??
+    (canonicalKey === undefined
+      ? undefined
+      : repositoryResourcePaths.get(canonicalKey))
+  const paths = [...(known ?? [path]), ...(extraPaths ?? [])]
   return (
     [...resourceProtections].some(protectedPaths =>
       paths.some(path =>
@@ -591,6 +599,17 @@ function parseAlternateObjectDirectory(value: string): string {
   ).toString('utf8')
 }
 
+function parseWorktreePaths(stdout: string): ReadonlyArray<string> {
+  if (stdout.trim().length === 0) {
+    return []
+  }
+  return stdout
+    .replace(/\0$/, '')
+    .split('\0')
+    .filter(line => line.startsWith('worktree '))
+    .map(line => normalize(line.slice('worktree '.length)))
+}
+
 /** Resolve working directory and both linked/common Git metadata without reading selected content. */
 export async function getAssistedCommitProtectedPaths(
   path: string
@@ -647,6 +666,42 @@ export async function getAssistedCommitProtectedResources(
   ]
   repositoryResourcePaths.set(pathKey(path), paths)
   repositoryResourcePaths.set(pathKey(paths[original.length]), paths)
+  const worktrees = await git(
+    ['worktree', 'list', '--porcelain', '-z'],
+    path,
+    'assistedCommitWorktrees'
+  ).catch(() => undefined)
+  if (worktrees !== undefined) {
+    const commonDir = common.stdout.replace(/\r?\n$/, '')
+    const canonicalCommonDir = paths[original.length + 2]
+    const currentKey = pathKey(path)
+    const canonicalCurrentKey = pathKey(paths[original.length])
+    for (const worktreePath of parseWorktreePaths(worktrees.stdout)) {
+      if (worktreePath.length === 0) {
+        continue
+      }
+      const canonicalWorktree = await realpath(worktreePath).catch(
+        () => undefined
+      )
+      const sharedPaths =
+        canonicalWorktree === undefined
+          ? [worktreePath, commonDir, worktreePath, canonicalCommonDir]
+          : [worktreePath, commonDir, canonicalWorktree, canonicalCommonDir]
+      const entryKey = pathKey(worktreePath)
+      if (entryKey !== currentKey && entryKey !== canonicalCurrentKey) {
+        repositoryResourcePaths.set(entryKey, sharedPaths)
+      }
+      if (canonicalWorktree !== undefined) {
+        const canonicalKey = pathKey(canonicalWorktree)
+        if (
+          canonicalKey !== currentKey &&
+          canonicalKey !== canonicalCurrentKey
+        ) {
+          repositoryResourcePaths.set(canonicalKey, sharedPaths)
+        }
+      }
+    }
+  }
   return {
     paths,
     objectDirectories,
@@ -736,58 +791,65 @@ export async function withRepositoryGitOperation<T>(
 ): Promise<T> {
   verifyRepositoryGitSpawnFence()
   beforeAdmission?.()
-  const repository = await repositoryOperations(path)
-  verifyRepositoryGitSpawnFence()
-  beforeAdmission?.()
-  const admitted = hasAccess(repository)
-  if (
-    !admitted &&
-    kind === 'mutation' &&
-    (isRepositoryAffectedByAssistedCommit(path) ||
-      isRepositoryAffectedByAssistedCommit(repository.path))
-  ) {
-    throw new AssistedCommitError(
-      'busy',
-      'An assisted commit run protects these working files or shared Git metadata'
-    )
-  }
-  if (admitted && !trackNested) {
-    return operation()
-  }
-  while (!admitted && repository.lease !== undefined) {
-    if (kind === 'mutation') {
-      throw new AssistedCommitError(
-        'busy',
-        'An assisted commit run owns this repository'
-      )
-    }
-    repository.waiters++
-    try {
-      await repository.lease.released
+  const repository = await pinRepositoryOperations(path)
+  try {
+    verifyRepositoryGitSpawnFence()
+    beforeAdmission?.()
+    const admitted = hasAccess(repository)
+    if (!admitted && kind === 'mutation' && hasAssistedCommitResourceLock()) {
+      if (
+        isRepositoryAffectedByAssistedCommit(path) ||
+        isRepositoryAffectedByAssistedCommit(repository.path) ||
+        (await isRepositoryOverlappingAssistedCommit(repository.path))
+      ) {
+        throw new AssistedCommitError(
+          'busy',
+          'An assisted commit run protects these working files or shared Git metadata'
+        )
+      }
       verifyRepositoryGitSpawnFence()
       beforeAdmission?.()
-    } finally {
-      repository.waiters--
     }
-  }
-  const pending = pendingOperation(kind, allowGitSuffix)
-  repository.operations.add(pending)
-  try {
-    return await contexts.run(
-      {
-        repository,
-        owner: pending,
-        readOnly: contexts.getStore()?.readOnly,
-        parent: contexts.getStore(),
-        propagateErrors: contexts.getStore()?.propagateErrors,
-        beforeSpawn: contexts.getStore()?.beforeSpawn,
-      },
-      operation
-    )
+    if (admitted && !trackNested) {
+      return await operation()
+    }
+    while (!admitted && repository.lease !== undefined) {
+      if (kind === 'mutation') {
+        throw new AssistedCommitError(
+          'busy',
+          'An assisted commit run owns this repository'
+        )
+      }
+      repository.waiters++
+      try {
+        await repository.lease.released
+        verifyRepositoryGitSpawnFence()
+        beforeAdmission?.()
+      } finally {
+        repository.waiters--
+      }
+    }
+    const pending = pendingOperation(kind, allowGitSuffix)
+    repository.operations.add(pending)
+    try {
+      return await contexts.run(
+        {
+          repository,
+          owner: pending,
+          readOnly: contexts.getStore()?.readOnly,
+          parent: contexts.getStore(),
+          propagateErrors: contexts.getStore()?.propagateErrors,
+          beforeSpawn: contexts.getStore()?.beforeSpawn,
+        },
+        operation
+      )
+    } finally {
+      repository.operations.delete(pending)
+      pending.complete()
+      forget(repository)
+    }
   } finally {
-    repository.operations.delete(pending)
-    pending.complete()
-    forget(repository)
+    unpinRepositoryOperations(repository)
   }
 }
 
