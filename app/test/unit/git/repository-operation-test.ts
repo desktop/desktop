@@ -44,6 +44,7 @@ import {
 } from '../../helpers/copilot-assisted-commit'
 import { createTempDirectory } from '../../helpers/temp'
 import { Repository } from '../../../src/models/repository'
+import * as GitPerf from '../../../src/ui/lib/git-perf'
 
 describe('assisted repository Git coordination', () => {
   it('checks a retained negative owner fence before waiting on a foreign lease', async t => {
@@ -1116,5 +1117,122 @@ describe('AppStore assisted repository operation admission', () => {
     finish.resolve()
     await operation
     assert.strictEqual(protectedAtPublication, true)
+  })
+
+  it('skips assisted-commit Git metadata commands during ordinary status, commit, and branch operations when no assisted run is active', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'updated\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.dispatcher.setCommitMode(repository, 'manual')
+
+    const executed: string[] = []
+    GitPerf.start()
+    t.after(() => GitPerf.stop())
+    const originalMark = performance.mark.bind(performance)
+    t.mock.method(performance, 'mark', (name: string) => {
+      const separator = name.indexOf('::')
+      if (separator !== -1) {
+        executed.push(name.slice(separator + 2))
+      }
+      return originalMark(name)
+    })
+
+    await h.appStore._loadStatus(repository)
+    const committed = await h.appStore._commitIncludedChanges(repository, {
+      summary: 'Ordinary manual commit',
+      description: '',
+      trailers: [],
+    })
+    assert.strictEqual(committed, true)
+    await h.appStore._createBranch(repository, 'ordinary-branch', 'HEAD')
+
+    const assistedMetadataCommands = executed.filter(cmd =>
+      cmd.startsWith('assistedCommit')
+    )
+    assert.deepStrictEqual(assistedMetadataCommands, [])
+  })
+
+  it('lazily resolves an in-flight peer linked worktree mutation when an assisted run tries to start', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    const gitStoreC = h.appStore['gitStoreCache'].get(c)
+    const createBranch = gitStoreC.createBranch.bind(gitStoreC)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    gitStoreC.createBranch = async (...args) => {
+      const result = await createBranch(...args)
+      entered.resolve()
+      await finish.promise
+      return result
+    }
+
+    const ordinary = h.appStore._createBranch(c, 'peer-branch', 'HEAD')
+    await entered.promise
+    try {
+      await assert.rejects(
+        h.dispatcher.prepareCopilotAssistedCommitRequest(b, h.request(b)),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        b,
+        h.request(b)
+      )
+      assert.strictEqual(outcome.kind, 'busy')
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+    } finally {
+      finish.resolve()
+      await ordinary
+    }
+    assert.strictEqual(
+      await rawGit(c, ['symbolic-ref', '--short', 'HEAD']),
+      'peer-branch'
+    )
+  })
+
+  it('rejects starting an assisted run on a peer linked worktree while another assisted run is active', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected b\n')
+    await writeFile(join(cPath, 'file'), 'selected c\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const activeRun = h.dispatcher.createCopilotAssistedCommits(b, h.request(b))
+    await analyzing.promise
+    try {
+      await assert.rejects(
+        h.dispatcher.prepareCopilotAssistedCommitRequest(c, h.request(c)),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        c,
+        h.request(c)
+      )
+      assert.strictEqual(outcome.kind, 'busy')
+    } finally {
+      h.cancel(b)
+      finish.resolve()
+      await activeRun
+    }
   })
 })

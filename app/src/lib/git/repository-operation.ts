@@ -365,14 +365,12 @@ async function resolveActiveRepositoryResourcePaths(
       return [...existing.protectedPaths, ...existing.aliases]
     }
     const canonicalCandidate = await realpath(candidate).catch(() => undefined)
-    if (canonicalCandidate !== undefined) {
-      const canonicalExisting = lookup(canonicalCandidate)
-      if (canonicalExisting?.lease !== undefined) {
-        return [
-          ...canonicalExisting.protectedPaths,
-          ...canonicalExisting.aliases,
-        ]
-      }
+    if (canonicalCandidate === undefined) {
+      continue
+    }
+    const canonicalExisting = lookup(canonicalCandidate)
+    if (canonicalExisting?.lease !== undefined) {
+      return [...canonicalExisting.protectedPaths, ...canonicalExisting.aliases]
     }
     try {
       const resources = await getAssistedCommitProtectedPaths(candidate)
@@ -384,7 +382,7 @@ async function resolveActiveRepositoryResourcePaths(
         ),
       ]
     } catch {
-      // Not a Git repository at this path (e.g. missing directory or non-repo).
+      // Not a Git repository at this path (e.g. non-repo directory).
     }
   }
   return []

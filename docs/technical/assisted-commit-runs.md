@@ -249,6 +249,11 @@ Mutation admission resolves each caller's working, Git, common and object
 directories, including transitive native/environment-provided alternate object
 stores and peer linked worktrees outside the main checkout. Git resolves the
 alternate dependency graph; Desktop does not change its environment or config.
+When no assisted commit run or protection is active, ordinary mutations, status
+loads, and local clones skip this Git metadata discovery and only record their
+working path; if an assisted commit run starts while those operations are in
+flight, assisted admission lazily resolves their shared metadata before
+admitting the run or acquiring a lease.
 Cleanup
 snapshots become selection authority only after original first-click binding
 succeeds; rejected captures cannot authorize replacement-content selections.

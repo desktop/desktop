@@ -27,6 +27,7 @@ import {
   rollbackAssistedCommitTransaction,
 } from '../../../src/lib/git/assisted-commit'
 import { Repository } from '../../../src/models/repository'
+import * as GitPerf from '../../../src/ui/lib/git-perf'
 import {
   rawGit,
   request,
@@ -380,6 +381,38 @@ describe('git/clone', () => {
 
     assert.equal(existsSync(path.join(clonePath, '.git')), true)
     assert.equal(existsSync(path.join(clonePath, 'README.md')), true)
+  })
+
+  it('skips assisted-commit source probes during local clones when no assisted run is active', async t => {
+    const source = await setupEmptyRepository(t)
+    await makeCommit(source, {
+      entries: [{ path: 'README.md', contents: 'hello' }],
+      commitMessage: 'initial commit',
+    })
+    const destination = path.join(await createTempDirectory(t), 'cloned')
+
+    const executed: string[] = []
+    GitPerf.start()
+    t.after(() => GitPerf.stop())
+    const originalMark = performance.mark.bind(performance)
+    t.mock.method(performance, 'mark', (name: string) => {
+      const separator = name.indexOf('::')
+      if (separator !== -1) {
+        executed.push(name.slice(separator + 2))
+      }
+      return originalMark(name)
+    })
+
+    await clone(source.path, destination, {})
+
+    assert.equal(existsSync(path.join(destination, '.git')), true)
+    const probeCommands = executed.filter(
+      cmd =>
+        cmd.startsWith('assistedCommit') ||
+        cmd.startsWith('getRepositoryType') ||
+        cmd.startsWith('listWorktrees')
+    )
+    assert.deepStrictEqual(probeCommands, [])
   })
 
   it('allows an independent clone while the application execution directory is protected', async t => {
