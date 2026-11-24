@@ -784,64 +784,69 @@ export async function withRepositoryGitReads<T>(
   verifyRepositoryGitSpawnFence()
   const uniqueRepositories: IRepositoryOperations[] = []
   const seen = new Set<IRepositoryOperations>()
-  for (const path of paths) {
-    const repository = await repositoryOperations(path)
-    verifyRepositoryGitSpawnFence()
-    if (!seen.has(repository)) {
-      seen.add(repository)
-      uniqueRepositories.push(repository)
-    }
-  }
-  while (true) {
-    const blocked = uniqueRepositories.find(
-      repository => !hasAccess(repository) && repository.lease !== undefined
-    )
-    if (blocked?.lease === undefined) {
-      break
-    }
-    blocked.waiters++
-    try {
-      await blocked.lease.released
-      verifyRepositoryGitSpawnFence()
-    } finally {
-      blocked.waiters--
-    }
-  }
   const acquired: Array<{
     readonly repository: IRepositoryOperations
     readonly pending: IRepositoryOperation
   }> = []
-  for (const repository of uniqueRepositories) {
-    if (!hasAccess(repository)) {
-      const pending = pendingOperation('read')
-      repository.operations.add(pending)
-      acquired.push({ repository, pending })
-    }
-  }
-  const runNested = (index: number): Promise<T> => {
-    if (index === acquired.length) {
-      return operation()
-    }
-    const { repository, pending } = acquired[index]
-    return contexts.run(
-      {
-        repository,
-        owner: pending,
-        readOnly: contexts.getStore()?.readOnly,
-        parent: contexts.getStore(),
-        propagateErrors: contexts.getStore()?.propagateErrors,
-        beforeSpawn: contexts.getStore()?.beforeSpawn,
-      },
-      () => runNested(index + 1)
-    )
-  }
   try {
+    for (const path of paths) {
+      const repository = await pinRepositoryOperations(path)
+      if (seen.has(repository)) {
+        unpinRepositoryOperations(repository)
+      } else {
+        seen.add(repository)
+        uniqueRepositories.push(repository)
+      }
+      verifyRepositoryGitSpawnFence()
+    }
+    while (true) {
+      const blocked = uniqueRepositories.find(
+        repository => !hasAccess(repository) && repository.lease !== undefined
+      )
+      if (blocked?.lease === undefined) {
+        break
+      }
+      blocked.waiters++
+      try {
+        await blocked.lease.released
+        verifyRepositoryGitSpawnFence()
+      } finally {
+        blocked.waiters--
+      }
+    }
+    for (const repository of uniqueRepositories) {
+      if (!hasAccess(repository)) {
+        const pending = pendingOperation('read')
+        repository.operations.add(pending)
+        acquired.push({ repository, pending })
+      }
+    }
+    const runNested = (index: number): Promise<T> => {
+      if (index === acquired.length) {
+        return operation()
+      }
+      const { repository, pending } = acquired[index]
+      return contexts.run(
+        {
+          repository,
+          owner: pending,
+          readOnly: contexts.getStore()?.readOnly,
+          parent: contexts.getStore(),
+          propagateErrors: contexts.getStore()?.propagateErrors,
+          beforeSpawn: contexts.getStore()?.beforeSpawn,
+        },
+        () => runNested(index + 1)
+      )
+    }
     return await runNested(0)
   } finally {
     for (const { repository, pending } of acquired) {
       repository.operations.delete(pending)
       pending.complete()
       forget(repository)
+    }
+    for (const repository of uniqueRepositories) {
+      unpinRepositoryOperations(repository)
     }
   }
 }

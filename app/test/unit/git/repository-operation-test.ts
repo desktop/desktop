@@ -27,6 +27,7 @@ import {
   withoutRepositoryGitAccess,
   withRepositoryGitDestruction,
   withRepositoryGitOperation,
+  withRepositoryGitReads,
   hasRepositoryGitOperationAccess,
   withRepositoryGitSpawnFence,
 } from '../../../src/lib/git/repository-operation'
@@ -419,6 +420,61 @@ describe('assisted repository Git coordination', () => {
     assert.strictEqual(await count(target), 2)
     finishUnrelated.resolve()
     await unrelatedOp
+  })
+
+  it('pins earlier collected paths in withRepositoryGitReads while waiting on a later path lease', async t => {
+    const first = await seed(t, { 'first.txt': 'first\n' })
+    const second = await seed(t, { 'second.txt': 'second\n' })
+    const secondLease = await acquireAssistedCommitGitLease(second.path)
+    t.after(() => secondLease.release())
+
+    const priorReadEntered = deferred<void>()
+    const finishPriorRead = deferred<void>()
+    const priorRead = withRepositoryGitOperation(
+      first.path,
+      'read',
+      async () => {
+        priorReadEntered.resolve()
+        await finishPriorRead.promise
+      }
+    )
+    await priorReadEntered.promise
+
+    const multiEntered = deferred<void>()
+    const finishMulti = deferred<void>()
+    const multiRead = withRepositoryGitReads(
+      [first.path, second.path],
+      async () => {
+        multiEntered.resolve()
+        await finishMulti.promise
+      }
+    )
+
+    // Allow withRepositoryGitReads to collect `first` and block on `second`'s lease.
+    await new Promise(resolve => setTimeout(resolve, 25))
+    finishPriorRead.resolve()
+    await priorRead
+
+    // Release `second` so multiRead enters its body and registers reads on both paths.
+    secondLease.release()
+    await multiEntered.promise
+
+    // A lease on `first` must still see multiRead on the live registry entry and drain it.
+    let firstLeaseAcquired = false
+    const acquiringFirst = acquireAssistedCommitGitLease(first.path).then(
+      lease => {
+        firstLeaseAcquired = true
+        return lease
+      }
+    )
+    await new Promise(resolve => setTimeout(resolve, 25))
+    assert.strictEqual(firstLeaseAcquired, false)
+
+    finishMulti.resolve()
+    await multiRead
+    const firstLease = await acquiringFirst
+    firstLease.release()
+    assert.strictEqual(firstLeaseAcquired, true)
   })
 
   it('does not grant observers ownership, and scopes read-only refresh without global environment changes', async t => {
