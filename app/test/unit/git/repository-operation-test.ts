@@ -363,6 +363,64 @@ describe('assisted repository Git coordination', () => {
     lease.release()
   })
 
+  it('pins the target registry entry during lease discovery when an earlier reader finishes', async t => {
+    const target = await seed(t, { 'file.txt': 'before\n' })
+    const unrelated = await seed(t, { 'other.txt': 'other\n' })
+    const protectedPaths = await getAssistedCommitProtectedPaths(target.path)
+    const protection = protectAssistedCommitResources(
+      target.path,
+      protectedPaths
+    )
+    t.after(() => protection.release())
+
+    const targetReadEntered = deferred<void>()
+    const finishTargetRead = deferred<void>()
+    const targetRead = withRepositoryGitOperation(
+      target.path,
+      'read',
+      async () => {
+        targetReadEntered.resolve()
+        await finishTargetRead.promise
+      }
+    )
+
+    const unrelatedEntered = deferred<void>()
+    const finishUnrelated = deferred<void>()
+    const unrelatedOp = withRepositoryGitOperation(
+      unrelated.path,
+      'read',
+      async () => {
+        unrelatedEntered.resolve()
+        await finishUnrelated.promise
+      }
+    )
+
+    await Promise.all([targetReadEntered.promise, unrelatedEntered.promise])
+
+    const acquiring = acquireAssistedCommitGitLease(target.path, protectedPaths)
+    // Allow lease acquisition to fetch target and enter async discovery on unrelated.
+    await new Promise(resolve => setImmediate(resolve))
+    finishTargetRead.resolve()
+    await targetRead
+
+    const lease = await acquiring
+    t.after(() => {
+      finishUnrelated.resolve()
+      lease.release()
+    })
+    assert.strictEqual(isRepositoryGitPaused(target.path), true)
+    await lease.run(async () => {
+      await git(
+        ['commit', '--allow-empty', '-m', 'Owned mutation'],
+        target.path,
+        'owned-mutation-after-discovery'
+      )
+    })
+    assert.strictEqual(await count(target), 2)
+    finishUnrelated.resolve()
+    await unrelatedOp
+  })
+
   it('does not grant observers ownership, and scopes read-only refresh without global environment changes', async t => {
     const repository = await seed(t, { 'file.txt': 'before\n' })
     const environment = process.env.GIT_OPTIONAL_LOCKS

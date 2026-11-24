@@ -21,6 +21,7 @@ interface IRepositoryOperations {
   readonly aliases: Set<string>
   readonly operations: Set<IRepositoryOperation>
   waiters: number
+  pins: number
   readonly protectedPaths: Set<string>
   lease?: IRepositoryLease
 }
@@ -136,6 +137,7 @@ async function repositoryOperations(
     aliases: new Set<string>(),
     operations: new Set<IRepositoryOperation>(),
     waiters: 0,
+    pins: 0,
     protectedPaths: new Set<string>(),
   }
   for (const alias of [key, pathKey(path)]) {
@@ -145,11 +147,30 @@ async function repositoryOperations(
   return repository
 }
 
+/** Obtain a live registry entry and keep it pinned against forget() until unpinned. */
+async function pinRepositoryOperations(
+  path: string
+): Promise<IRepositoryOperations> {
+  while (true) {
+    const repository = await repositoryOperations(path)
+    if (repositories.get(pathKey(repository.path)) === repository) {
+      repository.pins++
+      return repository
+    }
+  }
+}
+
+function unpinRepositoryOperations(repository: IRepositoryOperations): void {
+  repository.pins--
+  forget(repository)
+}
+
 function forget(repository: IRepositoryOperations): void {
   if (
     repository.lease !== undefined ||
     repository.operations.size > 0 ||
-    repository.waiters > 0
+    repository.waiters > 0 ||
+    repository.pins > 0
   ) {
     return
   }
@@ -916,7 +937,7 @@ export async function acquireAssistedCommitGitLease(
   pendingAssistedCommitAdmissions++
   let repository: IRepositoryOperations | undefined
   try {
-    repository = await repositoryOperations(path)
+    repository = await pinRepositoryOperations(path)
     if (repository.lease !== undefined) {
       throw new AssistedCommitError(
         'busy',
@@ -982,12 +1003,10 @@ export async function acquireAssistedCommitGitLease(
         }
       },
     }
-  } catch (error) {
-    if (repository !== undefined) {
-      forget(repository)
-    }
-    throw error
   } finally {
+    if (repository !== undefined) {
+      unpinRepositoryOperations(repository)
+    }
     pendingAssistedCommitAdmissions--
   }
 }
