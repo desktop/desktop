@@ -255,8 +255,9 @@ export class ManageAccountRepositoriesDialog extends React.Component<
         <p>
           Choose the repositories on {account.friendlyEndpoint} that should use
           @{account.login} for GitHub API requests and HTTPS authentication.
-          Unselected repositories keep their current account. This does not
-          change your Git remotes, author name, or email.
+          Unselecting a repository assigned to @{account.login} leaves it
+          unassigned; other unselected repositories keep their current account.
+          This does not change your Git remotes, author name, or email.
         </p>
         <div className="account-repositories-toolbar">
           <TextBox
