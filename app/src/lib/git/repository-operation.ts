@@ -67,6 +67,30 @@ const protectionIdentities = new WeakMap<
   ReadonlySet<string>
 >()
 const mutationReservations = new Set<ReadonlySet<string>>()
+const unresolvedMutationRepositories = new Map<Set<string>, string>()
+let pendingAssistedCommitAdmissions = 0
+
+function hasAssistedCommitResourceLock(): boolean {
+  if (resourceProtections.size > 0) {
+    return true
+  }
+  for (const repository of repositories.values()) {
+    if (repository.lease !== undefined) {
+      return true
+    }
+  }
+  return false
+}
+
+/** Whether any assisted-commit lease, protection, or admission check is active. */
+export function hasActiveAssistedCommitProtection(): boolean {
+  return pendingAssistedCommitAdmissions > 0 || hasAssistedCommitResourceLock()
+}
+
+/** Whether any active ordinary mutation deferred Git metadata path discovery. */
+export function hasUnresolvedRepositoryGitMutations(): boolean {
+  return unresolvedMutationRepositories.size > 0
+}
 
 function pendingOperation(
   kind: 'read' | 'mutation' = 'read'
@@ -189,6 +213,9 @@ export function repositoryPathsOverlap(first: string, second: string): boolean {
 
 /** A filesystem removal must not erase another run's working files or shared metadata. */
 export function assertRepositoryGitDestructionAvailable(path: string): void {
+  if (!hasAssistedCommitResourceLock()) {
+    return
+  }
   const key = pathKey(path)
   if (
     [...resourceProtections].some(paths =>
@@ -214,8 +241,17 @@ export function assertRepositoryGitDestructionAvailable(path: string): void {
 }
 
 /** UI and background admission for overlapping active worktrees or shared Git metadata. */
-export function isRepositoryAffectedByAssistedCommit(path: string): boolean {
-  const paths = repositoryResourcePaths.get(pathKey(path)) ?? [path]
+export function isRepositoryAffectedByAssistedCommit(
+  path: string,
+  extraPaths?: ReadonlyArray<string>
+): boolean {
+  if (!hasAssistedCommitResourceLock()) {
+    return false
+  }
+  const paths = [
+    ...(repositoryResourcePaths.get(pathKey(path)) ?? [path]),
+    ...(extraPaths ?? []),
+  ]
   return (
     [...resourceProtections].some(protectedPaths =>
       paths.some(path =>
@@ -239,6 +275,24 @@ export function isRepositoryAffectedByAssistedCommit(path: string): boolean {
         )
     )
   )
+}
+
+/**
+ * Async counterpart to {@link isRepositoryAffectedByAssistedCommit} that
+ * resolves Git metadata paths for `path` when an assisted commit protection or
+ * lease is active elsewhere.
+ */
+export async function isRepositoryOverlappingAssistedCommit(
+  path: string
+): Promise<boolean> {
+  if (!hasAssistedCommitResourceLock()) {
+    return false
+  }
+  if (isRepositoryAffectedByAssistedCommit(path)) {
+    return true
+  }
+  const paths = await resolveActiveRepositoryResourcePaths(path)
+  return isRepositoryAffectedByAssistedCommit(path, paths)
 }
 
 /** Reserve working files and shared metadata without preventing read-only reconciliation. */
@@ -268,10 +322,14 @@ export function protectAssistedCommitResources(
 }
 
 /** Reject assisted admission before it can interrupt a pre-admitted mutation. */
-export function isRepositoryGitMutationInProgress(path: string): boolean {
-  const paths = (repositoryResourcePaths.get(pathKey(path)) ?? [path]).map(
-    pathKey
-  )
+export function isRepositoryGitMutationInProgress(
+  path: string,
+  extraPaths?: ReadonlyArray<string>
+): boolean {
+  const paths = [
+    ...(repositoryResourcePaths.get(pathKey(path)) ?? [path]),
+    ...(extraPaths ?? []),
+  ].map(pathKey)
   const overlaps = (resources: ReadonlyArray<string>) =>
     paths.some(path =>
       resources.some(
@@ -297,19 +355,113 @@ export function isRepositoryGitMutationInProgress(path: string): boolean {
   )
 }
 
+async function resolveActiveRepositoryResourcePaths(
+  path: string
+): Promise<ReadonlyArray<string>> {
+  const candidates = path.endsWith('.git') ? [path] : [path, `${path}.git`]
+  for (const candidate of candidates) {
+    const existing = lookup(candidate)
+    if (existing?.lease !== undefined) {
+      return [...existing.protectedPaths, ...existing.aliases]
+    }
+    const canonicalCandidate = await realpath(candidate).catch(() => undefined)
+    if (canonicalCandidate !== undefined) {
+      const canonicalExisting = lookup(canonicalCandidate)
+      if (canonicalExisting?.lease !== undefined) {
+        return [
+          ...canonicalExisting.protectedPaths,
+          ...canonicalExisting.aliases,
+        ]
+      }
+    }
+    try {
+      const resources = await getAssistedCommitProtectedPaths(candidate)
+      return [
+        ...new Set(
+          await Promise.all(
+            resources.map(value => canonicalMutationPath(value))
+          )
+        ),
+      ]
+    } catch {
+      // Not a Git repository at this path (e.g. missing directory or non-repo).
+    }
+  }
+  return []
+}
+
+async function resolveUnresolvedMutationRepositories(): Promise<void> {
+  if (unresolvedMutationRepositories.size === 0) {
+    return
+  }
+  const resolvedByPath = new Map<string, ReadonlyArray<string>>()
+  for (const [resources, repoPath] of [
+    ...unresolvedMutationRepositories.entries(),
+  ]) {
+    if (!mutationReservations.has(resources)) {
+      unresolvedMutationRepositories.delete(resources)
+      continue
+    }
+    const key = pathKey(repoPath)
+    let paths = resolvedByPath.get(key)
+    if (paths === undefined) {
+      paths = await resolveActiveRepositoryResourcePaths(repoPath)
+      resolvedByPath.set(key, paths)
+    }
+    if (mutationReservations.has(resources)) {
+      for (const value of paths) {
+        resources.add(pathKey(value))
+      }
+    }
+    unresolvedMutationRepositories.delete(resources)
+  }
+}
+
+/**
+ * Async counterpart to {@link isRepositoryGitMutationInProgress} that lazily
+ * resolves Git metadata paths for active mutations that deferred discovery
+ * while no assisted commit run was active.
+ */
+export async function hasOverlappingRepositoryGitMutation(
+  path: string
+): Promise<boolean> {
+  if (isRepositoryGitMutationInProgress(path)) {
+    return true
+  }
+  if (unresolvedMutationRepositories.size === 0) {
+    return false
+  }
+  pendingAssistedCommitAdmissions++
+  try {
+    await resolveUnresolvedMutationRepositories()
+    const paths = await resolveActiveRepositoryResourcePaths(path)
+    return isRepositoryGitMutationInProgress(path, paths)
+  } finally {
+    pendingAssistedCommitAdmissions--
+  }
+}
+
 /** Register ordinary mutation lifetimes without serializing existing ordinary concurrency. */
 export async function withRepositoryGitResourceMutation<T>(
   paths: ReadonlyArray<string>,
-  operation: () => Promise<T>
+  operation: () => Promise<T>,
+  options?: { readonly unresolvedRepositoryPath?: string }
 ): Promise<T> {
   const resources = new Set(paths.map(pathKey))
   for (const path of resources) {
     assertRepositoryGitDestructionAvailable(path)
   }
   mutationReservations.add(resources)
+  if (options?.unresolvedRepositoryPath !== undefined) {
+    unresolvedMutationRepositories.set(
+      resources,
+      options.unresolvedRepositoryPath
+    )
+  }
   try {
     return await operation()
   } finally {
+    unresolvedMutationRepositories.delete(resources)
     mutationReservations.delete(resources)
   }
 }
@@ -650,59 +802,121 @@ export function assertAssistedCommitGitResourceAdmission(
   }
 }
 
+async function findOverlappingActiveRepositories(
+  target: IRepositoryOperations,
+  protectedPaths: ReadonlyArray<string>
+): Promise<ReadonlyArray<IRepositoryOperations>> {
+  const targetKeys = [
+    ...new Set([...protectedPaths, ...target.aliases].map(pathKey)),
+  ]
+  const candidates = [...new Set(repositories.values())].filter(
+    other =>
+      other !== target && other.lease === undefined && other.operations.size > 0
+  )
+  if (candidates.length === 0) {
+    return []
+  }
+  const overlapping: IRepositoryOperations[] = []
+  for (const other of candidates) {
+    const discovered = await resolveActiveRepositoryResourcePaths(other.path)
+    const otherPaths = [...other.aliases, ...discovered].map(pathKey)
+    if (
+      otherPaths.some(otherPath =>
+        targetKeys.some(
+          targetKey =>
+            containsPath(otherPath, targetKey) ||
+            containsPath(targetKey, otherPath)
+        )
+      )
+    ) {
+      overlapping.push(other)
+    }
+  }
+  return overlapping
+}
+
 /** Acquire before snapshot capture and release only after local completion or recovery. */
 export async function acquireAssistedCommitGitLease(
   path: string,
   protectedPaths: ReadonlyArray<string> = [path],
   beforeSpawn?: () => void
 ): Promise<IAssistedCommitGitLease> {
-  const repository = await repositoryOperations(path)
-  if (repository.lease !== undefined) {
-    throw new AssistedCommitError(
-      'busy',
-      'An assisted commit run already owns this repository'
-    )
-  }
+  pendingAssistedCommitAdmissions++
+  let repository: IRepositoryOperations | undefined
   try {
-    assertAssistedCommitGitResourceAdmission(path, protectedPaths)
-  } catch (error) {
-    forget(repository)
-    throw error
-  }
-  for (const protectedPath of protectedPaths) {
-    repository.protectedPaths.add(pathKey(protectedPath))
-  }
-  const pending = pendingOperation()
-  const lease: IRepositoryLease = {
-    released: pending.done,
-    release: pending.complete,
-  }
-  repository.lease = lease
-  while (repository.operations.size > 0) {
-    await Promise.all(
-      [...repository.operations].map(operation => operation.done)
-    )
-  }
-  return {
-    run: (operation, readOnly = false) => {
-      if (repository.lease !== lease) {
-        throw new AssistedCommitError(
-          'disposed',
-          'Assisted commit Git ownership was released'
-        )
-      }
-      return contexts.run(
-        { repository, owner: lease, readOnly, beforeSpawn },
-        operation
+    repository = await repositoryOperations(path)
+    if (repository.lease !== undefined) {
+      throw new AssistedCommitError(
+        'busy',
+        'An assisted commit run already owns this repository'
       )
-    },
-    release: () => {
-      if (repository.lease === lease) {
-        repository.lease = undefined
-        lease.release()
-        forget(repository)
+    }
+    await resolveUnresolvedMutationRepositories()
+    const overlappingRepositories = await findOverlappingActiveRepositories(
+      repository,
+      protectedPaths
+    )
+    if (repository.lease !== undefined) {
+      throw new AssistedCommitError(
+        'busy',
+        'An assisted commit run already owns this repository'
+      )
+    }
+    assertAssistedCommitGitResourceAdmission(path, protectedPaths)
+    for (const protectedPath of protectedPaths) {
+      repository.protectedPaths.add(pathKey(protectedPath))
+    }
+    const pending = pendingOperation()
+    const lease: IRepositoryLease = {
+      released: pending.done,
+      release: pending.complete,
+    }
+    repository.lease = lease
+    const overlappingOperations = new Set<IRepositoryOperation>()
+    for (const other of overlappingRepositories) {
+      for (const operation of other.operations) {
+        overlappingOperations.add(operation)
       }
-    },
+    }
+    while (repository.operations.size > 0 || overlappingOperations.size > 0) {
+      await Promise.all([
+        ...[...repository.operations].map(operation => operation.done),
+        ...[...overlappingOperations].map(operation =>
+          operation.done.then(() => {
+            overlappingOperations.delete(operation)
+          })
+        ),
+      ])
+    }
+    const activeRepository = repository
+    return {
+      run: (operation, readOnly = false) => {
+        if (activeRepository.lease !== lease) {
+          throw new AssistedCommitError(
+            'disposed',
+            'Assisted commit Git ownership was released'
+          )
+        }
+        return contexts.run(
+          { repository: activeRepository, owner: lease, readOnly, beforeSpawn },
+          operation
+        )
+      },
+      release: () => {
+        if (activeRepository.lease === lease) {
+          activeRepository.lease = undefined
+          lease.release()
+          forget(activeRepository)
+        }
+      },
+    }
+  } catch (error) {
+    if (repository !== undefined) {
+      forget(repository)
+    }
+    throw error
+  } finally {
+    pendingAssistedCommitAdmissions--
   }
 }
 
