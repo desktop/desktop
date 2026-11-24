@@ -79,7 +79,6 @@ import {
   setTimeFormatPreference,
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
-import { enableFormattingPreferences } from '../../lib/feature-flag'
 import { validateCopilotAppPath } from '../../lib/copilot-app'
 
 interface IPreferencesProps {
@@ -1183,22 +1182,20 @@ export class Preferences extends React.Component<
       this.state.alwaysUseCopilotForConflictResolution
     )
 
-    if (enableFormattingPreferences()) {
-      if (this.state.selectedDateFormat !== undefined) {
-        setDateFormatPreference(this.state.selectedDateFormat)
-      }
+    if (this.state.selectedDateFormat !== undefined) {
+      setDateFormatPreference(this.state.selectedDateFormat)
+    }
 
-      if (this.state.selectedTimeFormat !== undefined) {
-        setTimeFormatPreference(this.state.selectedTimeFormat)
-      }
+    if (this.state.selectedTimeFormat !== undefined) {
+      setTimeFormatPreference(this.state.selectedTimeFormat)
+    }
 
-      if (this.state.selectedNumberFormat !== undefined) {
-        setNumberFormatPreference(this.state.selectedNumberFormat)
-      }
+    if (this.state.selectedNumberFormat !== undefined) {
+      setNumberFormatPreference(this.state.selectedNumberFormat)
+    }
 
-      if (this.state.preferAbsoluteDates !== undefined) {
-        dispatcher.setPreferAbsoluteDates(this.state.preferAbsoluteDates)
-      }
+    if (this.state.preferAbsoluteDates !== undefined) {
+      dispatcher.setPreferAbsoluteDates(this.state.preferAbsoluteDates)
     }
 
     this.props.onDismissed()

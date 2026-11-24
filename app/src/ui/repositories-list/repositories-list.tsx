@@ -24,7 +24,6 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
-import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
@@ -323,12 +322,8 @@ export class RepositoriesList extends React.Component<
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
       onViewOnGitHub: this.props.onViewOnGitHub,
-      onCreateWorktree: enableWorktreeSupport()
-        ? this.onCreateWorktree
-        : undefined,
-      onShowWorktrees: enableWorktreeSupport()
-        ? this.onShowWorktrees
-        : undefined,
+      onCreateWorktree: this.onCreateWorktree,
+      onShowWorktrees: this.onShowWorktrees,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
     })
