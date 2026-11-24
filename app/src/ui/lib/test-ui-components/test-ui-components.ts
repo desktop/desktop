@@ -53,6 +53,10 @@ export function showTestUI(
       return dispatcher.showPopup({
         type: PopupType.TestCopilotSnapshotCard,
       })
+    case 'test-token-expiration':
+      return dispatcher.showPopup({
+        type: PopupType.TestTokenExpiration,
+      })
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':

@@ -1,15 +1,25 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as Path from 'path'
+import { readFile, writeFile } from 'fs/promises'
 import { shell } from '../../helpers/test-app-shell'
 import {
   setupEmptyRepository,
   setupFixtureRepository,
+  PathspecMagicFileName,
+  setupConflictedRepoWithPathspecMagicFile,
+  setupRepositoryWithPathspecMagicFile,
   setupRepositoryWithUninitializedSubmodule,
 } from '../../helpers/repositories'
 
 import { Repository } from '../../../src/models/repository'
-import { checkoutBranch, getBranches, createBranch } from '../../../src/lib/git'
+import {
+  checkoutBranch,
+  checkoutConflictedFile,
+  checkoutPaths,
+  getBranches,
+  createBranch,
+} from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
@@ -17,8 +27,86 @@ import { getStatusOrThrow } from '../../helpers/status'
 import { exec } from 'dugite'
 import { TestStatsStore } from '../../helpers/test-stats-store'
 import { pathExists } from '../../../src/lib/path-exists'
+import { removeConflictedFile } from '../../../src/lib/git/rm'
+import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
 
 describe('git/checkout', () => {
+  it(
+    'checks out only the requested path when its name contains pathspec magic',
+    { skip: process.platform === 'win32' },
+    async t => {
+      const repository = await setupRepositoryWithPathspecMagicFile(t)
+      const specialFilePath = Path.join(repository.path, PathspecMagicFileName)
+      const unrelatedFilePath = Path.join(repository.path, 'unrelated.txt')
+
+      await writeFile(specialFilePath, 'modified special content\n')
+      await writeFile(unrelatedFilePath, 'modified unrelated content\n')
+
+      await checkoutPaths(repository, [PathspecMagicFileName])
+
+      assert.equal(await readFile(specialFilePath, 'utf8'), 'base content\n')
+      assert.equal(
+        await readFile(unrelatedFilePath, 'utf8'),
+        'modified unrelated content\n'
+      )
+    }
+  )
+
+  it(
+    'checks out only the conflicted path when its name contains pathspec magic',
+    { skip: process.platform === 'win32' },
+    async t => {
+      const repository = await setupConflictedRepoWithPathspecMagicFile(t, true)
+      const file = (
+        await getStatusOrThrow(repository)
+      ).workingDirectory.files.find(file => file.path === PathspecMagicFileName)
+      if (file == null) {
+        throw new Error('Expected the pathspec-magic file to be conflicted')
+      }
+
+      await checkoutConflictedFile(
+        repository,
+        file,
+        ManualConflictResolution.ours
+      )
+
+      assert.equal(
+        await readFile(
+          Path.join(repository.path, PathspecMagicFileName),
+          'utf8'
+        ),
+        'other content\n'
+      )
+      assert.match(
+        await readFile(Path.join(repository.path, 'unrelated.txt'), 'utf8'),
+        /<<<<<<< HEAD/
+      )
+    }
+  )
+
+  it(
+    'removes only the conflicted path when its name contains pathspec magic',
+    { skip: process.platform === 'win32' },
+    async t => {
+      const repository = await setupConflictedRepoWithPathspecMagicFile(t)
+      const file = (
+        await getStatusOrThrow(repository)
+      ).workingDirectory.files.find(file => file.path === PathspecMagicFileName)
+      assert.ok(file, 'Expected the pathspec-magic file to be conflicted')
+
+      await removeConflictedFile(repository, file)
+
+      assert.equal(
+        await pathExists(Path.join(repository.path, PathspecMagicFileName)),
+        false
+      )
+      assert.equal(
+        await readFile(Path.join(repository.path, 'unrelated.txt'), 'utf8'),
+        'unrelated content\n'
+      )
+    }
+  )
+
   it('throws when invalid characters are used for branch name', async t => {
     const repository = await setupEmptyRepository(t)
 

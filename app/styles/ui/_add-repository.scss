@@ -89,6 +89,12 @@ dialog.clone-repository {
     margin-bottom: var(--spacing);
   }
 
+  .sign-in-enterprise {
+    justify-content: center;
+    margin-top: var(--spacing);
+    font-size: var(--font-size-sm);
+  }
+
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);

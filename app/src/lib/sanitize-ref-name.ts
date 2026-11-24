@@ -5,6 +5,10 @@
 const invalidCharacterRegex =
   /[\x00-\x20\x7F~^:?*\[\\|""<>]+|@{|\.\.+|^\.|\.$|\.lock$|\/$/g
 
+// Validation must not retain lastIndex between calls. Keep the global regex
+// above for replacing all invalid characters when sanitizing.
+const invalidCharacterTestRegex = new RegExp(invalidCharacterRegex.source)
+
 /** Sanitize a proposed reference name by replacing illegal characters. */
 export function sanitizedRefName(name: string): string {
   return name.replace(invalidCharacterRegex, '-').replace(/^[-\+]*/g, '')
@@ -12,5 +16,5 @@ export function sanitizedRefName(name: string): string {
 
 /** Validate that a reference does not contain any invalid characters */
 export function testForInvalidChars(name: string): boolean {
-  return invalidCharacterRegex.test(name)
+  return invalidCharacterTestRegex.test(name)
 }

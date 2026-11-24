@@ -1,7 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import { readFile, unlink, writeFile } from 'fs/promises'
+import { readFile, rename, unlink, writeFile } from 'fs/promises'
 import { pathExists } from '../../../src/lib/path-exists'
 
 import { Repository } from '../../../src/models/repository'
@@ -19,6 +19,7 @@ import {
   setupEmptyRepository,
   setupConflictedRepo,
   setupConflictedRepoWithMultipleFiles,
+  PathspecMagicFileName,
 } from '../../helpers/repositories'
 
 import { exec } from 'dugite'
@@ -436,6 +437,82 @@ describe('git/commit', () => {
       assert.equal(statusAfter.workingDirectory.files.length, 0)
       assert.equal(statusAfter.currentTip.substring(0, 7), sha)
     })
+
+    for (const oldPath of [PathspecMagicFileName, 'file*.txt']) {
+      it(
+        `partially commits a rename from ${oldPath} without staging unrelated changes`,
+        { skip: process.platform === 'win32' },
+        async t => {
+          const repo = await setupEmptyRepository(t)
+          const original = 'line1\nline2\nline3\nline4\nline5\n'
+          await writeFile(path.join(repo.path, oldPath), original)
+          await writeFile(
+            path.join(repo.path, 'file-unrelated.txt'),
+            'unrelated content\n'
+          )
+          await exec(['add', '--all'], repo.path)
+          await exec(['commit', '-m', 'Prepare rename'], repo.path)
+          await rename(
+            path.join(repo.path, oldPath),
+            path.join(repo.path, 'renamed.txt')
+          )
+          await exec(['add', '--all'], repo.path)
+          await writeFile(
+            path.join(repo.path, 'renamed.txt'),
+            `${original}selected\nunselected\n`
+          )
+          await writeFile(
+            path.join(repo.path, 'file-unrelated.txt'),
+            'unrelated edit\n'
+          )
+
+          const status = await getStatusOrThrow(repo)
+          const file = status.workingDirectory.files.find(
+            f => f.path === 'renamed.txt'
+          )
+          assert.ok(file)
+          assert.equal(file.status.kind, AppFileStatusKind.Renamed)
+          const diff = await getTextDiff(repo, file)
+          const selectedIndex = diff.hunks
+            .flatMap(h =>
+              h.lines.map((l, index) => ({
+                text: l.text,
+                index: h.unifiedDiffStart + index,
+              }))
+            )
+            .find(l => l.text === '+selected')
+          assert.ok(selectedIndex)
+          await createCommit(repo, 'Partial rename', [
+            file.withSelection(
+              file.selection
+                .withSelectNone()
+                .withLineSelection(selectedIndex.index, true)
+            ),
+          ])
+
+          const unrelated = await exec(
+            ['show', 'HEAD:file-unrelated.txt'],
+            repo.path
+          )
+          assert.strictEqual(unrelated.stdout, 'unrelated content\n')
+          const renamed = await exec(['show', 'HEAD:renamed.txt'], repo.path)
+          assert.strictEqual(renamed.stdout, `${original}selected\n`)
+          const old = await exec(
+            ['--literal-pathspecs', 'ls-tree', '-z', 'HEAD', '--', oldPath],
+            repo.path
+          )
+          assert.strictEqual(old.stdout, '')
+          assert.strictEqual(
+            await readFile(path.join(repo.path, 'file-unrelated.txt'), 'utf8'),
+            'unrelated edit\n'
+          )
+          assert.strictEqual(
+            await readFile(path.join(repo.path, 'renamed.txt'), 'utf8'),
+            `${original}selected\nunselected\n`
+          )
+        }
+      )
+    }
 
     // The scenario here is that the user has staged a rename (probably using git mv)
     // and then added some lines to the newly renamed file and they only want to

@@ -1,29 +1,42 @@
-import { Repository } from '../models/repository'
-import { Account } from '../models/account'
-import { getAccountForEndpoint } from './api'
-import {
-  enableCommitMessageGeneration,
-  enableCopilotConflictResolution,
-  enableCopilotSdkCommitMessageGeneration,
-} from './feature-flag'
+import { Repository, getRepositoryAccountIdentity } from '../models/repository'
+import { Account, isSameAccount } from '../models/account'
+import { enableCopilotAssistedCommit } from './feature-flag'
 
 /** Get the authenticated account for the repository. */
 export function getAccountForRepository(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | null {
-  const gitHubRepository = repository.gitHubRepository
-  if (!gitHubRepository) {
-    return null
-  }
-
-  return getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+  const identity = getRepositoryAccountIdentity(repository)
+  return accounts.find(account => isSameAccount(account, identity)) ?? null
 }
 
 /**
- * Get the authenticated account to use for commit message generation.
+ * Get the account used to classify repository activity in usage stats.
+ *
+ * Prefers the repository's assigned account, falling back to any signed-in
+ * account for the repository's endpoint so that unassigned repositories, or
+ * repositories assigned to a signed-out account, are still attributed to
+ * GitHub.com or GitHub Enterprise. Never use this for authentication.
  */
-export function getAccountForCommitMessageGeneration(
+export function getAccountForStatsAttribution(
+  accounts: ReadonlyArray<Account>,
+  repository: Repository
+): Account | null {
+  const endpoint = repository.gitHubRepository?.endpoint
+  return (
+    getAccountForRepository(accounts, repository) ??
+    accounts.find(a => endpoint !== undefined && a.endpoint === endpoint) ??
+    null
+  )
+}
+
+/**
+ * Get a Desktop-enabled account for Copilot, preferring the repository's account.
+ *
+ * Callers retain their feature-specific runtime and authorization checks.
+ */
+export function getAccountForCopilot(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | undefined {
@@ -31,49 +44,23 @@ export function getAccountForCommitMessageGeneration(
   const repositoryAccount = getAccountForRepository(accounts, repository)
   if (
     repositoryAccount !== null &&
-    enableCommitMessageGeneration(repositoryAccount)
+    repositoryAccount.isCopilotDesktopEnabled === true
   ) {
     return repositoryAccount
   }
 
-  return accounts.find(enableCommitMessageGeneration)
+  return accounts.find(account => account.isCopilotDesktopEnabled === true)
 }
 
 /**
- * Predicate used to determine whether a given account is eligible to
- * use Copilot-powered conflict resolution. Combines the dev-only
- * feature-flag gate with the account's Copilot for Desktop capability,
- * which covers both "no Copilot subscription" and "disabled by org
- * policy".
- *
- * IMPORTANT: Do not remove the `isCopilotDesktopEnabled` check without
- * replacing it with the appropriate replacement.
- *
- * Also gated on `enableCopilotSdkCommitMessageGeneration`, which currently
- * controls whether we're allowed to use the Copilot SDK at all (beta/dev
- * builds). This keeps conflict resolution from running when the SDK is off.
+ * Get a Desktop-enabled account whose assisted-commit rollout is enabled.
  */
-const isAccountEligibleForCopilotConflictResolution = (account: Account) =>
-  enableCopilotConflictResolution() &&
-  enableCopilotSdkCommitMessageGeneration(account) &&
-  account.isCopilotDesktopEnabled === true
-
-/**
- * Get the authenticated account to use for Copilot-powered merge conflict
- * resolution. Mirrors `getAccountForCommitMessageGeneration`.
- */
-export function getAccountForCopilotConflictResolution(
+export function getAccountForCopilotAssistedCommits(
   accounts: ReadonlyArray<Account>,
   repository: Repository
 ): Account | undefined {
-  // Prefer the account that is associated to this repository.
-  const repositoryAccount = getAccountForRepository(accounts, repository)
-  if (
-    repositoryAccount !== null &&
-    isAccountEligibleForCopilotConflictResolution(repositoryAccount)
-  ) {
-    return repositoryAccount
-  }
-
-  return accounts.find(isAccountEligibleForCopilotConflictResolution)
+  return getAccountForCopilot(
+    accounts.filter(enableCopilotAssistedCommit),
+    repository
+  )
 }

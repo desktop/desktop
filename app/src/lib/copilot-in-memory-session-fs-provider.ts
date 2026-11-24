@@ -69,8 +69,15 @@ function createCopilotInMemorySessionFsError(
   return Object.assign(new Error(`${code}: ${path}`), { code })
 }
 
-export function createCopilotInMemorySessionFsProvider(): SessionFsProvider {
+/** An ephemeral filesystem whose contents and callbacks can be explicitly released. */
+export interface ICopilotInMemorySessionFsProvider extends SessionFsProvider {
+  /** Clear all session data and reject subsequent filesystem operations. */
+  dispose(): void
+}
+
+export function createCopilotInMemorySessionFsProvider(): ICopilotInMemorySessionFsProvider {
   const files = new Map<string, ICopilotInMemorySessionFsFile>()
+  let disposed = false
   const timestamp = new Date().toISOString()
   const directories = new Map<string, ICopilotInMemorySessionFsDirectory>([
     ['.', { createdAt: timestamp, updatedAt: timestamp }],
@@ -81,6 +88,9 @@ export function createCopilotInMemorySessionFsProvider(): SessionFsProvider {
   ])
 
   const normalizePath = (path: string) => {
+    if (disposed) {
+      throw new Error('Copilot in-memory session filesystem is disposed')
+    }
     const normalized = posix.normalize(path.replace(/\\/g, '/'))
     return normalized === '/' ? normalized : normalized.replace(/\/$/, '')
   }
@@ -164,6 +174,11 @@ export function createCopilotInMemorySessionFsProvider(): SessionFsProvider {
   }
 
   return {
+    dispose: () => {
+      disposed = true
+      files.clear()
+      directories.clear()
+    },
     readFile: async path => {
       const normalized = normalizePath(path)
       const file = files.get(normalized)

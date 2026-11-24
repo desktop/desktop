@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "rootDir": "..",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "importHelpers": true,

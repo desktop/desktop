@@ -73,7 +73,7 @@ export async function resetPaths(
     return
   }
 
-  const baseArgs = resetModeToArgs(mode, ref)
+  const baseArgs = ['--literal-pathspecs', ...resetModeToArgs(mode, ref)]
 
   if (__WIN32__ && mode === GitResetMode.Mixed) {
     // Git for Windows has experimental support for reading paths to reset

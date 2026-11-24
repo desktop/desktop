@@ -3,6 +3,8 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
 import { getReplacements } from './app-info'
+import { getDistArchitecture } from '../script/dist-info'
+import { getKoffiWebpackConfig } from '../script/webpack-koffi'
 
 export const externals = ['7zip']
 
@@ -64,46 +66,75 @@ export const main = merge({}, commonConfig, {
   ],
 })
 
-export const renderer = merge({}, commonConfig, {
-  entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
-  target: 'electron-renderer',
-  module: {
-    rules: [
-      {
-        test: /\.(jpe?g|png|gif|ico)$/,
-        use: ['file?name=[path][name].[ext]'],
-      },
-      {
-        test: /\.cmd$/,
-        type: 'asset/resource',
-      },
+export const renderer = merge(
+  {},
+  commonConfig,
+  getKoffiWebpackConfig(
+    path.resolve(__dirname, 'node_modules'),
+    process.platform,
+    getDistArchitecture()
+  ),
+  {
+    entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
+    target: 'electron-renderer',
+    module: {
+      rules: [
+        {
+          test: /\.(jpe?g|png|gif|ico)$/,
+          use: ['file?name=[path][name].[ext]'],
+        },
+        {
+          test: /\.cmd$/,
+          type: 'asset/resource',
+        },
+      ],
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: path.join(__dirname, 'static', 'index.html'),
+        chunks: ['renderer'],
+      }),
+      // Native AsyncLocalStorage can fatally crash the renderer because of a V8
+      // optimizer bug. Give the Copilot SDK a hooks-based replacement instead;
+      // see app/src/lib/copilot/renderer-async-hooks.ts for details.
+      new webpack.NormalModuleReplacementPlugin(
+        /^node:async_hooks$/,
+        resource => {
+          if (
+            !/[\\/]node_modules[\\/]@github[\\/]copilot-sdk[\\/]/.test(
+              resource.context
+            )
+          ) {
+            return
+          }
+          const replacement = path.resolve(
+            __dirname,
+            'src/lib/copilot/renderer-async-hooks.ts'
+          )
+          resource.request = replacement
+          // Webpack's Node externals check the dependency's request directly.
+          for (const dependency of resource.dependencies) {
+            if (
+              'request' in dependency &&
+              dependency.request === 'node:async_hooks'
+            ) {
+              dependency.request = replacement
+            }
+          }
+        }
+      ),
+      new webpack.DefinePlugin(
+        Object.assign({}, replacements, {
+          __PROCESS_KIND__: JSON.stringify('ui'),
+        })
+      ),
     ],
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'static', 'index.html'),
-      chunks: ['renderer'],
-    }),
-    new webpack.NormalModuleReplacementPlugin(/^vscode-jsonrpc$/, resource => {
-      resource.request = 'vscode-jsonrpc/lib/node/main.js'
-    }),
-    new webpack.NormalModuleReplacementPlugin(
-      /vscode-jsonrpc[\\/]node(\.js)?$/,
-      resource => {
-        resource.request = 'vscode-jsonrpc/lib/node/main.js'
-      }
-    ),
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('ui'),
-      })
-    ),
-  ],
-  resolve: {
-    // Prevent the renderer from using browser-specific versions of modules
-    aliasFields: [],
-  },
-})
+    resolve: {
+      // Prevent the renderer from using browser-specific versions of modules
+      aliasFields: [],
+    },
+  }
+)
 
 export const crash = merge({}, commonConfig, {
   entry: { crash: path.resolve(__dirname, 'src/crash/index') },

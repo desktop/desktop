@@ -20,8 +20,8 @@ dependencies that Desktop needs for `arm64`:
 $ script/install-arm64-deps.sh
 ```
 
-**Note:** Do not use `yarn` here as there is no current way to set environment
-variables to rebuild native modules against `arm64`.
+The script runs `npm ci` with the native build architecture set to `arm64`.
+Application optional packages are also selected for that target architecture.
 
 Ensure you set the `TARGET_ARCH` environment variable in your shell:
 
@@ -34,14 +34,14 @@ $ export TARGET_ARCH=arm64
 After that, you should be able to build the development version of Desktop:
 
 ```shellsession
-$ yarn build:dev
-$ yarn start
+$ npm run build:dev
+$ npm start
 ```
 
 Or if you want to test the production build:
 
 
 ```shellsession
-$ yarn build:prod
-$ yarn start:prod
+$ npm run build:prod
+$ npm run start:prod
 ```

@@ -35,6 +35,48 @@ export interface IDailyMeasures {
   /** The number of times the user has opened a shell from the app. */
   readonly openShellCount: number
 
+  /** The number of times the user invoked the GitHub Copilot app handoff. */
+  readonly openInCopilotAppCount: number
+
+  /** Token refresh exchanges started, excluding debug expiry overrides. */
+  readonly tokenRefreshAttemptCount: number
+
+  /** Token refreshes successfully saved and installed. */
+  readonly tokenRefreshSuccessCount: number
+
+  /** Recoverable token refresh failures that retain credentials. */
+  readonly tokenRefreshTransientFailureCount: number
+
+  /** Token refresh requests that reach Desktop's timeout deadline. */
+  readonly tokenRefreshTransientFailureTimeoutCount: number
+
+  /** Token refresh requests that fail before receiving an HTTP response. */
+  readonly tokenRefreshTransientFailureNetworkCount: number
+
+  /** Token refresh requests rejected by HTTP or OAuth rate limiting. */
+  readonly tokenRefreshTransientFailureRateLimitedCount: number
+
+  /** Token refresh requests receiving an HTTP 5xx response. */
+  readonly tokenRefreshTransientFailureServerCount: number
+
+  /** Other unsuccessful HTTP token refresh responses. */
+  readonly tokenRefreshTransientFailureOtherHttpCount: number
+
+  /** Unrecognized OAuth errors in token refresh responses. */
+  readonly tokenRefreshTransientFailureOtherOAuthCount: number
+
+  /** Token refresh failures without a recognized request failure kind. */
+  readonly tokenRefreshTransientFailureUnknownCount: number
+
+  /** Rejected refresh tokens or malformed replacement credentials. */
+  readonly tokenRefreshNonTransientFailureCount: number
+
+  /** Token refreshes overtaken by sign-out or replacement sign-in. */
+  readonly tokenRefreshAbandonedCount: number
+
+  /** Accounts actually retired because a token refresh failed. */
+  readonly tokenRefreshRequiredSignInCount: number
+
   /** The number of partial commits. */
   readonly partialCommits: number
 
@@ -474,8 +516,11 @@ export interface IDailyMeasures {
   /** The number of times the user reruns checks */
   readonly rerunsChecks: number
 
-  /** The number of "checks failed" notifications the user received */
+  /** The number of eligible "checks failed" Alive events */
   readonly checksFailedNotificationCount: number
+
+  /** The number of "checks failed" notifications accepted with OS permission */
+  readonly checksFailedNotificationShownCount: number
 
   /**
    * The number of "checks failed" notifications the user received for a recent
@@ -519,8 +564,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewNotificationFromNonRecentRepoCount: number
 
-  /** The number of "approved PR" notifications the user received */
+  /** The number of eligible "approved PR" Alive events */
   readonly pullRequestReviewApprovedNotificationCount: number
+
+  /** The number of "approved PR" notifications accepted with OS permission */
+  readonly pullRequestReviewApprovedNotificationShownCount: number
 
   /** The number of "approved PR" notifications the user clicked */
   readonly pullRequestReviewApprovedNotificationClicked: number
@@ -531,8 +579,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewApprovedDialogSwitchToPullRequestCount: number
 
-  /** The number of "commented PR" notifications the user received */
+  /** The number of eligible "commented PR" review Alive events */
   readonly pullRequestReviewCommentedNotificationCount: number
+
+  /** The number of "commented PR" review notifications accepted with OS permission */
+  readonly pullRequestReviewCommentedNotificationShownCount: number
 
   /** The number of "commented PR" notifications the user clicked */
   readonly pullRequestReviewCommentedNotificationClicked: number
@@ -543,8 +594,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewCommentedDialogSwitchToPullRequestCount: number
 
-  /** The number of "changes requested" notifications the user received */
+  /** The number of eligible "changes requested" Alive events */
   readonly pullRequestReviewChangesRequestedNotificationCount: number
+
+  /** The number of "changes requested" notifications accepted with OS permission */
+  readonly pullRequestReviewChangesRequestedNotificationShownCount: number
 
   /** The number of "changes requested" notifications the user clicked */
   readonly pullRequestReviewChangesRequestedNotificationClicked: number
@@ -555,8 +609,11 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
 
-  /** The number of "commented PR" notifications the user received */
+  /** The number of eligible PR comment Alive events */
   readonly pullRequestCommentNotificationCount: number
+
+  /** The number of PR comment notifications accepted with OS permission */
+  readonly pullRequestCommentNotificationShownCount: number
 
   /** The number of "commented PR" notifications the user clicked */
   readonly pullRequestCommentNotificationClicked: number
@@ -625,7 +682,10 @@ export interface IDailyMeasures {
   /** The number of times the user adjust the filter from warnings about hidden changes */
   adjustedFiltersForHiddenChangesCount: 0
 
-  /** The number of enterprise accounts the user is signed in to */
+  /**
+   * The number of enterprise accounts the user is signed in to. A host can
+   * have several accounts, see `enterpriseHostCount` for the number of hosts.
+   */
   readonly enterpriseAccountCount: number
 
   /** The number of times a user has clicked the "Generate commit message" button */
@@ -714,6 +774,120 @@ export interface IDailyMeasures {
 
   /** The number of Copilot conflict resolutions that took over 120 seconds */
   readonly copilotConflictResolutionOver120sCount: number
+
+  /** Actual openings of the Manual/Commit with Copilot choice. */
+  readonly commitModeDropdownOpenedCount: number
+  /** User-driven Manual to Copilot transitions. */
+  readonly commitModeSwitchedToCopilotCount: number
+  /** User-driven Copilot to Manual transitions. */
+  readonly commitModeSwitchedToManualCount: number
+  /** Admitted non-empty assisted workflows, excluding retries. */
+  readonly copilotAssistedCommitStartedCount: number
+  /** Non-empty workflows that dispatch model planning after local preflight. */
+  readonly copilotAssistedCommitPlanningStartedCount: number
+  /** Non-empty workflows with complete validated coverage and cumulative trees. */
+  readonly copilotAssistedCommitPlanValidatedCount: number
+  /** Non-empty workflows that enter native commit execution. */
+  readonly copilotAssistedCommitExecutionStartedCount: number
+  /** Verified locally accepted non-empty workflows. */
+  readonly copilotAssistedCommitAcceptedCount: number
+  /** Non-empty workflows ended by explicit user cancellation. */
+  readonly copilotAssistedCommitCancelledCount: number
+  /** Non-empty workflows whose assisted consent was declined. */
+  readonly copilotAssistedCommitConsentDeclinedCount: number
+  /** Failed non-empty workflows, excluding acceptance, cancellation and decline. */
+  readonly copilotAssistedCommitErrorCount: number
+  /** Successful explicit empty commits in assisted mode, without AI run counts. */
+  readonly copilotAssistedCommitEmptyCommitCount: number
+  /** Commits belonging to locally accepted non-empty assisted workflows. */
+  readonly copilotAssistedCommitCreatedCommitCount: number
+  /** Accepted non-empty workflows that produced more than one commit. */
+  readonly copilotAssistedCommitMultiCommitRunCount: number
+  /** Workflows taking explicit uncertain/unsafe split single-commit fallback. */
+  readonly copilotAssistedCommitFallbackCount: number
+  /** Workflows stopped by changed selected input. */
+  readonly copilotAssistedCommitSelectionChangedCount: number
+  /** Workflows stopped by external HEAD, branch or real-index changes. */
+  readonly copilotAssistedCommitRepositoryChangedCount: number
+  /** Workflows rejecting invalid coverage or unsafe cumulative trees. */
+  readonly copilotAssistedCommitPlanRejectedCount: number
+  /** Workflows detecting unexpected actual commit history/tree or hook index. */
+  readonly copilotAssistedCommitCommitVerificationFailedCount: number
+  /** Workflows retaining required rollback or cleanup intervention. */
+  readonly copilotAssistedCommitRecoveryRequiredCount: number
+  /** Actual automatic or retried rollback/cleanup attempts, excluding no-ops. */
+  readonly copilotAssistedCommitRecoveryAttemptCount: number
+  /** Recovery attempts completing required rollback/cleanup. */
+  readonly copilotAssistedCommitRecoverySuccessCount: number
+  /** Recovery attempts failing or blocked by external interference. */
+  readonly copilotAssistedCommitRecoveryErrorCount: number
+  /** Accepted non-empty workflows taking over 15 processing seconds. */
+  readonly copilotAssistedCommitOver15sCount: number
+  /** Accepted non-empty workflows taking over 30 processing seconds. */
+  readonly copilotAssistedCommitOver30sCount: number
+  /** Accepted non-empty workflows taking over 60 processing seconds. */
+  readonly copilotAssistedCommitOver60sCount: number
+  /** Accepted non-empty workflows taking over 120 processing seconds. */
+  readonly copilotAssistedCommitOver120sCount: number
+  /** Successful ordinary non-empty Manual actions, excluding special continuations. */
+  readonly manualCommitWorkflowCount: number
+
+  /** The number of sign-ins that added another account on an endpoint that already had a signed-in account */
+  readonly additionalAccountSignInCount: number
+
+  /** The number of confirmed sign-outs of an account with assigned repositories */
+  readonly accountSignOutWithAssignmentsCount: number
+
+  /** The number of confirmed sign-outs that cleared the account's repository assignments */
+  readonly accountSignOutClearedAssignmentsCount: number
+
+  /** The number of times the user cancelled signing out an account with assigned repositories */
+  readonly accountSignOutCancelledCount: number
+
+  /** The number of times a repository's account was changed in repository settings */
+  readonly repositoryAccountChangedFromSettingsCount: number
+
+  /** The number of times a repository's account was changed from the repository list context menu */
+  readonly repositoryAccountChangedFromContextMenuCount: number
+
+  /** The number of URL clones assigned to the only account with access, without asking */
+  readonly cloneAccountAutoAssignedCount: number
+
+  /** The number of URL clones where the user chose between several accounts with access */
+  readonly cloneAccountChosenCount: number
+
+  /** The number of URL clones left without an assigned account */
+  readonly cloneAccountUnassignedCount: number
+
+  /** The number of clones from the account picker for an endpoint with more than one signed-in account */
+  readonly cloneFromAccountPickerOnMultiAccountEndpointCount: number
+
+  /** The number of added GitHub repositories assigned to the only account with access, without asking */
+  readonly addRepositoryAccountAutoAssignedCount: number
+
+  /** The number of added GitHub repositories where the user chose between several accounts with access */
+  readonly addRepositoryAccountChosenCount: number
+
+  /** The number of added GitHub repositories left without an assigned account */
+  readonly addRepositoryAccountUnassignedCount: number
+
+  /** The number of repositories published with an account on an endpoint with more than one signed-in account */
+  readonly publishOnMultiAccountEndpointCount: number
+
+  /** The number of Git credential requests answered with the repository's assigned account without prompting */
+  readonly gitCredentialFromAssignedAccountCount: number
+
+  /** The number of Git credential requests answered after prompting for the repository's account */
+  readonly gitCredentialAfterPromptCount: number
+
+  /** The number of background Git credential requests for a repository without a usable account */
+  readonly gitCredentialUnavailableInBackgroundCount: number
+
+  /** The number of foreground Git credential requests for a GitHub repository that ended without a credential */
+  readonly gitCredentialNotProvidedCount: number
+
+  /** The number of times Git rejected a GitHub account credential */
+  readonly gitCredentialRejectedCount: number
 }
 
 export class StatsDatabase extends Dexie {

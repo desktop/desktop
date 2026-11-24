@@ -18,9 +18,9 @@ existing ones as part of a feature or bugfix.
 
 | Tier | Purpose | Location | Runner |
 |------|---------|----------|--------|
-| Unit / integration (non-UI) | Pure logic, stores, models, git operations | `app/test/unit/` | `node:test` via `yarn test` |
-| UI component | React components rendered in JSDOM | `app/test/unit/ui/` | `node:test` + React Testing Library via `yarn test` |
-| E2E (ad-hoc) | Full app launched with Playwright + Electron | `app/test/e2e/` | Playwright via `yarn test:e2e:*` |
+| Unit / integration (non-UI) | Pure logic, stores, models, git operations | `app/test/unit/` | `node:test` via `npm test` |
+| UI component | React components rendered in JSDOM | `app/test/unit/ui/` | `node:test` + React Testing Library via `npm test` |
+| E2E (ad-hoc) | Full app launched with Playwright + Electron | `app/test/e2e/` | Playwright via `npm run test:e2e:*` |
 
 ### When to use each tier
 
@@ -34,22 +34,22 @@ existing ones as part of a feature or bugfix.
 
 ```bash
 # All unit and UI tests
-yarn test
+npm test
 
 # A specific test file
-yarn test app/test/unit/my-feature-test.ts
+npm test -- app/test/unit/my-feature-test.ts
 
 # All tests in a directory (recursive)
-yarn test app/test/unit/ui
+npm test -- app/test/unit/ui
 
 # E2E — build unpackaged app + run (fast local iteration)
-yarn test:e2e:unpackaged
+npm run test:e2e:unpackaged
 
 # E2E — run against an already-built unpackaged app
 DESKTOP_E2E_APP_MODE=unpackaged npx playwright test --config app/test/e2e/playwright.config.ts
 
 # E2E — full packaged build + run (production-like)
-yarn test:e2e:packaged
+npm run test:e2e:packaged
 ```
 
 The test runner (`script/test.mjs`) discovers files matching
@@ -63,7 +63,7 @@ in the paths you pass.
 After implementing any change you **must** run the full unit test suite:
 
 ```bash
-yarn test
+npm test
 ```
 
 If any tests fail:
@@ -79,16 +79,16 @@ If any tests fail:
 Then verify linting:
 
 ```bash
-yarn lint
+npm run lint
 ```
 
 If lint errors are reported and you want to auto-fix them:
 
 ```bash
-yarn lint:fix
+npm run lint:fix
 ```
 
-> **Note:** `yarn lint:fix` rewrites files across the repository (Prettier +
+> **Note:** `npm run lint:fix` rewrites files across the repository (Prettier +
 > ESLint `--fix`). Only run it when you intend to apply those edits — do not
 > use it as a read-only check.
 
@@ -532,7 +532,7 @@ For local iteration, use the unpackaged mode to avoid a full packaging step:
 
 ```bash
 # Build unpackaged + run all E2E tests
-yarn test:e2e:unpackaged
+npm run test:e2e:unpackaged
 
 # Run only your specific test file (after building)
 DESKTOP_E2E_APP_MODE=unpackaged npx playwright test \
@@ -540,14 +540,14 @@ DESKTOP_E2E_APP_MODE=unpackaged npx playwright test \
   app/test/e2e/my-feature.e2e.ts
 ```
 
-> ⚠️ **Do NOT use `yarn build:dev` for E2E tests.** The development build
+> ⚠️ **Do NOT use `npm run build:dev` for E2E tests.** The development build
 > produces an `index.html` that loads the renderer bundle from
 > `http://localhost:3000/build/renderer.js` (the webpack dev server). Without
 > the dev server running, the React app never mounts and the Playwright
 > `waitForFunction` on `desktop-app-container` will time out silently.
 >
-> Always use `yarn test:e2e:build:unpackaged` (or the combined
-> `yarn test:e2e:unpackaged`) which runs a **production** build with
+> Always use `npm run test:e2e:build:unpackaged` (or the combined
+> `npm run test:e2e:unpackaged`) which runs a **production** build with
 > `DESKTOP_SKIP_PACKAGE=1`. This bundles `renderer.js` directly into `out/`
 > so the app is self-contained.
 
@@ -602,7 +602,7 @@ conditions and show the full UI.
 
 1. Make the minimum temporary changes needed (e.g. hardcode a store property,
    inject fake data, force a boolean flag).
-2. Rebuild with `yarn test:e2e:build:unpackaged`.
+2. Rebuild with `npm run test:e2e:build:unpackaged`.
 3. Run your ad-hoc E2E spec and capture screenshots/video.
 4. **Revert every temporary change** before committing. Verify with
    `git diff <file>` that no fake data leaks into the branch.
@@ -675,7 +675,7 @@ When you are done implementing a feature or bugfix, verify:
 - [ ] Wrote unit tests for new or changed logic.
 - [ ] Wrote UI component tests for new or changed React components.
 - [ ] Existing tests updated if behavior intentionally changed.
-- [ ] `yarn test` passes with no failures.
-- [ ] `yarn lint` passes (run `yarn lint:fix` to auto-fix if needed).
+- [ ] `npm test` passes with no failures.
+- [ ] `npm run lint` passes (run `npm run lint:fix` to auto-fix if needed).
 - [ ] (If applicable) Ran ad-hoc E2E test and captured screenshots/video.
 - [ ] (If applicable) Attached screenshots and video to the PR.

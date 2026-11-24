@@ -205,7 +205,15 @@ export async function resetSubmodulePaths(
   }
 
   await git(
-    ['submodule', 'update', '--recursive', '--force', '--', ...paths],
+    [
+      '--literal-pathspecs',
+      'submodule',
+      'update',
+      '--recursive',
+      '--force',
+      '--',
+      ...paths,
+    ],
     repository.path,
     'updateSubmodule'
   )

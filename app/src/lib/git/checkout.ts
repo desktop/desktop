@@ -214,7 +214,7 @@ export async function checkoutPaths(
   paths: ReadonlyArray<string>
 ): Promise<void> {
   await git(
-    ['checkout', 'HEAD', '--', ...paths],
+    ['--literal-pathspecs', 'checkout', 'HEAD', '--', ...paths],
     repository.path,
     'checkoutPaths'
   )
@@ -230,7 +230,7 @@ export async function checkoutConflictedFile(
   resolution: ManualConflictResolution
 ) {
   await git(
-    ['checkout', `--${resolution}`, '--', file.path],
+    ['--literal-pathspecs', 'checkout', `--${resolution}`, '--', file.path],
     repository.path,
     'checkoutConflictedFile'
   )

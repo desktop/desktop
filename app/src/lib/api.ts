@@ -670,13 +670,6 @@ export interface IAPIComment {
   readonly created_at: string
 }
 
-/** The server response when handling the OAuth callback (with code) to obtain an access token */
-interface IAPIAccessToken {
-  readonly access_token: string
-  readonly scope: string
-  readonly token_type: string
-}
-
 /** The response we receive from fetching mentionables. */
 interface IAPIMentionablesResponse {
   readonly etag: string | undefined
@@ -825,11 +818,26 @@ export interface IAPICreatePushProtectionBypassResponse {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
+  private static tokenProvider:
+    | ((endpoint: string, token: string) => Promise<string>)
+    | undefined
   private static readonly tokenInvalidatedListeners =
     new Set<TokenInvalidatedCallback>()
 
+  /** Install the renderer's shared credential authority. Returns a cleanup function. */
+  public static setTokenProvider(
+    provider: (endpoint: string, token: string) => Promise<string>
+  ) {
+    const previous = this.tokenProvider
+    this.tokenProvider = provider
+    return () => {
+      this.tokenProvider = previous
+    }
+  }
+
   public static onTokenInvalidated(callback: TokenInvalidatedCallback) {
     this.tokenInvalidatedListeners.add(callback)
+    return () => this.tokenInvalidatedListeners.delete(callback)
   }
 
   private static emitTokenInvalidated(endpoint: string, token: string) {
@@ -840,7 +848,13 @@ export class API {
 
   /** Create a new API client from the given account. */
   public static fromAccount(account: Account): API {
-    return new API(account.endpoint, account.token, account.copilotEndpoint)
+    // Public-repository fallback must not inherit an unrelated account's sign-in state.
+    return new API(
+      account.endpoint,
+      account.token,
+      account.copilotEndpoint,
+      account.id !== -1
+    )
   }
 
   private endpoint: string
@@ -851,7 +865,13 @@ export class API {
   public constructor(
     endpoint: string,
     token: string,
-    copilotEndpoint?: string
+    copilotEndpoint?: string,
+    /**
+     * Use the account store to resolve/refresh tokens and handle rejected tokens.
+     * Disable for new sign-in tokens and the anonymous public-repository fallback:
+     * those must use the supplied token, not another signed-in account's token.
+     */
+    private readonly manageAccountToken = true
   ) {
     this.endpoint = endpoint
     this.token = token
@@ -985,6 +1005,25 @@ export class API {
       log.warn(`fetchRepository: an error occurred for '${owner}/${name}'`, e)
       return null
     }
+  }
+
+  /**
+   * Fetch a repo by its owner and name to find out whether the account can
+   * access it.
+   *
+   * Resolves to null when the repository isn't visible to the account (404).
+   * Unlike `fetchRepository`, any other failure (network errors, rate limits,
+   * server errors) is thrown so that it isn't mistaken for a lack of access.
+   */
+  public async fetchRepositoryIfAccessible(
+    owner: string,
+    name: string
+  ): Promise<IAPIFullRepository | null> {
+    const response = await this.ghRequest('GET', `repos/${owner}/${name}`)
+    if (response.status === HttpStatusCode.NotFound) {
+      return null
+    }
+    return parsedResponse<IAPIFullRepository>(response)
   }
 
   /**
@@ -1452,7 +1491,7 @@ export class API {
     const response = await this.ghRequest('GET', path, { customHeaders })
     try {
       return await parsedResponse<IAPIWorkflowRuns>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${branchName} (${owner}/${name})`
       )
@@ -1489,7 +1528,7 @@ export class API {
       if (apiWorkflowRuns.workflow_runs.length > 0) {
         return apiWorkflowRuns.workflow_runs[0]
       }
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow runs for ${checkSuiteId} (${owner}/${name})`
       )
@@ -1514,7 +1553,7 @@ export class API {
     })
     try {
       return await parsedResponse<IAPIWorkflowJobs>(response)
-    } catch (err) {
+    } catch {
       log.debug(
         `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
       )
@@ -1617,7 +1656,7 @@ export class API {
 
     try {
       return await parsedResponse<IAPICheckSuite>(response)
-    } catch (_) {
+    } catch {
       log.debug(
         `[fetchCheckSuite] Failed fetch check suite id ${checkSuiteId} (${owner}/${name})`
       )
@@ -1809,14 +1848,20 @@ export class API {
     method: HTTPMethod,
     path: string,
     options: {
-      body?: Object
-      customHeaders?: Object
+      body?: object
+      customHeaders?: object
       reloadCache?: boolean
-    } = {}
+    } = {},
+    resolvedToken?: string
   ): Promise<Response> {
+    const token =
+      resolvedToken ??
+      (API.tokenProvider && this.manageAccountToken
+        ? await API.tokenProvider(this.endpoint, this.token)
+        : this.token)
     return await request(
       endpoint,
-      this.token,
+      token,
       method,
       path,
       options.body,
@@ -1833,12 +1878,22 @@ export class API {
     method: HTTPMethod,
     path: string,
     options: {
-      body?: Object
-      customHeaders?: Object
+      body?: object
+      customHeaders?: object
       reloadCache?: boolean
     } = {}
   ): Promise<Response> {
-    const response = await this.request(this.endpoint, method, path, options)
+    const token =
+      API.tokenProvider && this.manageAccountToken
+        ? await API.tokenProvider(this.endpoint, this.token)
+        : this.token
+    const response = await this.request(
+      this.endpoint,
+      method,
+      path,
+      options,
+      token
+    )
 
     // Only consider invalid token when the status is 401 and the response has
     // the X-GitHub-Request-Id header, meaning it comes from GH(E) and not from
@@ -1846,11 +1901,12 @@ export class API {
     // We're also not considering a token has been invalidated when the reason
     // behind a 401 is the fact that any kind of 2 factor auth is required.
     if (
+      this.manageAccountToken &&
       response.status === HttpStatusCode.Unauthorized &&
       response.headers.has('X-GitHub-Request-Id') &&
       !response.headers.has('X-GitHub-OTP')
     ) {
-      API.emitTokenInvalidated(this.endpoint, this.token)
+      API.emitTokenInvalidated(this.endpoint, token)
     }
 
     tryUpdateEndpointVersionFromResponse(this.endpoint, response)
@@ -2211,7 +2267,11 @@ export class API {
   }
 }
 
-export async function deleteToken(account: Account) {
+/** Revoke a token, optionally allowing the caller to cancel the request. */
+export async function deleteToken(
+  account: Pick<Account, 'endpoint' | 'token'>,
+  signal?: AbortSignal
+) {
   try {
     const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
     const response = await request(
@@ -2220,7 +2280,9 @@ export async function deleteToken(account: Account) {
       'DELETE',
       `applications/${ClientID}/token`,
       { access_token: account.token },
-      { Authorization: `Basic ${creds}` }
+      { Authorization: `Basic ${creds}` },
+      false,
+      signal
     )
 
     return response.status === 204
@@ -2233,9 +2295,10 @@ export async function deleteToken(account: Account) {
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(
   endpoint: string,
-  token: string
+  token: string,
+  isNewAuthorization = false
 ): Promise<Account> {
-  const api = new API(endpoint, token)
+  const api = new API(endpoint, token, undefined, !isNewAuthorization)
   try {
     const [user, emails, copilotInfo, features] = await Promise.all([
       api.fetchAccount(),
@@ -2283,7 +2346,8 @@ export function getEndpointForRepository(url: string): string {
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
- * http://github.mycompany.com/api -> http://github.mycompany.com/
+ * http://github.mycompany.com/api -> http://github.mycompany.com
+ * https://github.mycompany.com:8443/api/v3 -> https://github.mycompany.com:8443
  */
 export function getHTMLURL(endpoint: string): string {
   if (envHTMLURL !== undefined) {
@@ -2302,7 +2366,7 @@ export function getHTMLURL(endpoint: string): string {
     return 'https://github.com'
   } else {
     if (isGHE(endpoint)) {
-      const url = new window.URL(endpoint)
+      const url = new URL.URL(endpoint)
 
       url.pathname = '/'
 
@@ -2313,8 +2377,9 @@ export function getHTMLURL(endpoint: string): string {
       return url.toString()
     }
 
-    const parsed = URL.parse(endpoint)
-    return `${parsed.protocol}//${parsed.hostname}`
+    // Use the origin rather than the hostname so that GitHub Enterprise
+    // Server instances running on a non-default port retain their port.
+    return new URL.URL(endpoint).origin
   }
 }
 
@@ -2346,52 +2411,36 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the account for the endpoint. */
-export function getAccountForEndpoint(
-  accounts: ReadonlyArray<Account>,
-  endpoint: string
-): Account | null {
-  return accounts.find(a => a.endpoint === endpoint) || null
-}
-
+/**
+ * Build an OAuth authorization URL.
+ *
+ * Supplying a login requests that account and disables sign-up. The caller
+ * must still verify the identity returned by OAuth.
+ */
 export function getOAuthAuthorizationURL(
   endpoint: string,
-  state: string
+  state: string,
+  login: string | undefined,
+  shortLived: boolean
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scope = encodeURIComponent(oauthScopes.join(' '))
+  const scope = encodeURIComponent(
+    (shortLived && !isGHES(endpoint)
+      ? [...oauthScopes, 'offline_access']
+      : oauthScopes
+    ).join(' ')
+  )
+  // Without a specific login, let the user pick which of their browser's
+  // GitHub sessions to sign in with rather than silently using the active one.
+  const accountParameters =
+    login === undefined
+      ? '&prompt=select_account'
+      : `&login=${encodeURIComponent(login)}&allow_signup=false`
 
   return new window.URL(
-    `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`,
+    `/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}${accountParameters}`,
     urlBase
   ).toString()
-}
-
-export async function requestOAuthToken(
-  endpoint: string,
-  code: string
-): Promise<string | null> {
-  try {
-    const urlBase = getHTMLURL(endpoint)
-    const response = await request(
-      urlBase,
-      null,
-      'POST',
-      'login/oauth/access_token',
-      {
-        client_id: ClientID,
-        client_secret: ClientSecret,
-        code: code,
-      }
-    )
-    tryUpdateEndpointVersionFromResponse(endpoint, response)
-
-    const result = await parsedResponse<IAPIAccessToken>(response)
-    return result.access_token
-  } catch (e) {
-    log.warn(`requestOAuthToken: failed with endpoint ${endpoint}`, e)
-    return null
-  }
 }
 
 function tryUpdateEndpointVersionFromResponse(

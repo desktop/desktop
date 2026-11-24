@@ -169,7 +169,7 @@ export function getStringArray(key: string): ReadonlyArray<string> {
     }
 
     return outputArray
-  } catch (e) {
+  } catch {
     return []
   }
 }
@@ -221,7 +221,7 @@ export function getObject<T>(key: string): T | undefined {
 
   try {
     return JSON.parse(rawData)
-  } catch (e) {
+  } catch {
     // If corrupted and can't be parsed, we return undefined.
     return
   }

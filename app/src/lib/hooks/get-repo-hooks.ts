@@ -42,8 +42,12 @@ const knownHooks = [
 // have to be careful to not accidentally run into a circular dependency here
 // where we invoke git which calls us which calls git which calls us, etc. To
 // avoid that we call dugite directly here.
-const git = (args: string[], path: string) =>
-  exec(args, path).then(({ exitCode, stdout, stderr }) => {
+const git = (
+  args: string[],
+  path: string,
+  env?: Record<string, string | undefined>
+) =>
+  exec(args, path, { env }).then(({ exitCode, stdout, stderr }) => {
     return exitCode === 0
       ? stdout
       : Promise.reject(
@@ -51,31 +55,40 @@ const git = (args: string[], path: string) =>
         )
   })
 
-const getHooksPath = async (path: string) =>
+const getHooksPath = async (
+  path: string,
+  env?: Record<string, string | undefined>
+) =>
   resolve(
     path,
-    (await git(['rev-parse', '--git-path', 'hooks'], path)).replace(
+    (await git(['rev-parse', '--git-path', 'hooks'], path, env)).replace(
       /\r?\n$/,
       ''
     )
   )
 
-const getConfigValue = (path: string, key: string) =>
-  git(['config', '-z', '--get', key], path).then(x => x.split('\0')[0])
+const getConfigValue = (
+  path: string,
+  key: string,
+  env?: Record<string, string | undefined>
+) => git(['config', '-z', '--get', key], path, env).then(x => x.split('\0')[0])
 
 /**
  * Returns the names of executable Git hooks found in the given repository.
  *
  * @param path   The file system path to the Git repository (root of working
  *               directory).
- * @param gitDir The path to the .git directory for this repository. Used as
- *               the default hooks location when core.hooksPath is not set.
  * @param filter An optional array of hook names to filter the results.
  *               Including '*' will return all hooks.
+ * @param env    The same Git environment as the operation being intercepted.
  */
-export async function* getRepoHooks(path: string, filter?: string[]) {
-  const hooksPath = await getConfigValue(path, 'core.hooksPath')
-    .catch(() => getHooksPath(path))
+export async function* getRepoHooks(
+  path: string,
+  filter?: string[],
+  env?: Record<string, string | undefined>
+) {
+  const hooksPath = await getConfigValue(path, 'core.hooksPath', env)
+    .catch(() => getHooksPath(path, env))
     .then(p => resolve(path, p))
 
   const files = await readdir(hooksPath, { withFileTypes: true })

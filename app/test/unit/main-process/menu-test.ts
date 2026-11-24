@@ -158,6 +158,36 @@ describe('main-process menu', () => {
   })
 
   describe('buildDefaultMenuTemplate', () => {
+    it('offers Copilot handoff in production without preview features', t => {
+      const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const originalGlobals = {
+        __DEV__,
+        __RELEASE_CHANNEL__,
+      }
+
+      t.after(() => {
+        Object.assign(globalThis, originalGlobals)
+        if (preview === undefined) {
+          delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+        } else {
+          process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = preview
+        }
+      })
+
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      Object.assign(globalThis, {
+        __DEV__: false,
+        __RELEASE_CHANNEL__: 'production',
+      })
+
+      const template = buildDefaultMenuTemplate(baseParams)
+      const repository = template.find(item => item.id === 'repository')
+      assert.ok(Array.isArray(repository?.submenu))
+      assert.ok(
+        repository.submenu.some(item => item.id === 'open-in-copilot-app')
+      )
+    })
+
     // The boolean parameters that affect which labels (and therefore access
     // keys) appear in the menu. We generate all 2^N combinations to ensure no
     // state produces a duplicate access key in any submenu.
@@ -179,6 +209,26 @@ describe('main-process menu', () => {
       askForConfirmationOnForcePush: false,
       askForConfirmationOnRepositoryRemoval: false,
     }
+
+    it('provides Copilot handoff without replacing the editor command', () => {
+      const template = buildDefaultMenuTemplate(baseParams)
+      const repository = template.find(item => item.id === 'repository')
+      assert.ok(Array.isArray(repository?.submenu))
+      const copilot = repository.submenu.find(
+        item => item.id === 'open-in-copilot-app'
+      )
+      assert.ok(copilot)
+      assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
+      assert.ok(
+        repository.submenu.indexOf(copilot) <
+          repository.submenu.findIndex(
+            item => item.id === 'open-with-external-editor'
+          )
+      )
+      assert.ok(
+        repository.submenu.some(item => item.id === 'open-external-editor')
+      )
+    })
 
     it('has no duplicate access keys for any combination of label-affecting parameters', () => {
       const combinationCount = 1 << variantKeys.length

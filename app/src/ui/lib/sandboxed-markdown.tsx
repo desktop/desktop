@@ -45,9 +45,15 @@ interface ISandboxedMarkdownProps {
 
   readonly underlineLinks: boolean
 
-  /** An area label to explain to screen reader users what the contents of the
-   * iframe are before they navigate into them. */
-  readonly ariaLabel: string
+  /**
+   * A description of the iframe's contents to announce to screen reader
+   * users before they navigate into it, e.g. "Pull request comment".
+   *
+   * VoiceOver and NVDA read this differently, so it's applied to whichever
+   * element each of them actually uses rather than to a single attribute -
+   * see the render method for details.
+   */
+  readonly title: string
 
   /**
    * Optional additional CSS injected after the base markdown stylesheet
@@ -150,6 +156,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     const src = `
       <html>
         <head>
+          ${__DARWIN__ ? this.getTitleTag() : ''}
           ${this.getBaseTag(this.props.baseHref)}
           ${styleSheet}
         </head>
@@ -317,6 +324,21 @@ export class SandboxedMarkdown extends React.PureComponent<
     return base.outerHTML
   }
 
+  /**
+   * Builds a <title> tag for the sandboxed document.
+   *
+   * On macOS, VoiceOver announces an iframe's contained document by its
+   * `<title>`, falling back to a generic, unhelpful "frame N" when the
+   * document has none. Giving the document a title matching the iframe's
+   * description lets VoiceOver announce something meaningful once a user
+   * has navigated inside the frame.
+   */
+  private getTitleTag(): string {
+    const title = document.createElement('title')
+    title.textContent = this.props.title
+    return title.outerHTML
+  }
+
   private onDocumentDOMContentLoaded = (doc: Document) => {
     if (this.currentDocument !== doc) {
       return
@@ -390,12 +412,25 @@ export class SandboxedMarkdown extends React.PureComponent<
         ref={this.frameContainingDivRef}
       >
         <iframe
-          title="sandboxed-markdown-component"
+          // VoiceOver and NVDA read the iframe's `title` attribute
+          // differently, so instead of trying to satisfy both from one
+          // attribute we set the description where each actually looks:
+          //  - On macOS, VoiceOver uses the sandboxed document's own
+          //    `<title>` (set in getTitleTag) to announce the frame
+          //    instead of a generic "frame 0", overriding this attribute
+          //    entirely once the document has loaded.
+          //  - On Windows, NVDA announces this `title` attribute followed
+          //    by "frame" (e.g. "{title} frame"), and ignores the inner
+          //    document's `<title>` entirely.
+          // The attribute is always set (rather than only on Windows) so
+          // the iframe has an accessible name before the sandboxed
+          // document finishes loading, and to satisfy the
+          // jsx-a11y/iframe-has-title lint rule.
+          title={this.props.title}
           className="sandboxed-markdown-component"
           sandbox="allow-same-origin"
           ref={this.onFrameRef}
           onLoad={this.refreshHeight}
-          aria-label={this.props.ariaLabel}
         />
         {tooltipElements.map(e => (
           <Tooltip

@@ -41,11 +41,9 @@
 }
 
 .branches-container {
-  &.resizable {
-    .no-branches {
-      width: 365px;
-      margin: var(--spacing) auto;
-      flex: none;
-    }
+  .no-branches {
+    width: 365px;
+    margin: var(--spacing) auto;
+    flex: none;
   }
 }

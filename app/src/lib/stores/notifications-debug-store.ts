@@ -1,9 +1,12 @@
 import { shortenSHA } from '../../models/commit'
-import { GitHubRepository } from '../../models/github-repository'
 import { PullRequest, getPullRequestCommitRef } from '../../models/pull-request'
-import { RepositoryWithGitHubRepository } from '../../models/repository'
+import {
+  RepositoryWithGitHubRepository,
+  getNonForkGitHubRepository,
+} from '../../models/repository'
 import { Dispatcher, defaultErrorHandler } from '../../ui/dispatcher'
 import { API, APICheckConclusion, IAPIComment } from '../api'
+import { getAccountForRepository } from '../get-account-for-repository'
 import { showNotification } from '../notifications/show-notification'
 import {
   isValidNotificationPullRequestReview,
@@ -19,9 +22,9 @@ import { PullRequestCoordinator } from './pull-request-coordinator'
  * notifications.
  */
 export class NotificationsDebugStore {
-  private cachedComments: Map<number, ReadonlyArray<IAPIComment>> = new Map()
+  private cachedComments: Map<string, ReadonlyArray<IAPIComment>> = new Map()
   private cachedReviews: Map<
-    number,
+    string,
     ReadonlyArray<ValidNotificationPullRequestReview>
   > = new Map()
 
@@ -31,21 +34,31 @@ export class NotificationsDebugStore {
     private readonly pullRequestCoordinator: PullRequestCoordinator
   ) {}
 
-  private async getAccountForRepository(repository: GitHubRepository) {
-    const { endpoint } = repository
-
+  private async getAPIForRepository(
+    repository: RepositoryWithGitHubRepository
+  ) {
     const accounts = await this.accountsStore.getAll()
-    return accounts.find(a => a.endpoint === endpoint) ?? null
-  }
-
-  private async getAPIForRepository(repository: GitHubRepository) {
-    const account = await this.getAccountForRepository(repository)
+    const account = getAccountForRepository(accounts, repository)
 
     if (account === null) {
       return null
     }
 
     return API.fromAccount(account)
+  }
+
+  private getCacheKey(
+    repository: RepositoryWithGitHubRepository,
+    pullRequestNumber: number
+  ) {
+    const target = getNonForkGitHubRepository(repository)
+    return JSON.stringify([
+      repository.gitHubRepository.endpoint,
+      repository.login?.toLowerCase(),
+      target.owner.login,
+      target.name,
+      pullRequestNumber,
+    ])
   }
 
   /** Fetch all pull requests for the given repository. */
@@ -62,38 +75,22 @@ export class NotificationsDebugStore {
     const filteredPrs = []
     for (const pr of prs) {
       if (options.filterByComments) {
-        const cachedComments = this.cachedComments.get(pr.pullRequestNumber)
-
-        if (cachedComments && cachedComments.length > 0) {
-          filteredPrs.push(pr)
-          continue
-        }
-
         const comments = await this.getPullRequestComments(
           repository,
           pr.pullRequestNumber
         )
-        this.cachedComments.set(pr.pullRequestNumber, comments)
 
         if (comments.length > 0) {
           filteredPrs.push(pr)
+          continue
         }
       }
 
       if (options.filterByReviews) {
-        const cachedReviews = this.cachedReviews.get(pr.pullRequestNumber)
-
-        if (cachedReviews && cachedReviews.length > 0) {
-          filteredPrs.push(pr)
-          continue
-        }
-
         const reviews = await this.getPullRequestReviews(
           repository,
           pr.pullRequestNumber
         )
-
-        this.cachedReviews.set(pr.pullRequestNumber, reviews)
 
         if (reviews.length > 0) {
           filteredPrs.push(pr)
@@ -109,17 +106,17 @@ export class NotificationsDebugStore {
     repository: RepositoryWithGitHubRepository,
     pullRequestNumber: number
   ) {
-    const cachedReviews = this.cachedReviews.get(pullRequestNumber)
+    const api = await this.getAPIForRepository(repository)
+    if (api === null) {
+      return []
+    }
+    const key = this.getCacheKey(repository, pullRequestNumber)
+    const cachedReviews = this.cachedReviews.get(key)
     if (cachedReviews) {
       return cachedReviews
     }
 
-    const api = await this.getAPIForRepository(repository.gitHubRepository)
-    if (api === null) {
-      return []
-    }
-
-    const ghRepository = repository.gitHubRepository
+    const ghRepository = getNonForkGitHubRepository(repository)
 
     const reviews = await api.fetchPullRequestReviews(
       ghRepository.owner.login,
@@ -127,7 +124,9 @@ export class NotificationsDebugStore {
       pullRequestNumber.toString()
     )
 
-    return reviews.filter(isValidNotificationPullRequestReview)
+    const validReviews = reviews.filter(isValidNotificationPullRequestReview)
+    this.cachedReviews.set(key, validReviews)
+    return validReviews
   }
 
   /** Fetch all comments (issue and review comments) for the given pull request. */
@@ -135,17 +134,17 @@ export class NotificationsDebugStore {
     repository: RepositoryWithGitHubRepository,
     pullRequestNumber: number
   ) {
-    const cachedComments = this.cachedComments.get(pullRequestNumber)
+    const api = await this.getAPIForRepository(repository)
+    if (api === null) {
+      return []
+    }
+    const key = this.getCacheKey(repository, pullRequestNumber)
+    const cachedComments = this.cachedComments.get(key)
     if (cachedComments) {
       return cachedComments
     }
 
-    const api = await this.getAPIForRepository(repository.gitHubRepository)
-    if (api === null) {
-      return []
-    }
-
-    const ghRepository = repository.gitHubRepository
+    const ghRepository = getNonForkGitHubRepository(repository)
 
     const issueComments = await api.fetchIssueComments(
       ghRepository.owner.login,
@@ -159,20 +158,23 @@ export class NotificationsDebugStore {
       pullRequestNumber.toString()
     )
 
-    return [...issueComments, ...reviewComments]
+    const comments = [...issueComments, ...reviewComments]
+    this.cachedComments.set(key, comments)
+    return comments
   }
 
   /** Simulate a notification for the given pull request review. */
   public simulatePullRequestReviewNotification(
-    repository: GitHubRepository,
+    repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
     review: ValidNotificationPullRequestReview
   ) {
+    const target = getNonForkGitHubRepository(repository)
     this.notificationsStore.simulateAliveEvent({
       type: 'pr-review-submit',
       timestamp: new Date(review.submitted_at).getTime(),
-      owner: repository.owner.login,
-      repo: repository.name,
+      owner: target.owner.login,
+      repo: target.name,
       pull_request_number: pullRequest.pullRequestNumber,
       state: review.state,
       review_id: review.id.toString(),
@@ -181,17 +183,18 @@ export class NotificationsDebugStore {
 
   /** Simulate a notification for the given pull request comment. */
   public simulatePullRequestCommentNotification(
-    repository: GitHubRepository,
+    repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
     comment: IAPIComment,
     isIssueComment: boolean
   ) {
+    const target = getNonForkGitHubRepository(repository)
     this.notificationsStore.simulateAliveEvent({
       type: 'pr-comment',
       subtype: isIssueComment ? 'issue-comment' : 'review-comment',
       timestamp: new Date(comment.created_at).getTime(),
-      owner: repository.owner.login,
-      repo: repository.name,
+      owner: target.owner.login,
+      repo: target.name,
       pull_request_number: pullRequest.pullRequestNumber,
       comment_id: comment.id.toString(),
     })
@@ -206,7 +209,7 @@ export class NotificationsDebugStore {
     const commitSha = pullRequest.head.sha
     const commitRef = getPullRequestCommitRef(pullRequest.pullRequestNumber)
     const checks = await this.notificationsStore.getChecksForRef(
-      repository.gitHubRepository,
+      repository,
       commitRef
     )
 
@@ -215,11 +218,12 @@ export class NotificationsDebugStore {
       return
     }
 
+    const target = getNonForkGitHubRepository(repository)
     const event: IDesktopChecksFailedAliveEvent = {
       type: 'pr-checks-failed',
       timestamp: new Date(pullRequest.created).getTime(),
-      owner: repository.gitHubRepository.owner.login,
-      repo: repository.name,
+      owner: target.owner.login,
+      repo: target.name,
       pull_request_number: pullRequest.pullRequestNumber,
       check_suite_id: checks[0].checkSuiteId ?? 0,
       commit_sha: commitSha,

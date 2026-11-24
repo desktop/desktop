@@ -2,12 +2,11 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Dispatcher } from '../dispatcher'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { Account, isEnterpriseAccount } from '../../models/account'
-import { getHTMLURL } from '../../lib/api'
+import { Account } from '../../models/account'
 import { Ref } from '../lib/ref'
 
 interface IInvalidatedTokenProps {
-  readonly dispatcher: Dispatcher
+  readonly dispatcher: Pick<Dispatcher, 'showAccountSignInDialog'>
   readonly account: Account
   readonly onDismissed: () => void
 }
@@ -31,9 +30,9 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          Your account token has been invalidated and you have been signed out
-          from your <Ref>{account.friendlyEndpoint}</Ref> account. Do you want
-          to sign in again?
+          Your account token is no longer valid and you have been signed out
+          from your <Ref>{account.login}</Ref> account on{' '}
+          <Ref>{account.friendlyEndpoint}</Ref>. Do you want to sign in again?
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup okButtonText="Yes" cancelButtonText="No" />
@@ -47,12 +46,8 @@ export class InvalidatedToken extends React.Component<IInvalidatedTokenProps> {
 
     onDismissed()
 
-    if (isEnterpriseAccount(account)) {
-      dispatcher.showEnterpriseSignInDialog(
-        getHTMLURL(this.props.account.endpoint)
-      )
-    } else {
-      dispatcher.showDotComSignInDialog()
-    }
+    // Other accounts may still be signed in to the same endpoint, so sign
+    // back in to this specific account rather than any account.
+    dispatcher.showAccountSignInDialog(account.endpoint, account.login)
   }
 }

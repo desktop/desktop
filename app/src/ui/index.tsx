@@ -4,6 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 import { App } from './app'
+import { API } from '../lib/api'
+import { installAuthenticatedImageTokenHandler } from '../lib/authenticated-image-token-handler'
 import {
   Dispatcher,
   externalEditorErrorHandler,
@@ -178,7 +180,7 @@ const sendErrorWithContext = (
           supportsSystemThemeChanges()
         }`
       }
-    } catch (err) {
+    } catch {
       /* ignore */
     }
 
@@ -256,6 +258,9 @@ const statsStore = new StatsStore(
 )
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
+API.setTokenProvider(accountsStore.resolveToken)
+API.onTokenInvalidated(accountsStore.handleTokenInvalidated)
+installAuthenticatedImageTokenHandler(accountsStore.resolveToken)
 
 const signInStore = new SignInStore(accountsStore)
 
@@ -264,13 +269,17 @@ trampolineServer.registerCommandHandler(
   createAskpassTrampolineHandler(accountsStore)
 )
 
-trampolineServer.registerCommandHandler(
-  TrampolineCommandIdentifier.CredentialHelper,
-  createCredentialHelperTrampolineHandler(accountsStore)
-)
-
 const repositoriesStore = new RepositoriesStore(
   new RepositoriesDatabase('Database')
+)
+
+trampolineServer.registerCommandHandler(
+  TrampolineCommandIdentifier.CredentialHelper,
+  createCredentialHelperTrampolineHandler(
+    accountsStore,
+    repositoriesStore,
+    outcome => statsStore.recordCredentialOutcome(outcome)
+  )
 )
 
 const pullRequestStore = new PullRequestStore(
@@ -298,7 +307,8 @@ const notificationsStore = new NotificationsStore(
   accountsStore,
   aliveStore,
   pullRequestCoordinator,
-  statsStore
+  statsStore,
+  repositoriesStore
 )
 
 const notificationsDebugStore = new NotificationsDebugStore(

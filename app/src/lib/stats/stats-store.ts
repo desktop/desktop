@@ -32,6 +32,11 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
+import {
+  CredentialOutcome,
+  IMultiAccountStats,
+  getMultiAccountStats,
+} from './multi-account-stats'
 import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
 import { getAppArchitecture } from '../../ui/main-process-proxy'
 import { Architecture } from '../get-architecture'
@@ -43,9 +48,10 @@ import { ValidNotificationPullRequestReviewState } from '../valid-notification-p
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
-import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
+import { getSystemNotificationsPermission } from '../notifications/notification-permission'
+import { TokenRefreshEvent } from '../credential-sessions'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -54,13 +60,12 @@ type PullRequestReviewStatFieldInfix =
 
 type PullRequestReviewStatFieldSuffix =
   | 'NotificationCount'
+  | 'NotificationShownCount'
   | 'NotificationClicked'
   | 'DialogSwitchToPullRequestCount'
 
 type PullRequestReviewStatField =
   `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
-
-const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const StatsEndpoint =
   'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
@@ -99,6 +104,20 @@ const DefaultDailyMeasures: IDailyMeasures = {
   commits: 0,
   partialCommits: 0,
   openShellCount: 0,
+  openInCopilotAppCount: 0,
+  tokenRefreshAttemptCount: 0,
+  tokenRefreshSuccessCount: 0,
+  tokenRefreshTransientFailureCount: 0,
+  tokenRefreshTransientFailureTimeoutCount: 0,
+  tokenRefreshTransientFailureNetworkCount: 0,
+  tokenRefreshTransientFailureRateLimitedCount: 0,
+  tokenRefreshTransientFailureServerCount: 0,
+  tokenRefreshTransientFailureOtherHttpCount: 0,
+  tokenRefreshTransientFailureOtherOAuthCount: 0,
+  tokenRefreshTransientFailureUnknownCount: 0,
+  tokenRefreshNonTransientFailureCount: 0,
+  tokenRefreshAbandonedCount: 0,
+  tokenRefreshRequiredSignInCount: 0,
   coAuthoredCommits: 0,
   commitsUndoneWithChanges: 0,
   commitsUndoneWithoutChanges: 0,
@@ -218,6 +237,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   viewsCheckJobStepOnline: 0,
   rerunsChecks: 0,
   checksFailedNotificationCount: 0,
+  checksFailedNotificationShownCount: 0,
   checksFailedNotificationFromRecentRepoCount: 0,
   checksFailedNotificationFromNonRecentRepoCount: 0,
   checksFailedNotificationClicked: 0,
@@ -227,15 +247,19 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewNotificationFromRecentRepoCount: 0,
   pullRequestReviewNotificationFromNonRecentRepoCount: 0,
   pullRequestReviewApprovedNotificationCount: 0,
+  pullRequestReviewApprovedNotificationShownCount: 0,
   pullRequestReviewApprovedNotificationClicked: 0,
   pullRequestReviewApprovedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewCommentedNotificationCount: 0,
+  pullRequestReviewCommentedNotificationShownCount: 0,
   pullRequestReviewCommentedNotificationClicked: 0,
   pullRequestReviewCommentedDialogSwitchToPullRequestCount: 0,
   pullRequestReviewChangesRequestedNotificationCount: 0,
+  pullRequestReviewChangesRequestedNotificationShownCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
   pullRequestCommentNotificationCount: 0,
+  pullRequestCommentNotificationShownCount: 0,
   pullRequestCommentNotificationClicked: 0,
   pullRequestCommentNotificationFromRecentRepoCount: 0,
   pullRequestCommentNotificationFromNonRecentRepoCount: 0,
@@ -285,6 +309,53 @@ const DefaultDailyMeasures: IDailyMeasures = {
   copilotConflictResolutionOver30sCount: 0,
   copilotConflictResolutionOver60sCount: 0,
   copilotConflictResolutionOver120sCount: 0,
+  commitModeDropdownOpenedCount: 0,
+  commitModeSwitchedToCopilotCount: 0,
+  commitModeSwitchedToManualCount: 0,
+  copilotAssistedCommitStartedCount: 0,
+  copilotAssistedCommitPlanningStartedCount: 0,
+  copilotAssistedCommitPlanValidatedCount: 0,
+  copilotAssistedCommitExecutionStartedCount: 0,
+  copilotAssistedCommitAcceptedCount: 0,
+  copilotAssistedCommitCancelledCount: 0,
+  copilotAssistedCommitConsentDeclinedCount: 0,
+  copilotAssistedCommitErrorCount: 0,
+  copilotAssistedCommitEmptyCommitCount: 0,
+  copilotAssistedCommitCreatedCommitCount: 0,
+  copilotAssistedCommitMultiCommitRunCount: 0,
+  copilotAssistedCommitFallbackCount: 0,
+  copilotAssistedCommitSelectionChangedCount: 0,
+  copilotAssistedCommitRepositoryChangedCount: 0,
+  copilotAssistedCommitPlanRejectedCount: 0,
+  copilotAssistedCommitCommitVerificationFailedCount: 0,
+  copilotAssistedCommitRecoveryRequiredCount: 0,
+  copilotAssistedCommitRecoveryAttemptCount: 0,
+  copilotAssistedCommitRecoverySuccessCount: 0,
+  copilotAssistedCommitRecoveryErrorCount: 0,
+  copilotAssistedCommitOver15sCount: 0,
+  copilotAssistedCommitOver30sCount: 0,
+  copilotAssistedCommitOver60sCount: 0,
+  copilotAssistedCommitOver120sCount: 0,
+  manualCommitWorkflowCount: 0,
+  additionalAccountSignInCount: 0,
+  accountSignOutWithAssignmentsCount: 0,
+  accountSignOutClearedAssignmentsCount: 0,
+  accountSignOutCancelledCount: 0,
+  repositoryAccountChangedFromSettingsCount: 0,
+  repositoryAccountChangedFromContextMenuCount: 0,
+  cloneAccountAutoAssignedCount: 0,
+  cloneAccountChosenCount: 0,
+  cloneAccountUnassignedCount: 0,
+  cloneFromAccountPickerOnMultiAccountEndpointCount: 0,
+  addRepositoryAccountAutoAssignedCount: 0,
+  addRepositoryAccountChosenCount: 0,
+  addRepositoryAccountUnassignedCount: 0,
+  publishOnMultiAccountEndpointCount: 0,
+  gitCredentialFromAssignedAccountCount: 0,
+  gitCredentialAfterPromptCount: 0,
+  gitCredentialUnavailableInBackgroundCount: 0,
+  gitCredentialNotProvidedCount: 0,
+  gitCredentialRejectedCount: 0,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties
@@ -398,6 +469,9 @@ interface ICalculatedStats {
   /** Is the user logged in with an Enterprise account? */
   readonly enterpriseAccount: boolean
 
+  /** Whether any currently signed-in account uses refreshable OAuth credentials. */
+  readonly usesShortLivedToken: boolean
+
   /**
    * The name of the currently selected theme/application appearance as set at
    * time of stats submission.
@@ -437,6 +511,9 @@ interface ICalculatedStats {
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
 
+  /** Whether OS permission allows notifications, or null if unavailable or unknown. */
+  readonly notificationsPermission: boolean | null
+
   /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean
 
@@ -464,7 +541,8 @@ interface ICalculatedStats {
 type DailyStats = ICalculatedStats &
   ILaunchStats &
   Omit<IDailyMeasures, 'id'> &
-  IOnboardingStats
+  IOnboardingStats &
+  IMultiAccountStats
 
 interface IOptInStatusPing {
   readonly eventType: 'ping'
@@ -543,7 +621,10 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     diffMode,
     dotComAccount,
     enterpriseAccount,
+    hasMultipleAccountsPerEndpoint,
+    usesShortLivedToken,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -580,7 +661,10 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
     diffMode,
     dotComAccount,
     enterpriseAccount,
+    hasMultipleAccountsPerEndpoint,
+    usesShortLivedToken,
     notificationsEnabled,
+    notificationsPermission,
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
@@ -621,24 +705,13 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
 }
 
 const defaultPostImplementation = (body: StatsPayload) => {
-  if (enableNewStatsEndpoint()) {
-    return fetch(StatsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'user-agent': getUserAgent(),
-      },
-      body: JSON.stringify(buildStatsPayload(body)),
-    })
-  }
-
-  return fetch(LegacyStatsEndpoint, {
+  return fetch(StatsEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'user-agent': getUserAgent(),
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(buildStatsPayload(body)),
   })
 }
 
@@ -648,6 +721,7 @@ export class StatsStore implements IStatsStore {
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
+  private usesShortLivedToken = false
 
   public constructor(
     private readonly db: StatsDatabase,
@@ -680,6 +754,46 @@ export class StatsStore implements IStatsStore {
     const lastDate = getNumber(LastDailyStatsReportKey, 0)
     const now = Date.now()
     return now - lastDate > DailyStatsReportInterval
+  }
+
+  /** Update installation-level short-lived-token usage from the account list. */
+  public setUsesShortLivedToken(value: boolean): void {
+    this.usesShortLivedToken = value
+  }
+
+  /** Count a single token refresh lifecycle event without credential metadata. */
+  public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
+    if (event.kind === 'transient-failure') {
+      const measures = {
+        timeout: 'tokenRefreshTransientFailureTimeoutCount',
+        network: 'tokenRefreshTransientFailureNetworkCount',
+        rateLimited: 'tokenRefreshTransientFailureRateLimitedCount',
+        server: 'tokenRefreshTransientFailureServerCount',
+        otherHttp: 'tokenRefreshTransientFailureOtherHttpCount',
+        otherOAuth: 'tokenRefreshTransientFailureOtherOAuthCount',
+        unknown: 'tokenRefreshTransientFailureUnknownCount',
+      } as const
+      const measure = measures[event.failureKind]
+      return this.updateDailyMeasures(m => ({
+        ...m,
+        tokenRefreshTransientFailureCount:
+          m.tokenRefreshTransientFailureCount + 1,
+        [measure]: m[measure] + 1,
+      }))
+    }
+    const measures: Readonly<
+      Record<
+        Exclude<TokenRefreshEvent['kind'], 'transient-failure'>,
+        keyof NumericMeasures
+      >
+    > = {
+      attempt: 'tokenRefreshAttemptCount',
+      success: 'tokenRefreshSuccessCount',
+      'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
+      abandoned: 'tokenRefreshAbandonedCount',
+      'required-sign-in': 'tokenRefreshRequiredSignInCount',
+    }
+    return this.increment(measures[event.kind])
   }
 
   /** Report any stats which are eligible for reporting. */
@@ -837,9 +951,12 @@ export class StatsStore implements IStatsStore {
       selectedTerminalEmulator,
       selectedTextEditor,
       notificationsEnabled: getNotificationsEnabled(),
+      notificationsPermission: await getSystemNotificationsPermission(),
+      usesShortLivedToken: this.usesShortLivedToken,
       ...launchStats,
       ...dailyMeasures,
       ...userType,
+      ...getMultiAccountStats(accounts, repositories),
       ...onboardingStats,
       guid: await getRendererGUID(),
       ...repositoryCounts,
@@ -1127,6 +1244,24 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstRepositoryClonedAtKey)
   }
 
+  /** Record the outcome of a Git credential request for a GitHub account */
+  public recordCredentialOutcome(outcome: CredentialOutcome) {
+    switch (outcome) {
+      case 'assigned-account':
+        return this.increment('gitCredentialFromAssignedAccountCount')
+      case 'after-prompt':
+        return this.increment('gitCredentialAfterPromptCount')
+      case 'unavailable-in-background':
+        return this.increment('gitCredentialUnavailableInBackgroundCount')
+      case 'not-provided':
+        return this.increment('gitCredentialNotProvidedCount')
+      case 'rejected':
+        return this.increment('gitCredentialRejectedCount')
+      default:
+        return assertNever(outcome, `Unknown credential outcome: ${outcome}`)
+    }
+  }
+
   public recordCreateRepository() {
     createLocalStorageTimestamp(FirstRepositoryCreatedAtKey)
   }
@@ -1358,10 +1493,21 @@ export class StatsStore implements IStatsStore {
     return this.increment(statField)
   }
 
-  public recordPullRequestReviewNotificationShown(
+  /** Records a PR review Alive event eligible for a notification. */
+  public recordPullRequestReviewNotification(
     reviewType: ValidNotificationPullRequestReviewState
   ): Promise<void> {
     return this.recordPullRequestReviewStat(reviewType, 'NotificationCount')
+  }
+
+  /** Records a PR review notification accepted with OS permission. */
+  public recordPullRequestReviewNotificationShown(
+    reviewType: ValidNotificationPullRequestReviewState
+  ): Promise<void> {
+    return this.recordPullRequestReviewStat(
+      reviewType,
+      'NotificationShownCount'
+    )
   }
 
   public recordPullRequestReviewNotificationClicked(

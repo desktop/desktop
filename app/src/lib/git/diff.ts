@@ -163,6 +163,7 @@ export async function getBranchMergeBaseDiff(
     'diff',
     '--merge-base',
     ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--no-ext-diff',
     '--patch-with-raw',
     '-z',
     '--no-color',
@@ -210,6 +211,7 @@ export async function getCommitRangeDiff(
     oldestCommitRef,
     latestCommit,
     ...(hideWhitespaceInDiff ? ['-w'] : []),
+    '--no-ext-diff',
     '--patch-with-raw',
     '--format=',
     '-z',
@@ -344,12 +346,14 @@ export async function getCommitRangeChangedFiles(
 export async function getWorkingDirectoryDiff(
   repository: Repository,
   file: WorkingDirectoryFileChange,
-  hideWhitespaceInDiff: boolean = false
+  hideWhitespaceInDiff: boolean = false,
+  options: { readonly noTextconv?: boolean } = {}
 ): Promise<IDiff> {
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
   const args = [
     'diff',
+    ...(options.noTextconv === true ? ['--no-textconv'] : []),
     ...(hideWhitespaceInDiff ? ['-w'] : []),
     '--no-ext-diff',
     '--patch-with-raw',
@@ -998,9 +1002,8 @@ async function getFilesUsingBinaryMergeDriver(
     .map(x => x.path)
 }
 
-// Prefix absolute path with `:(top,literal)` to ensure that git treats it as a
-// literal path. This is important for paths that appear to be absolute paths on
-// some platforms and not others. See
+// Treat filenames literally, retaining the top prefix for paths that appear
+// absolute on some platforms and not others. See
 // https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-top
 const ensureRelativePath = (path: string) =>
-  isAbsolute(path) ? `:(top,literal)${path}` : path
+  isAbsolute(path) ? `:(top,literal)${path}` : `:(literal)${path}`

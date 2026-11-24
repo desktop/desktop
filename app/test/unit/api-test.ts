@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { API, getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import {
+  API,
+  getHTMLURL,
+  getNextPagePathWithIncreasingPageSize,
+  getOAuthAuthorizationURL,
+} from '../../src/lib/api'
 import { CopilotError } from '../../src/lib/copilot-error'
 import * as URL from 'url'
 
@@ -50,6 +55,111 @@ function assertNext(current: IPageInfo, expected: IPageInfo) {
 }
 
 describe('API', () => {
+  describe('getOAuthAuthorizationURL', () => {
+    it('asks which account to use when no login is expected', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL(
+          'https://api.github.com',
+          'csrf-state',
+          undefined,
+          false
+        )
+      )
+      assert.strictEqual(url.origin, 'https://github.com')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.strictEqual(url.searchParams.has('client_id'), true)
+      assert.ok(url.searchParams.get('scope'))
+      assert.strictEqual(url.searchParams.has('login'), false)
+      assert.strictEqual(url.searchParams.has('allow_signup'), false)
+      assert.strictEqual(url.searchParams.get('prompt'), 'select_account')
+    })
+
+    it('encodes the expected login and disables signup for targeted authentication', () => {
+      const url = new globalThis.URL(
+        getOAuthAuthorizationURL(
+          'https://enterprise.example.com/api/v3',
+          'csrf-state',
+          'mona+work&scope=admin',
+          false
+        )
+      )
+      assert.strictEqual(url.origin, 'https://enterprise.example.com')
+      assert.strictEqual(url.searchParams.get('login'), 'mona+work&scope=admin')
+      assert.strictEqual(url.searchParams.get('allow_signup'), 'false')
+      assert.strictEqual(url.searchParams.get('state'), 'csrf-state')
+      assert.notStrictEqual(url.searchParams.get('scope'), 'admin')
+      assert.strictEqual(url.searchParams.has('prompt'), false)
+    })
+  })
+  describe('getHTMLURL', () => {
+    it('maps the GitHub.com API endpoint to github.com', () => {
+      assert.equal(getHTMLURL('https://api.github.com'), 'https://github.com')
+    })
+
+    it('strips the API path from GitHub Enterprise Server endpoints', () => {
+      assert.equal(
+        getHTMLURL('https://ghe.example.com/api/v3'),
+        'https://ghe.example.com'
+      )
+      assert.equal(
+        getHTMLURL('http://ghe.example.com/api'),
+        'http://ghe.example.com'
+      )
+    })
+
+    it('preserves non-default ports for GitHub Enterprise Server', () => {
+      assert.equal(
+        getHTMLURL('https://ghe.example.com:8443/api/v3'),
+        'https://ghe.example.com:8443'
+      )
+      assert.equal(
+        getHTMLURL('http://ghe.example.com:8080/api/v3'),
+        'http://ghe.example.com:8080'
+      )
+    })
+
+    it('omits default ports for GitHub Enterprise Server', () => {
+      assert.equal(
+        getHTMLURL('https://ghe.example.com:443/api/v3'),
+        'https://ghe.example.com'
+      )
+    })
+
+    it('strips the api subdomain from ghe.com endpoints', () => {
+      assert.equal(
+        getHTMLURL('https://api.my-company.ghe.com/'),
+        'https://my-company.ghe.com/'
+      )
+    })
+
+    it('preserves non-default ports for ghe.com endpoints', () => {
+      assert.equal(
+        getHTMLURL('https://api.my-company.ghe.com:8443/'),
+        'https://my-company.ghe.com:8443/'
+      )
+    })
+
+    it('works when window is not defined (main process)', t => {
+      const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'window')
+      Reflect.deleteProperty(globalThis, 'window')
+      t.after(() => {
+        if (descriptor !== undefined) {
+          Object.defineProperty(globalThis, 'window', descriptor)
+        }
+      })
+
+      assert.equal(typeof window, 'undefined')
+      assert.equal(
+        getHTMLURL('https://ghe.example.com:8443/api/v3'),
+        'https://ghe.example.com:8443'
+      )
+      assert.equal(
+        getHTMLURL('https://api.my-company.ghe.com/'),
+        'https://my-company.ghe.com/'
+      )
+    })
+  })
+
   describe('getNextPagePathWithIncreasingPageSize', () => {
     it("returns null when there's no link header", () => {
       assert(getNextPagePathWithIncreasingPageSize(new Response()) === null)

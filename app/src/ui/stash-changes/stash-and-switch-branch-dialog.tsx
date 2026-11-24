@@ -72,6 +72,7 @@ export class StashAndSwitchBranch extends React.Component<
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Switch Branch' : 'Switch branch'}
+            okButtonDisabled={isStashingChanges}
           />
         </DialogFooter>
       </Dialog>

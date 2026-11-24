@@ -45,7 +45,7 @@ export const requestNotificationsPermission: () => Promise<boolean> = () =>
  * @param userInfo (Optional) An object with any information that needs to be
  * passed to the notification callback when the user clicks on the notification.
  * @returns The ID of the notification displayed. This ID can be used to close
- * the notification.
+ * the notification. Returns null if native submission fails.
  */
 export const showNotification: (
   title: string,

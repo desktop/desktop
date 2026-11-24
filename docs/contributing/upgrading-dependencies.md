@@ -7,7 +7,7 @@ as some need to be handled differently to others
 
 In the interest of stability and caution we tend to stay a version (or more) behind on our most critical dependencies. We vary whether this is a major, minor, or patch version depending on the development practices of the dependency's project.
 
-| Dependency  | Versions Behind Latest |
+| Dependency | Versions Behind Latest |
 | --- | --- |
 | electron | >= 1 major |
 | electron-packager | >= 1 major |
@@ -114,6 +114,50 @@ infrastructure will run.
 External contributors who have some familiarity with the libraries that we use
 are encouraged to contribute, but please ensure that PRs focus on upgrading a
 specific set of dependencies - this will make reviews easier to perform.
+
+## TypeScript upgrades
+
+The application, build scripts, custom ESLint rules, and native modules use
+TypeScript 6. Keep the compiler versions in the root package and the three
+TypeScript-based packages under `vendor/` aligned, including their lockfiles.
+
+Webpack compiles the application and syntax-highlighting worker using `bundler`
+module resolution. Build scripts use `nodenext`, and native modules use `node16`
+to retain their CommonJS output. Each compiler project declares its source root
+explicitly. Use public package exports when importing types; for SDK types that
+are not exported directly, derive them from the public API instead of importing
+private implementation paths.
+
+Compiler upgrades must preserve strictness and library declaration checking.
+Update incompatible dependencies or fix their callers rather than disabling
+checks or suppressing deprecation diagnostics. Keep the TypeScript ESLint parser,
+plugin, and utilities on a release that supports the installed compiler.
+
+Validate all compiler projects, development and production builds, the unit and
+script suites, and custom ESLint rule tests:
+
+```shell
+npm exec -- tsc --noEmit
+npm run compile:script
+npm exec -- tsc -p app/src/highlighter --noEmit
+npm run check:eslint
+npm run compile:dev
+npm run compile:prod
+npm test
+npm run test:script
+npm run test:eslint
+npm run lint
+```
+
+Also run `npm run build` in each TypeScript-based native module and `npm test` in
+`vendor/desktop-trampoline`.
+
+Check emitted paths, not only successful compilation: a `rootDir` change can
+move output away from a package's published entry points. For example,
+`desktop-notifications` uses `lib/` as its source root to emit `dist/index.js`,
+not `dist/lib/index.js`. The native-module output tests in `npm run test:script`
+capture fresh compiler output in memory so stale build files cannot hide this
+regression.
 
 ## DefinitelyTyped dependencies
 

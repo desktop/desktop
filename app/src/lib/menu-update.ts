@@ -11,7 +11,8 @@ import { updateMenuState as ipcUpdateMenuState } from '../ui/main-process-proxy'
 import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
-import { enableWorktreeSupport } from './feature-flag'
+import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from './git/repository-operation'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -131,6 +132,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'open-working-directory',
   'show-repository-settings',
   'open-external-editor',
+  'open-in-copilot-app',
   'open-with-external-editor',
   'remove-repository',
   'new-repository',
@@ -249,6 +251,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'show-branches-list',
     'show-worktrees-list',
     'open-external-editor',
+    'open-in-copilot-app',
     'open-with-external-editor',
     'compare-to-branch',
     'toggle-changes-filter',
@@ -264,11 +267,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   if (repositoryActive) {
     for (const id of repositoryScopedIDs) {
       menuStateBuilder.enable(id)
-    }
-
-    if (!enableWorktreeSupport()) {
-      menuStateBuilder.disable('show-worktrees-list')
-      menuStateBuilder.disable('create-worktree')
     }
 
     menuStateBuilder.setEnabled(
@@ -383,6 +381,38 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('compare-on-github')
     menuStateBuilder.disable('branch-on-github')
     menuStateBuilder.disable('toggle-stashed-changes')
+  }
+
+  if (
+    selectedState?.type === SelectionType.Repository &&
+    (isAssistedCommitRepositoryLocked(
+      selectedState.state.changesState.assistedCommit
+    ) ||
+      isRepositoryAffectedByAssistedCommit(selectedState.repository.path))
+  ) {
+    const disabledIds: ReadonlyArray<MenuIDs> = [
+      'push',
+      'pull',
+      'fetch',
+      'create-branch',
+      'rename-branch',
+      'delete-branch',
+      'merge-branch',
+      'squash-and-merge-branch',
+      'rebase-branch',
+      'update-branch-with-contribution-target-branch',
+      'discard-all-changes',
+      'stash-all-changes',
+      'remove-repository',
+      'show-branches-list',
+      'show-worktrees-list',
+      'create-worktree',
+      'show-repository-settings',
+      'preview-pull-request',
+    ]
+    for (const id of disabledIds) {
+      menuStateBuilder.disable(id)
+    }
   }
 
   return menuStateBuilder

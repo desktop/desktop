@@ -42,6 +42,19 @@
       }
     }
 
+    // Sits beside the name rather than inside it, so a long name that
+    // ellipsizes can't hide the marker.
+    &.missing-worktree .name {
+      flex-grow: 0;
+    }
+
+    .missing-indicator {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
     .description {
       margin-right: var(--spacing-half);
       color: var(--text-secondary-color);

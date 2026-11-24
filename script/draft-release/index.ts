@@ -5,7 +5,7 @@ import { run } from './run'
 
 try {
   execSync('gh auth status -h github.com')
-} catch (e) {
+} catch {
   console.error('You need to authenticate with GitHub CLI')
   console.error(
     'Make sure you have GitHub CLI installed (https://github.com/cli/cli?tab=readme-ov-file#installation) and run `gh auth login`'

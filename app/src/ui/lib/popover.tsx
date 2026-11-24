@@ -170,10 +170,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
               ? `${availableHeight}px`
               : `${Math.min(availableHeight, maxHeight)}px`
 
-          contentDiv.style.setProperty(
-            '--available-height',
-            `${newMaxHeight}px`
-          )
+          contentDiv.style.setProperty('--available-height', newMaxHeight)
 
           contentDiv.style.setProperty(
             '--available-width',

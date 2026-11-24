@@ -1,5 +1,4 @@
 import { format } from 'date-fns'
-import { enableFormattingPreferences } from '../lib/feature-flag'
 
 const localeCountryCode =
   new URL(location.href).hash.match(/lc=([A-Z]{2})/)?.[1] ?? null
@@ -340,10 +339,6 @@ const preferAbsoluteDatesKey = 'preferAbsoluteDates'
  * Defaults to false (i.e., relative time is shown by default).
  */
 export function getPreferAbsoluteDates(): boolean {
-  if (!enableFormattingPreferences()) {
-    return false
-  }
-
   return localStorage.getItem(preferAbsoluteDatesKey) === '1'
 }
 

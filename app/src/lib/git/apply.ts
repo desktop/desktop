@@ -3,15 +3,22 @@ import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
-import { DiffType, ITextDiff, DiffSelection } from '../../models/diff'
+import {
+  DiffType,
+  ITextDiff,
+  ILargeTextDiff,
+  DiffSelection,
+} from '../../models/diff'
 import { Repository } from '../../models/repository'
 import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch, formatPatchToDiscardChanges } from '../patch-formatter'
 import { assertNever } from '../fatal-error'
 
+/** Stage selected lines using their certified diff basis when supplied. */
 export async function applyPatchToIndex(
   repository: Repository,
-  file: WorkingDirectoryFileChange
+  file: WorkingDirectoryFileChange,
+  certifiedDiff?: ITextDiff | ILargeTextDiff
 ): Promise<void> {
   // If the file was a rename we have to recreate that rename since we've
   // just blown away the index. Think of this block of weird looking commands
@@ -25,7 +32,7 @@ export async function applyPatchToIndex(
     // worst that could happen is that we re-stage a file already staged
     // by updateIndex.
     await git(
-      ['add', '--update', '--', file.status.oldPath],
+      ['--literal-pathspecs', 'add', '--update', '--', file.status.oldPath],
       repository.path,
       'applyPatchToIndex'
     )
@@ -33,7 +40,7 @@ export async function applyPatchToIndex(
     // Figure out the blob oid of the removed file
     // <mode> SP <type> SP <object> TAB <file>
     const oldFile = await git(
-      ['ls-tree', 'HEAD', '--', file.status.oldPath],
+      ['--literal-pathspecs', 'ls-tree', 'HEAD', '--', file.status.oldPath],
       repository.path,
       'applyPatchToIndex'
     )
@@ -57,7 +64,8 @@ export async function applyPatchToIndex(
     '-',
   ]
 
-  const diff = await getWorkingDirectoryDiff(repository, file)
+  const diff =
+    certifiedDiff ?? (await getWorkingDirectoryDiff(repository, file))
 
   if (diff.kind !== DiffType.Text && diff.kind !== DiffType.LargeText) {
     const { kind } = diff

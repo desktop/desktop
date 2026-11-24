@@ -11,7 +11,6 @@ import { showContextualMenu, IMenuItem } from '../../lib/menu-item'
 import { generateWorktreeContextMenuItems } from '../worktrees/worktree-list-item-context-menu'
 import { PopupType } from '../../models/popup'
 import { Resizable } from '../resizable'
-import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 interface IWorktreeDropdownProps {
   readonly dispatcher: Dispatcher
@@ -21,6 +20,7 @@ interface IWorktreeDropdownProps {
   readonly onDropDownStateChanged: (state: DropdownState) => void
   readonly enableFocusTrap: boolean
   readonly worktreeDropdownWidth: IConstrainedValue
+  readonly disabled?: boolean
 }
 
 interface IWorktreeDropdownState {
@@ -39,9 +39,18 @@ export class WorktreeDropdown extends React.Component<
   }
 
   private onWorktreeClick = async (worktree: WorktreeEntry) => {
+    if (this.props.disabled) {
+      return
+    }
     const { dispatcher, repository } = this.props
 
     dispatcher.closeFoldout(FoldoutType.Worktree)
+
+    if (worktree.isPrunable) {
+      dispatcher.requestDeleteWorktree(repository, worktree.path)
+      return
+    }
+
     await dispatcher.switchWorktree(repository, worktree)
   }
 
@@ -86,6 +95,9 @@ export class WorktreeDropdown extends React.Component<
 
   private onContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+    if (this.props.disabled) {
+      return
+    }
 
     const currentWorktree = this.getCurrentWorktree()
     if (currentWorktree === null) {
@@ -114,6 +126,9 @@ export class WorktreeDropdown extends React.Component<
   }
 
   private renderWorktreeFoldout = (): JSX.Element | null => {
+    if (this.props.disabled) {
+      return null
+    }
     const { worktrees } = this.props
 
     return (
@@ -163,23 +178,16 @@ export class WorktreeDropdown extends React.Component<
         onContextMenu={this.onContextMenu}
         dropdownContentRenderer={this.renderWorktreeFoldout}
         dropdownState={currentState}
+        disabled={this.props.disabled}
         showDisclosureArrow={true}
         enableFocusTrap={enableFocusTrap}
-        foldoutStyleOverrides={
-          enableResizingToolbarButtons()
-            ? {
-                width: this.props.worktreeDropdownWidth.value,
-                maxWidth: this.props.worktreeDropdownWidth.max,
-                minWidth: 365,
-              }
-            : undefined
-        }
+        foldoutStyleOverrides={{
+          width: this.props.worktreeDropdownWidth.value,
+          maxWidth: this.props.worktreeDropdownWidth.max,
+          minWidth: 365,
+        }}
       />
     )
-
-    if (!enableResizingToolbarButtons()) {
-      return toolbarDropdown
-    }
 
     return (
       <Resizable

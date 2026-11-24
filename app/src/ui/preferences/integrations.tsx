@@ -7,7 +7,11 @@ import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import { enableCustomIntegration } from '../../lib/feature-flag'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { InputError } from '../lib/input-description/input-error'
+import { showOpenDialog } from '../main-process-proxy'
+import { copilotAppMarketingUrl } from '../../lib/copilot-app'
 
 const CustomIntegrationValue = 'other'
 
@@ -20,12 +24,15 @@ interface IIntegrationsPreferencesProps {
   readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration
+  readonly copilotAppPath: string
+  readonly copilotAppPathError?: string
   readonly onSelectedEditorChanged: (editor: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
   readonly onUseCustomEditorChanged: (useCustomEditor: boolean) => void
   readonly onCustomEditorChanged: (customEditor: ICustomIntegration) => void
   readonly onUseCustomShellChanged: (useCustomShell: boolean) => void
   readonly onCustomShellChanged: (customShell: ICustomIntegration) => void
+  readonly onCopilotAppPathChanged: (path: string) => void
 }
 
 interface IIntegrationsPreferencesState {
@@ -35,6 +42,7 @@ interface IIntegrationsPreferencesState {
   readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration
+  readonly copilotAppPath: string
 }
 
 export class Integrations extends React.Component<
@@ -54,6 +62,7 @@ export class Integrations extends React.Component<
       customEditor: this.props.customEditor,
       useCustomShell: this.props.useCustomShell,
       customShell: this.props.customShell,
+      copilotAppPath: this.props.copilotAppPath,
     }
   }
 
@@ -88,30 +97,29 @@ export class Integrations extends React.Component<
       useCustomShell: nextProps.useCustomShell,
       customShell: nextProps.customShell,
       customEditor: nextProps.customEditor,
+      copilotAppPath: nextProps.copilotAppPath,
     })
   }
 
   public componentDidMount(): void {
-    if (enableCustomIntegration()) {
-      const {
-        availableEditors,
-        availableShells,
-        useCustomEditor,
-        useCustomShell,
-      } = this.props
+    const {
+      availableEditors,
+      availableShells,
+      useCustomEditor,
+      useCustomShell,
+    } = this.props
 
-      // When there are no available editors or shells, the `Select` component
-      // will have the custom editor or shell already selected, but we need
-      // to handle that as initial value, otherwise the custom integration
-      // form won't be rendered.
+    // When there are no available editors or shells, the `Select` component
+    // will have the custom editor or shell already selected, but we need
+    // to handle that as initial value, otherwise the custom integration
+    // form won't be rendered.
 
-      if (availableEditors.length === 0 && !useCustomEditor) {
-        this.setSelectedEditor(CustomIntegrationValue)
-      }
+    if (availableEditors.length === 0 && !useCustomEditor) {
+      this.setSelectedEditor(CustomIntegrationValue)
+    }
 
-      if (availableShells.length === 0 && !useCustomShell) {
-        this.setSelectedShell(CustomIntegrationValue)
-      }
+    if (availableShells.length === 0 && !useCustomShell) {
+      this.setSelectedShell(CustomIntegrationValue)
     }
   }
 
@@ -184,30 +192,9 @@ export class Integrations extends React.Component<
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const { selectedExternalEditor, useCustomEditor } = this.state
-    const label = __DARWIN__ ? 'External Editor' : 'External editor'
-
-    if (!enableCustomIntegration() && options.length === 0) {
-      // this is emulating the <Select/> component's UI so the styles are
-      // consistent for either case.
-      //
-      // TODO: see whether it makes sense to have a fallback UI
-      // which we display when the select list is empty
-      return (
-        <div className="select-component no-options-found">
-          <label>{label}</label>
-          <span>
-            No editors found.{' '}
-            <LinkButton uri={suggestedExternalEditor.url}>
-              Install {suggestedExternalEditor.name}?
-            </LinkButton>
-          </span>
-        </div>
-      )
-    }
 
     return (
       <Select
-        label={enableCustomIntegration() ? undefined : label}
         aria-label="External editor"
         value={
           useCustomEditor
@@ -221,13 +208,9 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        {enableCustomIntegration() && (
-          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
-            {__DARWIN__
-              ? 'Configure Custom Editor…'
-              : 'Configure custom editor…'}
-          </option>
-        )}
+        <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+          {__DARWIN__ ? 'Configure Custom Editor…' : 'Configure custom editor…'}
+        </option>
       </Select>
     )
   }
@@ -295,7 +278,6 @@ export class Integrations extends React.Component<
 
     return (
       <Select
-        label={enableCustomIntegration() ? undefined : 'Shell'}
         aria-label="Shell"
         value={useCustomShell ? CustomIntegrationValue : selectedShell}
         onChange={this.onSelectedShellChanged}
@@ -305,11 +287,9 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        {enableCustomIntegration() && (
-          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
-            {__DARWIN__ ? 'Configure Custom Shell…' : 'Configure custom shell…'}
-          </option>
-        )}
+        <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+          {__DARWIN__ ? 'Configure Custom Shell…' : 'Configure custom shell…'}
+        </option>
       </Select>
     )
   }
@@ -351,17 +331,76 @@ export class Integrations extends React.Component<
     this.props.onCustomShellChanged(customShell)
   }
 
-  public render() {
-    if (!enableCustomIntegration()) {
-      return (
-        <DialogContent>
-          <h2>Applications</h2>
-          <Row>{this.renderExternalEditor()}</Row>
-          <Row>{this.renderSelectedShell()}</Row>
-        </DialogContent>
-      )
-    }
+  private onCopilotAppPathChanged = (path: string) => {
+    this.setState({ copilotAppPath: path })
+    this.props.onCopilotAppPathChanged(path)
+  }
 
+  private onChooseCopilotAppPath = async () => {
+    const path = await showOpenDialog({
+      title: 'Choose GitHub Copilot',
+      properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
+      filters: [
+        { name: 'GitHub Copilot', extensions: [__DARWIN__ ? 'app' : 'exe'] },
+      ],
+    })
+
+    if (path !== null) {
+      this.onCopilotAppPathChanged(path)
+    }
+  }
+
+  private renderCopilotApp() {
+    return (
+      <fieldset>
+        <legend>
+          <h2>GitHub Copilot</h2>
+        </legend>
+        <p>
+          Experience agent-driven development built natively on GitHub.{' '}
+          <LinkButton uri={copilotAppMarketingUrl}>
+            Learn more about GitHub Copilot
+          </LinkButton>
+          .
+        </p>
+        <Row>
+          <div className="custom-integration-form-container">
+            <div className="custom-integration-form-path-container">
+              <TextBox
+                label="App location"
+                value={this.state.copilotAppPath}
+                placeholder={
+                  __DARWIN__
+                    ? 'path to GitHub Copilot.app'
+                    : 'path to github.exe'
+                }
+                onValueChanged={this.onCopilotAppPathChanged}
+                ariaDescribedBy={
+                  this.props.copilotAppPathError === undefined
+                    ? undefined
+                    : 'copilot-app-path-error'
+                }
+              />
+              <Button onClick={this.onChooseCopilotAppPath}>Choose…</Button>
+            </div>
+            {this.props.copilotAppPathError !== undefined && (
+              <div className="custom-integration-form-error">
+                <InputError
+                  id="copilot-app-path-error"
+                  trackedUserInput={this.state.copilotAppPath}
+                  ariaLiveMessage={this.props.copilotAppPathError}
+                >
+                  {this.props.copilotAppPathError}
+                </InputError>
+              </div>
+            )}
+          </div>
+        </Row>
+      </fieldset>
+    )
+  }
+
+  public render() {
     return (
       <DialogContent>
         <fieldset>
@@ -379,6 +418,7 @@ export class Integrations extends React.Component<
           <Row>{this.renderSelectedShell()}</Row>
           {this.state.useCustomShell && this.renderCustomShell()}
         </fieldset>
+        {this.renderCopilotApp()}
       </DialogContent>
     )
   }

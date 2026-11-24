@@ -120,9 +120,10 @@ export interface ITestStores {
  *
  * This is the primary entry point for tests that need multiple stores.
  */
-export function createTestStores(): ITestStores {
+export function createTestStores(
+  accountsStore = createTestAccountsStore()
+): ITestStores {
   const statsStore = new TestStatsStore()
-  const accountsStore = createTestAccountsStore()
   const repositoriesStore = createTestRepositoriesStore()
   const pullRequestStore = createTestPullRequestStore(repositoriesStore)
   const signInStore = createTestSignInStore(accountsStore)

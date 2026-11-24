@@ -16,7 +16,7 @@ Most (if not all) editors have integrations for these tools so that they will re
 Use
 
 ```shellsession
-$ yarn lint
+$ npm run lint
 ```
 
 in your local repository to run all linting checks. Each tool will report their errors on the command line.
@@ -26,7 +26,7 @@ in your local repository to run all linting checks. Each tool will report their 
 Some issues found by linters can be automatically fixed. Use
 
 ```shellsession
-$ yarn lint:fix
+$ npm run lint:fix
 ```
 
 to automatically fix them. If any issues remain, you'll have to fix them manually (and the output will tell you that).

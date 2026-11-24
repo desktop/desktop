@@ -18,7 +18,7 @@ export class ThrottledScheduler {
    * window specified by the {delay} class parameter as long
    * as no other functions are queued.
    */
-  public queue(func: Function) {
+  public queue(func: () => void) {
     this.clear()
     this.timeoutId = window.setTimeout(func, this.delay)
   }

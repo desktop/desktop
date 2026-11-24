@@ -6,6 +6,10 @@
       .login {
         font-weight: var(--font-weight-semibold);
       }
+
+      &.placeholder {
+        color: var(--text-secondary-color);
+      }
     }
   }
 

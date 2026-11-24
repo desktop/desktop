@@ -1,6 +1,6 @@
 export type GitProtocol = 'ssh' | 'https'
 
-interface IGitRemoteURL {
+export interface IGitRemoteURL {
   readonly protocol: GitProtocol
 
   /** The hostname of the remote. */

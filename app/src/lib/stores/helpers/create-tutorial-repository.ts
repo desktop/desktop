@@ -71,6 +71,9 @@ async function pushRepo(
   const pushOpts = await executionOptionsWithProgress(
     {
       env: await envForRemoteOperation(remote.url),
+      // The tutorial repository isn't added to Desktop until after it's been
+      // pushed, so its account can't be resolved from its path yet.
+      fallbackAccount: { endpoint: account.endpoint, login: account.login },
     },
     new PushProgressParser(),
     progress => {

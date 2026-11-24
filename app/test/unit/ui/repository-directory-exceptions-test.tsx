@@ -67,6 +67,43 @@ beforeEach(() => {
 })
 
 describe('AddExistingRepository directory exceptions', () => {
+  it('accepts a repository path enclosed in double quotes', async () => {
+    getRepositoryType.mock.mockImplementationOnce(async () => ({
+      kind: 'regular',
+      topLevelWorkingDirectory: requestedPath,
+      gitDir: Path.join(requestedPath, '.git'),
+    }))
+    const dispatcher = createDispatcher()
+    const onDismissed = mock.fn()
+    const { AddExistingRepository } = await import(
+      '../../../src/ui/add-repository/add-existing-repository'
+    )
+
+    render(
+      <AddExistingRepository
+        dispatcher={dispatcher.dispatcher}
+        path={`"${requestedPath}"`}
+        onDismissed={onDismissed}
+      />
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /add repository/i, hidden: true })
+    )
+
+    await waitFor(() => {
+      assert.deepStrictEqual(getRepositoryType.mock.calls[0].arguments, [
+        requestedPath,
+      ])
+      assert.deepStrictEqual(
+        dispatcher.addRepositories.mock.calls[0].arguments,
+        [[requestedPath]]
+      )
+    })
+
+    assert.strictEqual(onDismissed.mock.callCount(), 1)
+  })
+
   async function renderUnsafeRepository() {
     const { AddExistingRepository } = await import(
       '../../../src/ui/add-repository/add-existing-repository'

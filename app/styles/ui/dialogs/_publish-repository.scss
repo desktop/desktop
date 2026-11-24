@@ -4,4 +4,10 @@
   .account-picker {
     width: 100%;
   }
+
+  .sign-in-enterprise {
+    font-size: var(--font-size-sm);
+    justify-content: center;
+    margin-top: var(--spacing);
+  }
 }

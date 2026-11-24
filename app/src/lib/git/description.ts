@@ -18,7 +18,7 @@ export async function getGitDescription(
       return ''
     }
     return data
-  } catch (err) {
+  } catch {
     return ''
   }
 }

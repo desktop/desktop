@@ -2,8 +2,7 @@
 
 You will need to install these tools on your machine:
 
- - Node.js
- - Yarn
+ - Node.js (includes npm)
  - Python 3
  - Visual C++ Build Tools
 
@@ -19,7 +18,7 @@ $ node -v
 If you see an error about being unable to find `node`, that probably means you don't have any Node tools installed.
 You can download Node from the [Node.js website](https://nodejs.org/), install the package, and restart your shell.
 
-You can verify that your installed version matches the one currently used by GitHub Desktop by looking at [our .node-version file](https://github.com/desktop/desktop/blob/development/.node-version). Usually the same major version is enough but if you're running into problems building Desktop please try installing that exact version.
+You can verify that your installed version matches the one currently used by GitHub Desktop by looking at [our .node-version file](../../.node-version). Usually the same major version is enough but if you're running into problems building Desktop please try installing that exact version.
 
 **Node.js installation notes:**
  - make sure you allow the Node.js installer to add `node` to the `PATH`.
@@ -52,19 +51,14 @@ $ node -v
 
 If you see any version number, you're good to go.
 
-## Yarn
+## npm
 
-Follow [this guide](https://yarnpkg.com/en/docs/install#windows-stable) to install
-a system-level `yarn`. GitHub Desktop uses a local version of `yarn`, but it
-needs a version on your `PATH` to bootstrap itself.
+npm is included with Node.js; no separate package manager installation is needed.
+Run `npm -v` to verify it is available on your `PATH`.
 
-This is important because `yarn` uses lock files to pin dependencies. If you
-find yourself changing packages, this will prevent mismatches in versions
-between machines.
-
-If you're not familiar with `yarn`, please read [this document](./working-with-packages.md)
-to help familiarize yourself with how to do the common package tasks that are
-relevant to Desktop.
+Desktop uses `package-lock.json` files to pin dependencies across machines.
+See [working with packages](./working-with-packages.md) for installation,
+dependency updates, and script commands.
 
 ## Python
 

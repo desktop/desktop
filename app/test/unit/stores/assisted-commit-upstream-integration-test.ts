@@ -1,0 +1,1060 @@
+import {
+  getCopilotAccountCacheKey,
+  CopilotModelSelections,
+} from '../../../src/lib/stores/copilot-store'
+import { encodeModelKey, IBYOKProvider } from '../../../src/lib/copilot/byok'
+import { TokenStore } from '../../../src/lib/stores/token-store'
+import { API } from '../../../src/lib/api'
+import assert from 'node:assert/strict'
+import { describe, it, TestContext } from 'node:test'
+import { access, readFile, writeFile } from 'fs/promises'
+import { join } from 'path'
+import { AccountsStore } from '../../../src/lib/stores/accounts-store'
+import { AccountRequiresSignInError } from '../../../src/lib/credential-sessions'
+import { assistedCommitErrorCauses } from '../../../src/lib/assisted-commit-run'
+import { isRepositoryGitMutationInProgress } from '../../../src/lib/git/repository-operation'
+import { TipState } from '../../../src/models/tip'
+import { Account } from '../../../src/models/account'
+import { createAssistedCommitRunHarness } from '../../helpers/assisted-commit-run'
+import {
+  count,
+  rawGit,
+  seed,
+  optionalBytes,
+  indexPath,
+} from '../../helpers/assisted-commit'
+import {
+  deferred,
+  assistantMessage,
+  splitResponse,
+  wholeSelectionResponse,
+  makeCopilotAccount,
+} from '../../helpers/copilot-assisted-commit'
+import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
+import { createTempDirectory } from '../../helpers/temp'
+
+async function credentialHarness(t: TestContext) {
+  let now = Date.now()
+  let renewals = 0
+  const accountsStore = new AccountsStore(
+    new InMemoryStore(),
+    new AsyncInMemoryStore(),
+    async () => {
+      renewals++
+      return {
+        accessToken: `rotated-access-${renewals}`,
+        refreshToken: `rotated-refresh-${renewals}`,
+        expiresAt: now + 8 * 60 * 60_000,
+      }
+    },
+    () => now
+  )
+  const h = await createAssistedCommitRunHarness(t, accountsStore)
+  h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+  h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+  h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+  const original = h.appStore['accounts'][0]
+  const account = await accountsStore.addAccount(original, {
+    accessToken: original.token,
+    refreshToken: 'synthetic-refresh',
+    expiresAt: now + 8 * 60 * 60_000,
+  })
+  assert.ok(account)
+  const rotate = async () => {
+    now += 8 * 60 * 60_000
+    return accountsStore.getAccountWithFreshToken(account)
+  }
+  return { ...h, account, accountsStore, rotate, renewals: () => renewals }
+}
+
+async function assignedAccountHarness(t: TestContext) {
+  const h = await createAssistedCommitRunHarness(t)
+  h.appStore['updateRepositorySelectionAfterRepositoriesChanged'] = () => {}
+  h.appStore['updateCopilotModelsForCurrentAccount'] = () => {}
+  h.appStore['updateCopilotQuotaSnapshotsForCurrentAccount'] = () => {}
+  h.appStore['refreshSelectedRepositoryAfterAccountChange'] = async () => {}
+  const original = h.appStore['accounts'][0]
+  const other = await h.stores.accountsStore.addAccount(
+    new Account(
+      'other-user',
+      original.endpoint,
+      'other-synthetic-token',
+      [],
+      '',
+      2,
+      'Other user',
+      'free',
+      undefined,
+      true,
+      original.features,
+      'PRO'
+    )
+  )
+  assert.ok(other)
+  const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+  await writeFile(join(source.path, 'one'), 'selected one\n')
+  await writeFile(join(source.path, 'two'), 'selected two\n')
+  const local = await h.register(source)
+  const github =
+    await h.stores.repositoriesStore.upsertGitHubRepositoryFromMatch({
+      account: original,
+      owner: 'synthetic-owner',
+      name: 'synthetic-repository',
+    })
+  const repository = await h.stores.repositoriesStore.setGitHubRepository(
+    local,
+    github,
+    original.login
+  )
+  h.appStore['adoptRepository'](repository)
+  const background = await h.register(await seed(t, { file: 'unrelated\n' }))
+  h.appStore['selectedRepository'] = background
+  return { ...h, repository, original, other }
+}
+
+describe('assisted runs with repository-assigned accounts', () => {
+  for (const withdrawRollout of [false, true]) {
+    it(`uses an account rollout outside preview and ${
+      withdrawRollout ? 'revokes' : 'retains'
+    } its prepared intent`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const original = h.appStore['accounts'][0]
+      const account = new Account(
+        original.login,
+        original.endpoint,
+        original.token,
+        original.emails,
+        original.avatarURL,
+        original.id,
+        original.name,
+        original.plan,
+        original.copilotEndpoint,
+        true,
+        ['desktop_copilot_assisted_commits'],
+        original.copilotLicenseType
+      )
+      h.stores.accountsStore['credentials'].inheritSession(original, account)
+      h.appStore['accounts'] = [account]
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      assert.equal(await h.assisted.context.isAvailable(repository), true)
+      const prepared = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      if (withdrawRollout) {
+        h.appStore['accounts'] = [original]
+      }
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        prepared
+      )
+      assert.equal(outcome.kind, withdrawRollout ? 'error' : 'local-ready')
+      assert.equal(h.propose.mock.callCount(), withdrawRollout ? 0 : 1)
+      assert.equal(await count(repository), withdrawRollout ? 1 : 2)
+    })
+  }
+
+  it('uses the current assigned account for a stale repository snapshot, not the first account on its endpoint', async t => {
+    const h = await assignedAccountHarness(t)
+    h.appStore._setSelectedCopilotModel(
+      h.original,
+      'assisted-commit',
+      'copilot:original-model'
+    )
+    h.appStore._setSelectedCopilotModel(
+      h.other,
+      'assisted-commit',
+      'copilot:other-model'
+    )
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    assert.equal(result.kind, 'local-ready')
+    assert.equal(h.propose.mock.calls[0].arguments[0], h.other)
+    assert.deepEqual(h.propose.mock.calls[0].arguments[3]?.request, {
+      kind: 'copilot',
+      modelId: 'other-model',
+    })
+    assert.deepEqual(
+      h.appStore['gitStoreCache'].get(h.repository).repository,
+      updated
+    )
+    assert.equal(await count(h.repository), 2)
+  })
+
+  describe('assisted commit model preferences', () => {
+    it('uses the SDK without rollout or preview flags and keeps the ordinary model independent', async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const account = h.appStore['accounts'][0]
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const legacy = t.mock.method(API, 'fromAccount', () => {
+        throw new Error('Legacy commit-message API must not be used')
+      })
+      h.appStore['commitMessageGenerationDisclaimerLastSeen'] = Date.now()
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'commit-message-generation',
+        'copilot:ordinary-model'
+      )
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'assisted-commit',
+        'copilot:assisted-model'
+      )
+      const generate = t.mock.method(
+        h.planner.store,
+        'generateCommitMessage',
+        async () => ({ title: 'Ordinary generated title', description: '' })
+      )
+      const generated = await h.appStore._generateCommitMessage(
+        repository,
+        h.request(repository).files
+      )
+      assert.equal(generated, true)
+      assert.equal(legacy.mock.callCount(), 0)
+      assert.equal(generate.mock.calls[0].arguments[0], account)
+      assert.deepEqual(generate.mock.calls[0].arguments[3], {
+        kind: 'copilot',
+        modelId: 'ordinary-model',
+      })
+      assert.equal(
+        h.state(repository).changesState.commitMessage.summary,
+        'Ordinary generated title'
+      )
+      assert.equal(h.propose.mock.callCount(), 0)
+    })
+
+    it('auto-routes conflicts only for an eligible account without requiring rollout flags', async t => {
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(await seed(t, { file: 'before\n' }))
+      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      h.appStore._setAlwaysUseCopilotForConflictResolution(true)
+      assert.equal(
+        h.appStore['shouldAutoRouteToCopilotConflictResolution'](repository),
+        true
+      )
+      h.appStore['accounts'] = []
+      assert.equal(
+        h.appStore['shouldAutoRouteToCopilotConflictResolution'](repository),
+        false
+      )
+    })
+    it('saves, reloads and resets each feature independently per account, including equal IDs on different hosts', async t => {
+      const h = await createAssistedCommitRunHarness(t)
+      const account = h.appStore['accounts'][0]
+      const other = new Account(
+        'other',
+        'https://api.other.ghe.com',
+        'synthetic-other-token',
+        [],
+        '',
+        account.id,
+        'Other',
+        'free'
+      )
+      const accountKey = getCopilotAccountCacheKey(account)
+      const otherKey = getCopilotAccountCacheKey(other)
+      const original: CopilotModelSelections = {
+        'commit-message-generation': 'copilot:ordinary-model',
+        'conflict-resolution': 'copilot:conflict-model',
+      }
+      h.appStore._setSelectedCopilotModelsByAccount(
+        new Map([
+          [accountKey, original],
+          [otherKey, { 'assisted-commit': 'copilot:other-model' }],
+        ])
+      )
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'assisted-commit',
+        'copilot:assisted-model'
+      )
+      const saved = h.appStore['loadCopilotModelSelectionsByAccount']()
+      assert.deepEqual(
+        saved,
+        new Map([
+          [
+            accountKey,
+            { ...original, 'assisted-commit': 'copilot:assisted-model' },
+          ],
+          [otherKey, { 'assisted-commit': 'copilot:other-model' }],
+        ])
+      )
+      h.appStore._setSelectedCopilotModelsByAccount(saved)
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'commit-message-generation',
+        'copilot:new-ordinary-model'
+      )
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'conflict-resolution',
+        'copilot:new-conflict-model'
+      )
+      assert.equal(
+        h.appStore['loadCopilotModelSelectionsByAccount']().get(accountKey)?.[
+          'assisted-commit'
+        ],
+        'copilot:assisted-model'
+      )
+      h.appStore._setSelectedCopilotModel(account, 'assisted-commit', null)
+      assert.deepEqual(
+        h.appStore['loadCopilotModelSelectionsByAccount'](),
+        new Map([
+          [
+            accountKey,
+            {
+              'commit-message-generation': 'copilot:new-ordinary-model',
+              'conflict-resolution': 'copilot:new-conflict-model',
+            },
+          ],
+          [otherKey, { 'assisted-commit': 'copilot:other-model' }],
+        ])
+      )
+    })
+
+    for (const byok of [false, true]) {
+      it(`freezes the first-click ${
+        byok ? 'BYOK' : 'built-in'
+      } choice through planner session creation; later choices apply only to future requests`, async t => {
+        const source = await seed(t, { file: 'before\n' })
+        await writeFile(join(source.path, 'file'), 'selected\n')
+        const h = await createAssistedCommitRunHarness(t)
+        const repository = await h.register(source)
+        const account = h.appStore['accounts'][0]
+        const provider: IBYOKProvider = {
+          id: 'synthetic-provider',
+          name: 'Synthetic',
+          type: 'openai',
+          baseUrl: 'http://127.0.0.1:1',
+          wireApi: 'responses',
+          authKind: 'apiKey',
+          requestTimeoutSeconds: 123,
+          models: [
+            { id: 'assisted-model', name: 'Assisted', reasoningEffort: 'high' },
+          ],
+        }
+        const secret = t.mock.method(
+          TokenStore,
+          'getItem',
+          async () => 'synthetic-key'
+        )
+        await h.appStore._addCopilotBYOKProvider(provider, null)
+        h.appStore._setSelectedCopilotModel(
+          account,
+          'commit-message-generation',
+          'copilot:ordinary-model'
+        )
+        h.appStore._setSelectedCopilotModel(
+          account,
+          'assisted-commit',
+          encodeModelKey(
+            byok
+              ? {
+                  kind: 'byok',
+                  providerId: provider.id,
+                  modelId: 'assisted-model',
+                }
+              : { kind: 'copilot', modelId: 'assisted-model' }
+          )
+        )
+        h.planner.cachedModels.mock.mockImplementation(() => [
+          {
+            id: 'assisted-model',
+            name: 'Assisted',
+            capabilities: {
+              supports: { vision: false, reasoningEffort: true },
+              limits: { max_context_window_tokens: 128000 },
+            },
+            supportedReasoningEfforts: ['low', 'medium', 'high'],
+          },
+        ])
+        const prepared = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+          repository,
+          h.request(repository)
+        )
+        h.appStore._setSelectedCopilotModel(
+          account,
+          'assisted-commit',
+          'copilot:future-model'
+        )
+        h.appStore._setSelectedCopilotModel(
+          account,
+          'commit-message-generation',
+          'copilot:new-ordinary-model'
+        )
+        h.propose.mock.restore()
+        h.planner.send.mock.mockImplementation(async () => {
+          const analysis = h.assisted.state.runs.get(repository.id)?.snapshot
+            ?.analysis
+          assert.ok(analysis)
+          h.appStore._setSelectedCopilotModel(
+            account,
+            'assisted-commit',
+            'copilot:next-model'
+          )
+          return assistantMessage(
+            JSON.stringify({ result: wholeSelectionResponse(analysis) })
+          )
+        })
+        const scheduled = t.mock.method(globalThis, 'setTimeout')
+        const outcome = await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          prepared
+        )
+        assert.equal(outcome.kind, 'local-ready')
+        const config = h.planner.createSession.mock.calls[0].arguments[0]
+        assert.equal(config.model, 'assisted-model')
+        assert.equal(config.reasoningEffort, byok ? 'high' : undefined)
+        assert.deepEqual(
+          config.provider,
+          byok
+            ? {
+                type: 'openai',
+                baseUrl: provider.baseUrl,
+                wireApi: provider.wireApi,
+                apiKey: 'synthetic-key',
+              }
+            : undefined
+        )
+        assert.equal(config.clientName, 'github/desktop:assisted-commit')
+        assert.equal(secret.mock.callCount(), byok ? 1 : 0)
+        if (byok) {
+          assert.ok(
+            scheduled.mock.calls.some(call => call.arguments[1] === 123000)
+          )
+        }
+        assert.deepEqual(h.assisted.context.getIntent(repository), {
+          account,
+          modelSelection: 'copilot:next-model',
+        })
+        assert.equal(await count(repository), 2)
+      })
+    }
+
+    it('uses the normal cached default when no assisted choice exists, never the ordinary selection', async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const account = h.appStore['accounts'][0]
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'commit-message-generation',
+        'copilot:ordinary-model'
+      )
+      h.planner.cachedModels.mock.mockImplementation(() => [
+        {
+          id: 'auto',
+          name: 'Auto',
+          capabilities: {
+            supports: { vision: false, reasoningEffort: true },
+            limits: { max_context_window_tokens: 128000 },
+          },
+        },
+      ])
+      h.propose.mock.restore()
+      h.planner.send.mock.mockImplementation(async () => {
+        const analysis = h.assisted.state.runs.get(repository.id)?.snapshot
+          ?.analysis
+        assert.ok(analysis)
+        return assistantMessage(
+          JSON.stringify({ result: wholeSelectionResponse(analysis) })
+        )
+      })
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.equal(outcome.kind, 'local-ready')
+      const config = h.planner.createSession.mock.calls[0].arguments[0]
+      assert.equal(config.model, 'auto')
+      assert.equal(config.reasoningEffort, undefined)
+      assert.equal(config.provider, undefined)
+    })
+  })
+
+  it('rejects prepared intent after a background repository changes its assigned account', async t => {
+    const h = await assignedAccountHarness(t)
+    const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+      h.repository,
+      h.request(h.repository)
+    )
+    await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      request
+    )
+    assert.equal(result.kind, 'error')
+    assert.equal(h.propose.mock.callCount(), 0)
+    assert.equal(await count(h.repository), 1)
+  })
+
+  it('aborts pending background analysis when its assigned account changes, even while both accounts stay signed in', async t => {
+    const h = await assignedAccountHarness(t)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      entered.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    await entered.promise
+    const run = h.assisted.state.runs.get(h.repository.id)
+    assert.ok(run)
+    let aborted = false
+    try {
+      await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+      aborted = run.controller.signal.aborted
+    } finally {
+      finish.resolve()
+    }
+    const result = await operation
+    assert.equal(aborted, true)
+    assert.equal(result.kind, 'error')
+    const measures = await h.measures()
+    assert.equal(measures.copilotAssistedCommitErrorCount, 1)
+    assert.equal(measures.copilotAssistedCommitCancelledCount, 0)
+    assert.equal(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.ok(run.authorizationError)
+    assert.notStrictEqual(run.cancelledByUser, true)
+    assert.equal(h.appStore['accounts'].length, 2)
+    assert.equal(await count(h.repository), 1)
+    assert.equal(h.commits.mock.callCount(), 0)
+  })
+
+  it('rolls back earlier native commits after its repository is assigned to another signed-in account', async t => {
+    const h = await assignedAccountHarness(t)
+    const originalHead = await rawGit(h.repository, ['rev-parse', 'HEAD'])
+    const originalIndex = await optionalBytes(await indexPath(h.repository))
+    h.propose.mock.mockImplementation(async (_account, analysis) =>
+      splitResponse(analysis)
+    )
+    const progress = h.assisted.context.progress.bind(h.assisted.context)
+    let reassigned = false
+    h.assisted.context.progress = async (run, step) => {
+      progress(run, step)
+      if (step.kind === 'committing' && step.index === 1) {
+        assert.equal(await count(h.repository), 2)
+        reassigned = true
+        await h.appStore._updateRepositoryAccount(h.repository, h.other.login)
+      }
+    }
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      h.repository,
+      h.request(h.repository)
+    )
+    assert.equal(reassigned, true)
+    assert.equal(result.kind, 'error')
+    const measures = await h.measures()
+    assert.equal(measures.copilotAssistedCommitErrorCount, 1)
+    assert.equal(measures.copilotAssistedCommitCancelledCount, 0)
+    assert.equal(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.equal(measures.copilotAssistedCommitRecoverySuccessCount, 1)
+    assert.equal(
+      await rawGit(h.repository, ['rev-parse', 'HEAD']),
+      originalHead
+    )
+    assert.deepEqual(
+      await optionalBytes(await indexPath(h.repository)),
+      originalIndex
+    )
+    assert.equal(
+      await readFile(join(h.repository.path, 'one'), 'utf8'),
+      'selected one\n'
+    )
+    assert.equal(
+      await readFile(join(h.repository.path, 'two'), 'utf8'),
+      'selected two\n'
+    )
+    assert.equal(h.commits.mock.callCount(), 0)
+  })
+
+  it('refreshes background deferred work with the current assigned repository snapshot', async t => {
+    const h = await assignedAccountHarness(t)
+    h.assisted.readers.deferRefresh(h.repository)
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    h.assisted.readers.deferRefresh(h.repository)
+    assert.deepEqual(h.assisted.readers.takeRefresh(h.repository), updated)
+  })
+
+  it('loads deferred background History with the current assigned repository snapshot', async t => {
+    const h = await assignedAccountHarness(t)
+    h.assisted.readers['deferredHistory'].set(h.repository.id, h.repository)
+    const updated = await h.appStore._updateRepositoryAccount(
+      h.repository,
+      h.other.login
+    )
+    const load = t.mock.method(
+      h.appStore,
+      '_loadChangedFilesForCurrentSelection',
+      async () => {}
+    )
+    await h.assisted.readers.resumeHistory(h.repository)
+    assert.equal(load.mock.callCount(), 1)
+    assert.deepEqual(load.mock.calls[0].arguments[0], updated)
+  })
+})
+
+describe('assisted runs on upstream credential and worktree APIs', () => {
+  for (const phase of ['first-click', 'analysis'] as const) {
+    it(`follows the issuing session through token rotation during ${phase}`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected after\n')
+      const h = await credentialHarness(t)
+      const repository = await h.register(source)
+      const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      if (phase === 'first-click') {
+        await h.rotate()
+      } else {
+        h.propose.mock.mockImplementation(async (original, analysis) => {
+          assert.strictEqual(original, h.account)
+          await h.rotate()
+          return wholeSelectionResponse(analysis)
+        })
+      }
+      const result = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        request
+      )
+      assert.equal(result.kind, 'local-ready')
+      assert.equal(h.renewals(), 1)
+      const measures = await h.measures()
+      assert.equal(measures.copilotAssistedCommitAcceptedCount, 1)
+      assert.equal(measures.copilotAssistedCommitErrorCount, 0)
+      assert.equal(measures.copilotAssistedCommitCancelledCount, 0)
+      assert.equal(h.appStore['accounts'][0].token, 'rotated-access-1')
+      assert.equal(h.propose.mock.callCount(), 1)
+      assert.equal(await count(repository), 2)
+      assert.equal(h.state(repository).changesState.assistedCommit.kind, 'idle')
+    })
+  }
+
+  for (const change of ['rotation', 'replacement'] as const) {
+    it(`preserves exact transaction ownership on credential ${change} after an earlier commit`, async t => {
+      const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+      await writeFile(join(source.path, 'one'), 'selected one\n')
+      await writeFile(join(source.path, 'two'), 'selected two\n')
+      const h = await credentialHarness(t)
+      const repository = await h.register(source)
+      h.propose.mock.mockImplementation(async (_account, analysis) =>
+        splitResponse(analysis)
+      )
+      const originalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
+      const onProgress = h.assisted.context['progress'].bind(h.assisted.context)
+      let changed = false
+      h.assisted.context['progress'] = async (run, progress) => {
+        onProgress(run, progress)
+        if (progress.kind === 'committing' && progress.index === 1) {
+          assert.equal(await count(repository), 2)
+          changed = true
+          if (change === 'rotation') {
+            await h.rotate()
+          } else {
+            await h.accountsStore.addAccount(h.account)
+          }
+        }
+      }
+      const result = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      assert.equal(changed, true)
+      assert.equal(result.kind, change === 'rotation' ? 'local-ready' : 'error')
+      assert.equal(await count(repository), change === 'rotation' ? 3 : 1)
+      if (change === 'replacement') {
+        assert.equal(
+          await rawGit(repository, ['rev-parse', 'HEAD']),
+          originalHead
+        )
+      }
+      assert.equal(
+        await readFile(join(repository.path, 'one'), 'utf8'),
+        'selected one\n'
+      )
+      assert.equal(
+        await readFile(join(repository.path, 'two'), 'utf8'),
+        'selected two\n'
+      )
+    })
+  }
+
+  for (const phase of ['first-click', 'analysis'] as const) {
+    it(`rejects a replacement sign-in reusing the same access token during ${phase}`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected after\n')
+      const h = await credentialHarness(t)
+      const repository = await h.register(source)
+      const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      const replace = async () => {
+        const next = await h.accountsStore.addAccount(h.account, {
+          accessToken: h.account.token,
+          refreshToken: 'replacement-refresh',
+          expiresAt: Date.now() + 8 * 60 * 60_000,
+        })
+        assert.ok(next)
+        assert.notStrictEqual(next, h.account)
+      }
+      if (phase === 'first-click') {
+        await replace()
+      } else {
+        h.propose.mock.mockImplementation(async (_account, analysis) => {
+          await replace()
+          return wholeSelectionResponse(analysis)
+        })
+      }
+      const result = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        request
+      )
+      assert.equal(result.kind, 'error')
+      if (result.kind === 'error') {
+        assert.ok(
+          assistedCommitErrorCauses(result.error).some(
+            error => error instanceof AccountRequiresSignInError
+          )
+        )
+      }
+      assert.equal(await count(repository), 1)
+      assert.equal(h.commits.mock.callCount(), 0)
+      assert.equal(h.propose.mock.callCount(), phase === 'first-click' ? 0 : 1)
+      const measures = await h.measures()
+      assert.equal(measures.copilotAssistedCommitErrorCount, 1)
+      assert.equal(measures.copilotAssistedCommitCancelledCount, 0)
+      assert.equal(measures.copilotAssistedCommitAcceptedCount, 0)
+    })
+  }
+
+  it('creates Empty commit without looking up or acquiring any credential', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.dispatcher.updateCommitOptions(repository, { allowEmptyCommit: true })
+    const bind = t.mock.method(
+      h.stores.accountsStore,
+      'createTokenGetter',
+      () => {
+        throw new Error('Empty commits must not look up credentials')
+      }
+    )
+    const result = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.equal(result.kind, 'local-ready')
+    assert.equal(bind.mock.callCount(), 0)
+    assert.equal(h.propose.mock.callCount(), 0)
+    assert.equal(
+      await rawGit(repository, ['log', '-1', '--format=%s']),
+      'Empty commit'
+    )
+  })
+
+  it('retains worktree-removal admission until deferred upstream checkout settles', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const tip = h.state(repository).branchesState.tip
+    assert.equal(tip.kind, TipState.Valid)
+    if (tip.kind !== TipState.Valid) {
+      throw new Error('Expected a branch for deferred checkout')
+    }
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    t.after(() => finish.resolve())
+    h.appStore['_refreshWorktrees'] = async () => {}
+    h.appStore['_checkoutBranch'] = async () => {
+      entered.resolve()
+      await finish.promise
+      return repository
+    }
+    let settled = false
+    const removal = h.appStore
+      ._deleteWorktree(repository, join(repository.path, 'missing-worktree'), {
+        isMissing: true,
+        checkout: { branch: tip.branch },
+      })
+      .then(() => {
+        settled = true
+      })
+    await entered.promise
+    await new Promise<void>(resolve => setImmediate(resolve))
+    assert.equal(settled, false)
+    assert.equal(isRepositoryGitMutationInProgress(repository.path), true)
+    assert.equal(
+      (
+        await h.dispatcher.createCopilotAssistedCommits(
+          repository,
+          h.request(repository)
+        )
+      ).kind,
+      'busy'
+    )
+    finish.resolve()
+    await removal
+    assert.equal(isRepositoryGitMutationInProgress(repository.path), false)
+  })
+
+  it('forwards force through guarded native worktree removal', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const worktree = join(await createTempDirectory(t), 'linked')
+    await rawGit(repository, [
+      'worktree',
+      'add',
+      '-b',
+      'linked',
+      '--',
+      worktree,
+    ])
+    await writeFile(join(worktree, 'file'), 'uncommitted linked change\n')
+    await h.appStore._deleteWorktree(repository, worktree, { force: true })
+    await assert.rejects(access(worktree), { code: 'ENOENT' })
+    assert.ok(
+      !(await rawGit(repository, ['worktree', 'list', '--porcelain'])).includes(
+        worktree
+      )
+    )
+    assert.equal(isRepositoryGitMutationInProgress(repository.path), false)
+  })
+})
+
+describe('assisted run account and BYOK authorization', () => {
+  it('expected cancellation does not throw out of account reconciliation', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'after\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await analyzing.promise
+    h.cancel(repository)
+    try {
+      assert.doesNotThrow(() => h.assisted.context['abortUnauthorized']())
+    } finally {
+      finish.resolve()
+      await operation
+    }
+    const measures = await h.measures()
+    assert.equal(measures.copilotAssistedCommitCancelledCount, 1)
+    assert.equal(measures.copilotAssistedCommitErrorCount, 0)
+  })
+
+  it('retains explicit cancellation attribution when authorization changes afterward', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const operation = h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    await analyzing.promise
+    const run = h.assisted.state.runs.get(repository.id)
+    assert.ok(run)
+    try {
+      h.cancel(repository)
+      assert.strictEqual(run.cancelledByUser, true)
+      h.appStore['accounts'] = []
+      h.assisted.context.abortUnauthorized()
+      assert.ok(run.authorizationError)
+      assert.strictEqual(run.controller.signal.aborted, true)
+      assert.strictEqual(run.cancelledByUser, true)
+    } finally {
+      finish.resolve()
+    }
+    const result = await operation
+    assert.equal(result.kind, 'error')
+    const measures = await h.measures()
+    assert.equal(measures.copilotAssistedCommitCancelledCount, 1)
+    assert.equal(measures.copilotAssistedCommitErrorCount, 0)
+    assert.equal(measures.copilotAssistedCommitAcceptedCount, 0)
+    assert.equal(await count(repository), 1)
+  })
+
+  for (const change of ['deleted', 'changed'] as const) {
+    it(`rejects a prepared BYOK definition that was ${change}, never switching to default`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const provider = {
+        id: 'synthetic-provider',
+        name: 'Synthetic',
+        type: 'openai' as const,
+        baseUrl: 'http://127.0.0.1:1',
+        authKind: 'none' as const,
+        models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+      }
+      h.appStore['byokProviders'] = [provider]
+      h.appStore['selectedCopilotModelsByAccount'] = new Map([
+        [
+          getCopilotAccountCacheKey(makeCopilotAccount()),
+          {
+            'assisted-commit': 'byok:synthetic-provider:synthetic-model',
+          },
+        ],
+      ])
+      const request = await h.dispatcher.prepareCopilotAssistedCommitRequest(
+        repository,
+        h.request(repository)
+      )
+      h.appStore['byokProviders'] =
+        change === 'deleted'
+          ? []
+          : [{ ...provider, baseUrl: 'http://127.0.0.1:2' }]
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        request
+      )
+      assert.strictEqual(outcome.kind, 'error')
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+      assert.strictEqual(await count(repository), 1)
+    })
+  }
+
+  for (const change of ['definition', 'credential'] as const) {
+    it(`revokes active BYOK analysis after its ${change} changes, without accepting commits`, async t => {
+      const source = await seed(t, { file: 'before\n' })
+      await writeFile(join(source.path, 'file'), 'selected\n')
+      const h = await createAssistedCommitRunHarness(t)
+      const repository = await h.register(source)
+      const provider = {
+        id: 'synthetic-provider',
+        name: 'Synthetic',
+        type: 'openai' as const,
+        baseUrl: 'http://127.0.0.1:1',
+        authKind: 'apiKey' as const,
+        models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+      }
+      t.mock.method(TokenStore, 'getItem', async () => 'synthetic-key')
+      t.mock.method(TokenStore, 'deleteItem', async () => true)
+      h.appStore['byokProviders'] = [provider]
+      h.appStore['selectedCopilotModelsByAccount'] = new Map([
+        [
+          getCopilotAccountCacheKey(makeCopilotAccount()),
+          {
+            'assisted-commit': 'byok:synthetic-provider:synthetic-model',
+          },
+        ],
+      ])
+      const entered = deferred<void>()
+      const finish = deferred<void>()
+      h.propose.mock.mockImplementation(async (_account, analysis) => {
+        entered.resolve()
+        await finish.promise
+        return wholeSelectionResponse(analysis)
+      })
+      const operation = h.dispatcher.createCopilotAssistedCommits(
+        repository,
+        h.request(repository)
+      )
+      await entered.promise
+      await h.appStore._updateCopilotBYOKProvider(
+        change === 'definition'
+          ? { ...provider, baseUrl: 'http://127.0.0.1:2' }
+          : provider,
+        change === 'credential' ? null : undefined
+      )
+      finish.resolve()
+      const outcome = await operation
+      assert.strictEqual(outcome.kind, 'error')
+      assert.strictEqual(await count(repository), 1)
+    })
+  }
+
+  it('rolls back earlier local commits when their frozen BYOK provider is revoked', async t => {
+    const source = await seed(t, { one: 'before one\n', two: 'before two\n' })
+    await writeFile(join(source.path, 'one'), 'selected one\n')
+    await writeFile(join(source.path, 'two'), 'selected two\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    const index = await optionalBytes(await indexPath(repository))
+    const provider = {
+      id: 'synthetic-provider',
+      name: 'Synthetic',
+      type: 'openai' as const,
+      baseUrl: 'http://127.0.0.1:1',
+      authKind: 'none' as const,
+      models: [{ id: 'synthetic-model', name: 'Synthetic model' }],
+    }
+    h.appStore['byokProviders'] = [provider]
+    h.appStore['selectedCopilotModelsByAccount'] = new Map([
+      [
+        getCopilotAccountCacheKey(makeCopilotAccount()),
+        {
+          'assisted-commit': 'byok:synthetic-provider:synthetic-model',
+        },
+      ],
+    ])
+    h.propose.mock.mockImplementation(async (_account, analysis) =>
+      splitResponse(analysis)
+    )
+    const progress = h.assisted.context['progress'].bind(h.assisted.context)
+    let revoked = false
+    h.assisted.context['progress'] = async (run, step) => {
+      progress(run, step)
+      if (step.kind === 'committing' && step.index === 1) {
+        assert.strictEqual(await count(repository), 2)
+        revoked = true
+        await h.appStore._updateCopilotBYOKProvider(
+          { ...provider, baseUrl: 'http://127.0.0.1:2' },
+          undefined
+        )
+      }
+    }
+    const outcome = await h.dispatcher.createCopilotAssistedCommits(
+      repository,
+      h.request(repository)
+    )
+    assert.strictEqual(revoked, true)
+    assert.strictEqual(outcome.kind, 'error')
+    assert.strictEqual(await count(repository), 1)
+    assert.deepStrictEqual(
+      await optionalBytes(await indexPath(repository)),
+      index
+    )
+    assert.strictEqual(h.commits.mock.callCount(), 0)
+  })
+})

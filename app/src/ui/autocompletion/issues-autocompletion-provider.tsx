@@ -3,6 +3,7 @@ import { IAutocompletionProvider } from './index'
 import { IssuesStore, IIssueHit } from '../../lib/stores/issues-store'
 import { Dispatcher } from '../dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
+import { Repository } from '../../models/repository'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { TooltippedContent } from '../lib/tooltipped-content'
 
@@ -30,7 +31,8 @@ export class IssuesAutocompletionProvider
   public constructor(
     issuesStore: IssuesStore,
     repository: GitHubRepository,
-    dispatcher: Dispatcher
+    dispatcher: Dispatcher,
+    private readonly localRepository: Repository
   ) {
     this.issuesStore = issuesStore
     this.repository = repository
@@ -45,7 +47,7 @@ export class IssuesAutocompletionProvider
     text: string
   ): Promise<ReadonlyArray<IIssueHit>> {
     this.updateIssuesScheduler.queue(() => {
-      this.dispatcher.refreshIssues(this.repository)
+      this.dispatcher.refreshIssues(this.localRepository)
     })
 
     return this.issuesStore.getIssuesMatching(this.repository, text)

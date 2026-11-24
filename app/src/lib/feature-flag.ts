@@ -3,6 +3,12 @@ import { Account } from '../models/account'
 const Disable = false
 
 /**
+ * Opt in new OAuth authorizations for beta and development features.
+ * Other builds use Central's rollout; existing credentials keep renewing.
+ */
+export const enableShortLivedTokens = () => enableBetaFeatures()
+
+/**
  * Enables the application to opt-in for preview features based on runtime
  * checks. This is backed by the GITHUB_DESKTOP_PREVIEW_FEATURES environment
  * variable, which is checked for non-development environments.
@@ -84,49 +90,18 @@ export function enableImagePreviewsForDDSFiles(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableCustomIntegration = () => true
-
-export const enableResizingToolbarButtons = () => true
-
-export const enableCommitMessageGeneration = (account: Account) => {
-  return (
-    (account.features ?? []).includes(
-      'desktop_copilot_generate_commit_message'
-    ) &&
-    // IMPORTANT: Do not remove this feature flag without replacing its usages
-    // with a check for the `isCopilotDesktopEnabled` property on the account.
-    account.isCopilotDesktopEnabled
-  )
-}
-
-export const enableCopilotSdkCommitMessageGeneration = (account: Account) => {
-  // Enabled for all users in beta and development channels, and for users with
-  // the feature flag enabled in production.
-  return (
-    enableBetaFeatures() ||
-    (account.features ?? []).includes(
-      'desktop_enable_copilot_sdk_commit_message_generation'
-    )
-  )
-}
-
-/** Should we enable Copilot-powered merge conflict resolution? */
-export const enableCopilotConflictResolution = () => true
+/**
+ * Should we offer the Copilot-assisted commit mode, where Copilot splits the
+ * selected changes into commits and writes their messages?
+ *
+ * Enabled in development/preview or through the account rollout.
+ */
+export const enableCopilotAssistedCommit = (account: Account) =>
+  enableDevelopmentFeatures() ||
+  (account.features ?? []).includes('desktop_copilot_assisted_commits')
 
 export function enableAccessibleListToolTips(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableHooksEnvironment = () => true
-
 export const enableHooksByDefault = enableBetaFeatures
-
-export const enableFormattingPreferences = () => true
-
-/** Should the app enable worktree support? */
-export const enableWorktreeSupport = () => true
-
-/** Should stats be sent to the new telemetry endpoint? */
-export function enableNewStatsEndpoint(): boolean {
-  return enableBetaFeatures()
-}

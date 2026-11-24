@@ -1,6 +1,6 @@
 # Writing Release Notes
 
-Here's some basic guidelines for how we write our release notes and what we include in them. `yarn draft-release` is a great starting point, but not a final version.
+Here's some basic guidelines for how we write our release notes and what we include in them. `npm run draft-release` is a great starting point, but not a final version.
 
 ## Anatomy of a Release Note 👩🏼‍⚕️
 

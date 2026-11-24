@@ -117,15 +117,18 @@ export async function resolveMainWorktreePath(
     : mainWorktree.path
 }
 
+/** Options for creating and checking out a worktree. */
+export interface IAddWorktreeOptions {
+  /** Branch name used with -b (create new branch). */
+  readonly createBranch?: string
+  /** Commit-ish to check out (branch name, ref, or SHA). */
+  readonly commitish?: string
+}
+
 export async function addWorktree(
   repository: Repository,
   path: string,
-  options: {
-    /** Branch name used with -b (create new branch) */
-    readonly createBranch?: string
-    /** Commit-ish to check out (branch name, ref, or SHA) */
-    readonly commitish?: string
-  } = {}
+  options: IAddWorktreeOptions = {}
 ): Promise<void> {
   const args = ['worktree', 'add']
 
@@ -156,14 +159,29 @@ export async function removeWorktree(
   await git(args, repositoryPath, 'removeWorktree')
 }
 
+/**
+ * Move (rename) a linked worktree from `oldPath` to `newPath`.
+ *
+ * Git is run from the main worktree rather than from `repository.path` since
+ * the repository is frequently the very worktree being moved, and Windows
+ * refuses to rename a directory that is the working directory of a process.
+ */
 export async function moveWorktree(
   repository: Repository,
   oldPath: string,
   newPath: string
 ): Promise<void> {
+  const mainWorktree = (await listWorktrees(repository)).find(
+    wt => wt.type === 'main'
+  )
+
+  if (mainWorktree === undefined) {
+    throw new Error('Could not determine the main worktree of the repository')
+  }
+
   await git(
-    ['worktree', 'move', oldPath, newPath],
-    repository.path,
+    ['worktree', 'move', '--', oldPath, newPath],
+    mainWorktree.path,
     'moveWorktree'
   )
 }
