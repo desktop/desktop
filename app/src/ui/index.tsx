@@ -53,6 +53,10 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
+import {
+  installWindowErrorHandler,
+  isResizeObserverLoopError,
+} from './lib/uncaught-exception'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
@@ -188,20 +192,11 @@ const sendErrorWithContext = (
   }
 }
 
-const resizeLoopCompletedMessage =
-  'ResizeObserver loop completed with undelivered notifications.'
-
 const onUncaughtException = (error: unknown) => {
-  // This is a known issue with the ResizeObserver API in Chromium 132 which is
-  // fixed in 133 that we can safely ignore.
-  // See: https://issues.chromium.org/issues/391393420
-  if (
-    error === resizeLoopCompletedMessage ||
-    (error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      error.message === resizeLoopCompletedMessage)
-  ) {
+  // Chromium reports ResizeObserver loop notifications via window.onerror with
+  // `error === null`; installWindowErrorHandler preserves the message so this
+  // guard can treat them as non-fatal instead of crashing the app.
+  if (isResizeObserverLoopError(error)) {
     sendNonFatalException(
       'resizeObserverLoopCompleted',
       withSourceMappedStack(error)
@@ -220,6 +215,7 @@ const onUncaughtException = (error: unknown) => {
 }
 
 process.on('uncaughtException', onUncaughtException)
+installWindowErrorHandler()
 
 // See sendNonFatalException for more information
 process.on(

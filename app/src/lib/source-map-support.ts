@@ -216,6 +216,45 @@ function formatErrorStack(error: object): string | undefined {
     : undefined
 }
 
+export interface ISourceLocation {
+  readonly source: string
+  readonly line: number
+  readonly column?: number
+}
+
+/**
+ * Resolve a 1-based line and optional 1-based column in a compiled bundle to
+ * its original source map location, falling back to the input position when no
+ * source map is available or mapping fails.
+ */
+export function mapSourceLocation(
+  source: string,
+  line: number,
+  column?: number
+): ISourceLocation {
+  const hasColumn = column !== undefined && column > 0
+
+  try {
+    const mapped = sourceMapSupport.mapSourcePosition({
+      source,
+      line,
+      column: hasColumn ? column - 1 : 0,
+    })
+
+    return {
+      source: mapped.source,
+      line: mapped.line,
+      column: hasColumn ? mapped.column + 1 : undefined,
+    }
+  } catch {
+    return {
+      source,
+      line,
+      column: hasColumn ? column : undefined,
+    }
+  }
+}
+
 /**
  * Make a copy of the error with a source-mapped stack trace. If it couldn't
  * perform the source mapping, it'll use the original error stack.
