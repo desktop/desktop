@@ -2449,6 +2449,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <CommitMessageDialog
+            commitIdentityMode={this.state.commitIdentitySettings.mode}
             key="commit-message"
             autocompletionProviders={autocompletionProviders}
             branch={currentBranchName}
@@ -4062,6 +4063,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (selectedState.type === SelectionType.Repository) {
       return (
         <RepositoryView
+          commitIdentityMode={this.state.commitIdentitySettings.mode}
           ref={this.repositoryViewRef}
           // When switching repositories we want to remount the RepositoryView
           // component to reset the scroll positions.

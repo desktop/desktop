@@ -85,6 +85,8 @@ import {
 } from '../dropdown-select-button'
 import { CSSTransition } from 'react-transition-group'
 import { CopilotCommitPanel } from './copilot-commit-panel'
+import { CommitIdentityMode } from '../../lib/managed-commit-identity'
+import { getRepositoryAccountIdentity } from '../../models/repository'
 
 /** Duration (in milliseconds) of the transition between commit modes */
 const CommitModeTransitionDuration = 300
@@ -124,6 +126,7 @@ interface ICreateCommitOptions {
 }
 
 interface ICommitMessageProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
@@ -1131,6 +1134,12 @@ export class CommitMessage extends React.Component<
 
     return (
       <CommitMessageAvatar
+        managedAccount={
+          this.props.commitIdentityMode === 'desktop'
+            ? getRepositoryAccountIdentity(repository) ?? undefined
+            : undefined
+        }
+        managedAccountSignedOut={repositoryAccount == null}
         isActive={!this.isCopilotCommitMode}
         user={avatarUser}
         email={commitAuthor?.email}

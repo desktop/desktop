@@ -7,7 +7,10 @@ import type { SignInResult } from '../../../src/lib/stores/sign-in-store'
 import { Account } from '../../../src/models/account'
 import { PopupType } from '../../../src/models/popup'
 import type { Popup } from '../../../src/models/popup'
-import { isRepositoryWithGitHubRepository } from '../../../src/models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../../src/models/repository'
 import { createMockAPIRepository } from '../../helpers/mock-api'
 import type { ITestStores } from '../../helpers/app-store-test-harness'
 import type { TestStatsDatabase } from '../../helpers/databases/test-stats-database'
@@ -147,6 +150,21 @@ describe('AppStore repository accounts', () => {
     assert.fail(`No ${type} popup`)
   }
 
+  async function waitForRepositorySnapshot(repository: Repository) {
+    for (let attempts = 0; attempts < 100; attempts++) {
+      const current = appStore['repositories'].find(r => r.id === repository.id)
+      if (
+        current?.path === repository.path &&
+        current.login === repository.login &&
+        current.mainWorktreePath === repository.mainWorktreePath
+      ) {
+        return
+      }
+      await setImmediate()
+    }
+    assert.fail('Repository snapshot was not published')
+  }
+
   it('resolves managed authorship by repository assignment, not signed-in credentials', async () => {
     const repository = await addRepository('/managed-authorship', 'bob')
     const unassigned = await addRepository('/unmanaged-authorship', null)
@@ -209,6 +227,90 @@ describe('AppStore repository accounts', () => {
       r => r.id === repository.id
     )
     assert.equal(persisted?.login, 'bob')
+  })
+
+  it('prefers an exact registered worktree assignment over another checkout’s cached worktree list', async () => {
+    const main = await addRepository('/identity-priority/main', 'alice')
+    const linked = await addRepository('/identity-priority/linked', 'bob')
+    await waitForRepositorySnapshot(linked)
+    const unregisteredPath = '/identity-priority/unregistered'
+    stores.repositoryStateCache.update(main, () => ({
+      worktrees: [linked.path, unregisteredPath].map(path => ({
+        path,
+        head: 'a'.repeat(40),
+        branch: null,
+        isDetached: true,
+        type: 'linked',
+        isLocked: false,
+        isPrunable: false,
+      })),
+    }))
+    await appStore._updateCommitIdentitySettings('desktop', [])
+    try {
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(linked.path)?.login,
+        'bob'
+      )
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(unregisteredPath)?.login,
+        'alice'
+      )
+      await waitForRepositorySnapshot(
+        await stores.repositoriesStore.updateRepositoryAccount(linked, null)
+      )
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(linked.path),
+        undefined
+      )
+      await waitForRepositorySnapshot(
+        await stores.repositoriesStore.updateRepositoryAccount(linked, 'alice')
+      )
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(linked.path)?.login,
+        'alice'
+      )
+      await waitForRepositorySnapshot(
+        await stores.repositoriesStore.updateRepositoryAccount(linked, 'bob')
+      )
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(linked.path)?.login,
+        'bob'
+      )
+    } finally {
+      await appStore._updateCommitIdentitySettings('git', [])
+    }
+  })
+
+  it('prefers an exact main checkout over a previously registered linked checkout’s main path', async () => {
+    const linked = await addRepository(
+      '/reverse-identity-priority/linked',
+      'bob'
+    )
+    const mainPath = '/reverse-identity-priority/main'
+    await stores.repositoriesStore.updateRepositoryPath(
+      linked,
+      linked.path,
+      undefined,
+      mainPath
+    )
+    const main = await addRepository(mainPath, 'alice')
+    await waitForRepositorySnapshot(main)
+    await appStore._updateCommitIdentitySettings('desktop', [])
+    try {
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(main.path)?.login,
+        'alice'
+      )
+      await waitForRepositorySnapshot(
+        await stores.repositoriesStore.updateRepositoryAccount(main, null)
+      )
+      assert.equal(
+        appStore.getManagedCommitIdentityForPath(main.path),
+        undefined
+      )
+    } finally {
+      await appStore._updateCommitIdentitySettings('git', [])
+    }
   })
 
   describe('refreshing pull requests', () => {

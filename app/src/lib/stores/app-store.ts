@@ -4739,11 +4739,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return undefined
     }
     const resolvedPath = Path.resolve(path)
-    const repository = this.repositories
-      .map(r => this.gitStoreCache.getRepository(r))
-      .find(
+    const repositories = this.repositories.map(r =>
+      this.gitStoreCache.getRepository(r)
+    )
+    const repository =
+      repositories.find(r => Path.resolve(r.path) === resolvedPath) ??
+      repositories.find(
         r =>
-          Path.resolve(r.path) === resolvedPath ||
           (r.mainWorktreePath !== undefined &&
             Path.resolve(r.mainWorktreePath) === resolvedPath) ||
           (this.repositoryStateCache.has(r) &&

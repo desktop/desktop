@@ -78,6 +78,7 @@ import {
 import { ChangesListFilterOptions } from './changes-list-filter-options'
 import { HookProgress } from '../../lib/git'
 import { formatNumber } from '../../lib/format-number'
+import { CommitIdentityMode } from '../../lib/managed-commit-identity'
 
 export interface IChangesListItem extends IFilterListItem {
   readonly id: string
@@ -104,6 +105,7 @@ const StashIcon: OcticonSymbolVariant = {
 const GitIgnoreFileName = '.gitignore'
 
 interface IFilterChangesListProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   readonly repository: Repository
   readonly repositoryAccount: Account | null
   readonly workingDirectory: WorkingDirectoryStatus
@@ -971,6 +973,7 @@ export class FilterChangesList extends React.Component<
 
     return (
       <CommitMessage
+        commitIdentityMode={this.props.commitIdentityMode}
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
         mostRecentLocalCommit={this.props.mostRecentLocalCommit}

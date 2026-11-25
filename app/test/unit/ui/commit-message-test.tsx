@@ -12,6 +12,8 @@ import { ipcRenderer } from 'electron'
 import { act } from 'react-dom/test-utils'
 
 import { Account } from '../../../src/models/account'
+import { setupEmptyRepository } from '../../helpers/repositories'
+import { git } from '../../../src/lib/git'
 import { CommitMode } from '../../../src/models/commit-mode'
 import { ICopilotAssistedCommitRequest } from '../../../src/models/copilot-assisted-commit'
 import { DefaultCommitMessage } from '../../../src/models/commit-message'
@@ -219,6 +221,95 @@ afterEach(() => {
 })
 
 describe('CommitMessage', () => {
+  it('checks managed email attribution and updates the account rather than suggesting Git configuration', async () => {
+    const account = createAccount()
+    const original = createRepository()
+    const repository = new Repository(
+      original.path,
+      original.id,
+      original.gitHubRepository,
+      false,
+      null,
+      {},
+      false,
+      undefined,
+      undefined,
+      account.login
+    )
+    let updatedEmail = ''
+    let popup: Popup | undefined
+    const initial = createProps({
+      repository,
+      repositoryAccount: account,
+      commitIdentityMode: 'desktop',
+      commitAuthor: new CommitIdentity(
+        'Custom name',
+        'custom@example.com',
+        new Date()
+      ),
+      onUpdateCommitEmail: async email => {
+        updatedEmail = email
+      },
+      onShowPopup: value => {
+        popup = value
+      },
+    })
+    const view = render(<CommitMessage {...initial} />)
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Commit may be misattributed. View warning.',
+      })
+    )
+    assert.ok(screen.getByText(/account's managed commit identity/))
+    fireEvent.click(screen.getByRole('button', { name: /Update [Ee]mail/ }))
+    await waitFor(() =>
+      assert.strictEqual(updatedEmail, '1+mona@users.noreply.github.com')
+    )
+
+    view.rerender(
+      <CommitMessage {...initial} repositoryAccount={null} accounts={[]} />
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'View commit author information' })
+    )
+    assert.ok(screen.getByText(/Sign in to check whether this email/))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: __DARWIN__ ? 'Edit Account Identity' : 'Edit account identity',
+      })
+    )
+    assert.strictEqual(popup?.type, PopupType.Preferences)
+  })
+
+  it('keeps Git attribution controls for unassigned repositories in managed mode', async t => {
+    const repository = await setupEmptyRepository(t)
+    await git(
+      ['config', '--local', 'user.email', 'git@example.com'],
+      repository.path,
+      'setLocalEmail'
+    )
+    render(
+      <CommitMessage
+        {...createProps({
+          repository,
+          commitIdentityMode: 'desktop',
+          commitAuthor: new CommitIdentity(
+            'Git name',
+            'git@example.com',
+            new Date()
+          ),
+        })}
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'View commit author information' })
+    )
+    await waitFor(() =>
+      assert.ok(screen.getByText(/update your local git configuration/))
+    )
+    assert.equal(screen.queryByText(/assigned account/), null)
+  })
+
   it('offers the generation button and menu without rollout flags when Desktop entitlement is enabled', () => {
     const component = new CommitMessage(
       createProps({ isGeneratingCommitMessage: false })

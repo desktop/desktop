@@ -165,6 +165,14 @@ Managed identities do not write `user.name` or `user.email` to Git configuration
 External applications remain unaffected. The optional external-application
 authorship management described in the multi-account epic is separate work.
 
+The commit-author popover checks the effective managed email against the assigned
+account's verified and noreply addresses, just as it checks Git-configured emails.
+Choosing a custom identity does not guarantee attribution on GitHub. In managed
+mode, email corrections update the account identity and affect its other assigned
+repositories, not Git configuration. After sign-out, the popover explains that
+Desktop retains the identity but cannot verify account attribution until sign-in;
+repository author-email rules still apply.
+
 ## Short-lived credentials (preview)
 
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`

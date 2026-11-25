@@ -18,7 +18,11 @@ import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import { Account } from '../../models/account'
+import {
+  Account,
+  getFriendlyEndpoint,
+  IAccountIdentity,
+} from '../../models/account'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -36,6 +40,9 @@ interface ICommitMessageAvatarState {
 }
 
 interface ICommitMessageAvatarProps {
+  /** Assigned account whose Desktop-managed identity is used, if any. */
+  readonly managedAccount?: IAccountIdentity
+  readonly managedAccountSignedOut?: boolean
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
 
@@ -133,6 +140,7 @@ export class CommitMessageAvatar extends React.Component<
     if (
       this.props.isActive !== false &&
       (prevProps.isActive === false ||
+        prevProps.managedAccount !== this.props.managedAccount ||
         this.props.user?.name !== prevProps.user?.name ||
         this.props.user?.email !== prevProps.user?.email ||
         this.props.repository.path !== prevProps.repository.path)
@@ -141,8 +149,10 @@ export class CommitMessageAvatar extends React.Component<
     }
 
     if (
-      this.props.preferredAccountEmail !== prevProps.preferredAccountEmail &&
-      this.state.accountEmail === prevProps.preferredAccountEmail
+      (this.props.preferredAccountEmail !== prevProps.preferredAccountEmail &&
+        this.state.accountEmail === prevProps.preferredAccountEmail) ||
+      (this.props.accountEmails !== prevProps.accountEmails &&
+        !this.props.accountEmails.includes(this.state.accountEmail))
     ) {
       this.setState({ accountEmail: this.props.preferredAccountEmail })
     }
@@ -154,6 +164,9 @@ export class CommitMessageAvatar extends React.Component<
 
   private async determineGitConfigLocation() {
     const requestID = ++this.gitConfigLocationRequestID
+    if (this.props.managedAccount !== undefined) {
+      return
+    }
     const isGitConfigLocal = await this.isGitConfigLocal(requestID)
     if (
       this.avatarButtonRef !== null &&
@@ -271,6 +284,24 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderGitConfigPopover() {
+    if (this.props.managedAccount !== undefined) {
+      return (
+        <>
+          <p>Email: {this.props.email}</p>
+          {this.renderManagedIdentityInfo()}
+          <Row className="button-row">
+            <OkCancelButtonGroup
+              className="managed-identity-actions"
+              okButtonText={
+                __DARWIN__ ? 'Edit Account Identity' : 'Edit account identity'
+              }
+              onOkButtonClick={this.onOpenGitSettings}
+              onCancelButtonClick={this.onIgnoreClick}
+            />
+          </Row>
+        </>
+      )
+    }
     const { user } = this.props
     const { isGitConfigLocal } = this.state
 
@@ -318,7 +349,9 @@ export class CommitMessageAvatar extends React.Component<
 
     const sharedHeader = (
       <>
-        The email in your global Git config (
+        {this.props.managedAccount === undefined
+          ? 'The email in your global Git config ('
+          : "The email in your account's managed commit identity ("}
         <span className="git-email">{this.props.email}</span>)
       </>
     )
@@ -342,16 +375,20 @@ export class CommitMessageAvatar extends React.Component<
             </Select>
           </Row>
         )}
-        <Row>
-          <div className="secondary-text">
-            You can{hasEmails ? ' also' : ''} choose an email local to this
-            repository from the{' '}
-            <LinkButton onClick={this.onRepositorySettingsClick}>
-              repository settings
-            </LinkButton>
-            .
-          </div>
-        </Row>
+        {this.props.managedAccount !== undefined ? (
+          this.renderManagedIdentityInfo()
+        ) : (
+          <Row>
+            <div className="secondary-text">
+              You can{hasEmails ? ' also' : ''} choose an email local to this
+              repository from the{' '}
+              <LinkButton onClick={this.onRepositorySettingsClick}>
+                repository settings
+              </LinkButton>
+              .
+            </div>
+          </Row>
+        )}
         <Row className="button-row">
           <Button onClick={this.onIgnoreClick} type="button">
             Ignore
@@ -412,6 +449,35 @@ export class CommitMessageAvatar extends React.Component<
     }
 
     return
+  }
+
+  private renderManagedIdentityInfo() {
+    const account = this.props.managedAccount
+    if (account === undefined) {
+      return null
+    }
+    return (
+      <>
+        <p>
+          GitHub Desktop uses the saved identity for this repository's assigned
+          account @{account.login} on {getFriendlyEndpoint(account.endpoint)}.
+        </p>
+        {this.props.managedAccountSignedOut && (
+          <p>
+            This account is signed out. GitHub Desktop continues using the saved
+            identity. Sign in to check whether this email is attributed to this
+            account on GitHub.
+          </p>
+        )}
+        <p className="secondary-text">
+          Edit this identity in{' '}
+          <LinkButton onClick={this.onOpenGitSettings}>
+            {__DARWIN__ ? 'Preferences' : 'Options'} &gt; Git
+          </LinkButton>
+          . Changes also apply to other repositories assigned to this account.
+        </p>
+      </>
+    )
   }
 
   private getCommittingAsTitle(): string | JSX.Element | undefined {
@@ -481,7 +547,10 @@ export class CommitMessageAvatar extends React.Component<
 
   private onOpenGitSettings = () => {
     this.closePopover()
-    if (this.state.isGitConfigLocal) {
+    if (
+      this.props.managedAccount === undefined &&
+      this.state.isGitConfigLocal
+    ) {
       this.props.onOpenRepositorySettings()
     } else {
       this.props.onOpenGitSettings()
