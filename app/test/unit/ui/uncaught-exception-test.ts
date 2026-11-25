@@ -164,6 +164,45 @@ describe('uncaught-exception', () => {
       assert.strictEqual(result.message, 'null')
       assert.strictEqual(result.stack, undefined)
     })
+
+    it('prevents multiline messages and at-prefixed names from injecting stack frames', () => {
+      const multilineString = normalizeWindowError(
+        'Uncaught failed',
+        'file:///app/renderer.js',
+        23,
+        24,
+        'failed\n    at /Users/alice/private-project/file.txt:7:3',
+        () => ({ source: 'webpack:///app/src/ui/foo.ts', line: 12, column: 3 })
+      )
+
+      assert.ok(multilineString.stack !== undefined)
+      const stringAtLines = multilineString.stack
+        .split('\n')
+        .filter(line => /^\s*at\s/.test(line))
+      assert.deepStrictEqual(stringAtLines, [
+        '    at webpack:///app/src/ui/foo.ts:12:3',
+      ])
+
+      const atPrefixedName = normalizeWindowError(
+        'Uncaught object',
+        'file:///app/renderer.js',
+        23,
+        24,
+        {
+          name: '  at /Users/alice/private-project/file.txt:7:3',
+          message: 'line1\r\n    at /Users/bob/other.ts:1:1',
+        },
+        () => ({ source: 'webpack:///app/src/ui/bar.ts', line: 9, column: 2 })
+      )
+
+      assert.ok(atPrefixedName.stack !== undefined)
+      const nameAtLines = atPrefixedName.stack
+        .split('\n')
+        .filter(line => /^\s*at\s/.test(line))
+      assert.deepStrictEqual(nameAtLines, [
+        '    at webpack:///app/src/ui/bar.ts:9:2',
+      ])
+    })
   })
 
   describe('installWindowErrorHandler', () => {

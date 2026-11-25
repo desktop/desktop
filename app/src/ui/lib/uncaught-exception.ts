@@ -54,6 +54,10 @@ function createSyntheticError(
   return error
 }
 
+function sanitizeStackHeaderText(text: string): string {
+  return text.replace(/[\r\n\u2028\u2029]+/g, ' ')
+}
+
 function formatWindowErrorStack(
   name: string,
   message: string,
@@ -72,7 +76,13 @@ function formatWindowErrorStack(
       ? `${mapped.source}:${mapped.line}:${mapped.column}`
       : `${mapped.source}:${mapped.line}`
 
-  return `${name}: ${message}\n    at ${location}`
+  const singleLineName = sanitizeStackHeaderText(name)
+  const singleLineMessage = sanitizeStackHeaderText(message)
+  const header = /^\s*at\s/.test(singleLineName)
+    ? `Error: ${singleLineName}: ${singleLineMessage}`
+    : `${singleLineName}: ${singleLineMessage}`
+
+  return `${header}\n    at ${location}`
 }
 
 function extractWindowErrorMessage(eventOrMessage: Event | string): string {
