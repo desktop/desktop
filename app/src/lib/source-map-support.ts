@@ -285,10 +285,17 @@ export function withSourceMappedStack(error: unknown): Error {
   }
 
   if (typeof error === 'function') {
+    const nameProp = safeReadProperty(error, 'name')
+    const functionName =
+      nameProp.found &&
+      typeof nameProp.value === 'string' &&
+      nameProp.value.length > 0
+        ? `function ${nameProp.value}`
+        : 'anonymous function'
+
     return {
       name: 'NonError',
-      message:
-        error.name.length > 0 ? `function ${error.name}` : 'anonymous function',
+      message: functionName,
       stack: undefined,
     }
   }

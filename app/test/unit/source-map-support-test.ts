@@ -89,6 +89,30 @@ describe('withSourceMappedStack', () => {
     )
   })
 
+  it('does not throw when a thrown function has a throwing or non-string name', () => {
+    const throwingNameFn = function () {}
+    Object.defineProperty(throwingNameFn, 'name', {
+      get() {
+        throw new Error('name getter failed')
+      },
+    })
+
+    assert.deepStrictEqual(withSourceMappedStack(throwingNameFn), {
+      name: 'NonError',
+      message: 'anonymous function',
+      stack: undefined,
+    })
+
+    const nullNameFn = function () {}
+    Object.defineProperty(nullNameFn, 'name', { value: null })
+
+    assert.deepStrictEqual(withSourceMappedStack(nullNameFn), {
+      name: 'NonError',
+      message: 'anonymous function',
+      stack: undefined,
+    })
+  })
+
   it('describes DOM Event objects with their constructor and event type', () => {
     const event = new Event('error')
     const result = withSourceMappedStack(event)
