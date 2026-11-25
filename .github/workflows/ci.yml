@@ -115,8 +115,8 @@ jobs:
           npm test
       - name: Start Windows unit tests alongside the build
         id: parallel-unit-tests
-        # DEBUG: run unit tests in the foreground so output streams live
-        if: false
+        if: |
+          runner.os == 'Windows' && matrix.arch == 'x64' && github.event_name == 'pull_request'
         shell: pwsh
         env:
           npm_config_arch: ${{ matrix.arch }}
@@ -218,9 +218,6 @@ jobs:
         if: |
           ((runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64')) &&
           steps.parallel-unit-tests.outcome != 'success'
-        timeout-minutes: 45
-        env:
-          DESKTOP_TEST_PER_FILE: 1
         run: npm run test:unit
       - name: Run script tests
         run: npm run test:script
@@ -246,6 +243,7 @@ jobs:
           $directory = Join-Path $env:RUNNER_TEMP 'desktop-unit-tests'
           $resultPath = Join-Path $directory 'result.json'
           $processId = [int](Get-Content (Join-Path $directory 'pid'))
+          $waitDeadline = [DateTime]::UtcNow.AddMinutes(15)
           try {
             while (-not (Test-Path $resultPath)) {
               if ($null -eq (Get-Process -Id $processId -ErrorAction SilentlyContinue)) {
@@ -253,6 +251,18 @@ jobs:
                   throw 'The unit-test process exited without recording a result.'
                 }
                 break
+              }
+              if ([DateTime]::UtcNow -ge $waitDeadline) {
+                Write-Host '=== DEBUG: Wait timed out after 15 minutes; active node/git/pwsh processes ==='
+                Get-CimInstance Win32_Process |
+                  Where-Object { $_.Name -match '^(node|git|pwsh|cmd)\.exe$' } |
+                  Sort-Object CreationDate |
+                  ForEach-Object {
+                    Write-Host "PID=$($_.ProcessId) PPID=$($_.ParentProcessId) START=$($_.CreationDate) NAME=$($_.Name) CMD=$($_.CommandLine)"
+                  }
+                Write-Host '=== DEBUG: Killing background unit-test process tree ==='
+                & taskkill /pid $processId /T /F
+                throw 'DEBUG: timed out waiting 15 minutes for Windows unit tests.'
               }
               Start-Sleep -Seconds 2
             }
