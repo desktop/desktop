@@ -54,8 +54,8 @@ import {
   withSourceMappedStack,
 } from '../lib/source-map-support'
 import {
+  createRendererUncaughtExceptionHandler,
   installWindowErrorHandler,
-  isResizeObserverLoopError,
 } from './lib/uncaught-exception'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
@@ -192,27 +192,21 @@ const sendErrorWithContext = (
   }
 }
 
-const onUncaughtException = (error: unknown) => {
-  // Chromium reports ResizeObserver loop notifications via window.onerror with
-  // `error === null`; installWindowErrorHandler preserves the message so this
-  // guard can treat them as non-fatal instead of crashing the app.
-  if (isResizeObserverLoopError(error)) {
-    sendNonFatalException(
-      'resizeObserverLoopCompleted',
-      withSourceMappedStack(error)
-    )
-    return
-  }
-
-  sendErrorWithContext(error)
-  reportUncaughtException(withSourceMappedStack(error))
-
-  // We used to subscribe to uncaughtException using process.once but we want
-  // to be able to ignore the resize observer error above so we need to
-  // unsubscribe manually once we encounter an error we actually want to crash
-  // the app for.
-  process.off('uncaughtException', onUncaughtException)
-}
+// Chromium reports ResizeObserver loop notifications via window.onerror with
+// `error === null`; installWindowErrorHandler preserves the message so
+// createRendererUncaughtExceptionHandler treats them as non-fatal (reported at
+// most once per session) instead of crashing the app. We subscribe via
+// process.on and detach manually after a fatal error so ignored ResizeObserver
+// notifications do not disarm fatal crash handling.
+const onUncaughtException = createRendererUncaughtExceptionHandler({
+  onResizeObserverLoop: error =>
+    sendNonFatalException('resizeObserverLoopCompleted', error),
+  onFatalError: error => {
+    sendErrorWithContext(error)
+    reportUncaughtException(withSourceMappedStack(error))
+  },
+  unsubscribe: listener => process.off('uncaughtException', listener),
+})
 
 process.on('uncaughtException', onUncaughtException)
 installWindowErrorHandler()

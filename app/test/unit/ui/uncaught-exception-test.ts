@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { EventEmitter } from 'node:events'
 import {
+  createRendererUncaughtExceptionHandler,
   installWindowErrorHandler,
   isResizeObserverLoopError,
   normalizeWindowError,
@@ -244,6 +245,57 @@ describe('uncaught-exception', () => {
       )
 
       assert.strictEqual(handled, false)
+    })
+  })
+
+  describe('createRendererUncaughtExceptionHandler', () => {
+    it('reports ResizeObserver loops at most once per session without detaching the listener', () => {
+      const fakeWindow: Pick<Window, 'onerror'> = { onerror: null }
+      const fakeProcess = new EventEmitter()
+      const nonFatalErrors: Array<Error> = []
+      const fatalErrors: Array<unknown> = []
+
+      const handler = createRendererUncaughtExceptionHandler({
+        onResizeObserverLoop: error => nonFatalErrors.push(error),
+        onFatalError: error => fatalErrors.push(error),
+        unsubscribe: listener => fakeProcess.off('uncaughtException', listener),
+      })
+
+      fakeProcess.on('uncaughtException', handler)
+      installWindowErrorHandler(fakeWindow, fakeProcess)
+
+      assert.ok(fakeWindow.onerror !== null)
+      fakeWindow.onerror(
+        'ResizeObserver loop completed with undelivered notifications.',
+        'file:///app/index.html',
+        0,
+        0,
+        undefined
+      )
+      fakeWindow.onerror(
+        'ResizeObserver loop completed with undelivered notifications.',
+        'file:///app/index.html',
+        0,
+        0,
+        undefined
+      )
+
+      assert.strictEqual(nonFatalErrors.length, 1)
+      assert.strictEqual(fatalErrors.length, 0)
+      assert.strictEqual(fakeProcess.listenerCount('uncaughtException'), 1)
+
+      const realError = new TypeError('real crash')
+      fakeWindow.onerror(
+        'Uncaught TypeError: real crash',
+        'file:///app/renderer.js',
+        10,
+        5,
+        realError
+      )
+
+      assert.strictEqual(fatalErrors.length, 1)
+      assert.strictEqual(fatalErrors[0], realError)
+      assert.strictEqual(fakeProcess.listenerCount('uncaughtException'), 0)
     })
   })
 })

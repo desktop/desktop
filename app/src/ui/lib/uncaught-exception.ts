@@ -20,6 +20,12 @@ interface IProcessErrorEmitter {
   emit(eventName: 'uncaughtException', error: Error): boolean
 }
 
+export interface IRendererUncaughtExceptionCallbacks {
+  readonly onResizeObserverLoop: (error: Error) => void
+  readonly onFatalError: (error: unknown) => void
+  readonly unsubscribe: (listener: (error: unknown) => void) => void
+}
+
 /**
  * Whether an uncaught renderer error is a benign Chromium ResizeObserver
  * loop notification rather than an application crash.
@@ -163,6 +169,36 @@ export function normalizeWindowError(
   )
 
   return createSyntheticError(fallback.name, fallback.message, stack)
+}
+
+/**
+ * Create the renderer `uncaughtException` listener.
+ *
+ * Benign Chromium ResizeObserver loop notifications are reported at most once
+ * per renderer session so recurring layout loops cannot starve the shared
+ * non-fatal rate limit, and they do not crash the app or detach the listener.
+ * Any other uncaught error is reported as fatal and immediately detaches the
+ * listener.
+ */
+export function createRendererUncaughtExceptionHandler(
+  callbacks: IRendererUncaughtExceptionCallbacks
+): (error: unknown) => void {
+  let hasReportedResizeObserverLoop = false
+
+  const onUncaughtException = (error: unknown) => {
+    if (isResizeObserverLoopError(error)) {
+      if (!hasReportedResizeObserverLoop) {
+        hasReportedResizeObserverLoop = true
+        callbacks.onResizeObserverLoop(withSourceMappedStack(error))
+      }
+      return
+    }
+
+    callbacks.onFatalError(error)
+    callbacks.unsubscribe(onUncaughtException)
+  }
+
+  return onUncaughtException
 }
 
 /**
