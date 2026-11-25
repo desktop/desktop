@@ -13,7 +13,10 @@ import {
 import assert from 'node:assert'
 import { DiffSelectionType, DiffType } from '../../../src/models/diff'
 import { PopupType } from '../../../src/models/popup'
-import { withRepositoryGitOperation } from '../../../src/lib/git/repository-operation'
+import {
+  isRepositoryGitPaused,
+  withRepositoryGitOperation,
+} from '../../../src/lib/git/repository-operation'
 import { writeFileSync } from 'fs'
 import { getWorkingDirectoryDiff } from '../../../src/lib/git/diff'
 
@@ -192,19 +195,45 @@ describe('AppStore assisted commit cancellation', () => {
       repository,
       h.request(repository)
     )
-    await new Promise(resolve => setTimeout(resolve, 100))
-    h.cancel(repository)
-    finish.resolve()
-    await reader
-    const outcome = await Promise.race([
-      operation.then(result => result.kind),
-      new Promise<string>(resolve =>
-        setTimeout(() => resolve('pending'), 2000)
-      ),
-    ])
-    assert.strictEqual(outcome, 'cancelled')
-    assert.strictEqual(h.state(repository).isCommitting, false)
-    assert.strictEqual(h.propose.mock.callCount(), 0)
+    let operationSettled = false
+    void operation.finally(() => {
+      operationSettled = true
+    })
+    try {
+      const leaseDeadline = Date.now() + 15_000
+      while (
+        !isRepositoryGitPaused(repository.path) &&
+        !operationSettled &&
+        Date.now() < leaseDeadline
+      ) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+      }
+      assert.strictEqual(
+        isRepositoryGitPaused(repository.path),
+        true,
+        'Expected assisted commit to acquire its lease and drain the active reader'
+      )
+      h.cancel(repository)
+      finish.resolve()
+      await reader
+      let deadlineTimer: ReturnType<typeof setTimeout> | undefined
+      const outcome = await Promise.race([
+        operation.then(result => result.kind),
+        new Promise<string>(resolve => {
+          deadlineTimer = setTimeout(() => resolve('pending'), 15_000)
+        }),
+      ]).finally(() => {
+        if (deadlineTimer !== undefined) {
+          clearTimeout(deadlineTimer)
+        }
+      })
+      assert.strictEqual(outcome, 'cancelled')
+      assert.strictEqual(h.state(repository).isCommitting, false)
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+    } finally {
+      finish.resolve()
+      await Promise.allSettled([reader, operation])
+    }
   })
 
   it('fences uncaptured cancellation after awaited HEAD verification, not only before it', async t => {
