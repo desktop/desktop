@@ -204,6 +204,27 @@ describe('uncaught-exception', () => {
         '    at webpack:///app/src/ui/bar.ts:9:2',
       ])
     })
+
+    it('handles thrown objects whose constructor.name is non-string without crashing', () => {
+      function CustomError() {}
+      Object.defineProperty(CustomError, 'name', { value: ['CustomError'] })
+      const instance = Object.create(CustomError.prototype)
+
+      const result = normalizeWindowError(
+        'Uncaught [object Object]',
+        'file:///app/renderer.js',
+        21,
+        24,
+        instance,
+        () => ({ source: 'webpack:///app/src/lib/api.ts', line: 88, column: 5 })
+      )
+
+      assert.strictEqual(result.name, 'NonError')
+      assert.strictEqual(
+        result.stack,
+        'NonError: [null prototype] (no own properties)\n    at webpack:///app/src/lib/api.ts:88:5'
+      )
+    })
   })
 
   describe('installWindowErrorHandler', () => {

@@ -208,6 +208,17 @@ describe('withSourceMappedStack', () => {
     assert.strictEqual(result.message, 'Object (keys: message, name)')
     assert.strictEqual(result.stack, undefined)
   })
+
+  it('ignores non-string constructor names on thrown objects', () => {
+    function CustomError() {}
+    Object.defineProperty(CustomError, 'name', { value: ['CustomError'] })
+    const instance = Object.create(CustomError.prototype)
+
+    const result = withSourceMappedStack(instance)
+    assert.strictEqual(result.name, 'NonError')
+    assert.strictEqual(result.message, '[null prototype] (no own properties)')
+    assert.strictEqual(result.stack, undefined)
+  })
 })
 
 describe('mapSourceLocation', () => {

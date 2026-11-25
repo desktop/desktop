@@ -124,8 +124,15 @@ function getConstructorName(value: object): string | undefined {
     }
 
     const ctor = Reflect.get(value, 'constructor')
-    if (typeof ctor === 'function' && ctor.name.length > 0) {
-      return ctor.name
+    if (typeof ctor === 'function') {
+      const nameProp = safeReadProperty(ctor, 'name')
+      if (
+        nameProp.found &&
+        typeof nameProp.value === 'string' &&
+        nameProp.value.length > 0
+      ) {
+        return nameProp.value
+      }
     }
   } catch {
     // Ignore throwing getters or proxies
