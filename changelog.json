@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.7.1-beta1": [
+      "[New] Delegate splitting your changes into commits with Copilot assisted commits - #22991",
+      "[Added] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
+      "[Fixed] Improve protection against revoked certificate authorities - #23217",
+      "[Fixed] Commit-range and branch-comparison diffs ignore configured `diff.external` tools - #23214",
+      "[Fixed] Close CI popover when branch dropdown is clicked - #21865. Thanks @robbierotman!",
+      "[Fixed] Center access messages and buttons in Copilot settings - #23205",
+      "[Fixed] Change `.node-version` link to relative path - #23165. Thanks @PtJade-Ceramic!"
+    ],
     "3.7.0": [
       "[New] Work with personal and work accounts side by side without signing out, with support for multiple accounts on GitHub.com and on the same GitHub Enterprise server - #3707",
       "[New] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
