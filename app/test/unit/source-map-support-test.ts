@@ -1,6 +1,14 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { withSourceMappedStack } from '../../src/lib/source-map-support'
+import * as Path from 'node:path'
+import { writeFile } from 'node:fs/promises'
+import { pathToFileURL } from 'node:url'
+import {
+  enableSourceMaps,
+  mapSourceLocation,
+  withSourceMappedStack,
+} from '../../src/lib/source-map-support'
+import { createTempDirectory } from '../helpers/temp'
 
 describe('withSourceMappedStack', () => {
   it('preserves standard Error instances', () => {
@@ -199,5 +207,69 @@ describe('withSourceMappedStack', () => {
     assert.strictEqual(result.name, 'Object')
     assert.strictEqual(result.message, 'Object (keys: message, name)')
     assert.strictEqual(result.stack, undefined)
+  })
+})
+
+describe('mapSourceLocation', () => {
+  it('preserves 1-based line and column when no source map exists', () => {
+    assert.deepStrictEqual(
+      mapSourceLocation('file:///app/unmapped.js', 19, 24),
+      {
+        source: 'file:///app/unmapped.js',
+        line: 19,
+        column: 24,
+      }
+    )
+
+    assert.deepStrictEqual(
+      mapSourceLocation('file:///app/unmapped.js', 19, 0),
+      {
+        source: 'file:///app/unmapped.js',
+        line: 19,
+        column: undefined,
+      }
+    )
+
+    assert.deepStrictEqual(mapSourceLocation('file:///app/unmapped.js', 19), {
+      source: 'file:///app/unmapped.js',
+      line: 19,
+      column: undefined,
+    })
+  })
+
+  it('maps 1-based generated positions through a real renderer.js source map', async t => {
+    const originalPrepareStackTrace = Error.prepareStackTrace
+    t.after(() => {
+      Error.prepareStackTrace = originalPrepareStackTrace
+    })
+
+    const dir = await createTempDirectory(t)
+    const bundlePath = Path.join(dir, 'renderer.js')
+    const mapPath = `${bundlePath}.map`
+
+    // Maps 0-based generated (line 1, col 9) -> original (line 42, col 6),
+    // which corresponds to 1-based (1, 10) -> (42, 7).
+    const sourceMap = JSON.stringify({
+      version: 3,
+      sources: ['webpack:///app/src/ui/example.tsx'],
+      names: [],
+      mappings: 'SAyCM',
+      file: 'renderer.js',
+    })
+
+    await writeFile(bundlePath, 'console.log("test")\n', 'utf8')
+    await writeFile(mapPath, sourceMap, 'utf8')
+
+    enableSourceMaps()
+
+    const mapped = mapSourceLocation(pathToFileURL(bundlePath).href, 1, 10)
+    assert.ok(
+      mapped.source
+        .replace(/\\/g, '/')
+        .endsWith('webpack:/app/src/ui/example.tsx'),
+      `unexpected mapped source: ${mapped.source}`
+    )
+    assert.strictEqual(mapped.line, 42)
+    assert.strictEqual(mapped.column, 7)
   })
 })

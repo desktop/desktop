@@ -171,6 +171,27 @@ describe('Tooltip', () => {
     assert.notStrictEqual(tooltip.style.transform, initialTransform)
   })
 
+  it('cancels pending resize animation frames and disconnects when hidden', () => {
+    const { target, tooltip } = renderTooltip()
+    const observer = CapturingResizeObserver.instances[0]
+    assert.ok(observer !== undefined)
+
+    tooltip.getBoundingClientRect = () => new DOMRect(0, 0, 160, 24)
+    act(() => {
+      observer.trigger(tooltip)
+    })
+
+    assert.strictEqual(pendingFrames.size, 1)
+    const [scheduledId] = [...pendingFrames.keys()]
+
+    fireEvent.mouseLeave(target)
+
+    assert.strictEqual(document.body.querySelector('div[role="tooltip"]'), null)
+    assert.ok(cancelledFrameIds.includes(scheduledId))
+    assert.strictEqual(pendingFrames.size, 0)
+    assert.strictEqual(observer.disconnected, true)
+  })
+
   it('cancels pending resize animation frames and disconnects when unmounted', () => {
     const { view, tooltip } = renderTooltip()
     const observer = CapturingResizeObserver.instances[0]
