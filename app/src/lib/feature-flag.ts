@@ -95,6 +95,9 @@ export function enableImagePreviewsForDDSFiles(): boolean {
  * selected changes into commits and writes their messages?
  *
  * Enabled in beta and development builds, or through preview features.
+ *
+ * IMPORTANT: do not enable it in prod without checking the account's eligibility
+ * via the remote feature flag `desktop_copilot_assisted_commits`
  */
 export const enableCopilotAssistedCommit = (account: Account) =>
   enableBetaFeatures()
