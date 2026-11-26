@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.7.1-beta2": [
+      "[Added] Add support for Ctrl+P/N keyboard shortcuts to navigate lists on macOS - #21434. Thanks @jackfreem!",
+      "[Fixed] Keep commit history up to date instead of showing stale or duplicated commits when new commits arrive while history is loading - #23238",
+      "[Improved] Improve Git checkout and SSH host authenticity prompt handling - #23239"
+    ],
     "3.7.1-beta1": [
       "[New] Delegate splitting your changes into commits with Copilot assisted commits - #22991",
       "[Added] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
