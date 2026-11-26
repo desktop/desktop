@@ -73,6 +73,9 @@ export type RequestChannels = {
     token: string
   ) => void
   'resolved-image-token': (requestId: number, token: string | null) => void
+  'request-copilot-sdk-port': (requestId: number) => void
+  /** Carries the port in `event.ports`, or none if the host failed to start. */
+  'copilot-sdk-port': (requestId: number) => void
   'quit-and-install-updates': () => void
   'quit-app': () => void
   'minimize-window': () => void

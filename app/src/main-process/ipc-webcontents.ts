@@ -1,6 +1,6 @@
 /* eslint-disable no-loosely-typed-webcontents-ipc */
 
-import { WebContents } from 'electron'
+import { MessagePortMain, WebContents } from 'electron'
 import { RequestChannels } from '../lib/ipc-shared'
 
 /**
@@ -20,5 +20,23 @@ export function send<T extends keyof RequestChannels>(
     log.error(msg)
   } else {
     webContents.send(channel, ...args)
+  }
+}
+
+/**
+ * Post a message with transferable ports to a renderer process via its
+ * webContents. This is the equivalent of webContents.postMessage except with
+ * strong typing guarantees.
+ */
+export function postMessage<T extends keyof RequestChannels>(
+  webContents: WebContents,
+  channel: T,
+  message: Parameters<RequestChannels[T]>[0],
+  transfer?: ReadonlyArray<MessagePortMain>
+): void {
+  if (webContents.isDestroyed()) {
+    log.error(`failed to post on ${channel}, webContents was destroyed`)
+  } else {
+    webContents.postMessage(channel, message, transfer ? [...transfer] : [])
   }
 }

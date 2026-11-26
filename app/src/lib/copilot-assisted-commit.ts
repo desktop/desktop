@@ -1,4 +1,4 @@
-import type { SessionConfig } from '@github/copilot-sdk'
+import type { CopilotSessionConfig } from './copilot/sdk-client'
 import type { CopilotResponseSchema } from './copilot-operation'
 import {
   IAssistedCommitAnalysis,
@@ -553,7 +553,7 @@ export function buildAssistedCommitUserPrompt(
 export function getAssistedCommitSessionConfig(
   repositoryPath: string,
   systemPrompt: string
-): SessionConfig {
+): CopilotSessionConfig {
   return {
     workingDirectory: repositoryPath,
     systemMessage: { mode: 'append', content: systemPrompt },
