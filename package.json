@@ -27,7 +27,7 @@
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
     "compile:dev": "cross-env NODE_ENV=development TS_NODE_PROJECT=script/tsconfig.json webpack --config app/webpack.development.ts",
-    "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=4096' webpack --config app/webpack.production.ts",
+    "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=8192' webpack --config app/webpack.production.ts",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
