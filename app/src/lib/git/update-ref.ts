@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { ChildProcess } from 'child_process'
 import { mkdir } from 'fs/promises'
@@ -57,13 +57,21 @@ export async function updateRefWithVerification(
   oldValue: string,
   newValue: string | null,
   reason: string,
-  verify: () => Promise<void>
+  verify: () => Promise<void>,
+  options?: Pick<IGitExecutionOptions, 'env'>
 ): Promise<void> {
   const command =
     newValue === null
       ? `delete ${ref}\0${oldValue}\0`
       : `update ${ref}\0${newValue}\0${oldValue}\0`
-  return preparedRefTransaction(repository, command, verify, 'commit', reason)
+  return preparedRefTransaction(
+    repository,
+    command,
+    verify,
+    'commit',
+    reason,
+    options
+  )
 }
 
 /**
@@ -174,7 +182,8 @@ async function preparedRefTransaction(
   command: string,
   action: (lock: IRefLock) => Promise<void>,
   completion: 'commit' | 'abort',
-  reason?: string
+  reason?: string,
+  options?: Pick<IGitExecutionOptions, 'env'>
 ): Promise<void> {
   let verification: Promise<void> | undefined
   let verificationError: unknown
@@ -216,6 +225,7 @@ async function preparedRefTransaction(
       repository.path,
       'updateRefWithVerification',
       {
+        ...options,
         processCallback: process => {
           child = process
           process.once('exit', () => {

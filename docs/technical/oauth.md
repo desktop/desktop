@@ -160,6 +160,11 @@ clients, not to the app's global process environment. Native Git still preserves
 original authors during amend, cherry-pick, and rebase. Assisted commits capture
 the identity variables with their private execution environment so validation,
 sign-off, and execution agree throughout a run.
+Read-only Git commands that do not query identity remain available when a managed
+identity is missing or invalid. Identity queries and mutations still report the
+identity error instead of silently falling back to Git configuration. A complete
+caller-supplied author/committer environment bypasses live identity resolution,
+including explicit unset values captured by an assisted run.
 
 Managed identities do not write `user.name` or `user.email` to Git configuration.
 External applications remain unaffected. The optional external-application

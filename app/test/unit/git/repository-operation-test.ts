@@ -566,6 +566,7 @@ describe('assisted repository Git coordination', () => {
       ['interpret-trailers', '--trailer', 'Co-Authored-By=Name <email>'],
       ['worktree', 'list', '--porcelain', '-z'],
       ['count-objects', '-v'],
+      ['replace', '--list'],
     ]) {
       assert.strictEqual(isReadOnlyGitCommand(args), true, args.join(' '))
     }
@@ -583,6 +584,7 @@ describe('assisted repository Git coordination', () => {
       ['checkout', 'other'],
       ['unknown-command'],
       ['worktree', 'remove', 'path'],
+      ['replace', '--delete', 'HEAD'],
     ]) {
       assert.strictEqual(isReadOnlyGitCommand(args), false, args.join(' '))
     }

@@ -23,6 +23,7 @@ import {
   getRepositoryGitReadEnvironment,
   getRepositoryGitOperationPath,
   isReadOnlyGitCommand,
+  gitCommandNeedsIdentity,
   withRepositoryGitOperation,
   withoutRepositoryGitAccess,
   verifyRepositoryGitSpawnFence,
@@ -264,7 +265,12 @@ export async function git(
   const opts = {
     ...defaultOptions,
     ...options,
-    env: { ...getManagedCommitEnvironment(path), ...options?.env },
+    env: {
+      ...(gitCommandNeedsIdentity(args)
+        ? getManagedCommitEnvironment(path, options?.env)
+        : {}),
+      ...options?.env,
+    },
   }
 
   // The combined contents of stdout and stderr with some light processing

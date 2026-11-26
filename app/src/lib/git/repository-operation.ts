@@ -796,11 +796,19 @@ export function getRepositoryGitOperationPath(
     : path
 }
 
+/** Mutations and explicit identity queries must resolve the effective commit identity. */
+export function gitCommandNeedsIdentity(args: ReadonlyArray<string>): boolean {
+  return args[gitCommandIndex(args)] === 'var' || !isReadOnlyGitCommand(args)
+}
+
 /** Conservative command classification. Unknown commands never queue a mutation. */
 export function isReadOnlyGitCommand(args: ReadonlyArray<string>): boolean {
   let index = gitCommandIndex(args)
   const command = args[index++]
   const parameters = args.slice(index)
+  if (command === 'replace') {
+    return parameters[0] === '--list'
+  }
   if (command === 'config') {
     return isReadOnlyGitConfiguration(parseGitConfiguration(parameters))
   }

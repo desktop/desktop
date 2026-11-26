@@ -15,6 +15,7 @@ import {
   validateAssistedCommitPlan,
   withAssistedCommitSnapshot,
 } from '../../../src/lib/git/assisted-commit'
+import { AssistedCommitError } from '../../../src/lib/git/assisted-commit/error'
 
 const managed = { name: 'Managed author', email: 'managed@example.com' }
 const originalEnv = {
@@ -26,6 +27,55 @@ const originalEnv = {
 
 describe('Desktop-only Git authorship', () => {
   afterEach(() => setCommitIdentityProvider(() => undefined))
+
+  it('allows repository reads without a managed identity but blocks authorship', async t => {
+    const repository = await seed(t, { initial: 'initial\n' })
+    setCommitIdentityProvider(() => {
+      throw new Error('Managed identity needs initialization')
+    })
+    for (const args of [
+      ['status', '--porcelain'],
+      ['log', '-1', '--format=%s'],
+      ['-c', 'core.quotepath=false', 'diff', '--stat'],
+    ]) {
+      const result = await git(args, repository.path, 'readWithoutIdentity')
+      assert.equal(result.exitCode, 0)
+    }
+    await assert.rejects(
+      getAuthorIdentity(repository),
+      /Managed identity needs initialization/
+    )
+    await assert.rejects(
+      createCommit(repository, 'Must not use Git identity', [], {
+        allowEmpty: true,
+      }),
+      /Managed identity needs initialization/
+    )
+  })
+
+  it('honors explicit unset identity keys but still resolves a partially supplied identity', async t => {
+    const repository = await setupEmptyRepository(t)
+    const env = {
+      GIT_AUTHOR_NAME: undefined,
+      GIT_AUTHOR_EMAIL: undefined,
+      GIT_COMMITTER_NAME: undefined,
+      GIT_COMMITTER_EMAIL: undefined,
+    }
+    const expected = await getAuthorIdentity(repository, { env })
+    assert.ok(expected)
+    setCommitIdentityProvider(() => {
+      throw new Error('Managed identity needs initialization')
+    })
+    const author = await getAuthorIdentity(repository, { env })
+    assert.equal(author?.name, expected.name)
+    assert.equal(author?.email, expected.email)
+    await assert.rejects(
+      getAuthorIdentity(repository, {
+        env: { GIT_AUTHOR_EMAIL: 'partial@example.com' },
+      }),
+      /Managed identity needs initialization/
+    )
+  })
 
   it('isolates repositories and leaves native config and external Git untouched', async t => {
     const first = await setupEmptyRepository(t)
@@ -213,6 +263,112 @@ describe('Desktop-only Git authorship', () => {
             result.head.sha,
           ]),
           author.email
+        )
+      }
+    )
+  })
+
+  it('uses a frozen managed identity even when live identity resolution throws', async t => {
+    const repository = await seed(t, { a: 'a\n' })
+    await writeFile(join(repository.path, 'a'), 'changed a\n')
+    setCommitIdentityProvider(() => managed)
+    await withAssistedCommitSnapshot(
+      repository,
+      await request(repository),
+      async snapshot => {
+        setCommitIdentityProvider(() => {
+          throw new Error('Managed identity needs initialization')
+        })
+        const checked = await validateAssistedCommitPlan(
+          snapshot,
+          splitPlan(snapshot)
+        )
+        const result = await executeAssistedCommitPlan(snapshot, checked)
+        assert.ok(result.head.sha)
+        assert.equal(
+          await rawGit(repository, [
+            'show',
+            '-s',
+            '--format=%ae|%ce',
+            result.head.sha,
+          ]),
+          `${managed.email}|${managed.email}`
+        )
+        assert.equal(
+          await rawGit(repository, ['reflog', '-1', '--format=%ge']),
+          managed.email
+        )
+      }
+    )
+  })
+
+  it('retains a Git-managed snapshot when the live managed identity becomes invalid', async t => {
+    const repository = await seed(t, { a: 'a\n' })
+    await writeFile(join(repository.path, 'a'), 'changed a\n')
+    const author = await getAuthorIdentity(repository)
+    assert.ok(author)
+    await withAssistedCommitSnapshot(
+      repository,
+      await request(repository),
+      async snapshot => {
+        setCommitIdentityProvider(() => ({ name: '', email: '' }))
+        const checked = await validateAssistedCommitPlan(
+          snapshot,
+          splitPlan(snapshot)
+        )
+        const result = await executeAssistedCommitPlan(snapshot, checked)
+        assert.ok(result.head.sha)
+        assert.equal(
+          await rawGit(repository, [
+            'show',
+            '-s',
+            '--format=%ae',
+            result.head.sha,
+          ]),
+          author.email
+        )
+      }
+    )
+  })
+
+  it('can roll back published assisted commits after the live identity becomes unavailable', async t => {
+    const repository = await seed(t, { a: 'a\n', b: 'b\n' })
+    const originalHead = await rawGit(repository, ['rev-parse', 'HEAD'])
+    await writeFile(join(repository.path, 'a'), 'changed a\n')
+    await writeFile(join(repository.path, 'b'), 'changed b\n')
+    setCommitIdentityProvider(() => managed)
+    await withAssistedCommitSnapshot(
+      repository,
+      await request(repository),
+      async snapshot => {
+        const checked = await validateAssistedCommitPlan(
+          snapshot,
+          splitPlan(snapshot)
+        )
+        let verifiedCommits = 0
+        await assert.rejects(
+          executeAssistedCommitPlan(snapshot, checked, {
+            onVerifyCommit: () => {
+              if (++verifiedCommits === 2) {
+                setCommitIdentityProvider(() => {
+                  throw new Error('Managed identity needs initialization')
+                })
+                throw new Error('Stop after the first published commit')
+              }
+            },
+          }),
+          (error: unknown) => {
+            assert.ok(error instanceof AssistedCommitError)
+            assert.ok(error.recovery)
+            assert.equal(error.recovery.history, 'restored')
+            assert.deepEqual(error.recovery.errors, [])
+            return true
+          }
+        )
+        assert.equal(verifiedCommits, 2)
+        assert.equal(
+          await rawGit(repository, ['rev-parse', 'HEAD']),
+          originalHead
         )
       }
     )

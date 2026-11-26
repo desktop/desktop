@@ -124,10 +124,25 @@ export function setCommitIdentityProvider(provider: CommitIdentityProvider) {
   identityProvider = provider
 }
 
-/** Identity variables for Desktop's child processes; never modify process.env or Git config. */
+/**
+ * Identity variables for Desktop's child processes; never modify process.env or Git config.
+ * A complete caller-supplied identity, including explicit undefined keys, takes precedence.
+ */
 export function getManagedCommitEnvironment(
-  path: string
+  path: string,
+  environment?: Readonly<Record<string, string | undefined>>
 ): Record<string, string | undefined> {
+  if (
+    environment !== undefined &&
+    [
+      'GIT_AUTHOR_NAME',
+      'GIT_AUTHOR_EMAIL',
+      'GIT_COMMITTER_NAME',
+      'GIT_COMMITTER_EMAIL',
+    ].every(key => Object.prototype.hasOwnProperty.call(environment, key))
+  ) {
+    return {}
+  }
   const identity = identityProvider(path)
   if (identity === undefined) {
     return {}
