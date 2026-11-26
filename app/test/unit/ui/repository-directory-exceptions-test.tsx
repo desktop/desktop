@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { before, beforeEach, describe, it, mock } from 'node:test'
+import * as Os from 'os'
 import * as Path from 'path'
 import * as React from 'react'
 
@@ -103,6 +104,43 @@ describe('AddExistingRepository directory exceptions', () => {
 
     assert.strictEqual(onDismissed.mock.callCount(), 1)
   })
+
+  for (const typed of ['~/repository', '"~/repository"']) {
+    it(`validates ${typed} as the path it will add`, async () => {
+      const expected = Path.join(Os.homedir(), 'repository')
+      getRepositoryType.mock.mockImplementationOnce(async () => ({
+        kind: 'regular',
+        topLevelWorkingDirectory: expected,
+        gitDir: Path.join(expected, '.git'),
+      }))
+      const dispatcher = createDispatcher()
+      const { AddExistingRepository } = await import(
+        '../../../src/ui/add-repository/add-existing-repository'
+      )
+
+      render(
+        <AddExistingRepository
+          dispatcher={dispatcher.dispatcher}
+          path={typed}
+          onDismissed={mock.fn()}
+        />
+      )
+
+      fireEvent.click(
+        screen.getByRole('button', { name: /add repository/i, hidden: true })
+      )
+
+      await waitFor(() => {
+        assert.deepStrictEqual(getRepositoryType.mock.calls[0].arguments, [
+          expected,
+        ])
+        assert.deepStrictEqual(
+          dispatcher.addRepositories.mock.calls[0].arguments,
+          [[expected]]
+        )
+      })
+    })
+  }
 
   async function renderUnsafeRepository() {
     const { AddExistingRepository } = await import(
