@@ -500,7 +500,7 @@ describe('CommitMessage', () => {
       assert.strictEqual(requests.length, 0)
     })
 
-    it('offers assisted commit modes for an opted-in account without preview features', () => {
+    it('does not offer assisted commit modes for an opted-in account without preview features', () => {
       const account = createAccount()
       const { rerender } = renderWithCommitModes()
       delete process.env[PreviewFeaturesEnv]
@@ -521,9 +521,10 @@ describe('CommitMessage', () => {
           ),
         ],
       })
-      assert.ok(screen.getByRole('button', { name: 'Choose how to commit' }))
-      switchToCopilotMode()
-      assert.ok(screen.getByText('Let Copilot write your commits'))
+      assert.equal(
+        screen.queryByRole('button', { name: 'Choose how to commit' }),
+        null
+      )
     })
 
     it('does not offer commit modes when the feature is disabled', () => {

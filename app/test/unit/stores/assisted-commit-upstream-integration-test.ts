@@ -113,9 +113,9 @@ async function assignedAccountHarness(t: TestContext) {
 }
 
 describe('assisted runs with repository-assigned accounts', () => {
-  for (const withdrawRollout of [false, true]) {
-    it(`uses an account rollout outside preview and ${
-      withdrawRollout ? 'revokes' : 'retains'
+  for (const withdrawPreview of [false, true]) {
+    it(`uses preview access and ${
+      withdrawPreview ? 'revokes' : 'retains'
     } its prepared intent`, async t => {
       const source = await seed(t, { file: 'before\n' })
       await writeFile(join(source.path, 'file'), 'selected\n')
@@ -138,22 +138,21 @@ describe('assisted runs with repository-assigned accounts', () => {
       )
       h.stores.accountsStore['credentials'].inheritSession(original, account)
       h.appStore['accounts'] = [account]
-      delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
       assert.equal(await h.assisted.context.isAvailable(repository), true)
       const prepared = await h.dispatcher.prepareCopilotAssistedCommitRequest(
         repository,
         h.request(repository)
       )
-      if (withdrawRollout) {
-        h.appStore['accounts'] = [original]
+      if (withdrawPreview) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
       }
       const outcome = await h.dispatcher.createCopilotAssistedCommits(
         repository,
         prepared
       )
-      assert.equal(outcome.kind, withdrawRollout ? 'error' : 'local-ready')
-      assert.equal(h.propose.mock.callCount(), withdrawRollout ? 0 : 1)
-      assert.equal(await count(repository), withdrawRollout ? 1 : 2)
+      assert.equal(outcome.kind, withdrawPreview ? 'error' : 'local-ready')
+      assert.equal(h.propose.mock.callCount(), withdrawPreview ? 0 : 1)
+      assert.equal(await count(repository), withdrawPreview ? 1 : 2)
     })
   }
 

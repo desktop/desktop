@@ -94,11 +94,10 @@ export function enableImagePreviewsForDDSFiles(): boolean {
  * Should we offer the Copilot-assisted commit mode, where Copilot splits the
  * selected changes into commits and writes their messages?
  *
- * Enabled in beta or through the account rollout.
+ * Enabled in beta and development builds, or through preview features.
  */
 export const enableCopilotAssistedCommit = (account: Account) =>
-  enableBetaFeatures() ||
-  (account.features ?? []).includes('desktop_copilot_assisted_commits')
+  enableBetaFeatures()
 
 export function enableAccessibleListToolTips(): boolean {
   return enableBetaFeatures()
