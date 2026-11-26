@@ -90,38 +90,18 @@ export function enableImagePreviewsForDDSFiles(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableCustomIntegration = () => true
-
-export const enableResizingToolbarButtons = () => true
-
 /**
  * Should we offer the Copilot-assisted commit mode, where Copilot splits the
  * selected changes into commits and writes their messages?
  *
- * Enabled in development/preview or through the account rollout.
+ * Enabled in beta or through the account rollout.
  */
 export const enableCopilotAssistedCommit = (account: Account) =>
-  enableDevelopmentFeatures() ||
+  enableBetaFeatures() ||
   (account.features ?? []).includes('desktop_copilot_assisted_commits')
 
 export function enableAccessibleListToolTips(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableHooksEnvironment = () => true
-
 export const enableHooksByDefault = enableBetaFeatures
-
-export const enableFormattingPreferences = () => true
-
-/** Should the app enable worktree support? */
-export const enableWorktreeSupport = () => true
-
-/** Should the app offer handoff to the GitHub Copilot app? */
-export const enableCopilotAppHandoff = () =>
-  (__DARWIN__ || __WIN32__) && enableBetaFeatures()
-
-/** Should stats be sent to the new telemetry endpoint? */
-export function enableNewStatsEndpoint(): boolean {
-  return true
-}

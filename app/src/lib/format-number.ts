@@ -3,7 +3,6 @@ import {
   INumberFormat,
 } from '../models/formatting-preferences'
 import { round } from '../ui/lib/round'
-import { enableFormattingPreferences } from './feature-flag'
 
 /**
  * Format a number using the given separator configuration.
@@ -16,10 +15,6 @@ import { enableFormattingPreferences } from './feature-flag'
  *                separators, defaults to the user's preferred format.
  */
 export function formatNumber(value: number, fmt?: INumberFormat): string {
-  if (!fmt && !enableFormattingPreferences()) {
-    return value.toString()
-  }
-
   fmt ??= getNumberFormatPreference()
 
   if (!Number.isFinite(value)) {
@@ -82,10 +77,6 @@ export function formatCompactNumber(
   value: number,
   fmt?: ICompactFormatOptions
 ): string {
-  if (!fmt && !enableFormattingPreferences()) {
-    return `${value}`
-  }
-
   if (!Number.isFinite(value)) {
     return `${value}`
   }

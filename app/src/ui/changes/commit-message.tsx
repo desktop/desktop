@@ -17,6 +17,7 @@ import {
   AssistedCommitRunState,
   isAssistedCommitRepositoryLocked,
 } from '../../models/assisted-commit-run'
+import { isRepositoryAffectedByAssistedCommit } from '../../lib/git/repository-operation'
 import {
   assistedCommitRequestsEqual,
   freezeAssistedCommitRequest,
@@ -71,7 +72,6 @@ import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { enableHooksEnvironment } from '../../lib/feature-flag'
 import {
   getAccountForCopilot,
   getAccountForCopilotAssistedCommits,
@@ -149,6 +149,7 @@ interface ICommitMessageProps {
   /** Repository-owned preference. Omitted in manual-only contexts. */
   readonly commitMode?: CommitMode
   readonly onCommitModeChanged?: (mode: CommitMode) => void
+  readonly onCommitModeDropdownOpened?: () => void
   readonly pushAfterCommit?: boolean
   readonly canPushAfterCommit?: boolean
   readonly onPushAfterCommitChanged?: (enabled: boolean) => void
@@ -710,7 +711,19 @@ export class CommitMessage extends React.Component<
 
     const commitMode: CommitMode =
       option.id === 'copilot' ? 'copilot' : 'manual'
-    this.props.onCommitModeChanged?.(commitMode)
+    if (
+      this.props.onCommitModeChanged === undefined ||
+      commitMode === (this.isCopilotCommitMode ? 'copilot' : 'manual')
+    ) {
+      return
+    }
+    this.props.onCommitModeChanged(commitMode)
+  }
+
+  private onCommitModeDropdownOpened = () => {
+    if (this.isCopilotAssistedCommitAvailable && !this.isBusy) {
+      this.props.onCommitModeDropdownOpened?.()
+    }
   }
 
   /**
@@ -744,7 +757,8 @@ export class CommitMessage extends React.Component<
       this.props.isGeneratingCommitMessage === true ||
       this.props.isCreatingCopilotAssistedCommits === true ||
       (this.props.assistedCommitState !== undefined &&
-        isAssistedCommitRepositoryLocked(this.props.assistedCommitState))
+        isAssistedCommitRepositoryLocked(this.props.assistedCommitState)) ||
+      isRepositoryAffectedByAssistedCommit(this.props.repository.path)
     )
   }
 
@@ -1495,19 +1509,17 @@ export class CommitMessage extends React.Component<
       })
     }
 
-    if (enableHooksEnvironment()) {
-      items.push({
-        type: 'checkbox',
-        checked: this.props.skipCommitHooks,
-        enabled: !this.isBusy,
-        label: __DARWIN__ ? 'Bypass Commit Hooks' : 'Bypass Commit hooks',
-        action: () => {
-          this.updateCommitOptions({
-            skipCommitHooks: !this.props.skipCommitHooks,
-          })
-        },
-      })
-    }
+    items.push({
+      type: 'checkbox',
+      checked: this.props.skipCommitHooks,
+      enabled: !this.isBusy,
+      label: __DARWIN__ ? 'Bypass Commit Hooks' : 'Bypass Commit hooks',
+      action: () => {
+        this.updateCommitOptions({
+          skipCommitHooks: !this.props.skipCommitHooks,
+        })
+      },
+    })
 
     items.push({
       type: 'checkbox',
@@ -2104,6 +2116,7 @@ export class CommitMessage extends React.Component<
         ariaDescribedBy={ariaDescribedBy}
         dropdownAriaLabel="Choose how to commit"
         onCheckedOptionChange={this.onCommitModeChanged}
+        onDropdownOpened={this.onCommitModeDropdownOpened}
         onSubmit={this.onSubmit}
         renderInvokeButtonContent={
           isCopilotCommitMode

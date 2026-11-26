@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { TestContext } from 'node:test'
-import { sleep } from '../../src/lib/promise'
+import { setTimeout } from 'timers/promises'
 import { isErrnoException } from '../../src/lib/errno-exception'
 
 const isBusyError = (e: unknown) => isErrnoException(e) && e.code === 'EBUSY'
@@ -12,7 +12,7 @@ const isBusyError = (e: unknown) => isErrnoException(e) && e.code === 'EBUSY'
 const clean = async (path: string, n = 1): Promise<void> =>
   rm(path, { recursive: true }).catch((e: unknown) =>
     n <= 6 && isBusyError(e)
-      ? sleep(Math.ceil(Math.pow(n, 1.2))).then(() => clean(path, n + 1))
+      ? setTimeout(Math.ceil(Math.pow(n, 1.2))).then(() => clean(path, n + 1))
       : Promise.reject(e)
   )
 

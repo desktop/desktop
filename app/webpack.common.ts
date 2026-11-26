@@ -94,16 +94,33 @@ export const renderer = merge(
         template: path.join(__dirname, 'static', 'index.html'),
         chunks: ['renderer'],
       }),
+      // Native AsyncLocalStorage can fatally crash the renderer because of a V8
+      // optimizer bug. Give the Copilot SDK a hooks-based replacement instead;
+      // see app/src/lib/copilot/renderer-async-hooks.ts for details.
       new webpack.NormalModuleReplacementPlugin(
-        /^vscode-jsonrpc$/,
+        /^node:async_hooks$/,
         resource => {
-          resource.request = 'vscode-jsonrpc/lib/node/main.js'
-        }
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /vscode-jsonrpc[\\/]node(\.js)?$/,
-        resource => {
-          resource.request = 'vscode-jsonrpc/lib/node/main.js'
+          if (
+            !/[\\/]node_modules[\\/]@github[\\/]copilot-sdk[\\/]/.test(
+              resource.context
+            )
+          ) {
+            return
+          }
+          const replacement = path.resolve(
+            __dirname,
+            'src/lib/copilot/renderer-async-hooks.ts'
+          )
+          resource.request = replacement
+          // Webpack's Node externals check the dependency's request directly.
+          for (const dependency of resource.dependencies) {
+            if (
+              'request' in dependency &&
+              dependency.request === 'node:async_hooks'
+            ) {
+              dependency.request = replacement
+            }
+          }
         }
       ),
       new webpack.DefinePlugin(

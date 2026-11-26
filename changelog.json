@@ -1,5 +1,35 @@
 {
   "releases": {
+    "3.7.1-beta1": [
+      "[New] Delegate splitting your changes into commits with Copilot assisted commits - #22991",
+      "[Added] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
+      "[Fixed] Improve protection against revoked certificate authorities - #23217",
+      "[Fixed] Commit-range and branch-comparison diffs ignore configured `diff.external` tools - #23214",
+      "[Fixed] Close CI popover when branch dropdown is clicked - #21865. Thanks @robbierotman!",
+      "[Fixed] Center access messages and buttons in Copilot settings - #23205",
+      "[Fixed] Change `.node-version` link to relative path - #23165. Thanks @PtJade-Ceramic!"
+    ],
+    "3.7.0": [
+      "[New] Work with personal and work accounts side by side without signing out, with support for multiple accounts on GitHub.com and on the same GitHub Enterprise server - #3707",
+      "[New] Open repositories in the GitHub Copilot app from the Repository menu - #23185",
+      "[Added] Automatically push after a commit - #23135",
+      "[Fixed] Keep operations on selected files scoped to their exact filenames when names contain wildcard or Git pathspec syntax - #23123",
+      "[Fixed] Reduce response-format failures when generating commit messages and resolving conflicts with Copilot - #23170",
+      "[Fixed] Support custom Copilot providers with a model named `auto` - #23059",
+      "[Fixed] Pull request preview for forks compares against the parent repository's default branch - #23151. Thanks @DylanDevelops!",
+      "[Fixed] Accept local repository paths copied with surrounding quotes - #23108",
+      "[Fixed] Disable the Switch branch button while stashing changes and switching branches - #23028. Thanks @SnakyBeaky!",
+      "[Fixed] Highlighted names and paths in dialogs no longer break in the middle of short words - #23152. Thanks @DylanDevelops!",
+      "[Fixed] Keep the repository list's uncommitted-changes indicator in sync when refreshing the Changes tab - #23089",
+      "[Improved] Clone Repository has a single GitHub tab with an account picker covering all signed-in accounts - #23044",
+      "[Improved] Publish Repository lets you pick from all signed-in accounts on GitHub.com and GitHub Enterprise in a single list - #23024",
+      "[Improved] Repositories are grouped by their assigned account when multiple GitHub accounts are used on the same host - #23186",
+      "[Improved] Keep Copilot commit-message generation and conflict resolution focused on their supplied context and custom instructions - #23112"
+    ],
+    "3.6.12-beta2": [
+      "[Fixed] Reduce response-format failures when generating commit messages and resolving conflicts with Copilot - #23170",
+      "[Improved] Repositories are grouped by their assigned account when multiple GitHub accounts are used on the same host - #23186"
+    ],
     "3.6.12-beta1": [
       "[Added] Add a \"Push after committing\" option for manual commits",
       "[Fixed] Highlighted names and paths in dialogs no longer break in the middle of short words - #23152. Thanks @DylanDevelops!",

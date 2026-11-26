@@ -111,8 +111,8 @@ export async function executeAssistedCommitRun(
   if (run.request.files.length > 0 && !dialogs.isConsentFresh()) {
     const accepted = await dialogs.requestConsent(run)
     if (!accepted && !run.controller.signal.aborted) {
-      await selections.certifyUncaptured(run)
       run.declined = true
+      await selections.certifyUncaptured(run)
       throw new AssistedCommitError(
         'cancelled',
         'Assisted commit consent was declined'
@@ -143,7 +143,11 @@ export async function executeAssistedCommitRun(
   await context.assertFreshInputs(run)
   const onProgress = (progress: AssistedCommitProgress) =>
     withoutRepositoryGitAccess(() => context.progress(run, progress))
-  const options = { signal: run.controller.signal, onProgress }
+  const options = {
+    signal: run.controller.signal,
+    onProgress,
+    onRecovery: run.metrics.recovery,
+  }
   const result = await run.lease.run(() =>
     withAssistedCommitSnapshot(
       repository,
@@ -187,6 +191,10 @@ export async function executeAssistedCommitRun(
                           run.initialState.changesState.currentRepoRulesInfo.commitMessagePatterns.getRules(),
                         mode,
                         signal,
+                        onPlanningStarted: () =>
+                          run.metrics.once(
+                            'copilotAssistedCommitPlanningStartedCount'
+                          ),
                       }
                     )
                   )
@@ -207,11 +215,16 @@ export async function executeAssistedCommitRun(
                         cancelRequested: false,
                       })
                     }),
+                  onFallback: () =>
+                    run.metrics.once('copilotAssistedCommitFallbackCount'),
+                  onPlanRejected: error => run.metrics.diagnose(error),
                 }
               )
         run.plan = checked
+        run.metrics.once('copilotAssistedCommitPlanValidatedCount')
         await validateAssistedCommitMessages(run, context, snapshot, checked)
         context.check(run)
+        run.metrics.once('copilotAssistedCommitExecutionStartedCount')
         const result = await executeAssistedCommitPlan(snapshot, checked, {
           ...options,
           onVerifyCommit: commit => {

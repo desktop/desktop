@@ -31,6 +31,7 @@ import {
 } from '../../../models/diff'
 import { DiffParser } from '../../diff-parser'
 import { git } from '../core'
+import { getLocalGitEnvironment } from '../execution-environment'
 import {
   AssistedCommitError,
   checkAssistedCommitCancellation,
@@ -64,7 +65,10 @@ import {
   ITreeEntry,
   snapshots,
 } from './state'
-import { IAssistedCommitOperationOptions } from './progress'
+import {
+  IAssistedCommitOperationOptions,
+  notifyAssistedCommitRecovery,
+} from './progress'
 
 const MaximumSplittableBytes = 4 * 1024 * 1024
 const ParsedDiffConfiguration: ReadonlyArray<string> = [
@@ -94,7 +98,8 @@ const completedCleanups = new WeakSet<IAssistedCommitCleanupToken>()
  * Active capture, validation, execution and concurrent disposal reject as busy.
  */
 export async function retryAssistedCommitCleanup(
-  token: IAssistedCommitCleanupToken
+  token: IAssistedCommitCleanupToken,
+  options: IAssistedCommitOperationOptions = {}
 ): Promise<void> {
   const cleanup = snapshotCleanups.get(token)
   if (cleanup === undefined) {
@@ -121,6 +126,7 @@ export async function retryAssistedCommitCleanup(
   if (data !== undefined) {
     data.phase = 'disposing'
   }
+  notifyAssistedCommitRecovery(options, 'started')
   try {
     let current: Stats | undefined
     try {
@@ -149,7 +155,9 @@ export async function retryAssistedCommitCleanup(
     }
     snapshotCleanups.delete(token)
     completedCleanups.add(token)
+    notifyAssistedCommitRecovery(options, 'succeeded')
   } catch (cause) {
+    notifyAssistedCommitRecovery(options, 'failed')
     if (data !== undefined) {
       data.phase = 'captured'
     }
@@ -456,7 +464,8 @@ export async function captureAssistedCommitSnapshot(
   input: ICopilotAssistedCommitRequest,
   options: IAssistedCommitOperationOptions = {}
 ): Promise<IAssistedCommitSnapshot> {
-  const incomingAttributeSource = process.env.GIT_ATTR_SOURCE
+  const incomingAttributeSource = (getLocalGitEnvironment() ?? process.env)
+    .GIT_ATTR_SOURCE
   checkAssistedCommitCancellation(options.signal)
   const request = cloneRequest(input)
   validateSelectionPaths(request)
@@ -1109,7 +1118,7 @@ export async function captureAssistedCommitSnapshot(
   } catch (error) {
     cleanup.capturing = false
     try {
-      await retryAssistedCommitCleanup(cleanupToken)
+      await retryAssistedCommitCleanup(cleanupToken, options)
     } catch (cleanupError) {
       throw new AssistedCommitError(
         'cleanup-failed',
@@ -1126,7 +1135,8 @@ export async function captureAssistedCommitSnapshot(
 
 /** Dispose a snapshot's private metadata and indices. Safe to call twice. */
 export async function disposeAssistedCommitSnapshot(
-  snapshot: IAssistedCommitSnapshot
+  snapshot: IAssistedCommitSnapshot,
+  options: IAssistedCommitOperationOptions = {}
 ): Promise<void> {
   const data = snapshots.get(snapshot)
   if (data === undefined) {
@@ -1138,7 +1148,7 @@ export async function disposeAssistedCommitSnapshot(
       'Snapshot was not captured by Desktop'
     )
   }
-  await retryAssistedCommitCleanup(data.cleanupToken)
+  await retryAssistedCommitCleanup(data.cleanupToken, options)
 }
 
 /**
@@ -1167,7 +1177,10 @@ export async function withAssistedCommitSnapshot<T>(
     throw error
   } finally {
     try {
-      await disposeAssistedCommitSnapshot(snapshot)
+      await disposeAssistedCommitSnapshot(
+        snapshot,
+        operationFailed ? options : {}
+      )
     } catch (cleanup) {
       const recovery =
         operationError instanceof AssistedCommitError

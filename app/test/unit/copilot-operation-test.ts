@@ -315,6 +315,56 @@ function idleEvent(
 }
 
 describe('sendCopilotPlanningRequest correlated completion', () => {
+  for (const throws of [false, true]) {
+    it(`notifies after sending without granting the observer authority (throws=${throws})`, async t => {
+      const send = t.mock.fn(async () => 'synthetic-request')
+      const fake = createPlanningSession(send)
+      const started = t.mock.fn(() => {
+        assert.equal(send.mock.callCount(), 1)
+        if (throws) {
+          throw new Error('Synthetic start observer failure')
+        }
+      })
+      const operation = sendCopilotPlanningRequest(
+        fake.session,
+        { prompt: 'Synthetic' },
+        new AbortController().signal,
+        cancellationError,
+        undefined,
+        started
+      )
+      const response = assistantMessage('Completed')
+      fake.emit(response)
+      fake.emit(idleEvent())
+      assert.equal(await operation, response)
+      assert.equal(started.mock.callCount(), 1)
+      assert.equal(fake.listenerCount(), 0)
+    })
+  }
+
+  it('does not notify a start when subscription setup prevents sending', async t => {
+    const send = t.mock.fn(async () => 'synthetic-request')
+    const fake = createPlanningSession(send)
+    const failure = new Error('Synthetic subscription setup failure')
+    t.mock.method(fake.session, 'onResponseEvent', () => {
+      throw failure
+    })
+    const started = t.mock.fn(() => {})
+    await assert.rejects(
+      sendCopilotPlanningRequest(
+        fake.session,
+        { prompt: 'Synthetic' },
+        new AbortController().signal,
+        cancellationError,
+        undefined,
+        started
+      ),
+      error => error === failure
+    )
+    assert.equal(send.mock.callCount(), 0)
+    assert.equal(started.mock.callCount(), 0)
+  })
+
   for (const ackFirst of [false, true]) {
     it(`returns the final corrected root response after ACK and completion (ACK first=${ackFirst})`, async t => {
       const ack = deferred<string>()

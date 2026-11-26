@@ -6,14 +6,15 @@ import {
 import {
   AssistedCommitError,
   checkAssistedCommitCancellation,
+} from './git/assisted-commit/error'
+import {
   createSingleAssistedCommitPlan,
-  IAssistedCommitOperationOptions,
   validateAssistedCommitPlan,
-} from './git/assisted-commit'
+} from './git/assisted-commit/plan'
+import { IAssistedCommitOperationOptions } from './git/assisted-commit/progress'
 import {
   assertAssistedCommitAnalysis,
   AssistedCommitPlanningMode,
-  CopilotAssistedCommitError,
   CopilotAssistedCommitResponse,
   validateCopilotAssistedCommitResponse,
 } from './copilot-assisted-commit'
@@ -37,6 +38,9 @@ export interface IAssistedCommitPlanningOptions
   readonly onPlanningProgress?: (
     progress: IAssistedCommitPlanningProgress
   ) => void | Promise<void>
+  /** Diagnostic notifications do not authorize a fallback or interrupt planning. */
+  readonly onFallback?: () => void
+  readonly onPlanRejected?: (error: unknown) => void
 }
 
 /**
@@ -44,7 +48,7 @@ export interface IAssistedCommitPlanningOptions
  *
  * The caller owns the snapshot scope. Only an unsafe-plan from cumulative-tree
  * validation of a valid split permits one fresh whole-selection request.
- * Invalid output, unsafe outcomes and transport/ownership errors never retry.
+ * Invalid output and transport/ownership errors never retry.
  */
 export async function planAssistedCommits(
   snapshot: IAssistedCommitSnapshot,
@@ -63,18 +67,17 @@ export async function planAssistedCommits(
     checkAssistedCommitCancellation(options.signal)
     const response = await propose(snapshot.analysis, mode, options.signal)
     checkAssistedCommitCancellation(options.signal)
-    const checked = validateCopilotAssistedCommitResponse(
+    return validateCopilotAssistedCommitResponse(
       snapshot.analysis,
       response,
       mode
     )
-    if (checked.kind === 'unsafe') {
-      throw new CopilotAssistedCommitError('unsafe', checked.reason)
-    }
-    return checked
   }
 
   const response = await analyze('plan')
+  if (response.kind === 'uncertain-boundaries') {
+    notify(() => options.onFallback?.())
+  }
   const proposal =
     response.kind === 'uncertain-boundaries'
       ? createSingleAssistedCommitPlan(snapshot, {
@@ -103,6 +106,9 @@ export async function planAssistedCommits(
       validationOptions
     )
   } catch (error) {
+    if (!observerFailed) {
+      notify(() => options.onPlanRejected?.(error))
+    }
     if (
       observerFailed ||
       !(error instanceof AssistedCommitError) ||
@@ -113,6 +119,7 @@ export async function planAssistedCommits(
     }
   }
 
+  notify(() => options.onFallback?.())
   const whole = await analyze('single-commit')
   const message =
     whole.kind === 'uncertain-boundaries' ? whole : whole.commits[0]
@@ -122,4 +129,12 @@ export async function planAssistedCommits(
     description: message.description,
   })
   return validateAssistedCommitPlan(snapshot, single, validationOptions)
+}
+
+function notify(callback: () => void): void {
+  try {
+    callback()
+  } catch (error) {
+    log.error('Could not report assisted commit planning statistics', error)
+  }
 }

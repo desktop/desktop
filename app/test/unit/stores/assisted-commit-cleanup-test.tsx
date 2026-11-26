@@ -256,6 +256,13 @@ describe('AppStore owned temporary cleanup retry', () => {
     )
     assert.equal(h.propose.mock.callCount(), 0)
     assert.equal(h.commits.mock.callCount(), 0)
+    const measures = await h.measures()
+    assert.equal(measures.copilotAssistedCommitStartedCount, 1)
+    assert.equal(measures.copilotAssistedCommitErrorCount, 1)
+    assert.equal(measures.copilotAssistedCommitRecoveryRequiredCount, 1)
+    assert.equal(measures.copilotAssistedCommitRecoveryAttemptCount, 3)
+    assert.equal(measures.copilotAssistedCommitRecoveryErrorCount, 2)
+    assert.equal(measures.copilotAssistedCommitRecoverySuccessCount, 1)
     await assert.rejects(FileSystem.lstat(h.faults.directory), {
       code: 'ENOENT',
     })

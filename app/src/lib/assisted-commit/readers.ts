@@ -5,10 +5,11 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { ChangesSelectionKind } from '../app-state'
 import { assistedCommitErrorCauses } from '../assisted-commit-run'
 import { ErrorWithMetadata } from '../error-with-metadata'
-import { IStatusResult } from '../git'
+import { getWorkingDirectoryDiff, IStatusResult } from '../git'
 import { AssistedCommitError } from '../git/assisted-commit'
 import {
   getAssistedCommitProtectedPaths,
+  hasActiveAssistedCommitProtection,
   isRepositoryGitPaused,
   protectAssistedCommitResources,
   withRepositoryGitErrorPropagation,
@@ -97,12 +98,13 @@ export class AssistedCommitReaders {
   public async read<T>(
     repository: Repository,
     run: IAssistedCommitRun | undefined,
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
+    options?: { readonly lockRepository?: boolean }
   ): Promise<T> {
     const manual = this.manualSettlements.get(repository.id)
     if (manual?.repositoryPath === repository.path) {
       await manual.settlement.done
-      return this.read(repository, run, operation)
+      return this.read(repository, run, operation, options)
     }
     const state = this.state.cache.get(repository)
     if (
@@ -112,6 +114,23 @@ export class AssistedCommitReaders {
       )
     ) {
       return operation()
+    }
+    if (run === undefined && options?.lockRepository !== true) {
+      const ownerBefore = this.state.runs.get(repository.id)
+      try {
+        return await withRepositoryGitOperation(repository.path, 'read', () =>
+          withRepositoryGitErrorPropagation(operation)
+        )
+      } catch (error) {
+        if (
+          this.state.selectionOwner(repository) === undefined &&
+          this.state.runs.get(repository.id) === ownerBefore
+        ) {
+          this.invalidate(repository, undefined, error)
+          this.state.events.changed()
+        }
+        throw error
+      }
     }
     const readers = this.state.selectionReaders.get(repository.id) ?? {
       pending: new Set<Promise<void>>(),
@@ -162,6 +181,12 @@ export class AssistedCommitReaders {
     run: IAssistedCommitRun | undefined,
     error: unknown
   ): void {
+    if (
+      run === undefined &&
+      this.state.selectionOwner(repository) !== undefined
+    ) {
+      return
+    }
     this.state.cache.updateChangesState(repository, state => ({
       workingDirectory: state.workingDirectory.withIncludeAllFiles(false),
       selection:
@@ -377,7 +402,9 @@ export class AssistedCommitReaders {
     if (status === null) {
       return null
     }
-    await getAssistedCommitProtectedPaths(repository.path)
+    if (assistedRun !== undefined || hasActiveAssistedCommitProtection()) {
+      await getAssistedCommitProtectedPaths(repository.path)
+    }
     try {
       await this.selections.verifyRestored(repository)
     } catch (error) {
@@ -457,19 +484,31 @@ export class AssistedCommitReaders {
       this.deferRefresh(repository)
       return
     }
+    const ownerBefore = this.state.runs.get(repository.id)
     return this.read(repository, run, () =>
       withRepositoryGitOperation(repository.path, 'read', () =>
-        this.updateDiffCore(repository)
+        this.updateDiffCore(repository, run, ownerBefore)
       )
     )
   }
 
-  private async updateDiffCore(repository: Repository): Promise<void> {
+  private getDisplayDiff(...args: Parameters<typeof getWorkingDirectoryDiff>) {
+    return getWorkingDirectoryDiff(...args)
+  }
+
+  private async updateDiffCore(
+    repository: Repository,
+    admittedRun: IAssistedCommitRun | undefined,
+    ownerBefore: IAssistedCommitRun | undefined
+  ): Promise<void> {
     const result = await updateWorkingDirectorySelectionDiff(
       repository,
       this.state,
       this.selections,
-      this.configuration().hideWhitespace
+      this.configuration().hideWhitespace,
+      admittedRun,
+      ownerBefore,
+      (...args) => this.getDisplayDiff(...args)
     )
     if (result.kind === 'invalid') {
       this.invalidate(repository, result.run, result.error)

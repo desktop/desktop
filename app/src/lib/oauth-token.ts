@@ -33,6 +33,27 @@ export class OAuthRefreshRejectedError extends Error {
   }
 }
 
+/** Safe diagnostic categories for token request failures that retain credentials. */
+export type TokenRefreshFailureKind =
+  | 'timeout'
+  | 'network'
+  | 'rateLimited'
+  | 'server'
+  | 'otherHttp'
+  | 'otherOAuth'
+  | 'unknown'
+
+/** A sanitized request failure with no response body, URL, or original cause. */
+export class OAuthTokenRequestError extends Error {
+  public constructor(public readonly kind: TokenRefreshFailureKind) {
+    super(
+      kind === 'timeout'
+        ? 'The OAuth token request timed out.'
+        : 'The OAuth token request failed.'
+    )
+  }
+}
+
 /** Whether a value can be sent as an OAuth token: non-empty, no whitespace. */
 export function isToken(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && !/\s/.test(value)
@@ -136,15 +157,16 @@ async function requestOAuthToken(
   const deadline = new Promise<never>((_, reject) => {
     timeout = setTimeout(() => {
       controller.abort()
-      reject(new Error('The OAuth token request timed out.'))
+      reject(new OAuthTokenRequestError('timeout'))
     }, requestTimeout)
   })
 
   try {
     const request = async () => {
-      const response = await fetch(
-        getAbsoluteUrl(htmlEndpoint, 'login/oauth/access_token'),
-        {
+      const url = getAbsoluteUrl(htmlEndpoint, 'login/oauth/access_token')
+      let response: Response
+      try {
+        response = await fetch(url, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -159,22 +181,34 @@ async function requestOAuthToken(
           signal: controller.signal,
           redirect: 'error',
           cache: 'no-store',
-        }
-      )
+        })
+      } catch {
+        throw new OAuthTokenRequestError('network')
+      }
+
+      // Classify these statuses even if the body is HTML or cannot be read.
+      if (
+        response.status === 429 ||
+        (response.status === 403 &&
+          (response.headers.get('x-ratelimit-remaining') === '0' ||
+            response.headers.has('retry-after')))
+      ) {
+        throw new OAuthTokenRequestError('rateLimited')
+      }
+      if (response.status >= 500) {
+        throw new OAuthTokenRequestError('server')
+      }
 
       let value: unknown
       try {
         value = await response.json()
       } catch {
         if (!response.ok) {
-          throw new Error('The OAuth token request failed.')
+          throw new OAuthTokenRequestError('otherHttp')
         }
         throw new OAuthTokenResponseError()
       }
 
-      if (response.status >= 500) {
-        throw new Error('The OAuth token request failed.')
-      }
       if (isRecord(value) && 'error' in value) {
         if (
           refreshing &&
@@ -183,11 +217,17 @@ async function requestOAuthToken(
         ) {
           throw new OAuthRefreshRejectedError()
         }
-        throw new Error('The OAuth token request failed.')
+        if (
+          value.error === 'slow_down' ||
+          value.error === 'rate_limit_exceeded'
+        ) {
+          throw new OAuthTokenRequestError('rateLimited')
+        }
+        throw new OAuthTokenRequestError('otherOAuth')
       }
 
       if (!response.ok) {
-        throw new Error('The OAuth token request failed.')
+        throw new OAuthTokenRequestError('otherHttp')
       }
 
       const token = parseOAuthToken(value, issuedAt)
@@ -200,17 +240,21 @@ async function requestOAuthToken(
 
     return await Promise.race([request(), deadline])
   } catch (error) {
-    if (controller.signal.aborted) {
-      throw new Error('The OAuth token request timed out.')
+    const timedOut = controller.signal.aborted
+    // Stop discarded response bodies without treating cleanup as a timeout.
+    controller.abort()
+    if (timedOut) {
+      throw new OAuthTokenRequestError('timeout')
     }
     if (
       error instanceof OAuthTokenResponseError ||
-      error instanceof OAuthRefreshRejectedError
+      error instanceof OAuthRefreshRejectedError ||
+      error instanceof OAuthTokenRequestError
     ) {
       throw error
     }
     // Fetch and JSON errors can contain credentials, URLs, or response bodies.
-    throw new Error('The OAuth token request failed.')
+    throw new OAuthTokenRequestError('unknown')
   } finally {
     clearTimeout(timeout)
   }

@@ -48,7 +48,6 @@ import { ValidNotificationPullRequestReviewState } from '../valid-notification-p
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
-import { enableNewStatsEndpoint } from '../feature-flag'
 import { parseModelKey } from '../copilot/byok'
 import { DefaultCopilotModel } from '../stores/copilot-store'
 import { getSystemNotificationsPermission } from '../notifications/notification-permission'
@@ -67,8 +66,6 @@ type PullRequestReviewStatFieldSuffix =
 
 type PullRequestReviewStatField =
   `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
-
-const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const StatsEndpoint =
   'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
@@ -111,6 +108,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   tokenRefreshAttemptCount: 0,
   tokenRefreshSuccessCount: 0,
   tokenRefreshTransientFailureCount: 0,
+  tokenRefreshTransientFailureTimeoutCount: 0,
+  tokenRefreshTransientFailureNetworkCount: 0,
+  tokenRefreshTransientFailureRateLimitedCount: 0,
+  tokenRefreshTransientFailureServerCount: 0,
+  tokenRefreshTransientFailureOtherHttpCount: 0,
+  tokenRefreshTransientFailureOtherOAuthCount: 0,
+  tokenRefreshTransientFailureUnknownCount: 0,
   tokenRefreshNonTransientFailureCount: 0,
   tokenRefreshAbandonedCount: 0,
   tokenRefreshRequiredSignInCount: 0,
@@ -305,6 +309,34 @@ const DefaultDailyMeasures: IDailyMeasures = {
   copilotConflictResolutionOver30sCount: 0,
   copilotConflictResolutionOver60sCount: 0,
   copilotConflictResolutionOver120sCount: 0,
+  commitModeDropdownOpenedCount: 0,
+  commitModeSwitchedToCopilotCount: 0,
+  commitModeSwitchedToManualCount: 0,
+  copilotAssistedCommitStartedCount: 0,
+  copilotAssistedCommitPlanningStartedCount: 0,
+  copilotAssistedCommitPlanValidatedCount: 0,
+  copilotAssistedCommitExecutionStartedCount: 0,
+  copilotAssistedCommitAcceptedCount: 0,
+  copilotAssistedCommitCancelledCount: 0,
+  copilotAssistedCommitConsentDeclinedCount: 0,
+  copilotAssistedCommitErrorCount: 0,
+  copilotAssistedCommitEmptyCommitCount: 0,
+  copilotAssistedCommitCreatedCommitCount: 0,
+  copilotAssistedCommitMultiCommitRunCount: 0,
+  copilotAssistedCommitFallbackCount: 0,
+  copilotAssistedCommitSelectionChangedCount: 0,
+  copilotAssistedCommitRepositoryChangedCount: 0,
+  copilotAssistedCommitPlanRejectedCount: 0,
+  copilotAssistedCommitCommitVerificationFailedCount: 0,
+  copilotAssistedCommitRecoveryRequiredCount: 0,
+  copilotAssistedCommitRecoveryAttemptCount: 0,
+  copilotAssistedCommitRecoverySuccessCount: 0,
+  copilotAssistedCommitRecoveryErrorCount: 0,
+  copilotAssistedCommitOver15sCount: 0,
+  copilotAssistedCommitOver30sCount: 0,
+  copilotAssistedCommitOver60sCount: 0,
+  copilotAssistedCommitOver120sCount: 0,
+  manualCommitWorkflowCount: 0,
   additionalAccountSignInCount: 0,
   accountSignOutWithAssignmentsCount: 0,
   accountSignOutClearedAssignmentsCount: 0,
@@ -673,24 +705,13 @@ export function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
 }
 
 const defaultPostImplementation = (body: StatsPayload) => {
-  if (enableNewStatsEndpoint()) {
-    return fetch(StatsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'user-agent': getUserAgent(),
-      },
-      body: JSON.stringify(buildStatsPayload(body)),
-    })
-  }
-
-  return fetch(LegacyStatsEndpoint, {
+  return fetch(StatsEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'user-agent': getUserAgent(),
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(buildStatsPayload(body)),
   })
 }
 
@@ -742,16 +763,37 @@ export class StatsStore implements IStatsStore {
 
   /** Count a single token refresh lifecycle event without credential metadata. */
   public recordTokenRefreshEvent(event: TokenRefreshEvent): Promise<void> {
-    const measures: Readonly<Record<TokenRefreshEvent, keyof NumericMeasures>> =
-      {
-        attempt: 'tokenRefreshAttemptCount',
-        success: 'tokenRefreshSuccessCount',
-        'transient-failure': 'tokenRefreshTransientFailureCount',
-        'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
-        abandoned: 'tokenRefreshAbandonedCount',
-        'required-sign-in': 'tokenRefreshRequiredSignInCount',
-      }
-    return this.increment(measures[event])
+    if (event.kind === 'transient-failure') {
+      const measures = {
+        timeout: 'tokenRefreshTransientFailureTimeoutCount',
+        network: 'tokenRefreshTransientFailureNetworkCount',
+        rateLimited: 'tokenRefreshTransientFailureRateLimitedCount',
+        server: 'tokenRefreshTransientFailureServerCount',
+        otherHttp: 'tokenRefreshTransientFailureOtherHttpCount',
+        otherOAuth: 'tokenRefreshTransientFailureOtherOAuthCount',
+        unknown: 'tokenRefreshTransientFailureUnknownCount',
+      } as const
+      const measure = measures[event.failureKind]
+      return this.updateDailyMeasures(m => ({
+        ...m,
+        tokenRefreshTransientFailureCount:
+          m.tokenRefreshTransientFailureCount + 1,
+        [measure]: m[measure] + 1,
+      }))
+    }
+    const measures: Readonly<
+      Record<
+        Exclude<TokenRefreshEvent['kind'], 'transient-failure'>,
+        keyof NumericMeasures
+      >
+    > = {
+      attempt: 'tokenRefreshAttemptCount',
+      success: 'tokenRefreshSuccessCount',
+      'non-transient-failure': 'tokenRefreshNonTransientFailureCount',
+      abandoned: 'tokenRefreshAbandonedCount',
+      'required-sign-in': 'tokenRefreshRequiredSignInCount',
+    }
+    return this.increment(measures[event.kind])
   }
 
   /** Report any stats which are eligible for reporting. */

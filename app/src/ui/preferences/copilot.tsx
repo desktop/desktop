@@ -76,7 +76,7 @@ export class CopilotPreferences extends React.Component<ICopilotPreferencesProps
     return (
       <DialogContent className="copilot-tab">
         <div className="copilot-tab-content">
-          <div className="copilot-section">
+          <div className="copilot-access-state">
             {this.renderAccessState(accessState)}
           </div>
         </div>

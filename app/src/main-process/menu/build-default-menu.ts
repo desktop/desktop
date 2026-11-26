@@ -4,10 +4,6 @@ import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
 import { getLogDirectoryPath } from '../../lib/logging/get-log-path'
 import { UNSAFE_openDirectory } from '../shell'
-import {
-  enableCopilotAppHandoff,
-  enableWorktreeSupport,
-} from '../../lib/feature-flag'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
@@ -211,7 +207,6 @@ export function buildDefaultMenuTemplate({
         id: 'show-worktrees-list',
         accelerator: 'CmdOrCtrl+Alt+W',
         click: emit('show-worktrees'),
-        visible: enableWorktreeSupport(),
       },
       separator,
       {
@@ -375,18 +370,14 @@ export function buildDefaultMenuTemplate({
         accelerator: 'CmdOrCtrl+Shift+A',
         click: emit('open-external-editor'),
       },
-      ...(enableCopilotAppHandoff()
-        ? [
-            {
-              label: __DARWIN__
-                ? 'Open in GitHub Copilot'
-                : 'Open in GitHub &Copilot',
-              id: 'open-in-copilot-app',
-              accelerator: 'CmdOrCtrl+Shift+J',
-              click: emit('open-in-copilot-app'),
-            },
-          ]
-        : []),
+      {
+        label: __DARWIN__
+          ? 'Open in GitHub Copilot'
+          : 'Open in GitHub &Copilot',
+        id: 'open-in-copilot-app',
+        accelerator: 'CmdOrCtrl+Shift+J',
+        click: emit('open-in-copilot-app'),
+      },
       {
         label: __DARWIN__ ? 'Open With…' : 'Open &with…',
         id: 'open-with-external-editor',
@@ -408,9 +399,8 @@ export function buildDefaultMenuTemplate({
         label: __DARWIN__ ? 'New Worktree…' : 'New work&tree…',
         click: emit('create-worktree'),
         accelerator: 'CmdOrCtrl+Shift+W',
-        visible: enableWorktreeSupport(),
       },
-      ...(enableWorktreeSupport() ? [separator] : []),
+      separator,
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
         id: 'show-repository-settings',

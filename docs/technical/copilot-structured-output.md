@@ -13,7 +13,7 @@ Schemas live beside each feature's response contract:
 
 | Feature | Schema | Model output |
 | --- | --- | --- |
-| Assisted commits | `CopilotAssistedCommitResponseSchema` | `{"result": <plan, uncertain-boundaries, or unsafe>}` |
+| Assisted commits | `CopilotAssistedCommitResponseSchema` | `{"result": <plan or uncertain-boundaries>}` |
 | Commit messages | `CopilotCommitMessageResponseSchema` | `{"title": "...", "description": "..."}` |
 | Conflicts | `CopilotConflictResolutionResponseSchema` | `{"resolutions": [...], "summary": "... or null", "references": [...]}` |
 
@@ -30,7 +30,10 @@ union under `result`; descriptions are strings, with `""` representing no body.
 `parseCopilotAssistedCommitStructuredResponse` accepts only this explicit bare
 JSON envelope, checks its size and fields, then delegates to the existing
 `validateCopilotAssistedCommitResponse`. The backend-independent bare-outcome
-parser and application types remain available unchanged. No arbitrary JSON
+parser and application types expose those same two outcomes. A plan may contain
+one or multiple commits; uncertainty supplies one whole-selection message.
+There is no model-selected refusal outcome. Unsupported outcomes are invalid
+responses, not an instruction to bypass Git validation. No arbitrary JSON
 extraction, Markdown removal or output repair is added.
 
 Ordinary generation also requests an empty string for no body. Its parser
@@ -88,9 +91,10 @@ and no generic JSON retry.
 
 ## Verification and limitations
 
-`copilot-assisted-commit-sdk-test.ts` exercises SDK `1.0.27-preview.1` and its
-bundled runtime `1.0.104-1` using model ID `synthetic-model`, a loopback-only BYOK
-base URL `http://127.0.0.1:1`, and SDK `CopilotRequestHandler` interception.
+`copilot-assisted-commit-sdk-test.ts` exercises the Copilot SDK pinned in
+[`app/package.json`](../../app/package.json) and its bundled runtime. The test
+uses model ID `synthetic-model`, a loopback-only BYOK base URL
+`http://127.0.0.1:1`, and SDK `CopilotRequestHandler` interception.
 Only synthetic prompts, changes and instructions are used; no model provider is
 contacted. All three production paths exercise OpenAI Chat Completions
 (`response_format.json_schema`), OpenAI Responses (`text.format`) and native

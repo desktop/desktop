@@ -5,7 +5,6 @@ import {
   buildDefaultMenuTemplate,
 } from '../../../src/main-process/menu'
 import type { MenuLabelsEvent } from '../../../src/models/menu-labels'
-import { enableCopilotAppHandoff } from '../../../src/lib/feature-flag'
 
 /** Extract the Windows-style access key from a menu item label, if any. */
 function getAccessKey(label: string): string | null {
@@ -159,18 +158,15 @@ describe('main-process menu', () => {
   })
 
   describe('buildDefaultMenuTemplate', () => {
-    it('gates Copilot handoff to supported platforms and preview channels', t => {
+    it('offers Copilot handoff in production without preview features', t => {
       const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-      const hasCopilotMenuItem = () => {
-        const template = buildDefaultMenuTemplate(baseParams)
-        const repository = template.find(item => item.id === 'repository')
-        assert.ok(Array.isArray(repository?.submenu))
-        return repository.submenu.some(
-          item => item.id === 'open-in-copilot-app'
-        )
+      const originalGlobals = {
+        __DEV__,
+        __RELEASE_CHANNEL__,
       }
 
       t.after(() => {
+        Object.assign(globalThis, originalGlobals)
         if (preview === undefined) {
           delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
         } else {
@@ -179,15 +175,17 @@ describe('main-process menu', () => {
       })
 
       delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-      assert.strictEqual(
-        enableCopilotAppHandoff(),
-        (__DARWIN__ || __WIN32__) && (__DEV__ || __RELEASE_CHANNEL__ === 'beta')
-      )
-      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
+      Object.assign(globalThis, {
+        __DEV__: false,
+        __RELEASE_CHANNEL__: 'production',
+      })
 
-      process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
-      assert.strictEqual(enableCopilotAppHandoff(), __DARWIN__ || __WIN32__)
-      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
+      const template = buildDefaultMenuTemplate(baseParams)
+      const repository = template.find(item => item.id === 'repository')
+      assert.ok(Array.isArray(repository?.submenu))
+      assert.ok(
+        repository.submenu.some(item => item.id === 'open-in-copilot-app')
+      )
     })
 
     // The boolean parameters that affect which labels (and therefore access
@@ -212,23 +210,21 @@ describe('main-process menu', () => {
       askForConfirmationOnRepositoryRemoval: false,
     }
 
-    it('provides a gated Copilot handoff without replacing the editor command', () => {
+    it('provides Copilot handoff without replacing the editor command', () => {
       const template = buildDefaultMenuTemplate(baseParams)
       const repository = template.find(item => item.id === 'repository')
       assert.ok(Array.isArray(repository?.submenu))
       const copilot = repository.submenu.find(
         item => item.id === 'open-in-copilot-app'
       )
-      assert.strictEqual(copilot !== undefined, enableCopilotAppHandoff())
-      if (copilot !== undefined) {
-        assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
-        assert.ok(
-          repository.submenu.indexOf(copilot) <
-            repository.submenu.findIndex(
-              item => item.id === 'open-with-external-editor'
-            )
-        )
-      }
+      assert.ok(copilot)
+      assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
+      assert.ok(
+        repository.submenu.indexOf(copilot) <
+          repository.submenu.findIndex(
+            item => item.id === 'open-with-external-editor'
+          )
+      )
       assert.ok(
         repository.submenu.some(item => item.id === 'open-external-editor')
       )

@@ -120,8 +120,14 @@ signed in. It shouldn't be passed merely because an account is available.
   configuration and agent, not Desktop's HTTPS account token.
 - **Copilot identity controls (deferred):** preserve the existing fallback to
   another Copilot-eligible account when the repository account lacks access.
-- **Repository-list presentation (follow-up):** consider displaying account
-  assignments and grouping or filtering repositories by account.
+- **Repository-list grouping (included):** preserve GitHub.com owner groups and
+  enterprise hostname groups. When an endpoint has multiple retained account
+  identities, split those groups by assigned login, with an `Unassociated`
+  subgroup for repositories without an assignment. Retained identities include
+  signed-in accounts and assignments kept on repositories after sign-out.
+  Single-identity endpoints keep their existing headings. Local-only repositories
+  with a stored login appear in `Other — @login` groups; unassigned local-only
+  repositories remain under `Other`. The `Recent` section is unchanged.
 - **Authenticated images and avatars (deferred):** avatar API lookups and private
   image loading still resolve credentials by endpoint rather than repository.
 - **Orphaned account-scoped metadata (follow-up):** reassigning a repository
@@ -303,6 +309,30 @@ Already-running SDK sessions can retain their cached expiry until their next
 token-provider callback; start a new generation to exercise the new metadata.
 
 ### Failure and recovery
+
+Transient refresh diagnostics retain only a bounded failure kind, not the
+original exception, response body, URL, or credentials:
+
+| Kind | Classification |
+| --- | --- |
+| `timeout` | Desktop's 30-second request or response-body deadline |
+| `network` | Fetch rejects before returning an HTTP response |
+| `rateLimited` | HTTP 429; HTTP 403 with exhausted rate-limit or retry-after headers; OAuth `slow_down` or `rate_limit_exceeded` |
+| `server` | HTTP 5xx, regardless of response body |
+| `otherHttp` | Other unsuccessful HTTP responses without a recognized OAuth error |
+| `otherOAuth` | Other OAuth errors in a parsed response |
+| `unknown` | Unexpected request processing failures or unclassified errors from the renewal provider |
+
+These categories do not change retry or sign-out behavior. The existing
+`tokenRefreshTransientFailureCount` remains the total. Each classified event
+increments that total and exactly one `tokenRefreshTransientFailure*Count`
+subtype in the same stats transaction. Older stored totals predate the subtype
+counters, so totals can exceed subtype sums across the instrumentation rollout.
+Renewals initiated with a debug expiration override remain excluded. HTTP rate
+limits and server failures are classified before reading the body. Failed
+exchanges abort any remaining response transfer without changing the failure
+kind to a timeout. Known refresh rejection and malformed successful responses
+retain their existing non-transient handling.
 
 - Temporary network/service failures retain credentials, fail the operation
   with connection guidance, and allow the next authenticated operation to retry

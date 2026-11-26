@@ -24,6 +24,7 @@ import {
   IGitStringResult,
 } from '../core'
 import { IRefLock } from '../update-ref'
+import { getLocalGitEnvironment } from '../execution-environment'
 import {
   acquireOwnedFileLock,
   IOwnedFileLease,
@@ -438,7 +439,7 @@ export async function initializePrivateRepository(
   const config = await exec(
     ['config', '--null', '--list', '--includes'],
     repository.path,
-    { env: { GIT_CONFIG: undefined } }
+    { env: { ...getLocalGitEnvironment(), GIT_CONFIG: undefined } }
   )
   if (config.exitCode !== 0) {
     throw new Error(
@@ -507,7 +508,8 @@ export async function initializePrivateRepository(
     removeGitLineEnding(attributesPath.stdout)
   )
   const shallow = await readOptionalFile(
-    process.env.GIT_SHALLOW_FILE ?? (await gitPath(repository, 'shallow'))
+    (getLocalGitEnvironment() ?? process.env).GIT_SHALLOW_FILE ??
+      (await gitPath(repository, 'shallow'))
   )
   await mkdir(join(directory, 'refs'), { recursive: true })
   await mkdir(join(directory, 'info'), { recursive: true })
@@ -885,7 +887,8 @@ export async function ensureNoRepositoryOperation(
   if (
     replacements.stdout.length > 0 ||
     (await optionalStat(
-      process.env.GIT_GRAFT_FILE ?? (await gitPath(repository, 'info/grafts'))
+      (getLocalGitEnvironment() ?? process.env).GIT_GRAFT_FILE ??
+        (await gitPath(repository, 'info/grafts'))
     )) !== null
   ) {
     throw new AssistedCommitError(

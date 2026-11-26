@@ -192,6 +192,12 @@ export class AssistedCommitContext {
       signOffCommits: state.signOffCommits,
       allowEmptyCommit: state.allowEmptyCommit,
     }
+    const headChanged =
+      !tipEquals(state.branchesState.tip, run.initialState.branchesState.tip) ||
+      !assistedCommitHeadMatches(
+        run.initialState.branchesState.tip,
+        state.branchesState.tip
+      )
     if (
       state.changesState.commitMode !== 'copilot' ||
       run.repository.isTutorialRepository ||
@@ -204,15 +210,12 @@ export class AssistedCommitContext {
         JSON.stringify(run.initialState.changesState.coAuthors) ||
       state.changesState.showCoAuthoredBy !==
         run.initialState.changesState.showCoAuthoredBy ||
-      !tipEquals(state.branchesState.tip, run.initialState.branchesState.tip) ||
-      !assistedCommitHeadMatches(
-        run.initialState.branchesState.tip,
-        state.branchesState.tip
-      )
+      headChanged
     ) {
       throw new AssistedCommitError(
         'selection-changed',
-        'The selected changes or commit options changed. Review your selection and try again.'
+        'The selected changes or commit options changed. Review your selection and try again.',
+        { diagnostic: headChanged ? 'repository-changed' : undefined }
       )
     }
     if (run.request.files.length === 0 && !run.request.allowEmptyCommit) {

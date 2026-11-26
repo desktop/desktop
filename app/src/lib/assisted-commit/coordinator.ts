@@ -14,8 +14,12 @@ import {
   IAssistedCommitResult,
 } from '../git/assisted-commit'
 import {
+  hasActiveAssistedCommitProtection,
+  hasOverlappingRepositoryGitMutation,
+  hasUnresolvedRepositoryGitMutations,
   isRepositoryAffectedByAssistedCommit,
   isRepositoryGitMutationInProgress,
+  isRepositoryOverlappingAssistedCommit,
   withoutRepositoryGitAccess,
   withRepositoryGitErrorPropagation,
 } from '../git/repository-operation'
@@ -25,6 +29,7 @@ import { CopilotStore } from '../stores/copilot-store'
 import { RepositoryStateCache } from '../stores/repository-state-cache'
 import { AssistedCommitContext } from './context'
 import { AssistedCommitDialogs } from './dialogs'
+import { createAssistedCommitMetrics } from './metrics'
 import { executeAssistedCommitRun } from './execution'
 import { AssistedCommitReaders } from './readers'
 import {
@@ -56,6 +61,7 @@ export class AssistedCommitCoordinator {
   public readonly context: AssistedCommitContext
   /** Retained recovery capabilities and settlement. */
   public readonly recovery: AssistedCommitRecovery
+  private readonly startingRuns = new Set<number>()
 
   public constructor(
     cache: RepositoryStateCache,
@@ -121,6 +127,19 @@ export class AssistedCommitCoordinator {
     const frozen = freezeAssistedCommitRequest(request)
     const providerDefinition = this.context.providerDefinition(modelSelection)
     const providerRevision = this.context.providerRevision(modelSelection)
+    if (await hasOverlappingRepositoryGitMutation(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Finish the current Git operation before starting assisted commits'
+      )
+    }
+    if (await isRepositoryOverlappingAssistedCommit(repository.path)) {
+      throw new AssistedCommitError(
+        'busy',
+        'Another assisted run uses these working files or shared Git metadata'
+      )
+    }
+    this.state.assertAvailable(repository)
     const versions = await this.readers.read(repository, undefined, () =>
       this.selections.verifyRequested(repository, frozen.files)
     )
@@ -148,6 +167,7 @@ export class AssistedCommitCoordinator {
     result: IAssistedCommitResult
   ): void {
     finalizeAssistedCommitTransaction(result)
+    run.metrics.accepted(result.commits.length)
     this.state.accept(run, { kind: 'idle' })
     this.state.events.changed()
   }
@@ -158,51 +178,80 @@ export class AssistedCommitCoordinator {
     request: ICopilotAssistedCommitRequest
   ): Promise<AssistedCommitRunOutcome> {
     repository = this.repository.getCurrent(repository)
+    const isBusy = (target: Repository) => {
+      const state = this.state.cache.get(target)
+      const previous = this.state.runs.get(target.id)
+      return (
+        state.isCommitting ||
+        isRepositoryGitMutationInProgress(target.path) ||
+        isRepositoryAffectedByAssistedCommit(target.path) ||
+        this.state.selectionReaders.has(target.id) ||
+        isAssistedCommitRepositoryLocked(state.changesState.assistedCommit) ||
+        state.isGeneratingCommitMessage ||
+        state.isPushPullFetchInProgress ||
+        state.checkoutProgress !== null ||
+        state.revertProgress !== null ||
+        previous?.lease !== undefined ||
+        (previous !== undefined && !previous.finished)
+      )
+    }
+    if (this.startingRuns.has(repository.id) || isBusy(repository)) {
+      return { kind: 'busy' }
+    }
     const currentState = this.state.cache.get(repository)
     const prepared =
       request.intent === undefined
         ? undefined
         : this.state.intents.get(request.intent)
     const initialState = prepared?.initialState ?? currentState
-    const previous = this.state.runs.get(repository.id)
-    if (
-      currentState.isCommitting ||
-      isRepositoryGitMutationInProgress(repository.path) ||
-      isRepositoryAffectedByAssistedCommit(repository.path) ||
-      this.state.selectionReaders.has(repository.id) ||
-      isAssistedCommitRepositoryLocked(
-        currentState.changesState.assistedCommit
-      ) ||
-      currentState.isGeneratingCommitMessage ||
-      currentState.isPushPullFetchInProgress ||
-      currentState.checkoutProgress !== null ||
-      currentState.revertProgress !== null ||
-      previous?.lease !== undefined ||
-      (previous !== undefined && !previous.finished)
-    ) {
-      return { kind: 'busy' }
-    }
     const { account, modelSelection } =
       prepared ?? this.context.getIntent(repository)
+    const frozenRequest = freezeAssistedCommitRequest(request)
+    const providerRevision =
+      prepared?.providerRevision ??
+      this.context.providerRevision(modelSelection)
+    const providerDefinition =
+      prepared !== undefined
+        ? prepared.providerDefinition
+        : this.context.providerDefinition(modelSelection)
+    if (
+      hasUnresolvedRepositoryGitMutations() ||
+      hasActiveAssistedCommitProtection()
+    ) {
+      this.startingRuns.add(repository.id)
+      try {
+        if (
+          (await hasOverlappingRepositoryGitMutation(repository.path)) ||
+          (await isRepositoryOverlappingAssistedCommit(repository.path))
+        ) {
+          return { kind: 'busy' }
+        }
+      } finally {
+        this.startingRuns.delete(repository.id)
+      }
+      repository = this.repository.getCurrent(repository)
+      if (isBusy(repository)) {
+        return { kind: 'busy' }
+      }
+    }
     const run: IAssistedCommitRun = {
       id: randomUUID(),
       repository,
-      request: freezeAssistedCommitRequest(request),
+      request: frozenRequest,
       initialState,
       pushAfterCommit: initialState.changesState.pushAfterCommit,
       account,
       modelSelection,
       controller: new AbortController(),
+      metrics: createAssistedCommitMetrics(
+        request.files.length > 0,
+        this.state.events.recordMetric
+      ),
       selectionReaders: new Set<Promise<void>>(),
       settlement: createAssistedCommitSettlement(),
       selectionReadersClosed: false,
-      providerRevision:
-        prepared?.providerRevision ??
-        this.context.providerRevision(modelSelection),
-      providerDefinition:
-        prepared !== undefined
-          ? prepared.providerDefinition
-          : this.context.providerDefinition(modelSelection),
+      providerRevision,
+      providerDefinition,
       finalized: false,
       finished: false,
       inputVersions: prepared?.versions,
@@ -210,6 +259,7 @@ export class AssistedCommitCoordinator {
     let outcome: AssistedCommitRunOutcome | undefined
     let verifiedCancellation = false
 
+    run.metrics.once('copilotAssistedCommitStartedCount')
     try {
       const result = await executeAssistedCommitRun(run, request, prepared, {
         state: this.state,
@@ -270,11 +320,25 @@ export class AssistedCommitCoordinator {
       this.acceptLocal(run, result)
       outcome = { kind: 'local-ready', result }
     } catch (error) {
+      run.metrics.diagnose(error)
       const failure = await this.recovery.handleFailure(run, error)
       outcome = failure.outcome
       verifiedCancellation = failure.verifiedCancellation
     } finally {
-      outcome = await this.recovery.finish(run, outcome, verifiedCancellation)
+      try {
+        outcome = await this.recovery.finish(run, outcome, verifiedCancellation)
+      } finally {
+        if (!run.finalized) {
+          run.metrics.once(
+            run.declined
+              ? 'copilotAssistedCommitConsentDeclinedCount'
+              : run.cancelledByUser
+              ? 'copilotAssistedCommitCancelledCount'
+              : 'copilotAssistedCommitErrorCount'
+          )
+        }
+        await run.metrics.flush()
+      }
     }
     if (outcome === undefined) {
       throw new Error('Assisted commit run settled without an outcome')

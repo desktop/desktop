@@ -8,7 +8,7 @@ import webpack from 'webpack'
 import { renderer } from '../app/webpack.common'
 import { createTempDirectory } from '../app/test/helpers/temp'
 
-it('handles Copilot runtime exit with browser timer globals', async t => {
+it('runs the Copilot SDK with Electron renderer globals', async t => {
   const root = await createTempDirectory(t)
   const entry = join(root, 'index.js')
   await writeFile(
@@ -46,6 +46,29 @@ it('handles Copilot runtime exit with browser timer globals', async t => {
       onClose()
       await Promise.resolve()
       assert.equal(disposed, true)
+    }
+
+    export async function checkInitializationContext() {
+      const createClient = () => new CopilotClient({
+        connection: RuntimeConnection.forStdio({ path: process.execPath }),
+        useLoggedInUser: false,
+      })
+      const first = createClient()
+      const second = createClient()
+      await Promise.all([
+        first.runInitializationCallback('first', async () => {
+          await Promise.resolve()
+          assert.equal(first.sessionInitializationContext.getStore()?.sessionId, 'first')
+          assert.equal(second.sessionInitializationContext.getStore(), undefined)
+        }),
+        second.runInitializationCallback('second', async () => {
+          await Promise.resolve()
+          assert.equal(second.sessionInitializationContext.getStore()?.sessionId, 'second')
+          assert.equal(first.sessionInitializationContext.getStore(), undefined)
+        }),
+      ])
+      assert.equal(first.sessionInitializationContext.getStore(), undefined)
+      assert.equal(second.sessionInitializationContext.getStore(), undefined)
     }
     `
   )
@@ -94,11 +117,28 @@ it('handles Copilot runtime exit with browser timer globals', async t => {
     exports: {
       browserTimer?: () => string
       checkRuntimeExit?: () => Promise<void>
+      checkInitializationContext?: () => Promise<void>
     }
   } = { exports: {} }
+  const rendererRequire = createRequire(join(__dirname, '../app/package.json'))
   const context = {
     module,
-    require: createRequire(join(__dirname, '../app/package.json')),
+    require: (id: string) => {
+      const exports = rendererRequire(id)
+      if (id === 'node:async_hooks' || id === 'async_hooks') {
+        return {
+          ...exports,
+          AsyncLocalStorage: class {
+            public run() {
+              throw new Error(
+                'Native AsyncLocalStorage is unsafe in Electron renderers'
+              )
+            }
+          },
+        }
+      }
+      return exports
+    },
     process,
     Buffer,
     TextDecoder,
@@ -122,4 +162,6 @@ it('handles Copilot runtime exit with browser timer globals', async t => {
   assert.equal(context.module.exports.browserTimer(), 'number')
   await context.module.exports.checkRuntimeExit()
   assert.equal(timers.size, 0)
+  assert.ok(context.module.exports.checkInitializationContext)
+  await context.module.exports.checkInitializationContext()
 })

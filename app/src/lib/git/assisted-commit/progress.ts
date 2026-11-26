@@ -22,4 +22,21 @@ export interface IAssistedCommitOperationOptions {
   readonly onProgress?: (
     progress: AssistedCommitProgress
   ) => void | Promise<void>
+  /** Diagnostic only: unlike progress, this observer cannot interrupt Git. */
+  readonly onRecovery?: (event: AssistedCommitRecoveryEvent) => void
+}
+
+/** One actual rollback or exceptional cleanup attempt and its terminal result. */
+export type AssistedCommitRecoveryEvent = 'started' | 'succeeded' | 'failed'
+
+/** Recovery telemetry has no transaction authority, even when its observer fails. */
+export function notifyAssistedCommitRecovery(
+  options: IAssistedCommitOperationOptions,
+  event: AssistedCommitRecoveryEvent
+): void {
+  try {
+    options.onRecovery?.(event)
+  } catch (error) {
+    log.error('Could not report assisted commit recovery statistics', error)
+  }
 }
