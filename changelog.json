@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.7.1": [
+      "[Fixed] Improve protection against revoked certificate authorities - #23217",
+      "[Fixed] Commit-range and branch-comparison diffs ignore configured `diff.external` tools - #23214",
+      "[Fixed] Close CI popover when branch dropdown is clicked - #21865. Thanks @robbierotman!",
+      "[Fixed] Center access messages and buttons in Copilot settings - #23205",
+      "[Improved] Update Electron to v44.11.2, improving macOS auto-update reliability and overall app stability - #23217"
+    ],
     "3.7.1-beta2": [
       "[Added] Add support for Ctrl+P/N keyboard shortcuts to navigate lists on macOS - #21434. Thanks @jackfreem!",
       "[Fixed] Keep commit history up to date instead of showing stale or duplicated commits when new commits arrive while history is loading - #23238",
