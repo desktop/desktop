@@ -2156,6 +2156,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
+      // History may have been refreshed while this batch was loading.
+      const { compareState } = this.repositoryStateCache.get(repository)
+      if (compareState.commitSHAs !== commits) {
+        return
+      }
+
       this.repositoryStateCache.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
       }))
