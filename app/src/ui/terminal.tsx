@@ -6,6 +6,7 @@ import {
 import React from 'react'
 import { getMonospaceFontFamily } from './get-monospace-font-family'
 import { TerminalOutput } from '../lib/git'
+import { writeClipboardText } from './main-process-proxy'
 
 export const defaultTerminalOptions: Readonly<ITerminalOptions> = {
   convertEol: true,
@@ -57,6 +58,19 @@ export class Terminal extends React.Component<TerminalProps> {
         // doesn't support tab input, so we can safely ignore it.
         return false
       }
+
+      // fix to default xterm behavior on Windows to allow Ctrl+C
+      if (
+        key.type === 'keydown' &&
+        key.ctrlKey &&
+        !key.altKey &&
+        key.key.toLowerCase() === 'c' &&
+        this.terminal?.hasSelection()
+      ) {
+        writeClipboardText(this.terminal.getSelection())
+        return false
+      }
+
       return true
     })
 
