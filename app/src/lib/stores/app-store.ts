@@ -127,7 +127,9 @@ import {
   getAssistedCommitProtectedPaths,
   withRepositoryGitResourceMutation,
   canonicalMutationPath,
+  hasActiveAssistedCommitProtection,
   isRepositoryAffectedByAssistedCommit,
+  isRepositoryOverlappingAssistedCommit,
 } from '../git/repository-operation'
 import { storeCommitMode } from './helpers/commit-mode-storage'
 import {
@@ -2154,6 +2156,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
+      // History may have been refreshed while this batch was loading.
+      const { compareState } = this.repositoryStateCache.get(repository)
+      if (compareState.commitSHAs !== commits) {
+        return
+      }
+
       this.repositoryStateCache.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
       }))
@@ -2593,7 +2601,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     if (
       isRepositoryGitPaused(repository.path) ||
-      isRepositoryAffectedByAssistedCommit(repository.path)
+      (await isRepositoryOverlappingAssistedCommit(repository.path))
     ) {
       return false
     }
@@ -6191,6 +6199,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.isWorktreeMoving(repository)) {
       return false
     }
+    this.assistedCommits.state.assertAvailable(repository)
+    if (this.repositoryStateCache.get(repository).isCommitting) {
+      return false
+    }
     return this.withAssistedCommitMutationResources(repository, async () => {
       this.assistedCommits.state.assertAvailable(repository)
       const state = this.repositoryStateCache.get(repository)
@@ -6226,6 +6238,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fn: (signal: AbortSignal) => Promise<boolean>
   ): Promise<boolean> {
     if (this.isWorktreeMoving(repository)) {
+      return false
+    }
+    this.assistedCommits.state.assertAvailable(repository)
+    if (this.repositoryStateCache.get(repository).isGeneratingCommitMessage) {
       return false
     }
     return this.withAssistedCommitMutationResources(repository, async () => {
@@ -6274,6 +6290,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fn: () => Promise<void>
   ): Promise<void> {
     if (this.isWorktreeMoving(repository)) {
+      return
+    }
+    this.assistedCommits.state.assertAvailable(repository)
+    if (this.repositoryStateCache.get(repository).isPushPullFetchInProgress) {
       return
     }
     return this.withAssistedCommitMutationResources(repository, async () => {
@@ -10000,13 +10020,36 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<T> {
     this.assistedCommits.state.assertAvailable(repository)
     return withRepositoryGitOperation(repository.path, 'mutation', async () => {
-      const resources = await getAssistedCommitProtectedPaths(repository.path)
-      const paths = [
-        ...new Set(
-          await Promise.all(resources.map(path => canonicalMutationPath(path)))
-        ),
-      ]
-      return withRepositoryGitResourceMutation(paths, operation)
+      if (hasActiveAssistedCommitProtection()) {
+        const resources = await getAssistedCommitProtectedPaths(repository.path)
+        const paths = [
+          ...new Set(
+            await Promise.all(
+              resources.map(path => canonicalMutationPath(path))
+            )
+          ),
+        ]
+        return withRepositoryGitResourceMutation(paths, operation)
+      }
+      const canonical = await canonicalMutationPath(repository.path)
+      if (hasActiveAssistedCommitProtection()) {
+        const resources = await getAssistedCommitProtectedPaths(repository.path)
+        const paths = [
+          ...new Set(
+            await Promise.all(
+              resources.map(path => canonicalMutationPath(path))
+            )
+          ),
+        ]
+        return withRepositoryGitResourceMutation(paths, operation)
+      }
+      const paths =
+        repository.path === canonical
+          ? [canonical]
+          : [repository.path, canonical]
+      return withRepositoryGitResourceMutation(paths, operation, {
+        unresolvedRepositoryPath: repository.path,
+      })
     })
   }
 

@@ -13,8 +13,10 @@ import { listWorktrees } from './worktree'
 import {
   canonicalMutationPath,
   getAssistedCommitProtectedPaths,
+  hasActiveAssistedCommitProtection,
   withoutRepositoryGitAccess,
   withRepositoryGitOperation,
+  withRepositoryGitReads,
   withRepositoryGitResourceMutation,
 } from './repository-operation'
 
@@ -62,40 +64,60 @@ export function getLocalCloneSourcePath(
   return paths.resolve(cwd, url)
 }
 
+async function withLocalCloneSourceDiscoveryRead(
+  path: string,
+  operation: () => Promise<void>,
+  tryGitSuffix = true
+): Promise<void> {
+  const type = await getRepositoryType(path)
+  if (type.kind === 'missing' && tryGitSuffix) {
+    // Git also accepts a repository name with its trailing .git omitted.
+    return withLocalCloneSourceDiscoveryRead(`${path}.git`, operation, false)
+  }
+  if (type.kind !== 'regular' && type.kind !== 'bare') {
+    return withRepositoryGitOperation(path, 'read', operation)
+  }
+  const resources = await getAssistedCommitProtectedPaths(path)
+  const worktrees = await listWorktrees(new Repository(path, -1, null, false))
+  const paths = [
+    ...new Set(
+      await Promise.all(
+        [path, ...resources, ...worktrees.map(worktree => worktree.path)].map(
+          canonicalMutationPath
+        )
+      )
+    ),
+  ]
+  // Peer worktrees publish into the same refs and object store that clone reads.
+  return withRepositoryGitReads(paths, operation)
+}
+
 async function withLocalCloneSourceRead(
   path: string,
   operation: () => Promise<void>,
   tryGitSuffix = true
 ): Promise<void> {
-  return withRepositoryGitOperation(path, 'read', async () => {
-    const type = await getRepositoryType(path)
-    if (type.kind === 'missing' && tryGitSuffix) {
-      // Git also accepts a repository name with its trailing .git omitted.
-      return withLocalCloneSourceRead(`${path}.git`, operation, false)
+  if (!hasActiveAssistedCommitProtection()) {
+    let needsFullDiscovery = false
+    await withRepositoryGitOperation(
+      path,
+      'read',
+      async () => {
+        if (hasActiveAssistedCommitProtection()) {
+          needsFullDiscovery = true
+          return
+        }
+        await operation()
+      },
+      false,
+      undefined,
+      tryGitSuffix
+    )
+    if (!needsFullDiscovery) {
+      return
     }
-    if (type.kind !== 'regular' && type.kind !== 'bare') {
-      return operation()
-    }
-    const resources = await getAssistedCommitProtectedPaths(path)
-    const worktrees = await listWorktrees(new Repository(path, -1, null, false))
-    const paths = [
-      ...new Set(
-        await Promise.all(
-          [...resources, ...worktrees.map(worktree => worktree.path)].map(
-            canonicalMutationPath
-          )
-        )
-      ),
-    ]
-    // Peer worktrees publish into the same refs and object store that clone reads.
-    const read = (index: number): Promise<void> =>
-      index === paths.length
-        ? operation()
-        : withRepositoryGitOperation(paths[index], 'read', () =>
-            read(index + 1)
-          )
-    return read(0)
-  })
+  }
+  return withLocalCloneSourceDiscoveryRead(path, operation, tryGitSuffix)
 }
 
 /**

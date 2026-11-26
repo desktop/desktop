@@ -19,6 +19,7 @@ import {
   checkoutPaths,
   getBranches,
   createBranch,
+  git,
 } from '../../../src/lib/git'
 import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
@@ -29,6 +30,11 @@ import { TestStatsStore } from '../../helpers/test-stats-store'
 import { pathExists } from '../../../src/lib/path-exists'
 import { removeConflictedFile } from '../../../src/lib/git/rm'
 import { ManualConflictResolution } from '../../../src/models/manual-conflict-resolution'
+import {
+  cloneRepository,
+  makeCommit,
+} from '../../helpers/repository-scaffolding'
+import { getBranchOrError, getTipOrError } from '../../helpers/git'
 
 describe('git/checkout', () => {
   it(
@@ -153,6 +159,111 @@ describe('git/checkout', () => {
     const validBranch = tip as IValidBranch
     assert.equal(validBranch.branch.name, 'commit-with-long-description')
   })
+
+  for (const withProgress of [false, true]) {
+    for (const name of ['--force', '--orphan=unexpected', '--detach']) {
+      it(`checks out local branch ${name} literally with progress ${withProgress}`, async t => {
+        const source = await setupEmptyRepository(t)
+        await makeCommit(source, {
+          entries: [{ path: 'tracked.txt', contents: 'committed\n' }],
+        })
+        const ref = `refs/heads/${name}`
+        await git(['update-ref', ref, 'HEAD'], source.path, 'create test ref')
+        await git(
+          ['symbolic-ref', 'HEAD', ref],
+          source.path,
+          'set test default branch'
+        )
+
+        const repository = await cloneRepository(t, source)
+        const branch = await getBranchOrError(repository, name)
+        await git(
+          ['checkout', '-b', 'master', 'refs/remotes/origin/master', '--'],
+          repository.path,
+          'switch away from test default branch'
+        )
+        const filePath = Path.join(repository.path, 'tracked.txt')
+        await writeFile(filePath, 'uncommitted\n')
+
+        await checkoutBranch(
+          repository,
+          branch,
+          null,
+          withProgress
+            ? progress => assert.strictEqual(progress.kind, 'checkout')
+            : undefined
+        )
+
+        assert.strictEqual(await readFile(filePath, 'utf8'), 'uncommitted\n')
+        const head = await git(
+          ['symbolic-ref', 'HEAD'],
+          repository.path,
+          'read checked out branch'
+        )
+        assert.strictEqual(head.stdout.trim(), ref)
+        assert.strictEqual(
+          (await getTipOrError(repository)).sha,
+          branch.tip.sha
+        )
+      })
+    }
+
+    it(`preserves remote checkout and tracking with progress ${withProgress}`, async t => {
+      const source = await setupEmptyRepository(t)
+      await makeCommit(source, {
+        entries: [{ path: 'tracked.txt', contents: 'base\n' }],
+      })
+      const repository = await cloneRepository(t, source)
+      await git(
+        ['checkout', '-b', 'topic'],
+        source.path,
+        'create test remote branch'
+      )
+      await makeCommit(source, {
+        entries: [{ path: 'tracked.txt', contents: 'remote branch\n' }],
+      })
+      await git(
+        ['fetch', 'origin'],
+        repository.path,
+        'fetch test remote branch'
+      )
+      const [branch] = await getBranches(
+        repository,
+        'refs/remotes/origin/topic'
+      )
+      assert.ok(branch !== undefined)
+      assert.strictEqual(branch.type, BranchType.Remote)
+
+      await checkoutBranch(
+        repository,
+        branch,
+        null,
+        withProgress
+          ? progress => assert.strictEqual(progress.kind, 'checkout')
+          : undefined
+      )
+
+      const head = await git(
+        ['symbolic-ref', 'HEAD'],
+        repository.path,
+        'read checked out branch'
+      )
+      assert.strictEqual(head.stdout.trim(), 'refs/heads/topic')
+      assert.strictEqual((await getTipOrError(repository)).sha, branch.tip.sha)
+      const upstream = await git(
+        ['rev-parse', '--symbolic-full-name', '@{upstream}'],
+        repository.path,
+        'read checked out upstream'
+      )
+      assert.strictEqual(upstream.stdout.trim(), branch.ref)
+      assert.strictEqual(
+        (
+          await readFile(Path.join(repository.path, 'tracked.txt'), 'utf8')
+        ).replace(/\r\n/g, '\n'),
+        'remote branch\n'
+      )
+    })
+  }
 
   it('can checkout a branch when it exists on multiple remotes', async t => {
     const path = await setupFixtureRepository(t, 'checkout-test-cases')
