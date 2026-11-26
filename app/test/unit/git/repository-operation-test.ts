@@ -19,6 +19,8 @@ import {
   getAssistedCommitProtectedPaths,
   getRepositoryGitOperationPath,
   getRepositoryGitReadEnvironment,
+  hasOverlappingRepositoryGitMutation,
+  hasUnresolvedRepositoryGitMutations,
   isReadOnlyGitCommand,
   isRepositoryAffectedByAssistedCommit,
   isRepositoryGitPaused,
@@ -27,6 +29,8 @@ import {
   withoutRepositoryGitAccess,
   withRepositoryGitDestruction,
   withRepositoryGitOperation,
+  withRepositoryGitReads,
+  withRepositoryGitResourceMutation,
   hasRepositoryGitOperationAccess,
   withRepositoryGitSpawnFence,
 } from '../../../src/lib/git/repository-operation'
@@ -44,6 +48,7 @@ import {
 } from '../../helpers/copilot-assisted-commit'
 import { createTempDirectory } from '../../helpers/temp'
 import { Repository } from '../../../src/models/repository'
+import * as GitPerf from '../../../src/ui/lib/git-perf'
 
 describe('assisted repository Git coordination', () => {
   it('checks a retained negative owner fence before waiting on a foreign lease', async t => {
@@ -360,6 +365,184 @@ describe('assisted repository Git coordination', () => {
     await reader
     const lease = await second
     lease.release()
+  })
+
+  it('pins the target registry entry during lease discovery when an earlier reader finishes', async t => {
+    const target = await seed(t, { 'file.txt': 'before\n' })
+    const unrelated = await seed(t, { 'other.txt': 'other\n' })
+    const protectedPaths = await getAssistedCommitProtectedPaths(target.path)
+    const protection = protectAssistedCommitResources(
+      target.path,
+      protectedPaths
+    )
+    t.after(() => protection.release())
+
+    const targetReadEntered = deferred<void>()
+    const finishTargetRead = deferred<void>()
+    const targetRead = withRepositoryGitOperation(
+      target.path,
+      'read',
+      async () => {
+        targetReadEntered.resolve()
+        await finishTargetRead.promise
+      }
+    )
+
+    const unrelatedEntered = deferred<void>()
+    const finishUnrelated = deferred<void>()
+    const unrelatedOp = withRepositoryGitOperation(
+      unrelated.path,
+      'read',
+      async () => {
+        unrelatedEntered.resolve()
+        await finishUnrelated.promise
+      }
+    )
+
+    await Promise.all([targetReadEntered.promise, unrelatedEntered.promise])
+
+    const acquiring = acquireAssistedCommitGitLease(target.path, protectedPaths)
+    // Allow lease acquisition to fetch target and enter async discovery on unrelated.
+    await new Promise(resolve => setImmediate(resolve))
+    finishTargetRead.resolve()
+    await targetRead
+
+    const lease = await acquiring
+    t.after(() => {
+      finishUnrelated.resolve()
+      lease.release()
+    })
+    assert.strictEqual(isRepositoryGitPaused(target.path), true)
+    await lease.run(async () => {
+      await git(
+        ['commit', '--allow-empty', '-m', 'Owned mutation'],
+        target.path,
+        'owned-mutation-after-discovery'
+      )
+    })
+    assert.strictEqual(await count(target), 2)
+    finishUnrelated.resolve()
+    await unrelatedOp
+  })
+
+  it('pins earlier collected paths in withRepositoryGitReads while waiting on a later path lease', async t => {
+    const first = await seed(t, { 'first.txt': 'first\n' })
+    const second = await seed(t, { 'second.txt': 'second\n' })
+    const secondLease = await acquireAssistedCommitGitLease(second.path)
+    t.after(() => secondLease.release())
+
+    const priorReadEntered = deferred<void>()
+    const finishPriorRead = deferred<void>()
+    const priorRead = withRepositoryGitOperation(
+      first.path,
+      'read',
+      async () => {
+        priorReadEntered.resolve()
+        await finishPriorRead.promise
+      }
+    )
+    await priorReadEntered.promise
+
+    const multiEntered = deferred<void>()
+    const finishMulti = deferred<void>()
+    const multiRead = withRepositoryGitReads(
+      [first.path, second.path],
+      async () => {
+        multiEntered.resolve()
+        await finishMulti.promise
+      }
+    )
+
+    // Allow withRepositoryGitReads to collect `first` and block on `second`'s lease.
+    await new Promise(resolve => setTimeout(resolve, 25))
+    finishPriorRead.resolve()
+    await priorRead
+
+    // Release `second` so multiRead enters its body and registers reads on both paths.
+    secondLease.release()
+    await multiEntered.promise
+
+    // A lease on `first` must still see multiRead on the live registry entry and drain it.
+    let firstLeaseAcquired = false
+    const acquiringFirst = acquireAssistedCommitGitLease(first.path).then(
+      lease => {
+        firstLeaseAcquired = true
+        return lease
+      }
+    )
+    await new Promise(resolve => setTimeout(resolve, 25))
+    assert.strictEqual(firstLeaseAcquired, false)
+
+    finishMulti.resolve()
+    await multiRead
+    const firstLease = await acquiringFirst
+    firstLease.release()
+    assert.strictEqual(firstLeaseAcquired, true)
+  })
+
+  it('fails closed on non-NotAGitRepository metadata discovery errors and keeps the unresolved mutation tracked', async t => {
+    const broken = await seed(t, { 'file.txt': 'broken\n' })
+    const other = await seed(t, { 'other.txt': 'other\n' })
+    await writeFile(join(broken.path, '.git', 'config'), '[core\n')
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const activeMutation = withRepositoryGitResourceMutation(
+      [broken.path],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: broken.path }
+    )
+    await entered.promise
+    try {
+      await assert.rejects(hasOverlappingRepositoryGitMutation(other.path))
+      assert.strictEqual(hasUnresolvedRepositoryGitMutations(), true)
+      await assert.rejects(
+        acquireAssistedCommitGitLease(other.path, [other.path])
+      )
+      assert.strictEqual(hasUnresolvedRepositoryGitMutations(), true)
+    } finally {
+      finish.resolve()
+      await activeMutation
+    }
+    assert.strictEqual(hasUnresolvedRepositoryGitMutations(), false)
+  })
+
+  it('does not fall back to a sibling .git repository for non-clone paths', async t => {
+    const target = await seed(t, { 'file.txt': 'target\n' })
+    const parent = await createTempDirectory(t)
+    const plainDir = join(parent, 'workspace')
+    await mkdir(plainDir)
+    await rawGit(target, [
+      'worktree',
+      'add',
+      '-b',
+      'sibling',
+      `${plainDir}.git`,
+    ])
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const activeMutation = withRepositoryGitResourceMutation(
+      [plainDir],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: plainDir }
+    )
+    await entered.promise
+    try {
+      assert.strictEqual(
+        await hasOverlappingRepositoryGitMutation(target.path),
+        false
+      )
+    } finally {
+      finish.resolve()
+      await activeMutation
+    }
   })
 
   it('does not grant observers ownership, and scopes read-only refresh without global environment changes', async t => {
@@ -1116,5 +1299,237 @@ describe('AppStore assisted repository operation admission', () => {
     finish.resolve()
     await operation
     assert.strictEqual(protectedAtPublication, true)
+  })
+
+  it('skips assisted-commit Git metadata commands during ordinary status, commit, and branch operations when no assisted run is active', async t => {
+    const source = await seed(t, { file: 'before\n' })
+    await writeFile(join(source.path, 'file'), 'updated\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const repository = await h.register(source)
+    h.dispatcher.setCommitMode(repository, 'manual')
+
+    const executed: string[] = []
+    GitPerf.start()
+    t.after(() => GitPerf.stop())
+    const originalMark = performance.mark.bind(performance)
+    t.mock.method(performance, 'mark', (name: string) => {
+      const separator = name.indexOf('::')
+      if (separator !== -1) {
+        executed.push(name.slice(separator + 2))
+      }
+      return originalMark(name)
+    })
+
+    await h.appStore._loadStatus(repository)
+    const committed = await h.appStore._commitIncludedChanges(repository, {
+      summary: 'Ordinary manual commit',
+      description: '',
+      trailers: [],
+    })
+    assert.strictEqual(committed, true)
+    await h.appStore._createBranch(repository, 'ordinary-branch', 'HEAD')
+
+    const assistedMetadataCommands = executed.filter(cmd =>
+      cmd.startsWith('assistedCommit')
+    )
+    assert.deepStrictEqual(assistedMetadataCommands, [])
+  })
+
+  it('lazily resolves an in-flight peer linked worktree mutation when an assisted run tries to start', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    const gitStoreC = h.appStore['gitStoreCache'].get(c)
+    const createBranch = gitStoreC.createBranch.bind(gitStoreC)
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    gitStoreC.createBranch = async (...args) => {
+      const result = await createBranch(...args)
+      entered.resolve()
+      await finish.promise
+      return result
+    }
+
+    const ordinary = h.appStore._createBranch(c, 'peer-branch', 'HEAD')
+    await entered.promise
+    try {
+      await assert.rejects(
+        h.dispatcher.prepareCopilotAssistedCommitRequest(b, h.request(b)),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        b,
+        h.request(b)
+      )
+      assert.strictEqual(outcome.kind, 'busy')
+      assert.strictEqual(h.propose.mock.callCount(), 0)
+    } finally {
+      finish.resolve()
+      await ordinary
+    }
+    assert.strictEqual(
+      await rawGit(c, ['symbolic-ref', '--short', 'HEAD']),
+      'peer-branch'
+    )
+  })
+
+  it('rejects starting an assisted run on a peer linked worktree while another assisted run is active', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected b\n')
+    await writeFile(join(cPath, 'file'), 'selected c\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const activeRun = h.dispatcher.createCopilotAssistedCommits(b, h.request(b))
+    await analyzing.promise
+    try {
+      await assert.rejects(
+        h.dispatcher.prepareCopilotAssistedCommitRequest(c, h.request(c)),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        c,
+        h.request(c)
+      )
+      assert.strictEqual(outcome.kind, 'busy')
+    } finally {
+      h.cancel(b)
+      finish.resolve()
+      await activeRun
+    }
+  })
+
+  it('synchronously marks external peer worktrees affected and rejects unwrapped peer mutations without prior status caching', async t => {
+    const main = await seed(t, { file: 'before\n' })
+    const bPath = await createTempDirectory(t)
+    const cPath = await createTempDirectory(t)
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-b', bPath])
+    await rawGit(main, ['worktree', 'add', '-b', 'branch-c', cPath])
+    await writeFile(join(bPath, 'file'), 'selected b\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const b = await h.register(new Repository(bPath, -1, null, false))
+    const c = await h.register(new Repository(cPath, -1, null, false))
+
+    // Neither b nor c ran metadata discovery during idle registration.
+    assert.strictEqual(isRepositoryAffectedByAssistedCommit(c.path), false)
+
+    const analyzing = deferred<void>()
+    const finish = deferred<void>()
+    h.propose.mock.mockImplementation(async (_account, analysis) => {
+      analyzing.resolve()
+      await finish.promise
+      return wholeSelectionResponse(analysis)
+    })
+    const activeRun = h.dispatcher.createCopilotAssistedCommits(b, h.request(b))
+    await analyzing.promise
+    try {
+      // Synchronous UI guard immediately recognizes peer linked worktree c.
+      assert.strictEqual(isRepositoryAffectedByAssistedCommit(c.path), true)
+
+      // Unwrapped mutations (e.g., GitStore.performFailableOperation / raw withRepositoryGitOperation)
+      // on peer worktree c are also rejected while b's assisted run protects shared metadata.
+      let entered = false
+      await assert.rejects(
+        withRepositoryGitOperation(c.path, 'mutation', async () => {
+          entered = true
+        }),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      assert.strictEqual(entered, false)
+
+      // Even an uncached repository sharing an alternate object store is rejected by
+      // unwrapped withRepositoryGitOperation mutations.
+      const sharedClonePath = join(await createTempDirectory(t), 'shared-clone')
+      await rawGit(main, [
+        'clone',
+        '--shared',
+        '--',
+        main.path,
+        sharedClonePath,
+      ])
+      let sharedEntered = false
+      await assert.rejects(
+        withRepositoryGitOperation(sharedClonePath, 'mutation', async () => {
+          sharedEntered = true
+        }),
+        error => error instanceof AssistedCommitError && error.code === 'busy'
+      )
+      assert.strictEqual(sharedEntered, false)
+    } finally {
+      h.cancel(b)
+      finish.resolve()
+      await activeRun
+    }
+  })
+
+  it('captures first-click model intent before awaiting lazy discovery for an unrelated mutation', async t => {
+    const targetSource = await seed(t, { file: 'before\n' })
+    const unrelatedSource = await seed(t, { other: 'other\n' })
+    await writeFile(join(targetSource.path, 'file'), 'selected\n')
+    const h = await createAssistedCommitRunHarness(t)
+    const target = await h.register(targetSource)
+    await h.register(unrelatedSource)
+    const account = h.appStore['accounts'][0]
+    h.appStore._setSelectedCopilotModel(
+      account,
+      'assisted-commit',
+      'copilot:first-click-model'
+    )
+
+    const entered = deferred<void>()
+    const finish = deferred<void>()
+    const unrelatedMutation = withRepositoryGitResourceMutation(
+      [unrelatedSource.path],
+      async () => {
+        entered.resolve()
+        await finish.promise
+      },
+      { unresolvedRepositoryPath: unrelatedSource.path }
+    )
+    await entered.promise
+    try {
+      const preparing = h.dispatcher.prepareCopilotAssistedCommitRequest(
+        target,
+        h.request(target)
+      )
+      // Immediately switch model while prepare awaits lazy discovery on unrelatedSource.
+      h.appStore._setSelectedCopilotModel(
+        account,
+        'assisted-commit',
+        'copilot:later-model'
+      )
+      const prepared = await preparing
+      const outcome = await h.dispatcher.createCopilotAssistedCommits(
+        target,
+        prepared
+      )
+      assert.strictEqual(outcome.kind, 'local-ready')
+      assert.deepStrictEqual(h.propose.mock.calls[0].arguments[3]?.request, {
+        kind: 'copilot',
+        modelId: 'first-click-model',
+      })
+    } finally {
+      finish.resolve()
+      await unrelatedMutation
+    }
   })
 })

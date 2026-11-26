@@ -9,6 +9,7 @@ import { getWorkingDirectoryDiff, IStatusResult } from '../git'
 import { AssistedCommitError } from '../git/assisted-commit'
 import {
   getAssistedCommitProtectedPaths,
+  hasActiveAssistedCommitProtection,
   isRepositoryGitPaused,
   protectAssistedCommitResources,
   withRepositoryGitErrorPropagation,
@@ -401,7 +402,9 @@ export class AssistedCommitReaders {
     if (status === null) {
       return null
     }
-    await getAssistedCommitProtectedPaths(repository.path)
+    if (assistedRun !== undefined || hasActiveAssistedCommitProtection()) {
+      await getAssistedCommitProtectedPaths(repository.path)
+    }
     try {
       await this.selections.verifyRestored(repository)
     } catch (error) {
