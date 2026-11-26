@@ -25,17 +25,6 @@ async function handleSSHHostAuthenticity(
     return undefined
   }
 
-  // We'll accept github.com as valid host automatically. GitHub's public key
-  // fingerprint can be obtained from
-  // https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
-  if (
-    info.host === 'github.com' &&
-    info.keyType === 'RSA' &&
-    info.fingerprint === 'SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8'
-  ) {
-    return 'yes'
-  }
-
   if (getIsBackgroundTaskEnvironment(operationGUID)) {
     log.debug(
       'handleSSHHostAuthenticity: background task environment, skipping prompt'
