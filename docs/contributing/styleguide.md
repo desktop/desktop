@@ -91,7 +91,9 @@ separator mechanically:
 - Prefer canonical remote refs (`refs/remotes/<remote>/<branch>`) when using a
   remote branch as a starting point for checkout or worktree branch creation.
   Local checkout targets should retain their short branch names so that HEAD
-  remains attached. Checkout's trailing `--` separates paths, not branch targets.
+  remains attached. For branch checkout, put `--end-of-options` before the
+  branch target but after options such as `-b` and their values. Keep the trailing
+  `--` to separate branch targets from paths.
 - Check commands that invoke other Git commands. An outer separator is not
   necessarily forwarded to a child command. Verify behavior with the bundled
   Git version and the actual arguments supplied by application callers before
