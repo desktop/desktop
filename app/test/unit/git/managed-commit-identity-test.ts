@@ -55,14 +55,18 @@ describe('Desktop-only Git authorship', () => {
 
   it('honors explicit unset identity keys but still resolves a partially supplied identity', async t => {
     const repository = await setupEmptyRepository(t)
+    const expected = {
+      name: 'Git configured author',
+      email: 'git-config@example.com',
+    }
+    await rawGit(repository, ['config', 'user.name', expected.name])
+    await rawGit(repository, ['config', 'user.email', expected.email])
     const env = {
       GIT_AUTHOR_NAME: undefined,
       GIT_AUTHOR_EMAIL: undefined,
       GIT_COMMITTER_NAME: undefined,
       GIT_COMMITTER_EMAIL: undefined,
     }
-    const expected = await getAuthorIdentity(repository, { env })
-    assert.ok(expected)
     setCommitIdentityProvider(() => {
       throw new Error('Managed identity needs initialization')
     })
