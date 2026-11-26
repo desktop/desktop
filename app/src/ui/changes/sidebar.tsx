@@ -39,6 +39,7 @@ import {
   isAssistedCommitRunBusy,
 } from '../../models/assisted-commit-run'
 import { isRepositoryAffectedByAssistedCommit } from '../../lib/git/repository-operation'
+import { CommitIdentityMode } from '../../lib/managed-commit-identity'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -49,6 +50,7 @@ import { isRepositoryAffectedByAssistedCommit } from '../../lib/git/repository-o
 const UndoCommitAnimationTimeout = 500
 
 interface IChangesSidebarProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   readonly repository: Repository
   readonly changes: IChangesState
   readonly aheadBehind: IAheadBehind | null
@@ -475,6 +477,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return (
       <div className="panel" role="tabpanel" aria-labelledby="changes-tab">
         <FilterChangesList
+          commitIdentityMode={this.props.commitIdentityMode}
           ref={this.changesListRef}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account, isDotComAccount, isSameAccount } from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
@@ -80,8 +80,15 @@ import {
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
 import { validateCopilotAppPath } from '../../lib/copilot-app'
+import {
+  CommitIdentityMode,
+  ICommitIdentityEdit,
+  ICommitIdentitySettings,
+  isValidManagedCommitIdentity,
+} from '../../lib/managed-commit-identity'
 
 interface IPreferencesProps {
+  readonly commitIdentitySettings: ICommitIdentitySettings
   readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
   readonly repository: Repository | null
@@ -125,6 +132,8 @@ interface IPreferencesProps {
 }
 
 interface IPreferencesState {
+  readonly commitIdentityMode: CommitIdentityMode
+  readonly commitIdentityEdits: ReadonlyArray<ICommitIdentityEdit>
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
@@ -214,6 +223,8 @@ export class Preferences extends React.Component<
     super(props)
 
     this.state = {
+      commitIdentityMode: props.commitIdentitySettings.mode,
+      commitIdentityEdits: [],
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
@@ -613,6 +624,10 @@ export class Preferences extends React.Component<
           <>
             {error}
             <Git
+              commitIdentityMode={this.state.commitIdentityMode}
+              managedIdentities={this.getManagedIdentities()}
+              onCommitIdentityModeChanged={this.onCommitIdentityModeChanged}
+              onManagedIdentityChanged={this.onManagedIdentityChanged}
               name={this.state.committerName}
               email={this.state.committerEmail}
               accounts={this.props.accounts}
@@ -988,7 +1003,12 @@ export class Preferences extends React.Component<
   }
 
   private renderFooter() {
-    const hasDisabledError = this.state.disallowedCharactersMessage != null
+    const hasDisabledError =
+      this.state.commitIdentityMode === 'git'
+        ? this.state.disallowedCharactersMessage != null
+        : this.getManagedIdentities().some(
+            identity => !isValidManagedCommitIdentity(identity)
+          )
 
     return (
       <DialogFooter>
@@ -998,6 +1018,39 @@ export class Preferences extends React.Component<
         />
       </DialogFooter>
     )
+  }
+
+  private onCommitIdentityModeChanged = (
+    commitIdentityMode: CommitIdentityMode
+  ) => {
+    this.setState({ commitIdentityMode })
+  }
+
+  private getManagedIdentities() {
+    return this.props.commitIdentitySettings.identities.map(identity => {
+      const edit = this.state.commitIdentityEdits.find(e =>
+        isSameAccount(e, identity)
+      )
+      // Mirror how saving turns staged edits into overrides.
+      return {
+        ...identity,
+        ...edit,
+        nameOverridden: identity.nameOverridden || edit?.name !== undefined,
+        emailOverridden: identity.emailOverridden || edit?.email !== undefined,
+      }
+    })
+  }
+
+  private onManagedIdentityChanged = (edit: ICommitIdentityEdit) => {
+    this.setState(state => ({
+      commitIdentityEdits: [
+        ...state.commitIdentityEdits.filter(i => !isSameAccount(i, edit)),
+        {
+          ...state.commitIdentityEdits.find(i => isSameAccount(i, edit)),
+          ...edit,
+        },
+      ],
+    }))
   }
 
   private onSave = async () => {
@@ -1023,15 +1076,28 @@ export class Preferences extends React.Component<
     try {
       let shouldRefreshAuthor = false
 
-      if (this.state.committerName !== this.state.initialCommitterName) {
+      if (
+        this.state.commitIdentityMode === 'git' &&
+        this.state.committerName !== this.state.initialCommitterName
+      ) {
         await setGlobalConfigValue('user.name', this.state.committerName)
         shouldRefreshAuthor = true
       }
 
-      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+      if (
+        this.state.commitIdentityMode === 'git' &&
+        this.state.committerEmail !== this.state.initialCommitterEmail
+      ) {
         await setGlobalConfigValue('user.email', this.state.committerEmail)
         shouldRefreshAuthor = true
       }
+
+      await dispatcher.updateCommitIdentitySettings(
+        this.state.commitIdentityMode,
+        this.state.commitIdentityMode === 'desktop'
+          ? this.state.commitIdentityEdits
+          : []
+      )
 
       if (this.props.repository !== null && shouldRefreshAuthor) {
         dispatcher.refreshAuthor(this.props.repository)

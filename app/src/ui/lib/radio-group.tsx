@@ -35,6 +35,14 @@ interface IRadioGroupProps<T> {
 
   /** Render radio button label contents */
   readonly renderRadioButtonLabelContents: (key: T) => JSX.Element | string
+
+  /**
+   * Optional: Render supporting text shown below a radio button's label and
+   * associated with it as an accessible description.
+   */
+  readonly renderRadioButtonDescription?: (
+    key: T
+  ) => JSX.Element | string | undefined
 }
 
 /**
@@ -67,6 +75,7 @@ export class RadioGroup<T extends React.Key> extends React.Component<
           onSelected={this.onSelectionChanged}
           tabIndex={checked ? 0 : -1}
           onDoubleClick={this.onRadioButtonDoubleClick}
+          description={this.props.renderRadioButtonDescription?.(key)}
         >
           {this.props.renderRadioButtonLabelContents(key)}
         </RadioButton>

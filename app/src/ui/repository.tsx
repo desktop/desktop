@@ -38,8 +38,10 @@ import { Emoji } from '../lib/emoji'
 import { PopupType } from '../models/popup'
 import { isAssistedCommitRepositoryLocked } from '../models/assisted-commit-run'
 import { isRepositoryAffectedByAssistedCommit } from '../lib/git/repository-operation'
+import { CommitIdentityMode } from '../lib/managed-commit-identity'
 
 interface IRepositoryViewProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   readonly repository: Repository
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
@@ -277,6 +279,7 @@ export class RepositoryView extends React.Component<
 
     return (
       <ChangesSidebar
+        commitIdentityMode={this.props.commitIdentityMode}
         ref={this.changesSidebarRef}
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}

@@ -551,6 +551,11 @@ dialog {
         overflow: auto;
       }
 
+      &.git-preferences {
+        max-height: $default-tab-height;
+        overflow: auto;
+      }
+
       &.copilot-tab {
         padding: 0;
 

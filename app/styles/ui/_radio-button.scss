@@ -19,4 +19,20 @@
       margin-left: var(--spacing-half);
     }
   }
+
+  &.with-description {
+    flex-direction: column;
+    align-items: stretch;
+
+    & + .radio-button-component {
+      margin-top: var(--spacing);
+    }
+  }
+
+  .radio-button-description {
+    margin-top: var(--spacing-half);
+    margin-left: calc(var(--spacing-half) + 13px);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
 }

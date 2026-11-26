@@ -1,5 +1,6 @@
 import { Stats, lstatSync } from 'fs'
 import { exec } from 'dugite'
+import { getManagedCommitEnvironment } from '../../managed-commit-identity'
 import {
   lstat,
   mkdir,
@@ -428,6 +429,13 @@ export async function initializePrivateRepository(
   headBytes: Buffer,
   indexPath: string
 ): Promise<Record<string, string | undefined>> {
+  const identityEnvironment = {
+    GIT_AUTHOR_NAME: process.env.GIT_AUTHOR_NAME,
+    GIT_AUTHOR_EMAIL: process.env.GIT_AUTHOR_EMAIL,
+    GIT_COMMITTER_NAME: process.env.GIT_COMMITTER_NAME,
+    GIT_COMMITTER_EMAIL: process.env.GIT_COMMITTER_EMAIL,
+    ...getManagedCommitEnvironment(repository.path),
+  }
   const config = await exec(
     ['config', '--null', '--list', '--includes'],
     repository.path,
@@ -546,6 +554,7 @@ export async function initializePrivateRepository(
     await writeFile(join(directory, 'shallow'), shallow, { mode: 0o600 })
   }
   const environment: Record<string, string | undefined> = {
+    ...identityEnvironment,
     GIT_DIR: directory,
     GIT_COMMON_DIR: directory,
     GIT_WORK_TREE: root,

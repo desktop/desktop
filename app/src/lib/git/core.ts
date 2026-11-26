@@ -17,10 +17,12 @@ import { withGitExecutionEnvironment } from './execution-environment'
 import { coerceToString } from './coerce-to-string'
 import { pushTerminalChunk } from './push-terminal-chunk'
 import { IAccountIdentity } from '../../models/account'
+import { getManagedCommitEnvironment } from '../managed-commit-identity'
 import {
   getRepositoryGitReadEnvironment,
   getRepositoryGitOperationPath,
   isReadOnlyGitCommand,
+  gitCommandNeedsIdentity,
   withRepositoryGitOperation,
   withoutRepositoryGitAccess,
   verifyRepositoryGitSpawnFence,
@@ -259,7 +261,16 @@ export async function git(
     maxBuffer: options?.encoding === 'buffer' ? Infinity : kStringMaxLength,
   }
 
-  const opts = { ...defaultOptions, ...options }
+  const opts = {
+    ...defaultOptions,
+    ...options,
+    env: {
+      ...(gitCommandNeedsIdentity(args)
+        ? getManagedCommitEnvironment(path, options?.env)
+        : {}),
+      ...options?.env,
+    },
+  }
 
   // The combined contents of stdout and stderr with some light processing
   // applied to remove redundant lines caused by Git's use of `\r` to "erase"
@@ -406,7 +417,7 @@ export async function git(
         throw new GitError(gitResult, args, terminalOutput)
       },
       path,
-      options
+      opts
     )
   const operationPath = getRepositoryGitOperationPath(args, path)
   return operationPath === undefined

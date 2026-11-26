@@ -9,6 +9,7 @@ import { PopupType } from '../../models/popup'
 import {
   Repository,
   getForkContributionTarget,
+  getRepositoryAccountIdentity,
   isRepositoryWithForkedGitHubRepository,
 } from '../../models/repository'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -27,8 +28,10 @@ import { Account, isSameAccount } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Select } from '../lib/select'
+import { ICommitIdentitySettings } from '../../lib/managed-commit-identity'
 
 interface IRepositorySettingsProps {
+  readonly commitIdentitySettings?: ICommitIdentitySettings
   readonly initialSelectedTab?: RepositorySettingsTab
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
@@ -258,8 +261,18 @@ export class RepositorySettings extends React.Component<
       }
 
       case RepositorySettingsTab.GitConfig: {
+        const endpoint = this.props.repository.gitHubRepository?.endpoint
+        const login = this.selectedLogin
+        const identity =
+          endpoint === undefined || login === null
+            ? undefined
+            : this.props.commitIdentitySettings?.identities.find(i =>
+                isSameAccount(i, { endpoint, login })
+              )
         return (
           <GitConfig
+            managedCommitIdentityEnabled={this.usesManagedCommitIdentity}
+            managedCommitIdentity={identity}
             account={this.selectedAccount}
             gitConfigLocation={this.state.gitConfigLocation}
             onGitConfigLocationChanged={this.onGitConfigLocationChanged}
@@ -283,6 +296,14 @@ export class RepositorySettings extends React.Component<
     return this.state.selectedLogin === undefined
       ? this.props.repository.login
       : this.state.selectedLogin
+  }
+
+  private get usesManagedCommitIdentity() {
+    return (
+      this.props.commitIdentitySettings?.mode === 'desktop' &&
+      this.props.repository.gitHubRepository !== null &&
+      this.selectedLogin !== null
+    )
   }
 
   private get selectedAccount() {
@@ -326,7 +347,9 @@ export class RepositorySettings extends React.Component<
         </Select>
         <p className="repository-account-description">
           The account used for GitHub API requests and HTTPS authentication.
-          This does not change your Git author name or email.
+          {this.props.commitIdentitySettings?.mode === 'desktop'
+            ? ' This also selects the commit identity used by GitHub Desktop.'
+            : ' This does not change your Git author name or email.'}
         </p>
       </div>
     )
@@ -424,9 +447,13 @@ export class RepositorySettings extends React.Component<
     let shouldRefreshAuthor = false
     const gitLocationChanged =
       this.state.gitConfigLocation !== this.state.initialGitConfigLocation
+    const managedIdentityEnabled =
+      this.props.commitIdentitySettings?.mode === 'desktop' &&
+      getRepositoryAccountIdentity(repository) !== null
 
     try {
       if (
+        !managedIdentityEnabled &&
         gitLocationChanged &&
         this.state.gitConfigLocation === GitConfigLocation.Global
       ) {
@@ -438,7 +465,10 @@ export class RepositorySettings extends React.Component<
           null,
           null
         )
-      } else if (this.state.gitConfigLocation === GitConfigLocation.Local) {
+      } else if (
+        !managedIdentityEnabled &&
+        this.state.gitConfigLocation === GitConfigLocation.Local
+      ) {
         // Otherwise, update the local name and email if needed
         const name =
           this.state.committerName !== this.state.initialCommitterName

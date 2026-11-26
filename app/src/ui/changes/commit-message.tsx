@@ -48,7 +48,6 @@ import {
   isAttributableEmailFor,
   lookupPreferredEmail,
 } from '../../lib/email'
-import { setGlobalConfigValue } from '../../lib/git/config'
 import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
@@ -86,6 +85,8 @@ import {
 } from '../dropdown-select-button'
 import { CSSTransition } from 'react-transition-group'
 import { CopilotCommitPanel } from './copilot-commit-panel'
+import { CommitIdentityMode } from '../../lib/managed-commit-identity'
+import { getRepositoryAccountIdentity } from '../../models/repository'
 
 /** Duration (in milliseconds) of the transition between commit modes */
 const CommitModeTransitionDuration = 300
@@ -125,6 +126,7 @@ interface ICreateCommitOptions {
 }
 
 interface ICommitMessageProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
@@ -244,6 +246,7 @@ interface ICommitMessageProps {
    * the repository state.
    */
   readonly onRefreshAuthor: () => void
+  readonly onUpdateCommitEmail: (email: string) => Promise<void>
 
   readonly onShowPopup: (popup: Popup) => void
   readonly onShowFoldout: (foldout: Foldout) => void
@@ -1145,6 +1148,12 @@ export class CommitMessage extends React.Component<
 
     return (
       <CommitMessageAvatar
+        managedAccount={
+          this.props.commitIdentityMode === 'desktop'
+            ? getRepositoryAccountIdentity(repository) ?? undefined
+            : undefined
+        }
+        managedAccountSignedOut={repositoryAccount == null}
         isActive={!this.isCopilotCommitMode}
         user={avatarUser}
         email={commitAuthor?.email}
@@ -1170,7 +1179,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onUpdateUserEmail = async (email: string) => {
-    await setGlobalConfigValue('user.email', email)
+    await this.props.onUpdateCommitEmail(email)
     this.props.onRefreshAuthor()
   }
 

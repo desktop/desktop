@@ -24,6 +24,12 @@ interface IRadioButtonProps<T> {
   readonly label?: string | JSX.Element
 
   /**
+   * Optional supporting text rendered below the label and exposed to
+   * assistive technology as the radio button's description.
+   */
+  readonly description?: string | JSX.Element
+
+  /**
    * The value of the radio button.
    */
   readonly value: T
@@ -62,8 +68,18 @@ export class RadioButton<T extends React.Key> extends React.Component<
   }
 
   public render() {
+    const { description } = this.props
+    const descriptionId =
+      description !== undefined
+        ? `${this.state.inputId}-description`
+        : undefined
+    const className =
+      description !== undefined
+        ? 'radio-button-component with-description'
+        : 'radio-button-component'
+
     return (
-      <div className="radio-button-component">
+      <div className={className}>
         <label htmlFor={this.state.inputId} onDoubleClick={this.onDoubleClick}>
           <input
             type="radio"
@@ -73,9 +89,15 @@ export class RadioButton<T extends React.Key> extends React.Component<
             onChange={this.onSelected}
             tabIndex={this.props.tabIndex}
             autoFocus={this.props.autoFocus}
+            aria-describedby={descriptionId}
           />
           <span>{this.props.label ?? this.props.children}</span>
         </label>
+        {description !== undefined && (
+          <div id={descriptionId} className="radio-button-description">
+            {description}
+          </div>
+        )}
       </div>
     )
   }

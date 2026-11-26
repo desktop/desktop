@@ -16,6 +16,14 @@ import { deleteToken } from '../api'
 import { IOAuthToken, refreshOAuthToken } from '../oauth-token'
 import { deserializeAccountCredential } from '../account-credential'
 import {
+  CommitIdentityMode,
+  ICommitIdentityEdit,
+  ICommitIdentitySettings,
+  isCommitIdentitySettings,
+  isValidManagedCommitIdentity,
+  refreshManagedCommitIdentities,
+} from '../managed-commit-identity'
+import {
   AccountRequiresSignInError,
   CredentialSessions,
   IAccountTokenExpiration,
@@ -85,6 +93,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   private accounts: ReadonlyArray<Account> = []
   private readonly credentials: CredentialSessions
+  private commitIdentitySettings: ICommitIdentitySettings
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
@@ -106,6 +115,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
     this.dataStore = dataStore
     this.secureStore = secureStore
+    const savedIdentities = dataStore.getItem('commit-identity-settings')
+    const settings: unknown =
+      savedIdentities == null
+        ? { mode: 'git', identities: [] }
+        : JSON.parse(savedIdentities)
+    if (!isCommitIdentitySettings(settings)) {
+      throw new Error('Unable to load managed commit identity settings.')
+    }
+    this.commitIdentitySettings = settings
     this.credentials = new CredentialSessions(
       secureStore,
       {
@@ -142,6 +160,44 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     await this.loadingPromise
 
     return this.accounts.slice()
+  }
+
+  /** Current credential-free identities, including accounts which have signed out. */
+  public getCommitIdentitySettings(): ICommitIdentitySettings {
+    return this.commitIdentitySettings
+  }
+
+  /** Save only explicitly edited fields, preserving concurrent API profile refreshes. */
+  public updateCommitIdentitySettings(
+    mode: CommitIdentityMode,
+    edits: ReadonlyArray<ICommitIdentityEdit>
+  ): void {
+    const identities = this.commitIdentitySettings.identities.map(identity => {
+      const edit = edits.find(e => getAccountKey(e) === getAccountKey(identity))
+      const updated = {
+        ...identity,
+        name: edit?.name ?? identity.name,
+        email: edit?.email ?? identity.email,
+        nameOverridden: edit?.name !== undefined || identity.nameOverridden,
+        emailOverridden: edit?.email !== undefined || identity.emailOverridden,
+      }
+      if (
+        (mode === 'desktop' || edit !== undefined) &&
+        !isValidManagedCommitIdentity(updated)
+      ) {
+        throw new Error('Enter a valid commit name and email for each account.')
+      }
+      return updated
+    })
+    if (
+      edits.some(
+        e => !identities.some(i => getAccountKey(i) === getAccountKey(e))
+      )
+    ) {
+      throw new Error('The account identity is no longer available.')
+    }
+    this.commitIdentitySettings = { mode, identities }
+    this.saveCommitIdentitySettings()
   }
 
   /** Notify once per account when invalid credentials sign it out. */
@@ -464,6 +520,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
         account.name,
         account.plan
       )
+      this.commitIdentitySettings = {
+        ...this.commitIdentitySettings,
+        identities: refreshManagedCommitIdentities(
+          this.commitIdentitySettings.identities,
+          [accountWithoutToken]
+        ),
+      }
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
@@ -503,12 +566,27 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   }
 
   private save() {
+    this.commitIdentitySettings = {
+      ...this.commitIdentitySettings,
+      identities: refreshManagedCommitIdentities(
+        this.commitIdentitySettings.identities,
+        this.accounts
+      ),
+    }
+    this.saveCommitIdentitySettings()
     const usersWithoutTokens = this.accounts.map(account =>
       account.withToken('')
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
     this.emitUpdate(this.accounts)
+  }
+
+  private saveCommitIdentitySettings() {
+    this.dataStore.setItem(
+      'commit-identity-settings',
+      JSON.stringify(this.commitIdentitySettings)
+    )
   }
 }
 

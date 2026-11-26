@@ -17,8 +17,10 @@ import { CommitOptions, Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
+import { CommitIdentityMode } from '../../lib/managed-commit-identity'
 
 interface ICommitMessageDialogProps {
+  readonly commitIdentityMode?: CommitIdentityMode
   /**
    * A list of autocompletion providers that should be enabled for this input.
    */
@@ -154,6 +156,7 @@ export class CommitMessageDialog extends React.Component<
       >
         <DialogContent>
           <CommitMessage
+            commitIdentityMode={this.props.commitIdentityMode}
             showInputLabels={true}
             branch={this.props.branch}
             mostRecentLocalCommit={null}
@@ -188,6 +191,7 @@ export class CommitMessageDialog extends React.Component<
             filesSelected={[]}
             onCommitMessageFocusSet={noop}
             onRefreshAuthor={this.onRefreshAuthor}
+            onUpdateCommitEmail={this.onUpdateCommitEmail}
             onShowPopup={this.onShowPopup}
             onShowFoldout={this.onShowFoldout}
             onCommitSpellcheckEnabledChanged={
@@ -229,6 +233,9 @@ export class CommitMessageDialog extends React.Component<
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)
+
+  private onUpdateCommitEmail = (email: string) =>
+    this.props.dispatcher.updateCommitEmail(this.props.repository, email)
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
   private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)

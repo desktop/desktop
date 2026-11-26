@@ -141,6 +141,49 @@ signed in. It shouldn't be passed merely because an account is available.
   an `upstream` on a GitHub host when `origin` isn't) get no credentials. Fixing this
   requires deciding which remote's repository the association should use.
 
+## Desktop-managed commit identities
+
+Preferences/Options > Git > Author > Commit name and email defaults to **Use
+Git configuration**, preserving Git's existing global and repository-local
+identity behavior. Selecting **Use a separate identity for each account**
+enables a separate name and email for each account. These identities are credential-free and remain stored after sign-out.
+They use the profile name (or login) and Desktop's privacy-aware preferred email.
+Each field follows profile refreshes until the user edits that field.
+
+Both modes display compact identity summaries with an **Edit** button to expand
+the name and email fields. **Done** collapses the editor; changes are only applied
+when saving Preferences. In Git configuration mode, edits update the global Git
+configuration, not repository-specific settings.
+
+The repository's assigned account selects its managed identity, even when the
+account is signed out. Unassigned repositories continue using Git's effective
+identity. An account signed out before upgrading to managed identities must sign
+in once to initialize its identity if no profile was retained.
+
+Desktop passes `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME`, and
+`GIT_COMMITTER_EMAIL` to its Git child processes and repository-scoped Copilot
+clients, not to the app's global process environment. Native Git still preserves
+original authors during amend, cherry-pick, and rebase. Assisted commits capture
+the identity variables with their private execution environment so validation,
+sign-off, and execution agree throughout a run.
+Read-only Git commands that do not query identity remain available when a managed
+identity is missing or invalid. Identity queries and mutations still report the
+identity error instead of silently falling back to Git configuration. A complete
+caller-supplied author/committer environment bypasses live identity resolution,
+including explicit unset values captured by an assisted run.
+
+Managed identities do not write `user.name` or `user.email` to Git configuration.
+External applications remain unaffected. The optional external-application
+authorship management described in the multi-account epic is separate work.
+
+The commit-author popover checks the effective managed email against the assigned
+account's verified and noreply addresses, just as it checks Git-configured emails.
+Choosing a custom identity does not guarantee attribution on GitHub. In managed
+mode, email corrections update the account identity and affect its other assigned
+repositories, not Git configuration. After sign-out, the popover explains that
+Desktop retains the identity but cannot verify account attribution until sign-in;
+repository author-email rules still apply.
+
 ## Short-lived credentials (preview)
 
 Development builds and builds started with `GITHUB_DESKTOP_PREVIEW_FEATURES=1`

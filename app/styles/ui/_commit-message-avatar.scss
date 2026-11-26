@@ -79,6 +79,16 @@
       min-width: 120px;
       margin-right: var(--spacing-half);
     }
+
+    .managed-identity-actions {
+      display: flex;
+      gap: var(--spacing-half);
+
+      button {
+        min-width: 0;
+        margin-right: 0;
+      }
+    }
   }
 
   .secondary-text {

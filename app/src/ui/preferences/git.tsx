@@ -3,7 +3,28 @@ import { DialogContent } from '../dialog'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
-import { Account } from '../../models/account'
+import {
+  Account,
+  getAccountKey,
+  getFriendlyEndpoint,
+  isSameAccount,
+} from '../../models/account'
+import {
+  CommitIdentityMode,
+  getManagedCommitEmailError,
+  getManagedCommitNameError,
+  ICommitIdentityEdit,
+  IManagedCommitIdentity,
+} from '../../lib/managed-commit-identity'
+import classNames from 'classnames'
+import { Button } from '../lib/button'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
+import { InputError } from '../lib/input-description/input-error'
+import { Caption } from '../lib/input-description/input-caption'
+import { RadioGroup } from '../lib/radio-group'
+import { TextBox } from '../lib/text-box'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
 import { TabBar } from '../tab-bar'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -14,6 +35,10 @@ import {
 } from '../../lib/hooks/config'
 
 interface IGitProps {
+  readonly commitIdentityMode: CommitIdentityMode
+  readonly managedIdentities: ReadonlyArray<IManagedCommitIdentity>
+  readonly onCommitIdentityModeChanged: (mode: CommitIdentityMode) => void
+  readonly onManagedIdentityChanged: (edit: ICommitIdentityEdit) => void
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
@@ -46,7 +71,18 @@ const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
   'cmd',
 ]
 
-export class Git extends React.Component<IGitProps> {
+interface IGitState {
+  /** The account key of the single identity row being edited, if any. */
+  readonly expandedIdentityKey: string | null
+  readonly isGitIdentityExpanded: boolean
+}
+
+export class Git extends React.Component<IGitProps, IGitState> {
+  public constructor(props: IGitProps) {
+    super(props)
+    this.state = { expandedIdentityKey: null, isGitIdentityExpanded: false }
+  }
+
   private get selectedTabIndex() {
     return this.props.selectedTabIndex ?? 0
   }
@@ -168,17 +204,138 @@ export class Git extends React.Component<IGitProps> {
   private renderGitConfigAuthorInfo() {
     return (
       <>
-        <GitConfigUserForm
-          email={this.props.email}
-          name={this.props.name}
-          isLoadingGitConfig={this.props.isLoadingGitConfig}
-          accounts={this.props.accounts}
-          onEmailChanged={this.props.onEmailChanged}
-          onNameChanged={this.props.onNameChanged}
+        <h2 id="commit-identity-management">Commit name and email</h2>
+        <RadioGroup<CommitIdentityMode>
+          ariaLabelledBy="commit-identity-management"
+          className="commit-identity-mode"
+          selectedKey={this.props.commitIdentityMode}
+          radioButtonKeys={['git', 'desktop']}
+          onSelectionChanged={this.props.onCommitIdentityModeChanged}
+          renderRadioButtonLabelContents={this.renderIdentityModeLabel}
+          renderRadioButtonDescription={this.renderIdentityModeDescription}
         />
-        {this.renderEditGlobalGitConfigInfo()}
+        {this.props.commitIdentityMode === 'desktop'
+          ? this.renderManagedIdentities()
+          : this.renderGitIdentity()}
       </>
     )
+  }
+
+  private renderIdentityModeLabel = (mode: CommitIdentityMode) =>
+    mode === 'git'
+      ? 'Use Git configuration'
+      : 'Use a separate identity for each account'
+
+  private renderIdentityModeDescription = (mode: CommitIdentityMode) =>
+    mode === 'git'
+      ? 'Commits use your Git name and email, including any repository-specific settings. Changes here update your global Git config, which other apps also use.'
+      : "Commits use the identity configured for the repository's assigned account. GitHub Desktop doesn't change your Git config. Other apps and unassigned repositories keep using Git configuration."
+
+  private renderManagedIdentities() {
+    return (
+      <>
+        {this.props.managedIdentities.length === 0 ? (
+          <p>Sign in to an account to configure its commit identity.</p>
+        ) : (
+          <ul
+            className="managed-identity-list"
+            aria-labelledby="commit-identity-management"
+          >
+            {this.props.managedIdentities.map((identity, index) => {
+              const key = getAccountKey(identity)
+              return (
+                <ManagedIdentityRow
+                  key={key}
+                  id={`managed-identity-${index}`}
+                  identity={identity}
+                  signedOut={
+                    !this.props.accounts.some(a => isSameAccount(a, identity))
+                  }
+                  expanded={this.state.expandedIdentityKey === key}
+                  onToggleExpanded={this.onToggleIdentityExpanded}
+                  onChanged={this.props.onManagedIdentityChanged}
+                />
+              )
+            })}
+          </ul>
+        )}
+      </>
+    )
+  }
+
+  private onToggleIdentityExpanded = (identity: IManagedCommitIdentity) => {
+    const key = getAccountKey(identity)
+    this.setState(state => ({
+      expandedIdentityKey: state.expandedIdentityKey === key ? null : key,
+    }))
+  }
+
+  private renderGitIdentity() {
+    const expanded = this.state.isGitIdentityExpanded
+    return (
+      <div className="managed-identity-list">
+        <div className={classNames('managed-identity', { expanded })}>
+          <div className="managed-identity-summary">
+            <div className="managed-identity-details">
+              {this.props.isLoadingGitConfig ? (
+                <div className="managed-identity-primary">
+                  Loading Git configuration...
+                </div>
+              ) : (
+                <IdentityNameAndEmail
+                  name={this.props.name}
+                  email={this.props.email}
+                />
+              )}
+              <div
+                className="managed-identity-account"
+                id="git-identity-description"
+              >
+                Global Git configuration
+              </div>
+            </div>
+            <Button
+              size="small"
+              onClick={this.onToggleGitIdentityExpanded}
+              disabled={this.props.isLoadingGitConfig}
+              ariaExpanded={expanded}
+              ariaControls={expanded ? 'git-identity-editor' : undefined}
+              ariaLabel={
+                expanded
+                  ? 'Done editing global Git identity'
+                  : 'Edit global Git identity'
+              }
+            >
+              {expanded ? 'Done' : 'Edit'}
+            </Button>
+          </div>
+          {expanded && (
+            <div
+              id="git-identity-editor"
+              className="managed-identity-editor"
+              role="group"
+              aria-labelledby="git-identity-description"
+            >
+              <GitConfigUserForm
+                email={this.props.email}
+                name={this.props.name}
+                isLoadingGitConfig={this.props.isLoadingGitConfig}
+                accounts={this.props.accounts}
+                onEmailChanged={this.props.onEmailChanged}
+                onNameChanged={this.props.onNameChanged}
+              />
+              {this.renderEditGlobalGitConfigInfo()}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  private onToggleGitIdentityExpanded = () => {
+    this.setState(state => ({
+      isGitIdentityExpanded: !state.isGitIdentityExpanded,
+    }))
   }
 
   private renderDefaultBranchSetting() {
@@ -218,4 +375,186 @@ export class Git extends React.Component<IGitProps> {
       </p>
     )
   }
+}
+
+interface IManagedIdentityRowProps {
+  readonly id: string
+  readonly identity: IManagedCommitIdentity
+  readonly signedOut: boolean
+  readonly expanded: boolean
+  readonly onToggleExpanded: (identity: IManagedCommitIdentity) => void
+  readonly onChanged: (edit: ICommitIdentityEdit) => void
+}
+
+function ManagedIdentityRow({
+  id,
+  identity,
+  signedOut,
+  expanded,
+  onToggleExpanded,
+  onChanged,
+}: IManagedIdentityRowProps) {
+  const { endpoint, login, name, email } = identity
+  const host = getFriendlyEndpoint(endpoint)
+  const nameError = getManagedCommitNameError(name)
+  const emailError = getManagedCommitEmailError(email)
+  const invalid = nameError !== undefined || emailError !== undefined
+  const editorId = `${id}-editor`
+  const accountId = `${id}-account`
+
+  const onNameChanged = React.useCallback(
+    (name: string) => onChanged({ endpoint, login, name }),
+    [endpoint, login, onChanged]
+  )
+  const onEmailChanged = React.useCallback(
+    (email: string) => onChanged({ endpoint, login, email }),
+    [endpoint, login, onChanged]
+  )
+  const onToggle = React.useCallback(
+    () => onToggleExpanded(identity),
+    [identity, onToggleExpanded]
+  )
+
+  return (
+    <li
+      className={classNames('managed-identity', {
+        expanded,
+        invalid: invalid && !expanded,
+      })}
+    >
+      <div className="managed-identity-summary">
+        <div className="managed-identity-details">
+          <IdentityNameAndEmail name={name} email={email} />
+          <div className="managed-identity-account" id={accountId}>
+            <span className="managed-identity-login">@{login}</span>
+            <span className="managed-identity-host">{host}</span>
+            {signedOut && (
+              <span className="managed-identity-signed-out">Signed out</span>
+            )}
+          </div>
+          {invalid && !expanded && (
+            <div className="managed-identity-attention">
+              <Octicon symbol={octicons.stop} />
+              Needs a valid name and email
+            </div>
+          )}
+        </div>
+        <Button
+          size="small"
+          onClick={onToggle}
+          ariaExpanded={expanded}
+          ariaControls={expanded ? editorId : undefined}
+          ariaLabel={`${
+            expanded ? 'Done editing' : 'Edit'
+          } @${login} on ${host}`}
+        >
+          {expanded ? 'Done' : 'Edit'}
+        </Button>
+      </div>
+      {expanded && (
+        <div
+          id={editorId}
+          className="managed-identity-editor"
+          role="group"
+          aria-labelledby={accountId}
+        >
+          <ManagedIdentityField
+            id={`${id}-name`}
+            label="Name"
+            value={name}
+            overridden={identity.nameOverridden}
+            error={nameError}
+            autoFocus={true}
+            onValueChanged={onNameChanged}
+          />
+          <ManagedIdentityField
+            id={`${id}-email`}
+            label="Email"
+            value={email}
+            overridden={identity.emailOverridden}
+            error={emailError}
+            autoFocus={false}
+            onValueChanged={onEmailChanged}
+          />
+        </div>
+      )}
+    </li>
+  )
+}
+
+function IdentityNameAndEmail({
+  name,
+  email,
+}: Pick<IManagedCommitIdentity, 'name' | 'email'>) {
+  return (
+    <div className="managed-identity-primary">
+      <TooltippedContent
+        tagName="span"
+        className={classNames('managed-identity-name', {
+          missing: name.trim().length === 0,
+        })}
+        tooltip={name}
+        onlyWhenOverflowed={true}
+      >
+        {name.trim().length > 0 ? name : 'No name'}
+      </TooltippedContent>
+      <TooltippedContent
+        tagName="span"
+        className={classNames('managed-identity-email', {
+          missing: email.trim().length === 0,
+        })}
+        tooltip={email}
+        onlyWhenOverflowed={true}
+      >
+        {email.trim().length > 0 ? email : 'No email'}
+      </TooltippedContent>
+    </div>
+  )
+}
+
+interface IManagedIdentityFieldProps {
+  readonly id: string
+  readonly label: string
+  readonly value: string
+  readonly overridden: boolean
+  readonly error: string | undefined
+  readonly autoFocus: boolean
+  readonly onValueChanged: (value: string) => void
+}
+
+function ManagedIdentityField({
+  id,
+  label,
+  value,
+  overridden,
+  error,
+  autoFocus,
+  onValueChanged,
+}: IManagedIdentityFieldProps) {
+  const descriptionId = `${id}-description`
+  return (
+    <div className="managed-identity-field">
+      <TextBox
+        label={label}
+        value={value}
+        required={true}
+        autoFocus={autoFocus}
+        ariaDescribedBy={descriptionId}
+        onValueChanged={onValueChanged}
+      />
+      {error !== undefined ? (
+        <InputError
+          id={descriptionId}
+          trackedUserInput={value}
+          ariaLiveMessage={error}
+        >
+          {error}
+        </InputError>
+      ) : (
+        <Caption id={descriptionId}>
+          {overridden ? 'Custom' : 'From your profile'}
+        </Caption>
+      )}
+    </div>
+  )
 }

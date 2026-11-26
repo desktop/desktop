@@ -92,7 +92,16 @@ describe('AccountsStore', () => {
     it('contains the added user', async () => {
       const newAccountLogin = 'joan'
       await accountsStore.addAccount(
-        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', 'free')
+        new Account(
+          newAccountLogin,
+          'https://api.github.com',
+          'deadbeef',
+          [],
+          '',
+          1,
+          '',
+          'free'
+        )
       )
 
       const users = await accountsStore.getAll()

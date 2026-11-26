@@ -1721,6 +1721,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <Preferences
             key="preferences"
+            commitIdentitySettings={this.state.commitIdentitySettings}
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             accounts={this.state.accounts}
@@ -1851,6 +1852,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <RepositorySettings
             key={`repository-settings-${repository.hash}`}
+            commitIdentitySettings={this.state.commitIdentitySettings}
             initialSelectedTab={popup.initialSelectedTab}
             remote={state.remote}
             dispatcher={this.props.dispatcher}
@@ -2432,6 +2434,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         return (
           <CommitMessageDialog
+            commitIdentityMode={this.state.commitIdentitySettings.mode}
             key="commit-message"
             autocompletionProviders={autocompletionProviders}
             branch={currentBranchName}
@@ -4041,6 +4044,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (selectedState.type === SelectionType.Repository) {
       return (
         <RepositoryView
+          commitIdentityMode={this.state.commitIdentitySettings.mode}
           ref={this.repositoryViewRef}
           // When switching repositories we want to remount the RepositoryView
           // component to reset the scroll positions.

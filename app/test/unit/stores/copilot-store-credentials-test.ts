@@ -25,6 +25,7 @@ import type { IOAuthToken } from '../../../src/lib/oauth-token'
 import { Account } from '../../../src/models/account'
 import { AsyncInMemoryStore, InMemoryStore } from '../../helpers/stores'
 import type { ICopilotPlanningClient } from '../../../src/lib/copilot-operation'
+import { setCommitIdentityProvider } from '../../../src/lib/managed-commit-identity'
 
 const now = 1_800_000_000_000
 const account = new Account(
@@ -215,6 +216,30 @@ describe('CopilotStore session credential wiring', () => {
   })
 
   after(() => mock.restoreAll())
+
+  it('passes repository authorship to isolated planning without broadening its environment', async t => {
+    const identity = {
+      name: 'Repository author',
+      email: 'repository@example.com',
+    }
+    setCommitIdentityProvider(path =>
+      path === '/repository' ? identity : undefined
+    )
+    t.after(() => setCommitIdentityProvider(() => undefined))
+    const { store } = await setup(t, {
+      accessToken: account.token,
+      expiresAt: now + 2 * 60 * 60 * 1000,
+    })
+    await store.createPlanningClient(account)
+    const env = clientOptions[0].env
+    assert.ok(env)
+    assert.equal(env.GIT_AUTHOR_NAME, identity.name)
+    assert.equal(env.GIT_AUTHOR_EMAIL, identity.email)
+    assert.equal(env.GIT_COMMITTER_NAME, identity.name)
+    assert.equal(env.GIT_COMMITTER_EMAIL, identity.email)
+    assert.equal(env.GIT_CONFIG_GLOBAL, undefined)
+    assert.equal(env.GIT_CONFIG_PARAMETERS, undefined)
+  })
 
   it('disables hook, configuration, and skill discovery for commit messages', async t => {
     const { createSession, generate, sessionCreationStopped } = await setup(t, {

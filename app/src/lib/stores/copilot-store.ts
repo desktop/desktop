@@ -65,6 +65,7 @@ import { IAssistedCommitAnalysis } from '../../models/assisted-commit'
 import { getCopilotRuntimePath } from '../copilot-runtime'
 import { startTimer } from '../../ui/lib/timing'
 import { join } from 'path'
+import { getManagedCommitEnvironment } from '../managed-commit-identity'
 import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
@@ -829,6 +830,9 @@ export class CopilotStore extends BaseStore {
       }),
       env: {
         ...options.env,
+        ...(repositoryPath === undefined
+          ? {}
+          : getManagedCommitEnvironment(repositoryPath)),
         GH_HOST: getCopilotGHHost(account),
         GITHUB_COPILOT_INTEGRATION_ID: `copilot-desktop${
           __DEV__ ? '-dev' : ''

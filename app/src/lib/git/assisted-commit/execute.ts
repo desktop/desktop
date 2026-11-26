@@ -46,6 +46,16 @@ import {
   validatedPlans,
 } from './state'
 
+/** Use frozen reflog authorship without redirecting the real ref transaction to private Git paths. */
+function getFrozenIdentityEnvironment(data: IAssistedCommitData) {
+  return {
+    GIT_AUTHOR_NAME: data.environment.GIT_AUTHOR_NAME,
+    GIT_AUTHOR_EMAIL: data.environment.GIT_AUTHOR_EMAIL,
+    GIT_COMMITTER_NAME: data.environment.GIT_COMMITTER_NAME,
+    GIT_COMMITTER_EMAIL: data.environment.GIT_COMMITTER_EMAIL,
+  }
+}
+
 /** Hook interception and transaction controls, with no per-commit option overrides. */
 export interface IAssistedCommitExecutionOptions
   extends IAssistedCommitOperationOptions,
@@ -361,7 +371,8 @@ async function recover(
         ownedTip,
         data.snapshot.originalHead.sha,
         'rollback: interrupted assisted commits',
-        () => verifyHead(data, ownedTip)
+        () => verifyHead(data, ownedTip),
+        { env: getFrozenIdentityEnvironment(data) }
       )
       await verifyHead(data, data.snapshot.originalHead.sha)
       history = 'restored'
@@ -673,7 +684,8 @@ export async function executeAssistedCommitPlan(
             await verifyIndex(data)
             await verifySelectedFiles(data)
             checkAssistedCommitCancellation(options.signal)
-          }
+          },
+          { env: getFrozenIdentityEnvironment(data) }
         )
       } catch (error) {
         try {
