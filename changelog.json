@@ -5,7 +5,6 @@
       "[Fixed] Commit-range and branch-comparison diffs ignore configured `diff.external` tools - #23214",
       "[Fixed] Close CI popover when branch dropdown is clicked - #21865. Thanks @robbierotman!",
       "[Fixed] Center access messages and buttons in Copilot settings - #23205",
-      "[Fixed] Change `.node-version` link to relative path - #23165. Thanks @PtJade-Ceramic!",
       "[Improved] Update Electron to v44.11.2, improving macOS auto-update reliability and overall app stability - #23217"
     ],
     "3.7.1-beta1": [
