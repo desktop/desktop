@@ -53,6 +53,10 @@ import {
   enableSourceMaps,
   withSourceMappedStack,
 } from '../lib/source-map-support'
+import {
+  createRendererUncaughtExceptionHandler,
+  installWindowErrorHandler,
+} from './lib/uncaught-exception'
 import { UiActivityMonitor } from './lib/ui-activity-monitor'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
@@ -188,38 +192,24 @@ const sendErrorWithContext = (
   }
 }
 
-const resizeLoopCompletedMessage =
-  'ResizeObserver loop completed with undelivered notifications.'
-
-const onUncaughtException = (error: unknown) => {
-  // This is a known issue with the ResizeObserver API in Chromium 132 which is
-  // fixed in 133 that we can safely ignore.
-  // See: https://issues.chromium.org/issues/391393420
-  if (
-    error === resizeLoopCompletedMessage ||
-    (error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      error.message === resizeLoopCompletedMessage)
-  ) {
-    sendNonFatalException(
-      'resizeObserverLoopCompleted',
-      withSourceMappedStack(error)
-    )
-    return
-  }
-
-  sendErrorWithContext(error)
-  reportUncaughtException(withSourceMappedStack(error))
-
-  // We used to subscribe to uncaughtException using process.once but we want
-  // to be able to ignore the resize observer error above so we need to
-  // unsubscribe manually once we encounter an error we actually want to crash
-  // the app for.
-  process.off('uncaughtException', onUncaughtException)
-}
+// Chromium reports ResizeObserver loop notifications via window.onerror with
+// `error === null`; installWindowErrorHandler preserves the message so
+// createRendererUncaughtExceptionHandler treats them as non-fatal (reported at
+// most once per session) instead of crashing the app. We subscribe via
+// process.on and detach manually after a fatal error so ignored ResizeObserver
+// notifications do not disarm fatal crash handling.
+const onUncaughtException = createRendererUncaughtExceptionHandler({
+  onResizeObserverLoop: error =>
+    sendNonFatalException('resizeObserverLoopCompleted', error),
+  onFatalError: error => {
+    sendErrorWithContext(error)
+    reportUncaughtException(withSourceMappedStack(error))
+  },
+  unsubscribe: listener => process.off('uncaughtException', listener),
+})
 
 process.on('uncaughtException', onUncaughtException)
+installWindowErrorHandler()
 
 // See sendNonFatalException for more information
 process.on(

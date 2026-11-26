@@ -101,6 +101,167 @@ export function enableSourceMaps() {
   AnyError.prepareStackTrace = prepareStackTrace
 }
 
+const maxReportedObjectKeys = 10
+
+function safeReadProperty(
+  value: object,
+  key: string
+): { readonly found: boolean; readonly value: unknown } {
+  try {
+    if (!(key in value)) {
+      return { found: false, value: undefined }
+    }
+    return { found: true, value: Reflect.get(value, key) }
+  } catch {
+    return { found: false, value: undefined }
+  }
+}
+
+function getConstructorName(value: object): string | undefined {
+  try {
+    if (Object.getPrototypeOf(value) === null) {
+      return undefined
+    }
+
+    const ctor = Reflect.get(value, 'constructor')
+    if (typeof ctor === 'function') {
+      const nameProp = safeReadProperty(ctor, 'name')
+      if (
+        nameProp.found &&
+        typeof nameProp.value === 'string' &&
+        nameProp.value.length > 0
+      ) {
+        return nameProp.value
+      }
+    }
+  } catch {
+    // Ignore throwing getters or proxies
+  }
+
+  return undefined
+}
+
+function describeObject(value: object): string {
+  const label = getConstructorName(value) ?? '[null prototype]'
+
+  try {
+    if (typeof Event === 'function' && value instanceof Event) {
+      return `${label} (type=${value.type})`
+    }
+  } catch {
+    // Ignore cross-realm or proxy errors
+  }
+
+  try {
+    const keys = Object.getOwnPropertyNames(value).sort()
+    if (keys.length === 0) {
+      return `${label} (no own properties)`
+    }
+
+    const shownKeys =
+      keys.length > maxReportedObjectKeys
+        ? `${keys.slice(0, maxReportedObjectKeys).join(', ')}, …`
+        : keys.join(', ')
+
+    return `${label} (keys: ${shownKeys})`
+  } catch {
+    return label
+  }
+}
+
+function formatErrorName(error: object): string {
+  const nameProp = safeReadProperty(error, 'name')
+  if (
+    nameProp.found &&
+    typeof nameProp.value === 'string' &&
+    nameProp.value.length > 0
+  ) {
+    return nameProp.value
+  }
+
+  return getConstructorName(error) ?? 'NonError'
+}
+
+function formatErrorMessage(error: object): string {
+  const messageProp = safeReadProperty(error, 'message')
+  if (!messageProp.found) {
+    return describeObject(error)
+  }
+
+  const rawMessage = messageProp.value
+  if (rawMessage === null) {
+    return 'null'
+  }
+
+  if (rawMessage === undefined) {
+    return 'undefined'
+  }
+
+  if (typeof rawMessage === 'string') {
+    return rawMessage
+  }
+
+  if (typeof rawMessage === 'object') {
+    try {
+      return JSON.stringify(rawMessage, Object.getOwnPropertyNames(rawMessage))
+    } catch {
+      return describeObject(rawMessage)
+    }
+  }
+
+  return String(rawMessage)
+}
+
+function formatErrorStack(error: object): string | undefined {
+  if (error instanceof Error) {
+    return sourceMappedStackTrace(error)
+  }
+
+  const stackProp = safeReadProperty(error, 'stack')
+  return stackProp.found && typeof stackProp.value === 'string'
+    ? stackProp.value
+    : undefined
+}
+
+export interface ISourceLocation {
+  readonly source: string
+  readonly line: number
+  readonly column?: number
+}
+
+/**
+ * Resolve a 1-based line and optional 1-based column in a compiled bundle to
+ * its original source map location, falling back to the input position when no
+ * source map is available or mapping fails.
+ */
+export function mapSourceLocation(
+  source: string,
+  line: number,
+  column?: number
+): ISourceLocation {
+  const hasColumn = column !== undefined && column > 0
+
+  try {
+    const mapped = sourceMapSupport.mapSourcePosition({
+      source,
+      line,
+      column: hasColumn ? column - 1 : 0,
+    })
+
+    return {
+      source: mapped.source,
+      line: mapped.line,
+      column: hasColumn ? mapped.column + 1 : undefined,
+    }
+  } catch {
+    return {
+      source,
+      line,
+      column: hasColumn ? column : undefined,
+    }
+  }
+}
+
 /**
  * Make a copy of the error with a source-mapped stack trace. If it couldn't
  * perform the source mapping, it'll use the original error stack.
@@ -114,37 +275,50 @@ export function withSourceMappedStack(error: unknown): Error {
     }
   }
 
-  let message
-
-  if (error && typeof error === 'object' && 'message' in error) {
-    if (error.message === null) {
-      message = 'null'
-    } else if (error.message === undefined) {
-      message = 'undefined'
-    } else if (typeof error.message === 'string') {
-      message = error.message
-    } else if (typeof error.message === 'object') {
-      message = JSON.stringify(
-        error.message,
-        Object.getOwnPropertyNames(error.message)
-      )
-    } else {
-      message = `${error.message}`
+  if (error === null) {
+    return {
+      name: 'NonError',
+      message: 'null',
+      stack: undefined,
     }
-  } else {
-    message = '[Unknown]'
+  }
+
+  if (error === undefined) {
+    return {
+      name: 'NonError',
+      message: 'undefined',
+      stack: undefined,
+    }
+  }
+
+  if (typeof error === 'function') {
+    const nameProp = safeReadProperty(error, 'name')
+    const functionName =
+      nameProp.found &&
+      typeof nameProp.value === 'string' &&
+      nameProp.value.length > 0
+        ? `function ${nameProp.value}`
+        : 'anonymous function'
+
+    return {
+      name: 'NonError',
+      message: functionName,
+      stack: undefined,
+    }
+  }
+
+  if (typeof error !== 'object') {
+    return {
+      name: 'NonError',
+      message: `${typeof error}: ${String(error)}`,
+      stack: undefined,
+    }
   }
 
   return {
-    name:
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      typeof error.name === 'string'
-        ? error.name
-        : '[Unknown]',
-    message,
-    stack: error instanceof Error ? sourceMappedStackTrace(error) : undefined,
+    name: formatErrorName(error),
+    message: formatErrorMessage(error),
+    stack: formatErrorStack(error),
   }
 }
 

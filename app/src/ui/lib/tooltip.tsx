@@ -209,6 +209,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   private mouseOverTooltip = false
   private showTooltipTimeout: number | null = null
   private hideTooltipTimeout: number | null = null
+  private resizeAnimationFrameId: number | null = null
+  private pendingTooltipResize = false
+  private pendingTargetResize = false
 
   private tooltipRef: TooltipTarget | null = null
 
@@ -231,16 +234,21 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     this.resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.target === this.tooltipRef) {
-          const tooltipRect = this.tooltipRef.getBoundingClientRect()
-          if (!rectEquals(this.state.tooltipRect, tooltipRect)) {
-            this.setState({ tooltipRect })
-          }
+          this.pendingTooltipResize = true
         } else if (entry.target === this.state.target) {
-          const targetRect = this.state.target.getBoundingClientRect()
-          if (!rectEquals(this.state.targetRect, targetRect)) {
-            this.setState({ targetRect })
-          }
+          this.pendingTargetResize = true
         }
+      }
+
+      if (
+        (this.pendingTooltipResize || this.pendingTargetResize) &&
+        this.resizeAnimationFrameId === null
+      ) {
+        // Defer state updates until the next animation frame to avoid
+        // synchronously mutating layout inside a ResizeObserver callback,
+        // which triggers "ResizeObserver loop completed with undelivered
+        // notifications." in Chromium.
+        this.resizeAnimationFrameId = requestAnimationFrame(this.onResized)
       }
     })
   }
@@ -266,6 +274,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
         releaseUniqueId(this.state.id)
         this.setState({ id: undefined })
       }
+      this.cancelResizeUpdate()
       this.resizeObserver.disconnect()
       const { tooltipRef } = this
 
@@ -639,8 +648,57 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
   }
 
+  private onResized = () => {
+    this.resizeAnimationFrameId = null
+
+    const checkTooltip = this.pendingTooltipResize
+    const checkTarget = this.pendingTargetResize
+    this.pendingTooltipResize = false
+    this.pendingTargetResize = false
+
+    const { tooltipRef } = this
+    const { target } = this.state
+
+    const nextTooltipRect =
+      checkTooltip && tooltipRef !== null
+        ? tooltipRef.getBoundingClientRect()
+        : null
+    const nextTargetRect =
+      checkTarget && target !== null ? target.getBoundingClientRect() : null
+
+    const tooltipChanged =
+      nextTooltipRect !== null &&
+      !rectEquals(this.state.tooltipRect, nextTooltipRect)
+    const targetChanged =
+      nextTargetRect !== null &&
+      !rectEquals(this.state.targetRect, nextTargetRect)
+
+    if (tooltipChanged && targetChanged) {
+      this.setState({
+        tooltipRect: nextTooltipRect,
+        targetRect: nextTargetRect,
+      })
+    } else if (tooltipChanged) {
+      this.setState({ tooltipRect: nextTooltipRect })
+    } else if (targetChanged) {
+      this.setState({ targetRect: nextTargetRect })
+    }
+  }
+
+  private cancelResizeUpdate() {
+    if (this.resizeAnimationFrameId !== null) {
+      cancelAnimationFrame(this.resizeAnimationFrameId)
+      this.resizeAnimationFrameId = null
+    }
+    this.pendingTooltipResize = false
+    this.pendingTargetResize = false
+  }
+
   public componentWillUnmount() {
     this.cancelShowTooltip()
+    this.cancelHideTooltip()
+    this.cancelResizeUpdate()
+    this.resizeObserver.disconnect()
     this.props.target.unsubscribe(this.onTargetRef)
     this.removeTooltip(this.state.target)
 
