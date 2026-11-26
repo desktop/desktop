@@ -257,7 +257,9 @@ describe('git/checkout', () => {
       )
       assert.strictEqual(upstream.stdout.trim(), branch.ref)
       assert.strictEqual(
-        await readFile(Path.join(repository.path, 'tracked.txt'), 'utf8'),
+        (
+          await readFile(Path.join(repository.path, 'tracked.txt'), 'utf8')
+        ).replace(/\r\n/g, '\n'),
         'remote branch\n'
       )
     })
