@@ -277,18 +277,17 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       }
     }
 
+    const isSectionHeader = sectionHasHeader && rowIndex.row === 0
+
     return (
       <div
         id={id}
-        role={
-          sectionHasHeader && rowIndex.row === 0
-            ? 'presentation'
-            : role ?? 'option'
-        }
+        role={isSectionHeader ? 'presentation' : role ?? 'option'}
+        aria-hidden={isSectionHeader ? true : undefined}
         aria-setsize={ariaSetSize}
         aria-posinset={ariaPosInSet}
         aria-selected={selectable ? selected : undefined}
-        aria-label={this.props.ariaLabel}
+        aria-label={isSectionHeader ? undefined : this.props.ariaLabel}
         className={rowClassName}
         tabIndex={tabIndex}
         ref={this.onRowRef}

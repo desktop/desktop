@@ -452,16 +452,8 @@ export class SectionList extends React.Component<
    * on each render would cause it to rerender constantly).
    */
   private getContainerProps = memoizeOne(
-    (
-      activeDescendant: string | undefined
-    ): React.HTMLProps<HTMLDivElement> => ({
+    (): React.HTMLProps<HTMLDivElement> => ({
       onKeyDown: this.onKeyDown,
-      'aria-activedescendant': activeDescendant,
-      'aria-multiselectable':
-        this.props.selectionMode === 'multi' ||
-        this.props.selectionMode === 'range'
-          ? 'true'
-          : undefined,
     })
   )
 
@@ -1463,11 +1455,7 @@ export class SectionList extends React.Component<
     }
 
     const { selectedRows } = this.props
-    const activeDescendant =
-      selectedRows.length && this.state.rowIdPrefix
-        ? this.getRowId(selectedRows[selectedRows.length - 1])
-        : undefined
-    const containerProps = this.getContainerProps(activeDescendant)
+    const containerProps = this.getContainerProps()
     // The currently selected list item is focusable but if there's no focused
     // item the list itself needs to be focusable so that you can reach it with
     // keyboard navigation and select an item.

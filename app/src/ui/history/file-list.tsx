@@ -72,6 +72,7 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
     return (
       <div className="file-list">
         <List
+          ariaLabel="Changed files"
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
           rowHeight={29}

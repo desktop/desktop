@@ -421,16 +421,8 @@ export class List extends React.Component<IListProps, IListState> {
    * on each render would cause it to rerender constantly).
    */
   private getContainerProps = memoizeOne(
-    (
-      activeDescendant: string | undefined
-    ): React.HTMLProps<HTMLDivElement> => ({
+    (): React.HTMLProps<HTMLDivElement> => ({
       onKeyDown: this.onKeyDown,
-      'aria-activedescendant': activeDescendant,
-      'aria-multiselectable':
-        this.props.selectionMode === 'multi' ||
-        this.props.selectionMode === 'range'
-          ? 'true'
-          : undefined,
     })
   )
 
@@ -1376,15 +1368,7 @@ export class List extends React.Component<IListProps, IListState> {
         ? 0
         : -1
 
-    // we select the last item from the selection array for this prop
-    const activeDescendant =
-      this.props.selectedRows.length && this.state.rowIdPrefix
-        ? this.getRowId(
-            this.props.selectedRows[this.props.selectedRows.length - 1]
-          )
-        : undefined
-
-    const containerProps = this.getContainerProps(activeDescendant)
+    const containerProps = this.getContainerProps()
 
     const className = classNames('list-focus-container', {
       'in-keyboard-insertion-mode': this.inKeyboardInsertionMode,
