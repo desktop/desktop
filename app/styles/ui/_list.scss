@@ -51,24 +51,22 @@
 
     // Hide the scroll bar by default
     .fake-scroll {
-      display: none;
+      scrollbar-width: none;
+      // Positioning
+      position: absolute;
+      top: 0px;
+      right: 1px;
+      width: 12px;
+
+      // Only support vertical scrolling for now
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     &:hover {
       .fake-scroll {
-        // Show the scroll bar when users hover
-        // the list
-        display: block;
-
-        // Positioning
-        position: absolute;
-        top: 0px;
-        right: 1px;
-        width: 12px;
-
-        // Only support vertical scrolling for now
-        overflow-y: auto;
-        overflow-x: hidden;
+        // Show the scroll bar when users hover the list
+        scrollbar-width: auto;
       }
     }
   }
