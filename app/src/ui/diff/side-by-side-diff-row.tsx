@@ -662,13 +662,10 @@ export class SideBySideDiffRow extends React.Component<
         className="sr-only"
         id={checkAllId}
         type="checkbox"
+        checked={selectionState === DiffSelectionType.All}
         aria-controls={lineNumbersIdentifiers.join(' ')}
         aria-checked={
-          selectionState === DiffSelectionType.All
-            ? true
-            : selectionState === DiffSelectionType.Partial
-            ? 'mixed'
-            : false
+          selectionState === DiffSelectionType.Partial ? 'mixed' : undefined
         }
         onChange={this.onClickHunk}
         onFocus={this.onHunkFocus}
