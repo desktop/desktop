@@ -3947,6 +3947,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
 
+    // Amending a commit that hasn't been pushed yet doesn't rewrite anything
+    // on the remote, unless that commit already replaced pushed history (e.g.
+    // a second amend of a pushed commit). This has to be read before
+    // committing, since refreshing the changes section reloads the local
+    // commits.
+    const { tip, forcePushBranches } = state.branchesState
+    const amendedCommitNeedsForcePush =
+      state.commitToAmend !== null &&
+      (!gitStore.localCommitSHAs.includes(state.commitToAmend.sha) ||
+        (tip.kind === TipState.Valid &&
+          forcePushBranches.get(tip.branch.nameWithoutRemote) ===
+            state.commitToAmend.sha))
+
     let branchToPush: string | null | undefined
     const committed = await this.withIsCommitting(
       repository,
@@ -4079,7 +4092,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           this._refreshRepositoryAfterCommit(
             repository,
             result,
-            state.commitToAmend
+            amendedCommitNeedsForcePush ? state.commitToAmend : null
           )
         } else {
           // The commit failed, but we should still refresh to ensure we
@@ -4102,11 +4115,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async _refreshRepositoryAfterCommit(
     repository: Repository,
     newCommitSha: string,
-    amendedCommit: Commit | null
+    amendedPushedCommit: Commit | null
   ) {
     await this._refreshRepository(repository)
 
-    const amendedCommitSha = amendedCommit?.sha
+    const amendedCommitSha = amendedPushedCommit?.sha
 
     if (amendedCommitSha !== undefined && newCommitSha !== amendedCommitSha) {
       const newState = this.repositoryStateCache.get(repository)
