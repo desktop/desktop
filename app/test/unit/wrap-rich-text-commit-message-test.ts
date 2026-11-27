@@ -163,4 +163,16 @@ describe('wrapRichTextCommitMessage', () => {
       'https://desktop.github.com/release-notes/'
     )
   })
+
+  it('preserves the destination when wrapping an external issue link', () => {
+    const { summary, body } = wrap(`${'x'.repeat(61)} testorg/testrepo#818`)
+    const urls = [...summary, ...body]
+      .filter(t => t.kind === TokenType.Link)
+      .map(t => (t as HyperlinkMatch).url)
+
+    assert.ok(urls.length > 0)
+    for (const url of urls) {
+      assert.equal(url, 'https://github.com/testorg/testrepo/issues/818')
+    }
+  })
 })

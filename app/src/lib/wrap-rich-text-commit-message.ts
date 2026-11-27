@@ -78,9 +78,9 @@ export function wrapRichTextCommitMessage(
         // We want at least the first couple of characters of the link
         // text showing otherwise we'll end up with weird links like "h"
         // or "@"
-        if (!token.text.startsWith('#') && remainder > 5) {
-          summary.push(link(token.text.substring(0, remainder), token.text))
-          overflow.push(link(token.text.substring(remainder), token.text))
+        if (!isIssueReference(token.text) && remainder > 5) {
+          summary.push(link(token.text.substring(0, remainder), token.url))
+          overflow.push(link(token.text.substring(remainder), token.url))
         } else {
           overflow.push(token)
         }
@@ -104,6 +104,11 @@ export function wrapRichTextCommitMessage(
   }
 
   return { summary, body }
+}
+
+/** Whether link text is `#123` or `owner/repo#123` */
+function isIssueReference(text: string) {
+  return /^(?:[^\s/#]+\/[^\s/#]+)?#\d+$/.test(text)
 }
 
 function ellipsis() {
