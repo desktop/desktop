@@ -131,6 +131,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           aria-describedby={this.props.ariaDescribedBy}
           aria-labelledby={this.props.ariaLabelledBy}
           aria-hidden={this.props.ariaHidden}
+          role={this.props.ariaHidden ? 'presentation' : undefined}
         />
         {this.renderLabel()}
       </div>
