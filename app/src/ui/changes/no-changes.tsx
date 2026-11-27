@@ -32,6 +32,8 @@ import {
 } from '../../models/pull-request'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { formatNumber } from '../../lib/format-number'
+import type { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
+import type { Disposable } from 'event-kit'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -55,6 +57,8 @@ const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface INoChangesProps {
   readonly dispatcher: Dispatcher
+
+  readonly aheadBehindStore: AheadBehindStore
 
   /**
    * The currently selected repository
@@ -136,6 +140,11 @@ interface INoChangesState {
    * initially appearing.
    */
   readonly enableTransitions: boolean
+
+  readonly comparisonFrom?: string
+  readonly comparisonTo?: string
+  readonly comparisonRepositoryPath?: string
+  readonly defaultBranchAheadBehind?: IAheadBehind
 }
 
 function getItemAcceleratorKeys(item: MenuItem) {
@@ -185,6 +194,54 @@ export class NoChanges extends React.Component<
   INoChangesProps,
   INoChangesState
 > {
+  public static getDerivedStateFromProps(
+    props: INoChangesProps,
+    state: INoChangesState
+  ): Partial<INoChangesState> | null {
+    const { remote, aheadBehind, branchesState } = props.repositoryState
+    const { tip, defaultBranch, currentPullRequest } = branchesState
+    const shouldCompare =
+      remote !== null &&
+      aheadBehind !== null &&
+      props.repository.gitHubRepository !== null &&
+      tip.kind === TipState.Valid &&
+      defaultBranch !== null &&
+      currentPullRequest === null &&
+      tip.branch.name !== defaultBranch.name
+    const from = shouldCompare ? tip.branch.tip.sha : undefined
+    const to = shouldCompare ? defaultBranch.tip.sha : undefined
+    const repositoryPath = shouldCompare ? props.repository.path : undefined
+
+    if (
+      from === state.comparisonFrom &&
+      to === state.comparisonTo &&
+      repositoryPath === state.comparisonRepositoryPath
+    ) {
+      return null
+    }
+
+    if (from === undefined || to === undefined) {
+      return {
+        comparisonFrom: from,
+        comparisonTo: to,
+        comparisonRepositoryPath: repositoryPath,
+        defaultBranchAheadBehind: undefined,
+      }
+    }
+
+    const defaultBranchAheadBehind =
+      from === to
+        ? { ahead: 0, behind: 0 }
+        : props.aheadBehindStore.tryGetAheadBehind(props.repository, from, to)
+
+    return {
+      comparisonFrom: from,
+      comparisonTo: to,
+      comparisonRepositoryPath: repositoryPath,
+      defaultBranchAheadBehind,
+    }
+  }
+
   private getMenuInfoMap = memoizeOne((menu: IMenu | undefined) =>
     menu === undefined
       ? new Map<string, IMenuItemInfo>()
@@ -196,6 +253,7 @@ export class NoChanges extends React.Component<
    * mounts. See componentDidMount/componentWillUnmount.
    */
   private transitionTimer: number | null = null
+  private aheadBehindSubscription: Disposable | null = null
 
   public constructor(props: INoChangesProps) {
     super(props)
@@ -388,7 +446,17 @@ export class NoChanges extends React.Component<
     const isDefaultBranch =
       defaultBranch !== null && tip.branch.name === defaultBranch.name
 
-    if (isGitHub && !hasOpenPullRequest && !isDefaultBranch) {
+    const isAheadOfDefaultBranch =
+      (this.state.defaultBranchAheadBehind?.ahead ?? 0) > 0
+
+    // Keep this suggestion hidden until the comparison finishes. The menu item
+    // and keyboard shortcut remain available for alternate-base workflows.
+    if (
+      isGitHub &&
+      !hasOpenPullRequest &&
+      !isDefaultBranch &&
+      isAheadOfDefaultBranch
+    ) {
       return this.renderCreatePullRequestAction(tip)
     }
 
@@ -755,12 +823,66 @@ export class NoChanges extends React.Component<
       this.setState({ enableTransitions: true })
       this.transitionTimer = null
     }, 500)
+
+    if (this.state.defaultBranchAheadBehind === undefined) {
+      this.subscribeToAheadBehindStore()
+    }
+  }
+
+  public componentDidUpdate(
+    prevProps: INoChangesProps,
+    prevState: INoChangesState
+  ) {
+    const {
+      comparisonFrom: from,
+      comparisonTo: to,
+      comparisonRepositoryPath: repositoryPath,
+    } = this.state
+
+    if (
+      prevState.comparisonFrom !== from ||
+      prevState.comparisonTo !== to ||
+      prevState.comparisonRepositoryPath !== repositoryPath
+    ) {
+      this.subscribeToAheadBehindStore()
+    }
   }
 
   public componentWillUnmount() {
     if (this.transitionTimer !== null) {
       clearTimeout(this.transitionTimer)
     }
+
+    this.unsubscribeFromAheadBehindStore()
+  }
+
+  private subscribeToAheadBehindStore() {
+    const { aheadBehindStore, repository } = this.props
+    const {
+      comparisonFrom: from,
+      comparisonTo: to,
+      defaultBranchAheadBehind,
+    } = this.state
+
+    this.unsubscribeFromAheadBehindStore()
+
+    if (
+      from !== undefined &&
+      to !== undefined &&
+      defaultBranchAheadBehind === undefined
+    ) {
+      this.aheadBehindSubscription = aheadBehindStore.getAheadBehind(
+        repository,
+        from,
+        to,
+        defaultBranchAheadBehind => this.setState({ defaultBranchAheadBehind })
+      )
+    }
+  }
+
+  private unsubscribeFromAheadBehindStore() {
+    this.aheadBehindSubscription?.dispose()
+    this.aheadBehindSubscription = null
   }
 
   public render() {
