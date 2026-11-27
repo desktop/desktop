@@ -631,6 +631,7 @@ export class SideBySideDiff extends React.Component<
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
+                containerRole="rowgroup"
                 deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
@@ -901,7 +902,7 @@ export class SideBySideDiff extends React.Component<
         parent={parent}
         rowIndex={index}
       >
-        <div key={key} style={style} role="row" aria-rowindex={index}>
+        <div key={key} style={style} role="row" aria-rowindex={index + 1}>
           <SideBySideDiffRow
             row={rowWithTokens}
             lineNumberWidth={lineNumberWidth}
