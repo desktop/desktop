@@ -58,5 +58,49 @@ describe(
       )
       assert.equal((await lstat(sourceGitAdd)).isSymbolicLink(), true)
     })
+
+    it('leaves links dereferenced when an intermediate symlink escapes the bundle', async t => {
+      const root = await createTempDirectory(t)
+      const sourceApp = join(root, 'source')
+      const packagedApp = join(root, 'packaged')
+      const sourceGit = join(sourceApp, 'git')
+      const packagedGit = join(packagedApp, 'git')
+      const sourceGitCore = join(sourceGit, 'libexec', 'git-core')
+      const packagedGitCore = join(packagedGit, 'libexec', 'git-core')
+      const outsideDirectory = join(root, 'outside')
+      const outsideRedirectTarget = join(outsideDirectory, 'redirect-target')
+      const sourceRedirect = join(sourceGitCore, 'redirect')
+      const sourceLink = join(sourceGitCore, 'git-evil')
+      const packagedLink = join(packagedGitCore, 'git-evil')
+
+      await mkdir(sourceGitCore, { recursive: true })
+      await mkdir(packagedGitCore, { recursive: true })
+      await mkdir(packagedGitCore, { recursive: true })
+      await mkdir(outsideRedirectTarget, { recursive: true })
+      await writeFile(join(outsideDirectory, 'git-bin'), 'actual external target')
+
+      // The first component is a symlink. Resolving "redirect/.." follows it
+      // before applying "..", so the actual destination is outside sourceGit.
+      await symlink(outsideRedirectTarget, sourceRedirect)
+      await symlink('redirect/../git-bin', sourceLink)
+
+      // Electron Packager dereferences both links. These decoy paths make a
+      // purely lexical resolve() appear safe inside the Git bundle.
+      await writeFile(join(sourceGitCore, 'git-bin'), 'in-bundle decoy')
+      await mkdir(join(packagedGitCore, 'redirect'), { recursive: true })
+      await writeFile(join(packagedGitCore, 'git-bin'), 'packaged in-bundle decoy')
+      await writeFile(packagedLink, 'actual external target')
+
+      assert.equal(await readFile(sourceLink, 'utf8'), 'actual external target')
+
+      const restored = restoreGitCoreSymlinks(sourceApp, packagedApp)
+
+      assert.equal(restored, 0)
+      assert.equal((await lstat(packagedLink)).isFile(), true)
+      assert.equal(
+        await readFile(packagedLink, 'utf8'),
+        'actual external target'
+      )
+    })
   }
 )
