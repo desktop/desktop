@@ -1,5 +1,9 @@
 /** Truncate a single line unicode string by a given maxLength and add ellipsis if necessary */
 export function truncateWithEllipsis(str: string, maxLength: number) {
+  if (maxLength <= 0) {
+    return ''
+  }
+
   if (str.length <= maxLength) {
     return str
   }
