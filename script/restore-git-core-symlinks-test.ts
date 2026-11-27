@@ -75,9 +75,11 @@ describe(
 
       await mkdir(sourceGitCore, { recursive: true })
       await mkdir(packagedGitCore, { recursive: true })
-      await mkdir(packagedGitCore, { recursive: true })
       await mkdir(outsideRedirectTarget, { recursive: true })
-      await writeFile(join(outsideDirectory, 'git-bin'), 'actual external target')
+      await writeFile(
+        join(outsideDirectory, 'git-bin'),
+        'actual external target'
+      )
 
       // The first component is a symlink. Resolving "redirect/.." follows it
       // before applying "..", so the actual destination is outside sourceGit.
@@ -88,7 +90,10 @@ describe(
       // purely lexical resolve() appear safe inside the Git bundle.
       await writeFile(join(sourceGitCore, 'git-bin'), 'in-bundle decoy')
       await mkdir(join(packagedGitCore, 'redirect'), { recursive: true })
-      await writeFile(join(packagedGitCore, 'git-bin'), 'packaged in-bundle decoy')
+      await writeFile(
+        join(packagedGitCore, 'git-bin'),
+        'packaged in-bundle decoy'
+      )
       await writeFile(packagedLink, 'actual external target')
 
       assert.equal(await readFile(sourceLink, 'utf8'), 'actual external target')
