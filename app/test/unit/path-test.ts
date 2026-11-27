@@ -5,7 +5,7 @@ import { resolve, basename, join } from 'path'
 import { promises } from 'fs'
 import { tmpdir } from 'os'
 
-const { rmdir, mkdtemp, symlink, unlink } = promises
+const { rmdir, mkdtemp, symlink, unlink, mkdir, writeFile, rm } = promises
 
 describe('path', () => {
   describe('encodePathAsUrl', () => {
@@ -55,6 +55,26 @@ describe('path', () => {
 
     it('fails for paths containing null bytes', async () => {
       assert((await resolveWithin(root, 'foo\0bar')) === null)
+    })
+
+    it('rejects existing sibling paths whose names share the root prefix', async () => {
+      const tempDir = await mkdtemp(join(tmpdir(), 'path-test'))
+      const rootPath = join(tempDir, 'repo')
+      const siblingPath = join(tempDir, 'repo-sibling')
+      const markerPath = join(siblingPath, 'marker.txt')
+
+      try {
+        await mkdir(rootPath)
+        await mkdir(siblingPath)
+        await writeFile(markerPath, 'outside the root')
+
+        assert.equal(
+          await resolveWithin(rootPath, '..', 'repo-sibling', 'marker.txt'),
+          null
+        )
+      } finally {
+        await rm(tempDir, { recursive: true, force: true })
+      }
     })
 
     it('succeeds for absolute relative paths as long as they stay within the root', async () => {
