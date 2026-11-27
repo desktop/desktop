@@ -68,6 +68,7 @@ import { join } from 'path'
 import assert from 'assert'
 import { copyCopilotDependency } from './copilot'
 import { getNpmCommand } from './npm'
+import { restoreGitCoreSymlinks } from './restore-git-core-symlinks'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
@@ -215,6 +216,19 @@ async function packageApp() {
     overwrite: true,
     tmpdir: false,
     derefSymlinks: true,
+    afterCopy: [
+      ({
+        buildPath,
+        platform
+      }: { buildPath: string; platform: string }) => {
+        if (platform !== 'darwin') {
+          return
+        }
+
+        const restored = restoreGitCoreSymlinks(outRoot, buildPath)
+        console.log('Restored ' + restored + ' Git core symlinks for macOS packaging')
+      }
+    ],
     prune: false, // We'll prune them ourselves below.
     ignore: [
       new RegExp('/node_modules/electron($|/)'),
