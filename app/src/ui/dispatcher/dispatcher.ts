@@ -2197,6 +2197,15 @@ export class Dispatcher {
   }
 
   public async dispatchCLIAction(action: CLIAction) {
+    if (__E2E__ && action.kind === 'test-add-repositories') {
+      await this.endWelcomeFlow()
+      const added = await this.addRepositories(action.paths)
+      if (added.length > 0) {
+        await this.selectRepository(added[0])
+      }
+      return
+    }
+
     if (action.kind === 'clone-url') {
       const { branch, url } = action
 

@@ -26,6 +26,7 @@ export function getReplacements() {
     __APP_NAME__: s(productName),
     __APP_VERSION__: s(version),
     __DEV__: isDevBuild,
+    __E2E__: process.env.DESKTOP_E2E === '1',
     __DEV_SECRETS__: isDevBuild || !process.env.DESKTOP_OAUTH_CLIENT_SECRET,
     __RELEASE_CHANNEL__: s(channel),
     __UPDATES_URL__: s(process.env.DESKTOP_E2E_UPDATES_URL ?? getUpdatesURL()),

@@ -8,6 +8,7 @@ const packageInfo = await import('../package.json')
 
 Object.assign(globalThis, {
   __DEV__: false,
+  __E2E__: false,
   __TEST__: true,
   __DEV_SECRETS__: false,
   __APP_NAME__: packageInfo.productName,

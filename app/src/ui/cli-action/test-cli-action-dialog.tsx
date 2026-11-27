@@ -9,7 +9,10 @@ import { CLIAction } from '../../lib/cli-action'
 import { assertNever } from '../../lib/fatal-error'
 
 /** The CLI action kinds available to dispatch, in tab order. */
-const tabs: ReadonlyArray<CLIAction['kind']> = ['open-repository', 'clone-url']
+const tabs: ReadonlyArray<'open-repository' | 'clone-url'> = [
+  'open-repository',
+  'clone-url',
+]
 
 interface ITestCLIActionDialogProps {
   readonly dispatcher: Dispatcher

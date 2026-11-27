@@ -291,6 +291,25 @@ async function handleCommandLineArguments(argv: string[]) {
     return
   }
 
+  if (__E2E__ && process.env.DESKTOP_E2E === '1') {
+    const rawTestRepos = args['test-add-repositories']
+    const testRepoPaths = (
+      Array.isArray(rawTestRepos)
+        ? rawTestRepos
+        : typeof rawTestRepos === 'string'
+        ? [rawTestRepos]
+        : []
+    ).filter((p): p is string => typeof p === 'string' && p.length > 0)
+
+    if (testRepoPaths.length > 0) {
+      handleCLIAction({
+        kind: 'test-add-repositories',
+        paths: testRepoPaths,
+      })
+      return
+    }
+  }
+
   if (typeof args['cli-open'] === 'string') {
     handleCLIAction({ kind: 'open-repository', path: args['cli-open'] })
   } else if (typeof args['cli-clone'] === 'string') {

@@ -50,6 +50,9 @@ declare const __RELEASE_CHANNEL__:
 /** The URL for Squirrel's updates. */
 declare const __UPDATES_URL__: string
 
+/** True only in builds explicitly compiled with DESKTOP_E2E=1 for automated testing. */
+declare const __E2E__: boolean
+
 /** The URL for fatal exception reports. */
 declare const __ERROR_REPORTING_ENDPOINT__: string | undefined
 
