@@ -27,10 +27,10 @@ export const encodePathAsUrl = (...pathSegments: string[]) =>
  *                     is guaranteed to reside at, or underneath this
  *                     path.
  * @param pathSegments One or more paths to join with the root path
- * @param options      A subset of the Path module. Requires the join,
- *                     resolve, and normalize path functions. Defaults
- *                     to the platform specific path functions but can
- *                     be overridden by providing either Path.win32 or
+ * @param options      A subset of the Path module. Requires join, resolve,
+ *                     normalize, relative, and isAbsolute, plus the platform
+ *                     separator. Defaults to the platform specific path
+ *                     functions but can be overridden with Path.win32 or
  *                     Path.posix
  */
 async function _resolveWithin(
@@ -40,6 +40,9 @@ async function _resolveWithin(
     join: (...pathSegments: string[]) => string
     normalize: (p: string) => string
     resolve: (...pathSegments: string[]) => string
+    relative: (from: string, to: string) => string
+    isAbsolute: (p: string) => boolean
+    sep: string
   } = Path
 ) {
   // An empty root path would let all relative
@@ -68,7 +71,16 @@ async function _resolveWithin(
   const realRoot = await realpath(normalizedRoot)
   const realResolved = await realpath(resolved)
 
-  return realResolved.startsWith(realRoot) ? resolved : null
+  // Compare path components, not string prefixes: /root-sibling is not
+  // contained by /root even though its name begins with the same characters.
+  const relativePath = options.relative(realRoot, realResolved)
+  const isWithinRoot =
+    relativePath === '' ||
+    (!options.isAbsolute(relativePath) &&
+      relativePath !== '..' &&
+      !relativePath.startsWith(`..${options.sep}`))
+
+  return isWithinRoot ? resolved : null
 }
 
 /**
