@@ -1,8 +1,9 @@
 import * as React from 'react'
+import classNames from 'classnames'
 
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
-import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { CheckboxValue } from '../lib/checkbox'
 import { mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { TooltipDirection } from '../lib/tooltip'
@@ -27,12 +28,20 @@ interface IChangedFileProps {
 
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, {}> {
-  private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
+  private handleCheckboxClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    event.stopPropagation()
     if (this.props.disableSelection) {
       return
     }
-    const include = event.currentTarget.checked
-    this.props.onIncludeChanged(this.props.file, include)
+    const nextInclude = this.props.include !== true
+    this.props.onIncludeChanged(this.props.file, nextInclude)
+  }
+
+  private handleCheckboxDoubleClick = (
+    event: React.MouseEvent<HTMLSpanElement>
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -87,16 +96,55 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           direction={TooltipDirection.EAST}
           tagName="div"
         >
-          <Checkbox
-            // The checkbox doesn't need to be tab reachable since we emulate
-            // checkbox behavior on the list item itself, ie hitting space bar
-            // while focused on a row will toggle selection.
-            tabIndex={-1}
-            ariaHidden={true}
-            value={this.checkboxValue}
-            onChange={this.handleCheckboxChange}
-            disabled={disableSelection}
-          />
+          {/* Decorative non-focusable checkbox: ListRow (role="option") handles
+              keyboard Space toggling and screen-reader announcements so we avoid
+              nesting a focusable <input> inside role="option" (nested-interactive). */}
+          <span
+            aria-hidden="true"
+            className={classNames('changed-file-checkbox', {
+              checked: this.checkboxValue === CheckboxValue.On,
+              mixed: this.checkboxValue === CheckboxValue.Mixed,
+              disabled: disableSelection,
+            })}
+            onClick={this.handleCheckboxClick}
+            onDoubleClick={this.handleCheckboxDoubleClick}
+          >
+            {this.checkboxValue === CheckboxValue.On && (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 12 12"
+                width="10"
+                height="10"
+                focusable="false"
+              >
+                <path
+                  d="M2.2 6.2 4.8 8.8 9.8 3.2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+            {this.checkboxValue === CheckboxValue.Mixed && (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 12 12"
+                width="10"
+                height="10"
+                focusable="false"
+              >
+                <path
+                  d="M2.5 6h7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            )}
+          </span>
         </TooltippedContent>
 
         <PathLabel

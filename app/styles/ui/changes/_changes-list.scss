@@ -231,6 +231,33 @@
   }
 }
 
+.changed-file-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: var(--spacing-half);
+  border-radius: 3px;
+  border: 1px solid var(--box-border-color);
+  background: var(--background-color);
+  color: var(--box-selected-active-text-color);
+  flex-shrink: 0;
+  cursor: default;
+  user-select: none;
+
+  &.checked,
+  &.mixed {
+    background: var(--box-selected-active-background-color);
+    border-color: var(--box-selected-active-background-color);
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
 .undo-enter {
   max-height: 0;
   overflow: hidden;
