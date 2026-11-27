@@ -27,10 +27,10 @@ export const encodePathAsUrl = (...pathSegments: string[]) =>
  *                     is guaranteed to reside at, or underneath this
  *                     path.
  * @param pathSegments One or more paths to join with the root path
- * @param options      A subset of the Path module. Requires the join,
- *                     resolve, and normalize path functions. Defaults
- *                     to the platform specific path functions but can
- *                     be overridden by providing either Path.win32 or
+ * @param options      A subset of the Path module. Requires join, resolve,
+ *                     normalize, relative, and isAbsolute, plus the platform
+ *                     separator. Defaults to the platform specific path
+ *                     functions but can be overridden with Path.win32 or
  *                     Path.posix
  */
 async function _resolveWithin(
