@@ -40,6 +40,9 @@ async function _resolveWithin(
     join: (...pathSegments: string[]) => string
     normalize: (p: string) => string
     resolve: (...pathSegments: string[]) => string
+    relative: (from: string, to: string) => string
+    isAbsolute: (p: string) => boolean
+    sep: string
   } = Path
 ) {
   // An empty root path would let all relative
@@ -68,7 +71,16 @@ async function _resolveWithin(
   const realRoot = await realpath(normalizedRoot)
   const realResolved = await realpath(resolved)
 
-  return realResolved.startsWith(realRoot) ? resolved : null
+  // Compare path components, not string prefixes: /root-sibling is not
+  // contained by /root even though its name begins with the same characters.
+  const relativePath = options.relative(realRoot, realResolved)
+  const isWithinRoot =
+    relativePath === '' ||
+    (!options.isAbsolute(relativePath) &&
+      relativePath !== '..' &&
+      !relativePath.startsWith(`..${options.sep}`))
+
+  return isWithinRoot ? resolved : null
 }
 
 /**
