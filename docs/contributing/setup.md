@@ -22,7 +22,7 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v24.19.0
+v24.22.1
 
 $ npm -v
 11.17.0

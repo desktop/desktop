@@ -12,7 +12,8 @@ The NodeJS project has instructions for installing across a variety of
 distributions and package managers.
 
 Find your distribution on [this list](https://nodejs.org/en/download/package-manager/)
-and follow the instructions to install the version you require.
+and follow the instructions to install the version you require. You can check
+the recommended Node.js version in [`.node-version`](../../.node-version).
 
 Ensure that you also choose the option for building native Node modules, as
 those are used in some dependencies used in GitHub Desktop.
