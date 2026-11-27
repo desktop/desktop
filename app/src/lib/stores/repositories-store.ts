@@ -30,6 +30,7 @@ import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { Account, IAccountIdentity, isSameAccount } from '../../models/account'
 import { caseInsensitiveEquals } from '../compare'
+import { IRepositoryAccountChange } from '../account-repositories'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -296,31 +297,48 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     login: string | null
   ): Promise<Repository> {
+    const [updated] = await this.updateRepositoryAccounts([
+      { repository, login },
+    ])
+    return updated
+  }
+
+  /**
+   * Persist several explicit assignments in one transaction and return the
+   * current repositories, in the order given.
+   */
+  public async updateRepositoryAccounts(
+    changes: ReadonlyArray<IRepositoryAccountChange>
+  ): Promise<ReadonlyArray<Repository>> {
     const updated = await this.db.transaction(
       'rw',
       this.db.repositories,
       this.db.gitHubRepositories,
       this.db.owners,
       async () => {
-        const record = await this.db.repositories.get(repository.id)
-        assertNonNullable(
-          record,
-          'Cannot assign an account to a missing repository'
-        )
-        const ghRepo =
-          record.gitHubRepositoryID === null
-            ? null
-            : await this.getGitHubRepositoryForAccount(
-                record.gitHubRepositoryID,
-                login
-              )
-        const updatedRecord = {
-          ...record,
-          login,
-          gitHubRepositoryID: ghRepo?.dbID ?? null,
+        const repositories = new Array<Repository>()
+        for (const { repository, login } of changes) {
+          const record = await this.db.repositories.get(repository.id)
+          assertNonNullable(
+            record,
+            'Cannot assign an account to a missing repository'
+          )
+          const ghRepo =
+            record.gitHubRepositoryID === null
+              ? null
+              : await this.getGitHubRepositoryForAccount(
+                  record.gitHubRepositoryID,
+                  login
+                )
+          const updatedRecord = {
+            ...record,
+            login,
+            gitHubRepositoryID: ghRepo?.dbID ?? null,
+          }
+          await this.db.repositories.put(updatedRecord)
+          repositories.push(await this.toRepository(updatedRecord))
         }
-        await this.db.repositories.put(updatedRecord)
-        return this.toRepository(updatedRecord)
+        return repositories
       }
     )
     this.emitUpdatedRepositories()

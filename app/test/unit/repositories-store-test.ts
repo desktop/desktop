@@ -200,6 +200,38 @@ describe('RepositoriesStore', () => {
       )
     })
 
+    it('updates several repository accounts at once with account-scoped metadata', async () => {
+      const alice = await repositoriesStore.upsertGitHubRepository(
+        endpoint,
+        apiRepo,
+        'alice'
+      )
+      const first = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.updateRepositoryAccount(
+          await repositoriesStore.addRepository('/first', undefined),
+          'alice'
+        ),
+        alice
+      )
+      const second = await repositoriesStore.addRepository('/second', undefined)
+
+      const updated = await repositoriesStore.updateRepositoryAccounts([
+        { repository: first, login: 'bob' },
+        { repository: second, login: 'bob' },
+      ])
+
+      assert.deepStrictEqual(
+        updated.map(r => r.login),
+        ['bob', 'bob']
+      )
+      assert.notStrictEqual(updated[0].gitHubRepository?.dbID, alice.dbID)
+      assert.strictEqual(updated[0].gitHubRepository?.permissions, null)
+      assert.deepStrictEqual(
+        (await repositoriesStore.getAll()).map(r => r.login),
+        ['bob', 'bob']
+      )
+    })
+
     it('does not retain previous permissions when the API explicitly revokes them', async () => {
       await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo, 'alice')
       const updated = await repositoriesStore.upsertGitHubRepository(

@@ -38,6 +38,7 @@ export enum PopupType {
   RepositorySettings = 'RepositorySettings',
   RepositoryAccount = 'RepositoryAccount',
   ConfirmAccountSignOut = 'ConfirmAccountSignOut',
+  ManageAccountRepositories = 'ManageAccountRepositories',
   AddRepository = 'AddRepository',
   CreateRepository = 'CreateRepository',
   CloneRepository = 'CloneRepository',
@@ -149,6 +150,7 @@ export type PopupDetail =
       repositoryCount: number
       onComplete: (clearAssignments: boolean | undefined) => void
     }
+  | { type: PopupType.ManageAccountRepositories; account: Account }
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
       type: PopupType.DeleteBranch

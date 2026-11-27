@@ -1,181 +1,145 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { describe, it, TestContext } from 'node:test'
 import * as React from 'react'
+import { ipcRenderer } from 'electron'
+import { ISerializableMenuItem } from '../../../src/lib/menu-item'
 import { Account } from '../../../src/models/account'
 import { Accounts } from '../../../src/ui/preferences/accounts'
-import { fireEvent, render, screen, within } from '../../helpers/ui/render'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '../../helpers/ui/render'
+
+const account = (login: string, endpoint: string, id: number) =>
+  new Account(login, endpoint, 'token', [], '', id, `Name of ${login}`)
+
+/** Stub the contextual menu so that it picks the item at `choice.index`. */
+function mockContextualMenu(t: TestContext) {
+  const menus = new Array<ReadonlyArray<string | undefined>>()
+  const choice = { index: 0 }
+  t.mock.method(
+    ipcRenderer,
+    'invoke',
+    async (channel: string, items: ReadonlyArray<ISerializableMenuItem>) => {
+      assert.strictEqual(channel, 'show-contextual-menu')
+      menus.push(items.map(i => (i.label ?? i.type)?.toLowerCase()))
+      return [choice.index]
+    }
+  )
+  return { menus, choice }
+}
+
+function renderAccounts(
+  accounts: ReadonlyArray<Account>,
+  props: Partial<React.ComponentProps<typeof Accounts>> = {}
+) {
+  return render(
+    <Accounts
+      accounts={accounts}
+      onDotComSignIn={() => {}}
+      onEnterpriseSignIn={() => {}}
+      onLogout={() => {}}
+      onManageRepositories={() => {}}
+      {...props}
+    />
+  )
+}
 
 describe('Accounts preferences', () => {
-  it('shows all accounts on each endpoint and supports adding and signing out individually', () => {
+  it('lists every account in one list, GitHub.com first then by host', () => {
     const accounts = [
-      new Account(
-        'personal',
-        'https://api.github.com',
-        'token',
-        [],
-        '',
-        1,
-        'Personal'
-      ),
-      new Account('work', 'https://api.github.com', 'token', [], '', 2, 'Work'),
-      new Account(
-        'enterprise-one',
-        'https://enterprise.example.com/api/v3',
-        'token',
-        [],
-        '',
-        1,
-        'Enterprise one'
-      ),
-      new Account(
-        'enterprise-two',
-        'https://enterprise.example.com/api/v3',
-        'token',
-        [],
-        '',
-        2,
-        'Enterprise two'
-      ),
+      account('zeta-one', 'https://zeta.example.com/api/v3', 1),
+      account('personal', 'https://api.github.com', 2),
+      account('alpha-one', 'https://alpha.example.com/api/v3', 3),
+      account('custom-port', 'https://zeta.example.com:8443/api/v3', 4),
+      account('zeta-two', 'https://zeta.example.com/api/v3', 5),
+      account('work', 'https://api.github.com', 6),
+      account('tenant-one', 'https://api.tenant.ghe.com', 7),
     ]
-    let dotComSignIns = 0
-    let enterpriseSignIns = 0
-    const signedOut: Account[] = []
-    render(
-      <Accounts
-        accounts={accounts}
-        onDotComSignIn={() => dotComSignIns++}
-        onEnterpriseSignIn={() => enterpriseSignIns++}
-        onLogout={account => signedOut.push(account)}
-      />
-    )
+    renderAccounts(accounts)
 
-    for (const account of accounts) {
-      assert.ok(screen.getByText(`@${account.login}`, { exact: false }))
-    }
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Add GitHub.com account' })
-    )
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Add GitHub Enterprise account' })
-    )
-    assert.strictEqual(dotComSignIns, 1)
-    assert.strictEqual(enterpriseSignIns, 1)
-
-    const signOutButtons = screen.getAllByRole('button', { name: /sign out/i })
-    assert.strictEqual(signOutButtons.length, accounts.length)
-    fireEvent.click(signOutButtons[1])
-    assert.deepStrictEqual(signedOut, [accounts[1]])
+    assert.strictEqual(screen.queryAllByRole('heading', { level: 3 }).length, 0)
+    const list = screen.getByRole('list', { name: 'Accounts' })
+    const rows = within(list)
+      .getAllByRole('listitem')
+      .map(row => row.querySelector('.login')?.textContent)
+    assert.deepStrictEqual(rows, [
+      '@personal · GitHub.com',
+      '@work · GitHub.com',
+      '@alpha-one · alpha.example.com',
+      '@tenant-one · tenant.ghe.com',
+      '@zeta-one · zeta.example.com',
+      '@zeta-two · zeta.example.com',
+      '@custom-port · zeta.example.com:8443',
+    ])
   })
 
-  it('groups enterprise accounts by hostname in their own section', () => {
-    const enterprise = (login: string, endpoint: string, id: number) =>
-      new Account(login, endpoint, 'token', [], '', id, `Name of ${login}`)
-    const accounts = [
-      new Account(
-        'octocat',
-        'https://api.github.com',
-        'token',
-        [],
-        '',
-        1,
-        'The Octocat'
-      ),
-      enterprise('zeta-one', 'https://zeta.example.com/api/v3', 1),
-      enterprise('alpha-one', 'https://alpha.example.com/api/v3', 2),
-      enterprise('zeta-two', 'https://zeta.example.com/api/v3', 3),
-      enterprise('tenant-one', 'https://api.tenant.ghe.com', 4),
-    ]
-    const { container } = render(
-      <Accounts
-        accounts={accounts}
-        onDotComSignIn={() => {}}
-        onEnterpriseSignIn={() => {}}
-        onLogout={() => {}}
-      />
-    )
-
-    const headings = screen
-      .getAllByRole('heading', { level: 3 })
-      .map(h => h.textContent)
-    assert.deepStrictEqual(headings, [
-      'alpha.example.com',
-      'tenant.ghe.com',
-      'zeta.example.com',
-    ])
-
-    const loginsIn = (host: string) =>
-      within(screen.getByRole('region', { name: host }))
-        .getAllByText(/^@/)
-        .map(e => e.textContent)
-    assert.deepStrictEqual(loginsIn('alpha.example.com'), ['@alpha-one'])
-    assert.deepStrictEqual(loginsIn('tenant.ghe.com'), ['@tenant-one'])
-    assert.deepStrictEqual(loginsIn('zeta.example.com'), [
-      '@zeta-one',
-      '@zeta-two',
-    ])
-
-    // Every row shows the name, then the login, and no endpoint or host.
-    for (const row of container.querySelectorAll('.account-info')) {
-      const lines = [...row.querySelectorAll('.user-info > div')].map(
-        e => e.textContent
-      )
-      const login = row.querySelector('.login')?.textContent?.slice(1)
-      const account = accounts.find(a => a.login === login)
-      assert.ok(account)
-      assert.deepStrictEqual(lines, [account.name, `@${account.login}`])
-    }
-    assert.strictEqual(screen.queryByText(/https?:\/\//), null)
-
-    // The GitHub.com account is listed before the enterprise heading and
-    // isn't part of any hostname group.
-    const [dotCom, enterpriseHeading] = screen.getAllByRole('heading', {
-      level: 2,
+  it('adds GitHub.com or GitHub Enterprise accounts from the Add account menu', async t => {
+    const { menus, choice } = mockContextualMenu(t)
+    let dotCom = 0
+    let enterprise = 0
+    renderAccounts([account('personal', 'https://api.github.com', 1)], {
+      onDotComSignIn: () => dotCom++,
+      onEnterpriseSignIn: () => enterprise++,
     })
-    assert.strictEqual(dotCom.textContent, 'GitHub.com')
-    assert.strictEqual(enterpriseHeading.textContent, 'GitHub Enterprise')
-    const octocat = screen.getByText('@octocat')
-    assert.strictEqual(octocat.closest('section'), null)
-    assert.ok(
-      enterpriseHeading.compareDocumentPosition(octocat) &
-        container.DOCUMENT_POSITION_PRECEDING
-    )
+
+    const add = screen.getByRole('button', { name: /add account/i })
+    choice.index = 0
+    fireEvent.click(add)
+    await waitFor(() => assert.strictEqual(dotCom, 1))
+    choice.index = 1
+    fireEvent.click(add)
+    await waitFor(() => assert.strictEqual(enterprise, 1))
+
+    assert.strictEqual(dotCom, 1)
+    assert.deepStrictEqual(menus, [
+      ['github.com', 'github enterprise'],
+      ['github.com', 'github enterprise'],
+    ])
   })
 
-  it('keeps Enterprise servers on different ports in separate groups', () => {
-    const enterprise = (login: string, endpoint: string, id: number) =>
-      new Account(login, endpoint, 'token', [], '', id, login)
-    render(
-      <Accounts
-        accounts={[
-          enterprise('default-port', 'https://ghes.example.com/api/v3', 1),
-          enterprise('custom-port', 'https://ghes.example.com:8443/api/v3', 2),
-        ]}
-        onDotComSignIn={() => {}}
-        onEnterpriseSignIn={() => {}}
-        onLogout={() => {}}
-      />
+  it('manages repositories and signs out from each account menu', async t => {
+    const { menus, choice } = mockContextualMenu(t)
+    const accounts = [
+      account('personal', 'https://api.github.com', 1),
+      account('work', 'https://enterprise.example.com/api/v3', 2),
+    ]
+    const signedOut: Account[] = []
+    const managed: Account[] = []
+    renderAccounts(accounts, {
+      onLogout: a => signedOut.push(a),
+      onManageRepositories: a => managed.push(a),
+    })
+
+    assert.strictEqual(
+      screen.queryByRole('button', { name: /sign out|manage repositories/i }),
+      null
     )
 
-    const loginsIn = (host: string) =>
-      within(screen.getByRole('region', { name: host }))
-        .getAllByText(/^@/)
-        .map(e => e.textContent)
-    assert.deepStrictEqual(loginsIn('ghes.example.com'), ['@default-port'])
-    assert.deepStrictEqual(loginsIn('ghes.example.com:8443'), ['@custom-port'])
+    choice.index = 2
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for @work' }))
+    await waitFor(() => assert.deepStrictEqual(signedOut, [accounts[1]]))
+
+    choice.index = 0
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Actions for @personal' })
+    )
+    await waitFor(() => assert.deepStrictEqual(managed, [accounts[0]]))
+
+    assert.deepStrictEqual(signedOut, [accounts[1]])
+    assert.deepStrictEqual(menus, [
+      ['manage repositories…', 'separator', 'sign out'],
+      ['manage repositories…', 'separator', 'sign out'],
+    ])
   })
 
-  it('shows the original sign-in actions when there are no accounts', () => {
-    render(
-      <Accounts
-        accounts={[]}
-        onDotComSignIn={() => {}}
-        onEnterpriseSignIn={() => {}}
-        onLogout={() => {}}
-      />
-    )
-    assert.ok(screen.getByRole('button', { name: /sign into github.com/i }))
-    assert.ok(
-      screen.getByRole('button', { name: /sign into github enterprise/i })
-    )
+  it('shows an empty state and the Add account action when there are no accounts', () => {
+    renderAccounts([])
+    assert.ok(screen.getByText(/not signed in to any accounts/i))
+    assert.strictEqual(screen.queryByRole('list'), null)
+    assert.ok(screen.getByRole('button', { name: /add account/i }))
   })
 })

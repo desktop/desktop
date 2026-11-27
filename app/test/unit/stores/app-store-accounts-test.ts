@@ -512,4 +512,125 @@ describe('AppStore repository accounts', () => {
       )
     })
   }
+
+  describe('managing repositories after signing in from Account settings', () => {
+    function captureSignIn(t: TestContext) {
+      const signIn: { callback?: (result: SignInResult) => void } = {}
+      t.mock.method(
+        appStore,
+        '_beginDotComSignIn',
+        (callback: (result: SignInResult) => void) => {
+          signIn.callback = callback
+        }
+      )
+      t.mock.method(
+        appStore,
+        '_beginEnterpriseSignIn',
+        (callback: (result: SignInResult) => void) => {
+          signIn.callback = callback
+        }
+      )
+      return signIn
+    }
+
+    async function signIn(
+      t: TestContext,
+      kind: 'dotcom' | 'enterprise',
+      account: Account
+    ) {
+      const captured = captureSignIn(t)
+      await appStore._showAccountSettingsSignIn(kind)
+      await nextPopup(PopupType.SignIn)
+      await stores.accountsStore.addAccount(account)
+      captured.callback?.({ kind: 'success', account })
+      // Give the asynchronous offer as long as nextPopup allows to settle.
+      for (let i = 0; i < 100; i++) {
+        await setImmediate()
+      }
+    }
+
+    function managePopups() {
+      return popups.filter(p => p.type === PopupType.ManageAccountRepositories)
+    }
+
+    it('offers repositories on the host to a previously unknown account', async t => {
+      await addRepository('/manage-new-account', null)
+      const dave = new Account('dave', endpoint, 'dave-token', [], '', 4, '')
+      t.after(() => stores.accountsStore.removeAccount(dave))
+
+      await signIn(t, 'dotcom', dave)
+
+      const popup = await nextPopup(PopupType.ManageAccountRepositories)
+      assert.equal(
+        popup.type === PopupType.ManageAccountRepositories &&
+          popup.account.login,
+        'dave'
+      )
+    })
+
+    it('does not offer repositories when an existing account refreshes credentials', async t => {
+      const refreshed = new Account(
+        'alice',
+        endpoint,
+        'alice-token',
+        [],
+        '',
+        1,
+        'Alice'
+      )
+      await signIn(t, 'dotcom', refreshed)
+      assert.deepEqual(managePopups(), [])
+    })
+
+    it('does not offer repositories when the host has none', async t => {
+      const erin = new Account(
+        'erin',
+        'https://empty.example.com/api/v3',
+        'erin-token',
+        [],
+        '',
+        5,
+        ''
+      )
+      t.after(() => stores.accountsStore.removeAccount(erin))
+      await signIn(t, 'enterprise', erin)
+      assert.deepEqual(managePopups(), [])
+    })
+
+    it('assigns selected repositories and keeps unselected associations', async () => {
+      const unassigned = await addRepository('/bulk-unassigned', null)
+      const onBob = await addRepository('/bulk-bob', 'bob')
+      const onAlice = await addRepository('/bulk-alice', 'alice')
+      const untouched = await addRepository('/bulk-untouched', 'bob')
+      const openGitStore = appStore['gitStoreCache'].get(onBob)
+
+      await appStore._updateAccountRepositories(
+        alice,
+        new Set([unassigned.id, onBob.id, onAlice.id]),
+        new Set([unassigned.id, onBob.id])
+      )
+
+      const logins = new Map(
+        (await stores.repositoriesStore.getAll()).map(r => [r.id, r.login])
+      )
+      assert.equal(logins.get(unassigned.id), 'alice')
+      assert.equal(logins.get(onBob.id), 'alice')
+      assert.equal(logins.get(onAlice.id), null)
+      assert.equal(logins.get(untouched.id), 'bob')
+      assert.equal(openGitStore.repository.login, 'alice')
+    })
+
+    it('refuses to assign repositories to a signed-out account', async () => {
+      const repository = await addRepository('/bulk-signed-out', null)
+      const ghost = new Account('ghost', endpoint, 'token', [], '', 9, '')
+      await assert.rejects(
+        appStore._updateAccountRepositories(
+          ghost,
+          new Set([repository.id]),
+          new Set([repository.id])
+        ),
+        /@ghost is no longer signed in/
+      )
+    })
+  })
 })

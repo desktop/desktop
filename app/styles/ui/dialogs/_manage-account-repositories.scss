@@ -1,0 +1,137 @@
+#manage-account-repositories {
+  width: 500px;
+
+  .account-repositories-filter {
+    flex: 0 0 auto;
+    margin-bottom: var(--spacing);
+
+    // The filter provides its own clear button.
+    input[type='search']::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  .account-repositories-box {
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+
+  .account-repositories-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    height: 30px;
+    padding: 0 var(--spacing-half) 0 var(--spacing);
+    background: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+
+    .account-repositories-count {
+      flex-grow: 1;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  .account-repositories-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    height: 260px;
+    overflow-y: auto;
+    // Avoid layout shifts when filtering changes whether the list scrolls.
+    scrollbar-gutter: stable;
+  }
+
+  .account-repositories-no-matches {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 260px;
+    margin: 0;
+    color: var(--text-secondary-color);
+  }
+
+  .account-repositories-note {
+    margin: var(--spacing) 0 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+
+  .account-repository {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: var(--spacing-half);
+    row-gap: 2px;
+    align-items: center;
+    margin: 0;
+    padding: var(--spacing-half) var(--spacing);
+
+    &:not(:last-child) {
+      border-bottom: var(--base-border);
+    }
+
+    // --box-alt-background-color keeps secondary text above 4.5:1 in both
+    // themes, unlike --box-hover-background-color in the dark theme.
+    &:hover {
+      background: var(--box-alt-background-color);
+    }
+
+    // Lay out the checkbox, its label, and the details on a shared grid so
+    // the association can be vertically centered across both lines.
+    .checkbox-component,
+    .account-repository-details {
+      display: contents;
+    }
+
+    input[type='checkbox'] {
+      grid-column: 1;
+      grid-row: 1;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    label {
+      grid-column: 2;
+      grid-row: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      // Make the whole row toggle the checkbox.
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+    }
+
+    .account-repository-full-name {
+      grid-column: 2;
+      grid-row: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .account-repository-association {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-third);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      white-space: nowrap;
+
+      &.this-account {
+        color: var(--text-color);
+      }
+    }
+  }
+}
