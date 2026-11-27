@@ -5,7 +5,7 @@ import { resolve, basename, join } from 'path'
 import { promises } from 'fs'
 import { tmpdir } from 'os'
 
-const { rmdir, mkdtemp, symlink, unlink } = promises
+const { rmdir, mkdtemp, mkdir, symlink, unlink } = promises
 
 describe('path', () => {
   describe('encodePathAsUrl', () => {
@@ -60,6 +60,22 @@ describe('path', () => {
     it('succeeds for absolute relative paths as long as they stay within the root', async () => {
       const parent = resolve(root, '..')
       assert.equal(await resolveWithin(parent, root), root)
+    })
+
+    it('fails for a sibling path that shares the root prefix', async () => {
+      const tempDir = await mkdtemp(join(tmpdir(), 'path-test'))
+      const rootDir = join(tempDir, 'repo')
+      const siblingDir = join(tempDir, 'repo-sibling')
+
+      try {
+        await mkdir(rootDir)
+        await mkdir(siblingDir)
+        assert((await resolveWithin(rootDir, '..', 'repo-sibling')) === null)
+      } finally {
+        await rmdir(rootDir)
+        await rmdir(siblingDir)
+        await rmdir(tempDir)
+      }
     })
 
     if (!__WIN32__) {
