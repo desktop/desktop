@@ -290,6 +290,7 @@ body.theme-dark {
    */
   --primary-suggested-action-background: #{$blue-900};
   --primary-suggested-action-border-color: #{$blue-700};
+  --primary-suggested-action-secondary-text-color: var(--text-secondary-color);
   --suggested-action-icon-color: #{$blue-400};
 
   /**

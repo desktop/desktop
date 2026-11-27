@@ -20,6 +20,10 @@
   &.primary {
     background: var(--primary-suggested-action-background);
     border-color: var(--primary-suggested-action-border-color);
+
+    p.discoverability {
+      color: var(--primary-suggested-action-secondary-text-color);
+    }
   }
 
   .text-wrapper {
