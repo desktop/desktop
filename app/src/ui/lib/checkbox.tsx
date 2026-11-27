@@ -32,6 +32,9 @@ interface ICheckboxProps {
    * information than a label that a the user might need */
   readonly ariaDescribedBy?: string
 
+  /** Hide the checkbox from the accessibility tree when selection is handled by a parent control */
+  readonly ariaHidden?: boolean
+
   readonly className?: string
 }
 
@@ -127,6 +130,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           disabled={this.props.disabled}
           aria-describedby={this.props.ariaDescribedBy}
           aria-labelledby={this.props.ariaLabelledBy}
+          aria-hidden={this.props.ariaHidden}
         />
         {this.renderLabel()}
       </div>

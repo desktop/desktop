@@ -92,6 +92,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
             // checkbox behavior on the list item itself, ie hitting space bar
             // while focused on a row will toggle selection.
             tabIndex={-1}
+            ariaHidden={true}
             value={this.checkboxValue}
             onChange={this.handleCheckboxChange}
             disabled={disableSelection}
