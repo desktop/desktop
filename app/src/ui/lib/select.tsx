@@ -6,6 +6,9 @@ interface ISelectProps {
   /** The label for the select control. */
   readonly label?: string
 
+  /** Accessible label for the select control when no visible label is rendered. */
+  readonly 'aria-label'?: string
+
   /** The className for the select component. */
   readonly className?: string
 
@@ -63,6 +66,7 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
         {this.renderLabel()}
         <select
           id={this.state.inputId}
+          aria-label={this.props['aria-label']}
           onChange={this.props.onChange}
           value={this.props.value}
           defaultValue={this.props.defaultValue}
