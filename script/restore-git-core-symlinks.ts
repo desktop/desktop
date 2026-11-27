@@ -3,6 +3,7 @@ import {
   lstatSync,
   readlinkSync,
   readdirSync,
+  realpathSync,
   rmSync,
   symlinkSync,
 } from 'fs'
@@ -66,6 +67,8 @@ export function restoreGitCoreSymlinks(
     )
   }
 
+  const sourceGitRealDirectory = realpathSync(sourceGitDirectory)
+  const packagedGitRealDirectory = realpathSync(packagedGitDirectory)
   let restored = 0
 
   for (const sourceLink of findSymlinks(sourceGitCoreDirectory)) {
@@ -76,11 +79,18 @@ export function restoreGitCoreSymlinks(
       continue
     }
 
-    const sourceTarget = resolve(dirname(sourceLink), target)
-    if (
-      !isWithinDirectory(sourceGitDirectory, sourceTarget) ||
-      !existsSync(sourceTarget)
-    ) {
+    // Resolve the link through the filesystem before checking containment.
+    // Lexically collapsing ".." first is unsafe when an earlier component is
+    // itself a symlink (for example, "redirect/../git-bin").
+    let sourceTarget: string
+    try {
+      sourceTarget = realpathSync(sourceLink)
+    } catch {
+      // Broken or otherwise unresolvable source links must remain dereferenced.
+      continue
+    }
+
+    if (!isWithinDirectory(sourceGitRealDirectory, sourceTarget)) {
       continue
     }
 
@@ -88,12 +98,25 @@ export function restoreGitCoreSymlinks(
       packagedGitCoreDirectory,
       relative(sourceGitCoreDirectory, sourceLink)
     )
-    const packagedTarget = resolve(dirname(packagedLink), target)
+    const packagedCandidate = resolve(dirname(packagedLink), target)
+    const expectedPackagedTarget = resolve(
+      packagedGitRealDirectory,
+      relative(sourceGitRealDirectory, sourceTarget)
+    )
 
-    // Only recreate a link if its target was copied into the packaged bundle.
+    // Packager may have dereferenced intermediate links. Recreate the link
+    // only when the original target string still resolves to the mirrored
+    // target inside the packaged Git directory.
+    let packagedTarget: string
+    try {
+      packagedTarget = realpathSync(packagedCandidate)
+    } catch {
+      continue
+    }
+
     if (
-      !isWithinDirectory(packagedGitDirectory, packagedTarget) ||
-      !existsSync(packagedTarget)
+      !isWithinDirectory(packagedGitRealDirectory, packagedTarget) ||
+      packagedTarget !== expectedPackagedTarget
     ) {
       continue
     }
