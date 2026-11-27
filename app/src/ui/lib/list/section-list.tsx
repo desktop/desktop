@@ -1369,7 +1369,11 @@ export class SectionList extends React.Component<
       return (
         <Grid
           key={section}
-          id={this.props.accessibleListId}
+          id={
+            this.props.accessibleListId
+              ? `${this.props.accessibleListId}-section-${section}`
+              : undefined
+          }
           role="listbox"
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
